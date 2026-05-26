@@ -57,10 +57,10 @@ Button {
     // 📐 规范 (间距与排版)
     // ==========================================
     // MD3 规范：Text 按钮左右间距为 12px，其他带有容器的按钮为 24px
-    leftPadding: control.type === "text" ? 12 : 24
-    rightPadding: control.type === "text" ? 12 : 24
-    topPadding: 10
-    bottomPadding: 10
+    leftPadding: (control.type === "text" ? 12 : 24) * MeoTheme.globalScale
+    rightPadding: (control.type === "text" ? 12 : 24) * MeoTheme.globalScale
+    topPadding: 10 * MeoTheme.globalScale
+    bottomPadding: 10 * MeoTheme.globalScale
 
     // ==========================================
     // 🔤 文字内容区 (严格对齐你的 Label Large 规范)
@@ -87,9 +87,9 @@ Button {
     // ==========================================
     background: Rectangle {
         // 🌟 implicitWidth 体验优化：取最小宽度与“文本实际尺寸 + Padding”的最大值，防止长文本溢出
-        implicitWidth: Math.max(control.type === "text" ? 48 : 64, contentItem.implicitWidth + leftPadding + rightPadding)
-        implicitHeight: 40 // MD3 标准高度
-        radius: 20 // M3 标准全圆角胶囊状
+        implicitWidth: Math.max((control.type === "text" ? 48 : 64) * MeoTheme.globalScale, contentItem.implicitWidth + leftPadding + rightPadding)
+        implicitHeight: 40 * MeoTheme.globalScale // MD3 标准高度
+        radius: 20 * MeoTheme.globalScale // M3 标准全圆角胶囊状
         
         // 🌟 MD3 State Layer (状态层) 交互规范
         color: {
