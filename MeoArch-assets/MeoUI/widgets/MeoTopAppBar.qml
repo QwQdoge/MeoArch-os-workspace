@@ -5,17 +5,18 @@ import MeoUI
 Rectangle {
     id: control
 
-    // 🌟 核心属性
-    // type: "small" | "center" | "medium" | "large"
     property string type: "small"
     property string title: ""
     property Component navigationIcon: null
-    property var actions: [] // List of Components or Icons
+    property var actions: []
 
-    // 🌟 作用域与主题安全防御
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
     readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+
+    readonly property var fontTitleLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.titleLarge !== 'undefined') ? MeoTheme.titleLarge : { "size": 22, "weight": Font.Normal }
+    readonly property var fontHeadlineMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.headlineMedium !== 'undefined') ? MeoTheme.headlineMedium : { "size": 28, "weight": Font.Normal }
+    readonly property var fontHeadlineLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.headlineLarge !== 'undefined') ? MeoTheme.headlineLarge : { "size": 32, "weight": Font.Normal }
 
     width: parent ? parent.width : 360 * themeGlobalScale
     height: {
@@ -25,12 +26,10 @@ Rectangle {
     }
     color: themeSurface
 
-    // Layout
     Item {
         anchors.fill: parent
         anchors.margins: 16 * control.themeGlobalScale
 
-        // Navigation Icon
         Loader {
             id: navIconLoader
             anchors.left: parent.left
@@ -41,10 +40,10 @@ Rectangle {
             height: 24 * control.themeGlobalScale
         }
 
-        // Title
         Text {
             text: control.title
-            font.pixelSize: (control.type === "large" ? 28 : (control.type === "medium" ? 24 : 22)) * control.themeGlobalScale
+            font.pixelSize: (control.type === "large" ? fontHeadlineLarge.size : (control.type === "medium" ? fontHeadlineMedium.size : fontTitleLarge.size)) * control.themeGlobalScale
+            font.weight: (control.type === "large" ? fontHeadlineLarge.weight : (control.type === "medium" ? fontHeadlineMedium.weight : fontTitleLarge.weight))
             color: control.themeOnSurface
             anchors.horizontalCenter: control.type === "center" ? parent.horizontalCenter : undefined
             anchors.left: control.type === "center" ? undefined : navIconLoader.right
@@ -53,7 +52,6 @@ Rectangle {
             anchors.bottom: control.type === "medium" || control.type === "large" ? parent.bottom : undefined
         }
 
-        // Actions
         Row {
             anchors.right: parent.right
             anchors.verticalCenter: control.type === "small" || control.type === "center" ? parent.verticalCenter : undefined

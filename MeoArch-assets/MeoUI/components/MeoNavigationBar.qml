@@ -1,15 +1,14 @@
 import QtQuick
 import QtQuick.Controls
+import MeoUI
 
 Rectangle {
     id: control
 
-    // 🌟 核心属性
-    property var model: [] // { icon: "", label: "" }
+    property var model: []
     property int currentIndex: 0
     signal clicked(int index)
 
-    // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
@@ -18,6 +17,8 @@ Rectangle {
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
     readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+
+    readonly property var fontLabelMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelMedium !== 'undefined') ? MeoTheme.labelMedium : { "size": 12, "weight": Font.Medium }
 
     implicitWidth: 360 * themeGlobalScale
     implicitHeight: 80 * themeGlobalScale
@@ -28,7 +29,6 @@ Rectangle {
 
         Repeater {
             model: control.model
-
             delegate: Item {
                 width: control.width / control.model.length
                 height: control.height
@@ -39,7 +39,6 @@ Rectangle {
                     anchors.centerIn: parent
                     spacing: 4 * control.themeGlobalScale
 
-                    // 🎨 选中背景圆点
                     Rectangle {
                         id: selectionIndicator
                         width: isSelected ? 64 * control.themeGlobalScale : 32 * control.themeGlobalScale
@@ -48,10 +47,10 @@ Rectangle {
                         anchors.horizontalCenter: parent.horizontalCenter
                         color: isSelected ? control.themeSecondaryContainer : "transparent"
 
-                        Text {
+                        MeoIcon {
                             anchors.centerIn: parent
-                            text: modelData.icon
-                            font.pixelSize: 24 * control.themeGlobalScale
+                            icon: modelData.icon
+                            size: 24
                             color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                         }
 
@@ -62,8 +61,8 @@ Rectangle {
                     Text {
                         text: modelData.label
                         anchors.horizontalCenter: parent.horizontalCenter
-                        font.pixelSize: 12 * control.themeGlobalScale
-                        font.weight: isSelected ? Font.Bold : Font.Normal
+                        font.pixelSize: fontLabelMedium.size * control.themeGlobalScale
+                        font.weight: isSelected ? Font.Bold : fontLabelMedium.weight
                         color: isSelected ? control.themeOnSurface : control.themeOnSurfaceVariant
                     }
                 }
@@ -79,7 +78,6 @@ Rectangle {
         }
     }
 
-    // Top border/shadow
     Rectangle {
         width: parent.width
         height: 1
