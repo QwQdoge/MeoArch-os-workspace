@@ -1,0 +1,17 @@
+[Unit]
+Description=Material OS Graphical Installer Kiosk
+# 确保在网络和基础图形驱动准备好后启动
+After=network.target sound.target
+
+[Service]
+Type=simple
+User=root
+# 关键：使用 cage 作为全屏容器。-s 参数表示在程序关闭后关闭合成器。
+# 环境参数 QT_QPA_PLATFORM=wayland 确保你的 PySide 程序以原生 Wayland 模式运行。
+Environment=QT_QPA_PLATFORM=wayland
+ExecStart=/usr/bin/cage -s -- /usr/bin/python /usr/local/bin/material_installer.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
