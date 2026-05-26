@@ -10,6 +10,7 @@ Button {
     // 🌟 核心开关：通过这个属性直接控制按钮长相
     // 可选值: "filled" (默认) | "tonal" | "outlined" | "elevated" | "text"
     property string type: "filled"
+    property string icon: ""
 
     // 🌟 消除作用域歧义：将外部变量封装成内部属性，确保作为原子组件的独立性
     readonly property bool isDarkMode: MeoTheme.isDarkMode
@@ -63,22 +64,31 @@ Button {
     bottomPadding: 10 * MeoTheme.globalScale
 
     // ==========================================
-    // 🔤 文字内容区 (严格对齐你的 Label Large 规范)
+    // 🔤 内容区 (文字 + 图标)
     // ==========================================
-    contentItem: Text {
-        text: control.text
-        font.pixelSize: 14 * MeoTheme.globalScale // 自动吃你的三级屏幕缩放公式
-        font.weight: Font.Medium // Label Large 标准 500 字重
-        font.letterSpacing: 0.1 // MD3 Label Large 字距规范
-        color: control.textColor
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
+    contentItem: Row {
+        spacing: 8 * MeoTheme.globalScale
+        anchors.centerIn: parent
 
-        // 丝滑变色动画
-        Behavior on color {
-            ColorAnimation {
-                duration: 150
-            }
+        Text {
+            text: control.icon
+            visible: control.icon !== ""
+            font.pixelSize: 18 * MeoTheme.globalScale
+            color: control.textColor
+            verticalAlignment: Text.AlignVCenter
+
+            Behavior on color { ColorAnimation { duration: 150 } }
+        }
+
+        Text {
+            text: control.text
+            font.pixelSize: 14 * MeoTheme.globalScale
+            font.weight: Font.Medium
+            font.letterSpacing: 0.1
+            color: control.textColor
+            verticalAlignment: Text.AlignVCenter
+
+            Behavior on color { ColorAnimation { duration: 150 } }
         }
     }
 
