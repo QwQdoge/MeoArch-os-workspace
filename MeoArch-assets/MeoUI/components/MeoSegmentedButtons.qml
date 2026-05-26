@@ -7,6 +7,8 @@ Frame {
     // 🌟 核心对外属性
     property var model: ["option1", "option2", "option3"] // 外部传入的文本数组
     property int currentIndex: 0 // 当前选中的索引
+    property bool multiSelect: false
+    property var selectedIndices: []
     signal selected(int index, string text) // 选中时向外发射的信号
 
     // 🌟 消除外部作用域歧义：将外部变量封装成内部属性，确保作为原子组件的独立性
@@ -54,7 +56,7 @@ Frame {
                 width: control.width / control.model.length
                 height: control.height
 
-                readonly property bool isSelected: control.currentIndex === index
+                readonly property bool isSelected: control.multiSelect ? control.selectedIndices.includes(index) : control.currentIndex === index
 
                 // 前景色与背景色计算，为 M3 Tonal / Outlined 规范做适配
                 readonly property color activeBgColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? 
@@ -110,7 +112,15 @@ Frame {
                         anchors.fill: parent
                         hoverEnabled: true
                         onClicked: {
-                            control.currentIndex = index;
+                            if (control.multiSelect) {
+                                let arr = [...control.selectedIndices]
+                                let idx = arr.indexOf(index)
+                                if (idx === -1) arr.push(index)
+                                else arr.splice(idx, 1)
+                                control.selectedIndices = arr
+                            } else {
+                                control.currentIndex = index;
+                            }
                             control.selected(index, modelData);
                         }
                     }

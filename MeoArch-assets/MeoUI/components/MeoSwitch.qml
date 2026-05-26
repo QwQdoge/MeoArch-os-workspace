@@ -7,6 +7,8 @@ Control {
     // 🌟 核心属性
     property bool checked: false
     property string label: ""
+    property string icon: ""
+    property string uncheckedIcon: ""
     signal toggled(bool checked)
 
     // 🌟 作用域与主题安全防御
@@ -70,6 +72,14 @@ Control {
 
                 // 实际上 MD3 的未选中 thumb 是 16px，选中是 24px
                 x: control.checked ? (parent.width - width - 4 * control.themeGlobalScale) : 8 * control.themeGlobalScale
+
+                Text {
+                    anchors.centerIn: parent
+                    text: control.checked ? control.icon : control.uncheckedIcon
+                    font.pixelSize: 16 * control.themeGlobalScale
+                    color: control.checked ? control.themePrimary : control.themeOnSurfaceVariant
+                    visible: text !== ""
+                }
 
                 color: {
                     if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38)
