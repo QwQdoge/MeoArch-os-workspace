@@ -5,14 +5,37 @@ find_package(Qt6 REQUIRED COMPONENTS Core Quick)
 
 # 定义 QML 模块
 qt_add_qml_module(meoui_module
-    URI "MeoUI"  # 这里对应你在 QML 中 import 的名字
+    URI "MeoUI"
     VERSION 1.0
     QML_FILES
+        MeoTheme.qml
         components/MeoButton.qml
         components/MeoSegmentedButtons.qml
         components/MeoTextField.qml
-        MeoTheme.qml
-        # 把你所有需要导出的组件都列在这里
+        components/MeoCheckbox.qml
+        components/MeoSwitch.qml
+        components/MeoSlider.qml
+        components/MeoRadioButton.qml
+        components/MeoFAB.qml
+        components/MeoCard.qml
+        components/MeoChip.qml
+        components/MeoProgressBar.qml
+        components/MeoNavigationBar.qml
+        components/MeoDialog.qml
+        components/MeoBadge.qml
+        components/MeoDivider.qml
+        components/MeoListItem.qml
+        components/MeoMenu.qml
+        components/MeoTabs.qml
+        components/MeoTooltip.qml
+        components/MeoSnackbar.qml
+        widgets/MeoMediaController.qml
+        widgets/MeoDatePicker.qml
+        widgets/MeoTimePicker.qml
+        widgets/MeoNavigationRail.qml
+        widgets/MeoNavigationDrawer.qml
+        widgets/MeoBottomSheet.qml
+        widgets/MeoSearchBar.qml
 )
 
 # 确保链接到 QtQuick
