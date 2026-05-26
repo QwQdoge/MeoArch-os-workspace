@@ -1,0 +1,30 @@
+import QtQuick
+import QtQuick.Controls
+
+Rectangle {
+    id: control
+
+    // 🌟 核心属性
+    property string text: ""
+    property bool isDot: false
+
+    // 🌟 作用域与主题安全防御
+    readonly property color themeError: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.error !== 'undefined') ? MeoTheme.error : "#B3261E"
+    readonly property color themeOnError: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onError !== 'undefined') ? MeoTheme.onError : "#FFFFFF"
+    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+
+    implicitWidth: isDot ? 6 * themeGlobalScale : Math.max(16 * themeGlobalScale, label.implicitWidth + 8 * themeGlobalScale)
+    implicitHeight: isDot ? 6 * themeGlobalScale : 16 * themeGlobalScale
+    radius: height / 2
+    color: themeError
+
+    Text {
+        id: label
+        anchors.centerIn: parent
+        text: control.text
+        visible: !control.isDot
+        font.pixelSize: 10 * control.themeGlobalScale
+        font.weight: Font.Medium
+        color: control.themeOnError
+    }
+}
