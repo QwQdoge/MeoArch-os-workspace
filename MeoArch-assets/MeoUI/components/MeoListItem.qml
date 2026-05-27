@@ -1,10 +1,10 @@
 import QtQuick
 import QtQuick.Controls
+import MeoUI
 
 Control {
     id: control
 
-    // 🌟 核心属性
     property string headline: ""
     property string supportingText: ""
     property string leadingIcon: ""
@@ -14,11 +14,13 @@ Control {
 
     signal clicked()
 
-    // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+
+    readonly property var fontBodyLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyLarge !== 'undefined') ? MeoTheme.bodyLarge : { "size": 16, "weight": Font.Normal }
+    readonly property var fontBodyMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyMedium !== 'undefined') ? MeoTheme.bodyMedium : { "size": 14, "weight": Font.Normal }
 
     implicitWidth: 360 * themeGlobalScale
     implicitHeight: Math.max(56 * themeGlobalScale, contentRow.implicitHeight + padding * 2)
@@ -28,7 +30,6 @@ Control {
     background: Rectangle {
         color: "transparent"
 
-        // 🌟 状态层反馈
         Rectangle {
             anchors.fill: parent
             visible: control.interactive
@@ -53,7 +54,6 @@ Control {
         spacing: 16 * control.themeGlobalScale
         width: parent.width
 
-        // Leading Area
         Item {
             width: 24 * control.themeGlobalScale
             height: 24 * control.themeGlobalScale
@@ -66,16 +66,15 @@ Control {
                 visible: control.leadingComponent !== null
             }
 
-            Text {
+            MeoIcon {
                 anchors.centerIn: parent
-                text: control.leadingIcon
-                font.pixelSize: 24 * control.themeGlobalScale
+                icon: control.leadingIcon
+                size: 24
                 color: control.themeOnSurfaceVariant
                 visible: control.leadingIcon !== "" && control.leadingComponent === null
             }
         }
 
-        // Text Area
         Column {
             width: parent.width - (control.leadingIcon !== "" || control.leadingComponent !== null ? 40 * control.themeGlobalScale : 0) - (control.trailingComponent !== null ? 40 * control.themeGlobalScale : 0)
             anchors.verticalCenter: parent.verticalCenter
@@ -84,7 +83,8 @@ Control {
             Text {
                 text: control.headline
                 width: parent.width
-                font.pixelSize: 16 * control.themeGlobalScale
+                font.pixelSize: fontBodyLarge.size * control.themeGlobalScale
+                font.weight: fontBodyLarge.weight
                 color: control.themeOnSurface
                 elide: Text.ElideRight
             }
@@ -92,7 +92,8 @@ Control {
             Text {
                 text: control.supportingText
                 width: parent.width
-                font.pixelSize: 14 * control.themeGlobalScale
+                font.pixelSize: fontBodyMedium.size * control.themeGlobalScale
+                font.weight: fontBodyMedium.weight
                 color: control.themeOnSurfaceVariant
                 visible: text !== ""
                 elide: Text.ElideRight
@@ -101,7 +102,6 @@ Control {
             }
         }
 
-        // Trailing Area
         Loader {
             width: 24 * control.themeGlobalScale
             height: 24 * control.themeGlobalScale

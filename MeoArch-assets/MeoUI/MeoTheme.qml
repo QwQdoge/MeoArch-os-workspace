@@ -65,4 +65,32 @@ QtObject {
     property int compactPadding: 8
     property int standardPadding: 16
     property int largePadding: 24
+
+    // 🌟 Material Design 3 Typography (Type Scale)
+    // Format: { size, weight, lineHeight, letterSpacing }
+
+    // Display
+    readonly property var displayLarge: { "size": 57, "weight": Font.Normal, "lineHeight": 64, "letterSpacing": -0.25 }
+    readonly property var displayMedium: { "size": 45, "weight": Font.Normal, "lineHeight": 52, "letterSpacing": 0 }
+    readonly property var displaySmall: { "size": 36, "weight": Font.Normal, "lineHeight": 44, "letterSpacing": 0 }
+
+    // Headline
+    readonly property var headlineLarge: { "size": 32, "weight": Font.Normal, "lineHeight": 40, "letterSpacing": 0 }
+    readonly property var headlineMedium: { "size": 28, "weight": Font.Normal, "lineHeight": 36, "letterSpacing": 0 }
+    readonly property var headlineSmall: { "size": 24, "weight": Font.Normal, "lineHeight": 32, "letterSpacing": 0 }
+
+    // Title
+    readonly property var titleLarge: { "size": 22, "weight": Font.Normal, "lineHeight": 28, "letterSpacing": 0 }
+    readonly property var titleMedium: { "size": 16, "weight": Font.Medium, "lineHeight": 24, "letterSpacing": 0.15 }
+    readonly property var titleSmall: { "size": 14, "weight": Font.Medium, "lineHeight": 20, "letterSpacing": 0.1 }
+
+    // Body
+    readonly property var bodyLarge: { "size": 16, "weight": Font.Normal, "lineHeight": 24, "letterSpacing": 0.5 }
+    readonly property var bodyMedium: { "size": 14, "weight": Font.Normal, "lineHeight": 20, "letterSpacing": 0.25 }
+    readonly property var bodySmall: { "size": 12, "weight": Font.Normal, "lineHeight": 16, "letterSpacing": 0.4 }
+
+    // Label
+    readonly property var labelLarge: { "size": 14, "weight": Font.Medium, "lineHeight": 20, "letterSpacing": 0.1 }
+    readonly property var labelMedium: { "size": 12, "weight": Font.Medium, "lineHeight": 16, "letterSpacing": 0.5 }
+    readonly property var labelSmall: { "size": 11, "weight": Font.Medium, "lineHeight": 16, "letterSpacing": 0.5 }
 }
