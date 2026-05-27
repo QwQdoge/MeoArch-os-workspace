@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(MeoUI LANGUAGES CXX)
-
+set(CMAKE_AUTOMOC ON)
 find_package(Qt6 REQUIRED COMPONENTS Core Quick)
 
 # 定义 QML 模块
