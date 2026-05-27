@@ -1,17 +1,16 @@
 import QtQuick
 import QtQuick.Controls
+import MeoUI
 
 Control {
     id: control
 
-    // 🌟 核心属性
     property bool checked: false
     property string label: ""
     property string icon: ""
     property string uncheckedIcon: ""
     signal toggled(bool checked)
 
-    // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimary !== 'undefined') ? MeoTheme.onPrimary : "#FFFFFF"
@@ -21,13 +20,14 @@ Control {
     readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
+    readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
+
     implicitWidth: Math.max(switchTrack.width + (label !== "" ? spacing + labelText.implicitWidth : 0), 52 * themeGlobalScale)
     implicitHeight: Math.max(switchTrack.height, 40 * themeGlobalScale)
 
     padding: 8 * themeGlobalScale
     spacing: 12 * themeGlobalScale
 
-    // 点击交互
     MouseArea {
         id: mouseArea
         anchors.fill: parent
@@ -41,7 +41,6 @@ Control {
     contentItem: Row {
         spacing: control.spacing
 
-        // 🎨 开关轨道
         Rectangle {
             id: switchTrack
             width: 52 * control.themeGlobalScale
@@ -62,23 +61,20 @@ Control {
             }
             border.width: 2 * control.themeGlobalScale
 
-            // 🌟 开关滑块 (Thumb)
             Rectangle {
                 id: thumb
                 width: control.checked ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
                 height: width
                 radius: width / 2
                 anchors.verticalCenter: parent.verticalCenter
-
-                // 实际上 MD3 的未选中 thumb 是 16px，选中是 24px
                 x: control.checked ? (parent.width - width - 4 * control.themeGlobalScale) : 8 * control.themeGlobalScale
 
-                Text {
+                MeoIcon {
                     anchors.centerIn: parent
-                    text: control.checked ? control.icon : control.uncheckedIcon
-                    font.pixelSize: 16 * control.themeGlobalScale
+                    icon: control.checked ? control.icon : control.uncheckedIcon
+                    size: 16
                     color: control.checked ? control.themePrimary : control.themeOnSurfaceVariant
-                    visible: text !== ""
+                    visible: icon !== ""
                 }
 
                 color: {
@@ -87,7 +83,6 @@ Control {
                     return control.themeOutline
                 }
 
-                // 🌟 状态层反馈 (Thumb 上的圆环)
                 Rectangle {
                     anchors.centerIn: parent
                     width: 40 * control.themeGlobalScale
@@ -112,11 +107,11 @@ Control {
             Behavior on border.color { ColorAnimation { duration: 150 } }
         }
 
-        // 🔤 标签文本
         Text {
             id: labelText
             text: control.label
-            font.pixelSize: 14 * control.themeGlobalScale
+            font.pixelSize: fontLabelLarge.size * control.themeGlobalScale
+            font.weight: fontLabelLarge.weight
             color: control.enabled ? control.themeOnSurface : (isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38))
             anchors.verticalCenter: parent.verticalCenter
             visible: text !== ""

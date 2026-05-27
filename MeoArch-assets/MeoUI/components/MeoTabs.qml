@@ -1,28 +1,27 @@
 import QtQuick
 import QtQuick.Controls
+import MeoUI
 
 Control {
     id: control
 
-    // 🌟 核心属性
-    property var model: [] // ["Tab 1", "Tab 2", ...]
+    property var model: []
     property int currentIndex: 0
-    property string type: "primary" // "primary" | "secondary"
+    property string type: "primary"
 
     signal clicked(int index)
 
-    // 🌟 作用域与主题安全防御
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+
+    readonly property var fontTitleSmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.titleSmall !== 'undefined') ? MeoTheme.titleSmall : { "size": 14, "weight": Font.Medium }
 
     implicitWidth: 360 * themeGlobalScale
     implicitHeight: 48 * themeGlobalScale
 
     background: Rectangle {
         color: "transparent"
-
-        // Bottom border for secondary tabs
         Rectangle {
             anchors.bottom: parent.bottom
             width: parent.width
@@ -45,14 +44,12 @@ Control {
                 Text {
                     anchors.centerIn: parent
                     text: modelData
-                    font.pixelSize: 14 * control.themeGlobalScale
-                    font.weight: isSelected ? Font.Bold : Font.Normal
+                    font.pixelSize: fontTitleSmall.size * control.themeGlobalScale
+                    font.weight: isSelected ? Font.Bold : fontTitleSmall.weight
                     color: isSelected ? control.themePrimary : control.themeOnSurfaceVariant
-
                     Behavior on color { ColorAnimation { duration: 150 } }
                 }
 
-                // Selection Indicator (Primary: fixed width, Secondary: full width)
                 Rectangle {
                     anchors.bottom: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -61,7 +58,6 @@ Control {
                     radius: 3 * control.themeGlobalScale
                     color: control.themePrimary
                     visible: isSelected
-
                     Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
                 }
 
