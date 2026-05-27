@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import MeoUI
 
 Button {
     id: control
@@ -51,9 +52,9 @@ Button {
         Behavior on color { ColorAnimation { duration: 150 } }
     }
 
-    contentItem: Text {
-        text: (control.selected && control.selectedIcon !== "") ? control.selectedIcon : control.icon
-        font.pixelSize: 24 * control.themeGlobalScale
+    contentItem: MeoIcon {
+        icon: (control.selected && control.selectedIcon !== "") ? control.selectedIcon : control.icon
+        size: 24
         color: {
             if (!control.enabled) return isDarkMode ? Qt.rgba(1,1,1,0.38) : Qt.rgba(0,0,0,0.38)
             if (type === "filled") return control.selected ? control.themeOnPrimary : control.themePrimary

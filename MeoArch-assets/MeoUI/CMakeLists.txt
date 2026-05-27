@@ -12,6 +12,12 @@ qt_add_qml_module(meoui_module
         components/MeoButton.qml
         components/MeoSegmentedButtons.qml
         components/MeoTextField.qml
+        components/MeoTextArea.qml
+        components/MeoBanner.qml
+        components/MeoRangeSlider.qml
+        components/MeoCarousel.qml
+        components/MeoFullScreenDialog.qml
+        components/MeoNavigationDrawerModal.qml
         components/MeoCheckbox.qml
         components/MeoSwitch.qml
         components/MeoSlider.qml
