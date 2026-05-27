@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import MeoUI
 
 Button {
     id: control
@@ -7,13 +8,15 @@ Button {
     // 🌟 核心属性
     // type: "small" | "regular" (默认) | "large" | "extended"
     property string type: "regular"
-    property string icon: "+"
+    property string icon: "add"
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themePrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
     readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimaryContainer !== 'undefined') ? MeoTheme.onPrimaryContainer : "#21005D"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+
+    readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
 
     // 📐 尺寸映射
     readonly property real size: {
@@ -57,23 +60,23 @@ Button {
     contentItem: Row {
         id: contentRow
         spacing: 8 * control.themeGlobalScale
-        alignment: Qt.AlignCenter
+        anchors.centerIn: parent
 
-        Text {
-            text: control.icon
-            font.pixelSize: (control.type === "large" ? 36 : 24) * control.themeGlobalScale
+        MeoIcon {
+            icon: control.icon
+            size: (control.type === "large" ? 36 : 24)
             color: control.themeOnPrimaryContainer
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
+            anchors.verticalCenter: parent.verticalCenter
         }
 
         Text {
             text: control.text
             visible: control.type === "extended" && control.text !== ""
-            font.pixelSize: 14 * control.themeGlobalScale
-            font.weight: Font.Medium
+            font.pixelSize: fontLabelLarge.size * control.themeGlobalScale
+            font.weight: fontLabelLarge.weight
             color: control.themeOnPrimaryContainer
             verticalAlignment: Text.AlignVCenter
+            anchors.verticalCenter: parent.verticalCenter
         }
     }
 }
