@@ -75,12 +75,13 @@ Control {
             Rectangle {
                 anchors.centerIn: parent
                 width: internalSlider.pressed ? 2 * control.themeGlobalScale : 20 * control.themeGlobalScale
-                height: internalSlider.pressed ? 20 * control.themeGlobalScale : 20 * control.themeGlobalScale
-                radius: 10 * control.themeGlobalScale
+                height: 20 * control.themeGlobalScale
+                radius: width / 2
                 color: control.themePrimary
 
                 // MD3 规范中，按下时 Thumb 会变细长或者有状态层
                 Behavior on width { NumberAnimation { duration: 100 } }
+                Behavior on height { NumberAnimation { duration: 100 } }
             }
 
             // 🌟 状态层反馈
