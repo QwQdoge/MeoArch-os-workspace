@@ -63,11 +63,11 @@ Control {
 
             Rectangle {
                 id: thumb
-                width: control.checked ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
+                width: (control.checked || control.icon !== "") ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
                 height: width
                 radius: width / 2
                 anchors.verticalCenter: parent.verticalCenter
-                x: control.checked ? (parent.width - width - 4 * control.themeGlobalScale) : 8 * control.themeGlobalScale
+                x: control.checked ? (parent.width - width - 4 * control.themeGlobalScale) : (control.icon !== "" ? 4 * control.themeGlobalScale : 8 * control.themeGlobalScale)
 
                 MeoIcon {
                     anchors.centerIn: parent

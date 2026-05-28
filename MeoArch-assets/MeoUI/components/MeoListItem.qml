@@ -86,6 +86,8 @@ Control {
                 width: parent.width
                 font.pixelSize: fontBodyLarge.size * control.themeGlobalScale
                 font.weight: fontBodyLarge.weight
+                font.letterSpacing: (fontBodyLarge.letterSpacing || 0) * control.themeGlobalScale
+                lineHeight: (fontBodyLarge.lineHeight ? (fontBodyLarge.lineHeight / fontBodyLarge.size) : 1.2)
                 color: control.themeOnSurface
                 elide: Text.ElideRight
             }
@@ -95,6 +97,8 @@ Control {
                 width: parent.width
                 font.pixelSize: fontBodyMedium.size * control.themeGlobalScale
                 font.weight: fontBodyMedium.weight
+                font.letterSpacing: (fontBodyMedium.letterSpacing || 0) * control.themeGlobalScale
+                lineHeight: (fontBodyMedium.lineHeight ? (fontBodyMedium.lineHeight / fontBodyMedium.size) : 1.2)
                 color: control.themeOnSurfaceVariant
                 visible: text !== ""
                 elide: Text.ElideRight
