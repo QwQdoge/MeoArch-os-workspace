@@ -60,31 +60,46 @@ Control {
 
             var centerX = width / 2;
             var centerY = height / 2;
-            var radius = (width - 4 * control.themeGlobalScale) / 2;
+            var strokeWidth = 4 * control.themeGlobalScale;
+            var radius = (width - strokeWidth) / 2;
 
-            // Background track
-            ctx.beginPath();
-            ctx.strokeStyle = control.themeSurfaceContainerHighest;
-            ctx.lineWidth = 4 * control.themeGlobalScale;
-            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-            ctx.stroke();
+            if (control.indeterminate) {
+                // Indeterminate circular progress logic usually involves sweeping angles
+                // For simplicity, we keep a fixed arc rotating
+                ctx.beginPath();
+                ctx.strokeStyle = control.themePrimary;
+                ctx.lineWidth = strokeWidth;
+                ctx.lineCap = "round";
+                ctx.arc(centerX, centerY, radius, 0, 1.5 * Math.PI); // 270 degrees
+                ctx.stroke();
+            } else {
+                // Background track
+                ctx.beginPath();
+                ctx.strokeStyle = control.themeSurfaceContainerHighest;
+                ctx.lineWidth = strokeWidth;
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.stroke();
 
-            // Progress indicator
-            ctx.beginPath();
-            ctx.strokeStyle = control.themePrimary;
-            ctx.lineWidth = 4 * control.themeGlobalScale;
-            ctx.lineCap = "round";
-            var endAngle = control.indeterminate ? 0.25 * 2 * Math.PI : control.value * 2 * Math.PI;
-            ctx.arc(centerX, centerY, radius, 0, endAngle);
-            ctx.stroke();
+                // Progress indicator
+                ctx.beginPath();
+                ctx.strokeStyle = control.themePrimary;
+                ctx.lineWidth = strokeWidth;
+                ctx.lineCap = "round";
+                var endAngle = Math.max(0.01, control.value) * 2 * Math.PI;
+                ctx.arc(centerX, centerY, radius, 0, endAngle);
+                ctx.stroke();
+            }
         }
 
         onValueChanged: requestPaint()
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
 
         RotationAnimation on rotation {
             running: control.indeterminate && control.visible
             loops: Animation.Infinite
-            from: 0; to: 360; duration: 1000
+            from: 0; to: 360; duration: 1400 // MD3 standard duration for circular rotation
+            easing.type: Easing.Linear
         }
     }
 }

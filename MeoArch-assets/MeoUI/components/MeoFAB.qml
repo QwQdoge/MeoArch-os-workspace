@@ -31,7 +31,7 @@ Button {
         return 16 * themeGlobalScale
     }
 
-    implicitWidth: type === "extended" ? Math.max(size, contentRow.implicitWidth + 32 * themeGlobalScale) : size
+    implicitWidth: type === "extended" ? Math.max(80 * themeGlobalScale, contentRow.implicitWidth + 32 * themeGlobalScale) : size
     implicitHeight: size
 
     background: Rectangle {
@@ -39,8 +39,8 @@ Button {
         color: control.themePrimaryContainer
 
         // MD3 Elevation (Shadow) - Simplified for QML without heavy effects
-        border.color: Qt.rgba(0,0,0,0.05)
-        border.width: 1
+        border.color: Qt.rgba(0,0,0,0.1)
+        border.width: 0.5 * themeGlobalScale
 
         // 🌟 状态层
         Rectangle {

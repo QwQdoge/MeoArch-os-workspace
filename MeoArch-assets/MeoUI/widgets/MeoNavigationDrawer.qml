@@ -17,12 +17,15 @@ Rectangle {
 
     readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
 
+    property bool isModal: false
+
     width: 360 * themeGlobalScale
     height: parent ? parent.height : 600 * themeGlobalScale
-    x: isOpen ? 0 : -width
+    x: isModal ? (isOpen ? 0 : -width) : 0
+    visible: isModal ? true : isOpen
     color: themeSurfaceContainerLow
 
-    Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+    Behavior on x { enabled: control.isModal; NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
 
     Column {
         anchors.fill: parent

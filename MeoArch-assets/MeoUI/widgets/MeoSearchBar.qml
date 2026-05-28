@@ -20,6 +20,8 @@ Rectangle {
     radius: height / 2
     color: themeSurfaceContainerHighest
 
+    Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+
     Row {
         anchors.fill: parent
         anchors.leftMargin: 16 * control.themeGlobalScale

@@ -93,7 +93,10 @@ TextField {
             id: containerRect
             width: parent.width
             height: control.containerHeight
-            radius: 4 * control.themeGlobalScale
+            radius: control.type === "filled" ? 0 : 4 * control.themeGlobalScale
+            // MD3: Filled text fields have rounded top corners (4dp) but flat bottom
+            topLeftRadius: 4 * control.themeGlobalScale
+            topRightRadius: 4 * control.themeGlobalScale
             color: {
                 let base = control.containerColor;
                 if (control.enabled && control.hovered && control.type === "filled") {
