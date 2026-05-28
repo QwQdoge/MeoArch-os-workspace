@@ -14,6 +14,7 @@ Rectangle {
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B"
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
@@ -40,20 +41,32 @@ Rectangle {
                     spacing: 4 * control.themeGlobalScale
 
                     Rectangle {
-                        width: isSelected ? 56 * control.themeGlobalScale : 32 * control.themeGlobalScale
+                        id: selectionIndicator
+                        width: 56 * control.themeGlobalScale
                         height: 32 * control.themeGlobalScale
                         radius: 16 * control.themeGlobalScale
                         color: isSelected ? control.themeSecondaryContainer : "transparent"
                         anchors.horizontalCenter: parent.horizontalCenter
+                        scale: isSelected ? 1.0 : 0.0
+                        opacity: isSelected ? 1.0 : 0.0
 
-                        Text {
+                        MeoIcon {
                             anchors.centerIn: parent
-                            text: modelData.icon
-                            font.pixelSize: 24 * control.themeGlobalScale
-                            color: isSelected ? control.themePrimary : control.themeOnSurfaceVariant
+                            icon: modelData.icon
+                            size: 24
+                            color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                         }
 
-                        Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+                        Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+                        Behavior on opacity { NumberAnimation { duration: 150 } }
+                    }
+
+                    MeoIcon {
+                        visible: !isSelected
+                        anchors.centerIn: selectionIndicator
+                        icon: modelData.icon
+                        size: 24
+                        color: control.themeOnSurfaceVariant
                     }
 
                     Text {

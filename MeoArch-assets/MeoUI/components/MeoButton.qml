@@ -20,8 +20,8 @@ Button {
             return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
         }
         if (type === "filled") return MeoTheme.primary;
-        if (type === "tonal") return MeoTheme.surfaceVariant;
-        if (type === "elevated") return MeoTheme.surface;
+        if (type === "tonal") return MeoTheme.secondaryContainer;
+        if (type === "elevated") return MeoTheme.surfaceContainerLow;
         return Qt.rgba(textColor.r, textColor.g, textColor.b, 0);
     }
 
@@ -29,15 +29,19 @@ Button {
         if (!control.enabled) {
             return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
         }
-        if (type === "filled") return isDarkMode ? "#141218" : "#FFFFFF";
-        if (type === "tonal") return MeoTheme.onSurfaceVariant;
+        if (type === "filled") return MeoTheme.onPrimary;
+        if (type === "tonal") return MeoTheme.onSecondaryContainer;
         return MeoTheme.primary;
     }
 
-    leftPadding: (control.type === "text" ? 12 : 24) * MeoTheme.globalScale
+    leftPadding: {
+        if (control.icon !== "") return 16 * MeoTheme.globalScale;
+        return (control.type === "text" ? 12 : 24) * MeoTheme.globalScale;
+    }
     rightPadding: (control.type === "text" ? 12 : 24) * MeoTheme.globalScale
-    topPadding: 10 * MeoTheme.globalScale
-    bottomPadding: 10 * MeoTheme.globalScale
+    topPadding: 0
+    bottomPadding: 0
+    implicitHeight: 40 * MeoTheme.globalScale
 
     contentItem: Row {
         spacing: 8 * MeoTheme.globalScale
@@ -56,7 +60,8 @@ Button {
             text: control.text
             font.pixelSize: fontLabelLarge.size * MeoTheme.globalScale
             font.weight: fontLabelLarge.weight
-            font.letterSpacing: fontLabelLarge.letterSpacing * MeoTheme.globalScale
+            font.letterSpacing: (fontLabelLarge.letterSpacing || 0) * MeoTheme.globalScale
+            lineHeight: (fontLabelLarge.lineHeight ? (fontLabelLarge.lineHeight / fontLabelLarge.size) : 1.2)
             color: control.textColor
             verticalAlignment: Text.AlignVCenter
             anchors.verticalCenter: parent.verticalCenter
