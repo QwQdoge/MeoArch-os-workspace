@@ -34,10 +34,13 @@ Button {
         return MeoTheme.primary;
     }
 
-    leftPadding: (control.type === "text" ? 12 : 24) * MeoTheme.globalScale
+    leftPadding: {
+        if (control.icon !== "") return 16 * MeoTheme.globalScale;
+        return (control.type === "text" ? 12 : 24) * MeoTheme.globalScale;
+    }
     rightPadding: (control.type === "text" ? 12 : 24) * MeoTheme.globalScale
-    topPadding: 10 * MeoTheme.globalScale
-    bottomPadding: 10 * MeoTheme.globalScale
+    topPadding: 0
+    bottomPadding: 0
 
     contentItem: Row {
         spacing: 8 * MeoTheme.globalScale
@@ -56,7 +59,7 @@ Button {
             text: control.text
             font.pixelSize: fontLabelLarge.size * MeoTheme.globalScale
             font.weight: fontLabelLarge.weight
-            font.letterSpacing: fontLabelLarge.letterSpacing * MeoTheme.globalScale
+            font.letterSpacing: (fontLabelLarge.letterSpacing || 0) * MeoTheme.globalScale
             color: control.textColor
             verticalAlignment: Text.AlignVCenter
             anchors.verticalCenter: parent.verticalCenter
