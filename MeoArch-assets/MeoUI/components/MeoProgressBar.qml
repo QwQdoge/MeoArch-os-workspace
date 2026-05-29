@@ -35,7 +35,7 @@ Control {
 
             // Indeterminate animation
             SequentialAnimation on x {
-                running: control.indeterminate && control.visible
+                running: control.indeterminate && control.visible && control.type === "linear"
                 loops: Animation.Infinite
                 NumberAnimation { from: -indicator.width; to: control.width; duration: 1000; easing.type: Easing.InOutSine }
             }
@@ -47,12 +47,14 @@ Control {
         }
     }
 
-    // Circular Progress (Simplified using Canvas)
+    // Circular Progress (Advanced MD3 Indeterminate Animation)
     Canvas {
         id: canvas
         visible: control.type === "circular"
         anchors.fill: parent
-        rotation: control.indeterminate ? 0 : -90
+
+        property real startAngle: 0
+        property real endAngle: control.indeterminate ? 0.2 : control.value
 
         onPaint: {
             var ctx = getContext("2d");
@@ -64,13 +66,12 @@ Control {
             var radius = (width - strokeWidth) / 2;
 
             if (control.indeterminate) {
-                // Indeterminate circular progress logic usually involves sweeping angles
-                // For simplicity, we keep a fixed arc rotating
                 ctx.beginPath();
                 ctx.strokeStyle = control.themePrimary;
                 ctx.lineWidth = strokeWidth;
                 ctx.lineCap = "round";
-                ctx.arc(centerX, centerY, radius, 0, 1.5 * Math.PI); // 270 degrees
+                // MD3 circular indeterminate is a rotating arc that grows and shrinks
+                ctx.arc(centerX, centerY, radius, startAngle * 2 * Math.PI, endAngle * 2 * Math.PI);
                 ctx.stroke();
             } else {
                 // Background track
@@ -85,21 +86,36 @@ Control {
                 ctx.strokeStyle = control.themePrimary;
                 ctx.lineWidth = strokeWidth;
                 ctx.lineCap = "round";
-                var endAngle = Math.max(0.01, control.value) * 2 * Math.PI;
-                ctx.arc(centerX, centerY, radius, 0, endAngle);
+                var eA = Math.max(0.01, control.value) * 2 * Math.PI;
+                ctx.arc(centerX, centerY, radius, -0.5 * Math.PI, eA - 0.5 * Math.PI);
                 ctx.stroke();
             }
         }
 
+        onStartAngleChanged: requestPaint()
+        onEndAngleChanged: requestPaint()
         onValueChanged: requestPaint()
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
 
-        RotationAnimation on rotation {
-            running: control.indeterminate && control.visible
+        // 🌟 MD3 "Advance and Retreat" Animation logic
+        SequentialAnimation {
+            running: control.indeterminate && control.visible && control.type === "circular"
             loops: Animation.Infinite
-            from: 0; to: 360; duration: 1400 // MD3 standard duration for circular rotation
-            easing.type: Easing.Linear
+
+            ParallelAnimation {
+                NumberAnimation { target: canvas; property: "startAngle"; from: 0; to: 0.75; duration: 666; easing.type: Easing.InOutSine }
+                NumberAnimation { target: canvas; property: "endAngle"; from: 0.2; to: 0.95; duration: 666; easing.type: Easing.InOutSine }
+                NumberAnimation { target: canvas; property: "rotation"; from: 0; to: 180; duration: 666; easing.type: Easing.Linear }
+            }
+            ParallelAnimation {
+                NumberAnimation { target: canvas; property: "startAngle"; from: 0.75; to: 1.5; duration: 666; easing.type: Easing.InOutSine }
+                NumberAnimation { target: canvas; property: "endAngle"; from: 0.95; to: 1.7; duration: 666; easing.type: Easing.InOutSine }
+                NumberAnimation { target: canvas; property: "rotation"; from: 180; to: 360; duration: 666; easing.type: Easing.Linear }
+            }
+
+            // Reset angles to prevent overflow while maintaining rotation continuity
+            ScriptAction { script: { canvas.startAngle %= 1.0; canvas.endAngle %= 1.0; } }
         }
     }
 }
