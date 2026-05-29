@@ -35,6 +35,12 @@ qt_add_qml_module(meoui_module
         components/MeoTabs.qml
         components/MeoTooltip.qml
         components/MeoSnackbar.qml
+        components/MeoStateLayer.qml
+        components/MeoFilterChip.qml
+        components/MeoInputChip.qml
+        components/MeoNavigationDrawerItem.qml
+        components/MeoDateInput.qml
+        components/MeoTimeInput.qml
         widgets/MeoMediaController.qml
         widgets/MeoDatePicker.qml
         widgets/MeoTimePicker.qml

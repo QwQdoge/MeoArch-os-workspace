@@ -61,17 +61,12 @@ Popup {
 
         Repeater {
             model: control.model
-            delegate: MeoListItem {
+            delegate: MeoNavigationDrawerItem {
                 width: parent.width - 24 * control.themeGlobalScale
-                headline: modelData.label
-                leadingIcon: modelData.icon
-                interactive: true
-                background: Rectangle {
-                    radius: 28 * control.themeGlobalScale
-                    color: control.currentIndex === index ?
-                           ((typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8") :
-                           "transparent"
-                }
+                label: modelData.label
+                icon: modelData.icon
+                badgeText: modelData.badgeText || ""
+                selected: control.currentIndex === index
                 onClicked: {
                     control.currentIndex = index
                     control.clicked(index)

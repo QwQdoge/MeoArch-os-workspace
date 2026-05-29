@@ -74,13 +74,14 @@ Button {
         implicitHeight: 40 * MeoTheme.globalScale
         radius: 20 * MeoTheme.globalScale
         
-        color: {
-            let base = control.bgColor;
-            let overlay = control.textColor;
-            if (control.pressed) return Qt.tint(base, Qt.rgba(overlay.r, overlay.g, overlay.b, 0.12));
-            if (control.hovered) return Qt.tint(base, Qt.rgba(overlay.r, overlay.g, overlay.b, 0.08));
-            if (control.visualFocus) return Qt.tint(base, Qt.rgba(overlay.r, overlay.g, overlay.b, 0.10));
-            return base;
+        color: control.bgColor
+
+        MeoStateLayer {
+            radius: parent.radius
+            pressed: control.pressed
+            hovered: control.hovered
+            focused: control.visualFocus
+            color: control.textColor
         }
 
         border.color: {

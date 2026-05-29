@@ -39,18 +39,15 @@ Button {
         border.color: (type === "outlined") ? control.themeOutline : "transparent"
         border.width: (type === "outlined") ? 1 : 0
 
-        // 🌟 状态层
-        Rectangle {
-            anchors.fill: parent
+        MeoStateLayer {
             radius: parent.radius
+            pressed: control.pressed
+            hovered: control.hovered
             color: {
-                let overlay = (type === "filled" && control.selected) ? control.themeOnPrimary :
-                              (type === "tonal" && control.selected ? control.themeOnSecondaryContainer : control.themePrimary)
-                if (control.pressed) return Qt.rgba(overlay.r, overlay.g, overlay.b, 0.12)
-                if (control.hovered) return Qt.rgba(overlay.r, overlay.g, overlay.b, 0.08)
-                return "transparent"
+                if (type === "filled" && control.selected) return control.themeOnPrimary
+                if (type === "tonal" && control.selected) return control.themeOnSecondaryContainer
+                return control.themePrimary
             }
-            Behavior on color { ColorAnimation { duration: 150 } }
         }
 
         Behavior on color { ColorAnimation { duration: 150 } }
