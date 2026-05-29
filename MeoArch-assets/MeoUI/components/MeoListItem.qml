@@ -7,6 +7,7 @@ Control {
 
     property string headline: ""
     property string supportingText: ""
+    property int supportingTextLines: 1 // 1 or 2
     property string leadingIcon: ""
     property Component leadingComponent: null
     property Component trailingComponent: null
@@ -78,13 +79,15 @@ Control {
         Column {
             width: parent.width - (control.leadingIcon !== "" || control.leadingComponent !== null ? 40 * control.themeGlobalScale : 0) - (control.trailingComponent !== null ? 40 * control.themeGlobalScale : 0)
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 2 * control.themeGlobalScale
+            spacing: 0
 
             Text {
                 text: control.headline
                 width: parent.width
                 font.pixelSize: fontBodyLarge.size * control.themeGlobalScale
                 font.weight: fontBodyLarge.weight
+                font.letterSpacing: (fontBodyLarge.letterSpacing || 0) * control.themeGlobalScale
+                lineHeight: (fontBodyLarge.lineHeight ? (fontBodyLarge.lineHeight / fontBodyLarge.size) : 1.2)
                 color: control.themeOnSurface
                 elide: Text.ElideRight
             }
@@ -94,11 +97,13 @@ Control {
                 width: parent.width
                 font.pixelSize: fontBodyMedium.size * control.themeGlobalScale
                 font.weight: fontBodyMedium.weight
+                font.letterSpacing: (fontBodyMedium.letterSpacing || 0) * control.themeGlobalScale
+                lineHeight: (fontBodyMedium.lineHeight ? (fontBodyMedium.lineHeight / fontBodyMedium.size) : 1.2)
                 color: control.themeOnSurfaceVariant
                 visible: text !== ""
                 elide: Text.ElideRight
                 wrapMode: Text.WordWrap
-                maximumLineCount: 2
+                maximumLineCount: control.supportingTextLines
             }
         }
 

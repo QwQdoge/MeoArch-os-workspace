@@ -65,7 +65,9 @@ TextArea {
             id: containerRect
             anchors.fill: parent
             anchors.bottomMargin: control.helperSpace
-            radius: 4 * control.themeGlobalScale
+            radius: control.type === "filled" ? 0 : 4 * control.themeGlobalScale
+            topLeftRadius: 4 * control.themeGlobalScale
+            topRightRadius: 4 * control.themeGlobalScale
             color: {
                 if (!control.enabled) return control.type === "filled" ? Qt.rgba(control.themeOnSurface.r, control.themeOnSurface.g, control.themeOnSurface.b, 0.04) : "transparent";
                 if (control.type === "filled") return control.themeSurfaceContainerHighest;
