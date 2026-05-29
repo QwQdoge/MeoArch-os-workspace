@@ -9,6 +9,12 @@ Frame {
     property string type: "elevated"
     property real radius: 12 * themeGlobalScale
 
+    // MD3 Elevation (Simplified)
+    readonly property var elevationShadow: {
+        if (type !== "elevated") return { "color": "#00000000", "blur": 0, "y": 0 }
+        return { "color": Qt.rgba(0,0,0,0.15), "blur": 3, "y": 1 }
+    }
+
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"

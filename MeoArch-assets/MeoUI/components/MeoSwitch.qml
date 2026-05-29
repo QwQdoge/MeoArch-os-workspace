@@ -63,11 +63,11 @@ Control {
 
             Rectangle {
                 id: thumb
-                width: control.checked ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
+                width: (control.checked || control.icon !== "") ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
                 height: width
                 radius: width / 2
                 anchors.verticalCenter: parent.verticalCenter
-                x: control.checked ? (parent.width - width - 4 * control.themeGlobalScale) : 8 * control.themeGlobalScale
+                x: control.checked ? (parent.width - width - 4 * control.themeGlobalScale) : (control.icon !== "" ? 4 * control.themeGlobalScale : 8 * control.themeGlobalScale)
 
                 MeoIcon {
                     anchors.centerIn: parent
@@ -83,19 +83,18 @@ Control {
                     return control.themeOutline
                 }
 
-                Rectangle {
+                Item {
                     anchors.centerIn: parent
                     width: 40 * control.themeGlobalScale
                     height: 40 * control.themeGlobalScale
-                    radius: 20 * control.themeGlobalScale
                     z: -1
-                    color: {
-                        let overlay = control.checked ? control.themePrimary : control.themeOnSurface
-                        if (mouseArea.pressed) return Qt.rgba(overlay.r, overlay.g, overlay.b, 0.12)
-                        if (mouseArea.containsMouse) return Qt.rgba(overlay.r, overlay.g, overlay.b, 0.08)
-                        return "transparent"
+
+                    MeoStateLayer {
+                        radius: width / 2
+                        pressed: mouseArea.pressed
+                        hovered: mouseArea.containsMouse
+                        color: control.checked ? control.themePrimary : control.themeOnSurface
                     }
-                    Behavior on color { ColorAnimation { duration: 150 } }
                 }
 
                 Behavior on x { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }

@@ -32,8 +32,8 @@ Control {
     background: Rectangle {
         radius: 8 * themeGlobalScale
         color: control.selected ? control.themeSecondaryContainer : "transparent"
-        border.color: control.selected ? "transparent" : control.themeOutline
-        border.width: 1
+        border.color: control.selected ? "transparent" : (control.enabled ? control.themeOutline : Qt.rgba(control.themeOutline.r, control.themeOutline.g, control.themeOutline.b, 0.12))
+        border.width: control.selected ? 0 : 1 * themeGlobalScale
 
         MouseArea {
             id: mouseArea
