@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import MeoUI
 
 Control {
     id: control
@@ -66,19 +67,18 @@ Control {
             }
 
             // 🌟 状态层反馈
-            Rectangle {
+            Item {
                 anchors.centerIn: parent
                 width: 40 * control.themeGlobalScale
                 height: 40 * control.themeGlobalScale
-                radius: 20 * control.themeGlobalScale
                 z: -1
-                color: {
-                    let overlay = control.checked ? control.themePrimary : control.themeOnSurface
-                    if (mouseArea.pressed) return Qt.rgba(overlay.r, overlay.g, overlay.b, 0.12)
-                    if (mouseArea.containsMouse) return Qt.rgba(overlay.r, overlay.g, overlay.b, 0.08)
-                    return "transparent"
+
+                MeoStateLayer {
+                    radius: width / 2
+                    pressed: mouseArea.pressed
+                    hovered: mouseArea.containsMouse
+                    color: control.checked ? control.themePrimary : control.themeOnSurface
                 }
-                Behavior on color { ColorAnimation { duration: 150 } }
             }
 
             Behavior on border.color { ColorAnimation { duration: 150 } }
