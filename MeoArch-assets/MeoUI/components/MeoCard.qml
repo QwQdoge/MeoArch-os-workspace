@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 
 Frame {
     id: control
@@ -7,12 +8,13 @@ Frame {
     // 🌟 核心属性
     // type: "elevated" | "filled" | "outlined"
     property string type: "elevated"
+    property int level: type === "elevated" ? 1 : 0
     property real radius: 12 * themeGlobalScale
 
-    // MD3 Elevation (Simplified)
-    readonly property var elevationShadow: {
-        if (type !== "elevated") return { "color": "#00000000", "blur": 0, "y": 0 }
-        return { "color": Qt.rgba(0,0,0,0.15), "blur": 3, "y": 1 }
+    // MD3 Elevation (Shadow)
+    readonly property real elevation: {
+        if (type !== "elevated") return 0;
+        return level;
     }
 
     // 🌟 作用域与主题安全防御
@@ -29,15 +31,29 @@ Frame {
         radius: control.radius
         color: {
             if (type === "filled") return control.themeSurfaceVariant
-            if (type === "elevated") return control.themeSurfaceContainerLow
-            return control.themeSurface // outlined
+            return control.themeSurface // elevated and outlined
+        }
+
+        // Surface Tint for Elevation
+        Rectangle {
+            anchors.fill: parent
+            radius: parent.radius
+            color: MeoTheme.surfaceTint(control.level)
+            visible: type !== "filled"
+            Behavior on color { ColorAnimation { duration: 150 } }
         }
 
         border.color: control.type === "outlined" ? control.themeOutlineVariant : "transparent"
-        border.width: control.type === "outlined" ? 1 : 0
+        border.width: control.type === "outlined" ? 1 * control.themeGlobalScale : 0
 
         // MD3 Elevation for 'elevated' type
-        layer.enabled: control.type === "elevated"
+        layer.enabled: control.elevation > 0
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.2
+            shadowVerticalOffset: control.elevation * control.themeGlobalScale
+            shadowColor: Qt.rgba(0,0,0,0.2)
+        }
 
         Behavior on color { ColorAnimation { duration: 150 } }
     }

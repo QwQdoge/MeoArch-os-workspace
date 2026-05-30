@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import MeoUI
 
 Button {
@@ -34,13 +35,20 @@ Button {
     implicitWidth: type === "extended" ? Math.max(80 * themeGlobalScale, contentRow.implicitWidth + 32 * themeGlobalScale) : size
     implicitHeight: size
 
+    Behavior on implicitWidth { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
+
     background: Rectangle {
         radius: control.radiusSize
         color: control.themePrimaryContainer
 
-        // MD3 Elevation (Shadow) - Simplified for QML without heavy effects
-        border.color: Qt.rgba(0,0,0,0.1)
-        border.width: 0.5 * themeGlobalScale
+        // MD3 Elevation (Shadow)
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.2
+            shadowVerticalOffset: (control.pressed ? 3 : (control.hovered ? 4 : 3)) * control.themeGlobalScale
+            shadowColor: Qt.rgba(0,0,0,0.2)
+        }
 
         // 🌟 状态层
         Rectangle {
@@ -77,6 +85,9 @@ Button {
             color: control.themeOnPrimaryContainer
             verticalAlignment: Text.AlignVCenter
             anchors.verticalCenter: parent.verticalCenter
+
+            opacity: control.type === "extended" ? 1.0 : 0.0
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
     }
 }

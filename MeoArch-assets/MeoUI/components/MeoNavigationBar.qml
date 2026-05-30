@@ -41,12 +41,11 @@ Rectangle {
 
                     Rectangle {
                         id: selectionIndicator
-                        width: 64 * control.themeGlobalScale
+                        width: isSelected ? 64 * control.themeGlobalScale : 32 * control.themeGlobalScale
                         height: 32 * control.themeGlobalScale
                         radius: 16 * control.themeGlobalScale
                         anchors.horizontalCenter: parent.horizontalCenter
                         color: isSelected ? control.themeSecondaryContainer : "transparent"
-                        scale: isSelected ? 1.0 : 0.0
                         opacity: isSelected ? 1.0 : 0.0
 
                         MeoIcon {
@@ -56,7 +55,7 @@ Rectangle {
                             color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                         }
 
-                        Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+                        Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
                         Behavior on opacity { NumberAnimation { duration: 150 } }
                         Behavior on color { ColorAnimation { duration: 200 } }
                     }

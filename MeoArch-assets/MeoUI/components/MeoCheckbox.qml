@@ -75,18 +75,49 @@ Control {
                 }
             }
 
-            // 🌟 对勾图标
-            Text {
-                anchors.centerIn: parent
-                text: "✓"
-                color: control.themeOnPrimary
-                font.pixelSize: 14 * control.themeGlobalScale
-                font.weight: Font.Bold
-                opacity: control.checked ? 1.0 : 0.0
-                scale: control.checked ? 1.0 : 0.5
+            // 🌟 对勾图标 (Animated Canvas Path)
+            Canvas {
+                id: checkmarkCanvas
+                anchors.fill: parent
+                anchors.margins: 2 * control.themeGlobalScale
+                property real animationProgress: control.checked ? 1.0 : 0.0
 
-                Behavior on opacity { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
-                Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+                onAnimationProgressChanged: requestPaint()
+
+                Behavior on animationProgress {
+                    NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] }
+                }
+
+                onPaint: {
+                    var ctx = getContext("2d");
+                    ctx.reset();
+                    ctx.strokeStyle = control.themeOnPrimary;
+                    ctx.lineWidth = 2.5 * control.themeGlobalScale;
+                    ctx.lineCap = "round";
+                    ctx.lineJoin = "round";
+
+                    var w = width;
+                    var h = height;
+
+                    // Checkmark points
+                    var p1 = { x: w * 0.15, y: h * 0.5 };
+                    var p2 = { x: w * 0.4, y: h * 0.75 };
+                    var p3 = { x: w * 0.85, y: h * 0.2 };
+
+                    ctx.beginPath();
+                    if (animationProgress > 0) {
+                        ctx.moveTo(p1.x, p1.y);
+                        if (animationProgress <= 0.4) {
+                            var t = animationProgress / 0.4;
+                            ctx.lineTo(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t);
+                        } else {
+                            ctx.lineTo(p2.x, p2.y);
+                            var t = (animationProgress - 0.4) / 0.6;
+                            ctx.lineTo(p2.x + (p3.x - p2.x) * t, p2.y + (p3.y - p2.y) * t);
+                        }
+                    }
+                    ctx.stroke();
+                }
             }
 
             Behavior on color { ColorAnimation { duration: 150 } }
