@@ -63,18 +63,27 @@ Control {
 
             Rectangle {
                 id: thumb
-                width: (control.checked || control.icon !== "") ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
-                height: width
-                radius: width / 2
+                width: {
+                    if (mouseArea.pressed) return 28 * control.themeGlobalScale
+                    return (control.checked || control.icon !== "") ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
+                }
+                height: {
+                    if (mouseArea.pressed) return 24 * control.themeGlobalScale
+                    return (control.checked || control.icon !== "") ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
+                }
+                radius: 14 * control.themeGlobalScale
                 anchors.verticalCenter: parent.verticalCenter
-                x: control.checked ? (parent.width - width - 4 * control.themeGlobalScale) : (control.icon !== "" ? 4 * control.themeGlobalScale : 8 * control.themeGlobalScale)
+                x: control.checked ? (parent.width - width - 4 * control.themeGlobalScale) : (control.icon !== "" ? 4 * control.themeGlobalScale : (8 * control.themeGlobalScale + (16 * control.themeGlobalScale - width)/2))
 
                 MeoIcon {
+                    id: thumbIcon
                     anchors.centerIn: parent
                     icon: control.checked ? control.icon : control.uncheckedIcon
                     size: 16
                     color: control.checked ? control.themePrimary : control.themeOnSurfaceVariant
                     visible: icon !== ""
+                    scale: (control.checked ? control.icon : control.uncheckedIcon) !== "" ? 1.0 : 0.0
+                    Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: [0.2, 0, 0, 1] } }
                 }
 
                 color: {
@@ -97,8 +106,9 @@ Control {
                     }
                 }
 
-                Behavior on x { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
-                Behavior on width { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+                Behavior on x { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
+                Behavior on width { NumberAnimation { duration: 150; easing.bezierCurve: [0.2, 0, 0, 1] } }
+                Behavior on height { NumberAnimation { duration: 150; easing.bezierCurve: [0.2, 0, 0, 1] } }
                 Behavior on color { ColorAnimation { duration: 150 } }
             }
 

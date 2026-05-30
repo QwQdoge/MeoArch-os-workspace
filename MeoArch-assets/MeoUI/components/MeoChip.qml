@@ -32,8 +32,13 @@ Control {
     background: Rectangle {
         radius: 8 * themeGlobalScale
         color: control.selected ? control.themeSecondaryContainer : "transparent"
-        border.color: control.selected ? "transparent" : (control.enabled ? control.themeOutline : Qt.rgba(control.themeOutline.r, control.themeOutline.g, control.themeOutline.b, 0.12))
-        border.width: control.selected ? 0 : 1 * themeGlobalScale
+        border.color: {
+            if (control.selected) return "transparent"
+            if (!control.enabled) return Qt.rgba(control.themeOutline.r, control.themeOutline.g, control.themeOutline.b, 0.12)
+            if (control.activeFocus) return control.themePrimary
+            return control.themeOutline
+        }
+        border.width: (control.activeFocus && !control.selected) ? 2 * themeGlobalScale : 1 * themeGlobalScale
 
         MouseArea {
             id: mouseArea
@@ -63,12 +68,12 @@ Control {
         spacing: 8 * control.themeGlobalScale
         anchors.verticalCenter: parent.verticalCenter
 
-        Text {
-            text: control.icon
-            visible: text !== ""
-            font.pixelSize: 18 * control.themeGlobalScale
+        MeoIcon {
+            icon: control.icon
+            visible: icon !== ""
+            size: 18
             color: control.selected ? control.themePrimary : control.themeOnSurfaceVariant
-            verticalAlignment: Text.AlignVCenter
+            anchors.verticalCenter: parent.verticalCenter
         }
 
         Text {
