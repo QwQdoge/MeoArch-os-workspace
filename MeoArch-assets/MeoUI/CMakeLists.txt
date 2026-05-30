@@ -48,6 +48,11 @@ qt_add_qml_module(meoui_module
         widgets/MeoNavigationDrawer.qml
         widgets/MeoBottomSheet.qml
         widgets/MeoSearchBar.qml
+        components/MeoAssistChip.qml
+        components/MeoSuggestionChip.qml
+        components/MeoSkeleton.qml
+        widgets/MeoSideSheetModal.qml
+        patterns/MeoEmptyState.qml
 )
 
 # 确保链接到 QtQuick
