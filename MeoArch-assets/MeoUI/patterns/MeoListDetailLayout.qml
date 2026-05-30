@@ -8,16 +8,26 @@ Item {
 
     property Component listComponent: null
     property Component detailComponent: null
-    property bool isWide: width > 600 * themeGlobalScale
+
+    // MD3 Adaptive Breakpoints
+    readonly property bool isCompact: width < 600 * themeGlobalScale
+    readonly property bool isMedium: width >= 600 * themeGlobalScale && width < 840 * themeGlobalScale
+    readonly property bool isExpanded: width >= 840 * themeGlobalScale
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
+    readonly property real paneWidth: {
+        if (isExpanded) return 400 * themeGlobalScale
+        if (isMedium) return 320 * themeGlobalScale
+        return width
+    }
+
     Row {
         anchors.fill: parent
-        visible: control.isWide
+        visible: !control.isCompact
 
         Loader {
-            width: 360 * control.themeGlobalScale
+            width: control.paneWidth
             height: parent.height
             sourceComponent: control.listComponent
         }
@@ -25,10 +35,11 @@ Item {
         MeoDivider {
             height: parent.height
             width: 1
+            visible: !control.isCompact
         }
 
         Loader {
-            width: parent.width - 361 * control.themeGlobalScale
+            width: parent.width - control.paneWidth - (control.isCompact ? 0 : 1)
             height: parent.height
             sourceComponent: control.detailComponent
         }
@@ -37,7 +48,7 @@ Item {
     StackView {
         id: stackView
         anchors.fill: parent
-        visible: !control.isWide
+        visible: control.isCompact
         initialItem: control.listComponent
     }
 

@@ -122,12 +122,15 @@ TextField {
             Behavior on border.color { ColorAnimation { duration: 150 } }
 
             Rectangle {
+                id: activeIndicator
                 anchors.bottom: parent.bottom
-                anchors.left: parent.left
-                anchors.right: parent.right
-                height: control.activeFocus ? 2 : 1
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: control.activeFocus ? parent.width : 0
+                height: control.activeFocus ? 2 * control.themeGlobalScale : 1 * control.themeGlobalScale
                 color: control.indicatorColor
                 visible: control.type === "filled"
+
+                Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
                 Behavior on color { ColorAnimation { duration: 150 } }
             }
         }
@@ -214,12 +217,15 @@ TextField {
             id: labelContainer
             x: (control.leadingIcon !== "" ? (12 + 24 + 16) : 16) * control.themeGlobalScale
             y: overlayLayer.isCollapsed 
-               ? (control.type === "filled" ? 8 * control.themeGlobalScale : -8 * control.themeGlobalScale) 
+               ? (control.type === "filled" ? 8 * control.themeGlobalScale : -12 * control.themeGlobalScale)
                : 16 * control.themeGlobalScale
             width: labelText.implicitWidth
             height: labelText.implicitHeight
+            scale: overlayLayer.isCollapsed ? (control.fontLabelSmall.size / control.fontBodyLarge.size) : 1.0
+            transformOrigin: Item.Left
 
-            Behavior on y { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+            Behavior on y { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
+            Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
 
             Rectangle {
                 anchors.fill: parent
@@ -233,7 +239,7 @@ TextField {
                 id: labelText
                 text: control.label
                 anchors.fill: parent
-                font.pixelSize: (overlayLayer.isCollapsed ? control.fontLabelSmall.size : control.fontBodyLarge.size) * control.themeGlobalScale
+                font.pixelSize: control.fontBodyLarge.size * control.themeGlobalScale
                 font.weight: overlayLayer.isCollapsed ? control.fontLabelSmall.weight : control.fontBodyLarge.weight
                 color: {
                     if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
@@ -242,7 +248,6 @@ TextField {
                     return control.themeOnSurfaceVariant;
                 }
 
-                Behavior on font.pixelSize { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
                 Behavior on color { ColorAnimation { duration: 150 } }
             }
         }

@@ -38,6 +38,34 @@ QtObject {
     property color surfaceContainerHigh: isDarkMode ? "#2B2930" : "#ECE6F0"
     property color surfaceContainerHighest: isDarkMode ? "#36343B" : "#E6E1E5"
 
+    // 🌟 Surface Tint Helper (MD3 Elevation Overlay)
+    function surfaceTint(level) {
+        let opacities = [0, 0.05, 0.08, 0.11, 0.12, 0.14];
+        let opacity = opacities[Math.min(Math.max(level, 0), 5)];
+        return Qt.tint(surface, Qt.rgba(primary.r, primary.g, primary.b, opacity));
+    }
+
+    // 🌟 Motion Tokens (MD3 Standard)
+    readonly property var motionDurationShort1: 50
+    readonly property var motionDurationShort2: 100
+    readonly property var motionDurationShort3: 150
+    readonly property var motionDurationShort4: 200
+    readonly property var motionDurationMedium1: 250
+    readonly property var motionDurationMedium2: 300
+    readonly property var motionDurationMedium3: 350
+    readonly property var motionDurationMedium4: 400
+    readonly property var motionDurationLong1: 450
+    readonly property var motionDurationLong2: 500
+    readonly property var motionDurationLong3: 550
+    readonly property var motionDurationLong4: 600
+
+    readonly property var motionEasingStandard: [0.2, 0, 0, 1]
+    readonly property var motionEasingStandardAccelerate: [0.3, 0, 1, 1]
+    readonly property var motionEasingStandardDecelerate: [0, 0, 0, 1]
+    readonly property var motionEasingEmphasized: [0.2, 0, 0, 1] // Simplified for Soul Curve compatibility
+    readonly property var motionEasingEmphasizedAccelerate: [0.3, 0, 0.8, 0.15]
+    readonly property var motionEasingEmphasizedDecelerate: [0.05, 0.7, 0.1, 1]
+
     property color outline: isDarkMode ? "#938F99" : "#79747E"
     property color outlineVariant: isDarkMode ? "#44474F" : "#C4C7C5"
 

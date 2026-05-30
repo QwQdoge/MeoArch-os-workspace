@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import MeoUI
 
 Button {
@@ -23,6 +24,13 @@ Button {
         if (type === "tonal") return MeoTheme.secondaryContainer;
         if (type === "elevated") return MeoTheme.surfaceContainerLow;
         return Qt.rgba(textColor.r, textColor.g, textColor.b, 0);
+    }
+
+    readonly property real elevation: {
+        if (!control.enabled || type === "text" || type === "outlined") return 0;
+        if (type === "elevated") return control.pressed ? 2 : (control.hovered ? 2 : 1);
+        if (type === "filled" || type === "tonal") return control.pressed ? 0 : (control.hovered ? 1 : 0);
+        return 0;
     }
 
     readonly property color textColor: {
@@ -76,6 +84,15 @@ Button {
         
         color: control.bgColor
 
+        // Surface Tint for Elevation
+        Rectangle {
+            anchors.fill: parent
+            radius: parent.radius
+            color: control.type === "elevated" ? MeoTheme.surfaceTint(control.elevation) : "transparent"
+            visible: control.type === "elevated"
+            Behavior on color { ColorAnimation { duration: 150 } }
+        }
+
         MeoStateLayer {
             radius: parent.radius
             pressed: control.pressed
@@ -87,12 +104,22 @@ Button {
         border.color: {
             if (control.type !== "outlined") return "transparent";
             if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
+            if (control.activeFocus) return MeoTheme.primary;
             return MeoTheme.outline;
         }
-        border.width: control.type === "outlined" ? 1 : 0
-        layer.enabled: control.type === "elevated"
+        border.width: (control.type === "outlined" && control.activeFocus) ? 2 : (control.type === "outlined" ? 1 : 0)
+
+        // Simplified Elevation Shadow
+        layer.enabled: control.elevation > 0
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.2
+            shadowVerticalOffset: control.elevation * MeoTheme.globalScale
+            shadowColor: Qt.rgba(0,0,0,0.2)
+        }
 
         Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1] } }
         Behavior on border.color { ColorAnimation { duration: 150 } }
+        Behavior on border.width { NumberAnimation { duration: 150 } }
     }
 }
