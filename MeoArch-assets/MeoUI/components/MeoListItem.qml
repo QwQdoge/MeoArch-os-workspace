@@ -12,28 +12,40 @@ Control {
     property Component leadingComponent: null
     property Component trailingComponent: null
     property bool interactive: true
+    property bool isSegmented: false // MD3 Expressive: Segmented list style
+    property bool selected: false
 
     signal clicked()
 
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
+    readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
+    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     readonly property var fontBodyLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyLarge !== 'undefined') ? MeoTheme.bodyLarge : { "size": 16, "weight": Font.Normal }
     readonly property var fontBodyMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyMedium !== 'undefined') ? MeoTheme.bodyMedium : { "size": 14, "weight": Font.Normal }
 
     implicitWidth: 360 * themeGlobalScale
-    implicitHeight: Math.max(56 * themeGlobalScale, contentRow.implicitHeight + padding * 2)
+    implicitHeight: Math.max((isSegmented ? 64 : 56) * themeGlobalScale, contentRow.implicitHeight + padding * 2)
 
-    padding: 16 * themeGlobalScale
+    padding: isSegmented ? 12 * themeGlobalScale : 16 * themeGlobalScale
 
     background: Rectangle {
-        color: "transparent"
+        color: isSegmented && selected ? themeSecondaryContainer : "transparent"
+        radius: isSegmented ? 16 * themeGlobalScale : 0
+
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.leftMargin: isSegmented ? 8 * themeGlobalScale : 0
+        anchors.rightMargin: isSegmented ? 8 * themeGlobalScale : 0
 
         Rectangle {
             anchors.fill: parent
             visible: control.interactive
+            radius: parent.radius
             color: {
                 if (mouseArea.pressed) return Qt.rgba(control.themeOnSurface.r, control.themeOnSurface.g, control.themeOnSurface.b, 0.12)
                 if (mouseArea.containsMouse) return Qt.rgba(control.themeOnSurface.r, control.themeOnSurface.g, control.themeOnSurface.b, 0.08)
@@ -85,10 +97,10 @@ Control {
                 text: control.headline
                 width: parent.width
                 font.pixelSize: fontBodyLarge.size * control.themeGlobalScale
-                font.weight: fontBodyLarge.weight
+                font.weight: control.selected ? Font.Bold : fontBodyLarge.weight
                 font.letterSpacing: (fontBodyLarge.letterSpacing || 0) * control.themeGlobalScale
                 lineHeight: (fontBodyLarge.lineHeight ? (fontBodyLarge.lineHeight / fontBodyLarge.size) : 1.2)
-                color: control.themeOnSurface
+                color: control.selected && isSegmented ? control.themeOnSecondaryContainer : control.themeOnSurface
                 elide: Text.ElideRight
             }
 
