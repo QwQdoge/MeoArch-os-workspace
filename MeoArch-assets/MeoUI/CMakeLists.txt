@@ -56,6 +56,7 @@ qt_add_qml_module(meoui_module
         components/MeoSkeleton.qml
         widgets/MeoSideSheetModal.qml
         patterns/MeoEmptyState.qml
+        showcase/MeoShowcase.qml
 )
 
 # 确保链接到 QtQuick
