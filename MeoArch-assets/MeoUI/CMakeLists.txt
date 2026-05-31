@@ -14,10 +14,12 @@ qt_add_qml_module(meoui_module
         components/MeoTextField.qml
         components/MeoTextArea.qml
         components/MeoBanner.qml
+        components/MeoBreadcrumbs.qml
         components/MeoRangeSlider.qml
         components/MeoCarousel.qml
         components/MeoFullScreenDialog.qml
         components/MeoNavigationDrawerModal.qml
+        components/MeoPageIndicator.qml
         components/MeoCheckbox.qml
         components/MeoSwitch.qml
         components/MeoSlider.qml
@@ -43,6 +45,7 @@ qt_add_qml_module(meoui_module
         components/MeoTimeInput.qml
         widgets/MeoMediaController.qml
         widgets/MeoDatePicker.qml
+        widgets/MeoDateRangePicker.qml
         widgets/MeoTimePicker.qml
         widgets/MeoNavigationRail.qml
         widgets/MeoNavigationDrawer.qml
@@ -53,6 +56,7 @@ qt_add_qml_module(meoui_module
         components/MeoSkeleton.qml
         widgets/MeoSideSheetModal.qml
         patterns/MeoEmptyState.qml
+        showcase/MeoShowcase.qml
 )
 
 # 确保链接到 QtQuick
