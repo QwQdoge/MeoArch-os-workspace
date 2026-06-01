@@ -7,6 +7,7 @@ Rectangle {
 
     property var model: []
     property int currentIndex: 0
+    property string labelType: "always" // "always" | "selected" | "none"
     signal clicked(int index)
 
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -75,6 +76,11 @@ Rectangle {
                         font.pixelSize: fontLabelMedium.size * control.themeGlobalScale
                         font.weight: isSelected ? Font.Bold : fontLabelMedium.weight
                         color: isSelected ? control.themeOnSurface : control.themeOnSurfaceVariant
+                        visible: {
+                            if (control.labelType === "always") return true
+                            if (control.labelType === "selected") return isSelected
+                            return false
+                        }
                     }
                 }
 

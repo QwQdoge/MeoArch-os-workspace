@@ -8,6 +8,9 @@ Rectangle {
     // 🌟 核心属性
     property var model: [] // [{ icon: "", label: "" }]
     property int currentIndex: 0
+    property Component header: null
+    property string labelType: "always" // "always" | "selected" | "none"
+
     signal clicked(int index)
 
     // 🌟 作用域与主题安全防御
@@ -27,6 +30,18 @@ Rectangle {
         anchors.topMargin: 24 * control.themeGlobalScale
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 12 * control.themeGlobalScale
+
+        Loader {
+            sourceComponent: control.header
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: control.header !== null
+        }
+
+        Item {
+            width: 1
+            height: 8 * control.themeGlobalScale
+            visible: control.header !== null
+        }
 
         Repeater {
             model: control.model
@@ -74,6 +89,11 @@ Rectangle {
                         font.weight: isSelected ? Font.Bold : Font.Normal
                         color: isSelected ? control.themePrimary : control.themeOnSurfaceVariant
                         anchors.horizontalCenter: parent.horizontalCenter
+                        visible: {
+                            if (control.labelType === "always") return true
+                            if (control.labelType === "selected") return isSelected
+                            return false
+                        }
                     }
                 }
 
