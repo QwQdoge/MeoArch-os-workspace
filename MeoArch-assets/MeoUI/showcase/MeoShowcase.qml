@@ -122,13 +122,26 @@ ApplicationWindow {
                         spacing: 24 * MeoTheme.globalScale
                         width: parent.width
 
+                        Text { text: "Search Bars"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        Row {
+                            spacing: 12 * MeoTheme.globalScale
+                            MeoSearchBar { placeholder: "Search mail"; leadingIcon: "menu"; trailingIcon: "account_circle"; width: 300 * MeoTheme.globalScale }
+                            MeoSearchBar { placeholder: "Search maps"; leadingIcon: "search"; trailingIcon: "mic"; width: 300 * MeoTheme.globalScale }
+                        }
+
                         Text { text: "Text Fields"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
                         MeoTextField { label: "Filled Label"; placeholder: "Type something..."; type: "filled" }
                         MeoTextField { label: "Outlined Label"; placeholder: "Type something..."; type: "outlined"; leadingIcon: "person" }
                         MeoTextField { label: "With Counter"; maxLength: 20; showCounter: true; type: "outlined" }
 
                         Text { text: "Sliders"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
-                        MeoSlider { value: 50; width: 300 * MeoTheme.globalScale }
+                        Column {
+                            spacing: 12 * MeoTheme.globalScale
+                            Text { text: "Continuous Slider"; font.pixelSize: 12 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+                            MeoSlider { value: 50; width: 300 * MeoTheme.globalScale }
+                            Text { text: "Discrete Slider (Steps of 10)"; font.pixelSize: 12 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+                            MeoSlider { from: 0; to: 100; value: 30; discrete: true; stepSize: 10; width: 300 * MeoTheme.globalScale }
+                        }
                         MeoRangeSlider { from: 0; to: 100; firstValue: 20; secondValue: 80; width: 300 * MeoTheme.globalScale }
 
                         Text { text: "Chips"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
@@ -167,14 +180,54 @@ ApplicationWindow {
                             model: ["Video", "Audio", "Photos"]
                         }
 
-                        Text { text: "Navigation Bar"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
-                        MeoNavigationBar {
-                            width: 360 * MeoTheme.globalScale
-                            model: [
-                                { label: "Home", icon: "home" },
-                                { label: "Search", icon: "search" },
-                                { label: "Library", icon: "grid_view" }
-                            ]
+                        Text { text: "Navigation Bar Variants"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        Row {
+                            spacing: 24 * MeoTheme.globalScale
+                            Column {
+                                spacing: 8 * MeoTheme.globalScale
+                                Text { text: "Label: Always"; font.pixelSize: 12 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+                                MeoNavigationBar {
+                                    width: 320 * MeoTheme.globalScale
+                                    labelType: "always"
+                                    model: [
+                                        { label: "Mail", icon: "mail" },
+                                        { label: "Chat", icon: "chat" },
+                                        { label: "Meet", icon: "videocam" }
+                                    ]
+                                }
+                            }
+                            Column {
+                                spacing: 8 * MeoTheme.globalScale
+                                Text { text: "Label: Selected"; font.pixelSize: 12 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+                                MeoNavigationBar {
+                                    width: 320 * MeoTheme.globalScale
+                                    labelType: "selected"
+                                    model: [
+                                        { label: "Mail", icon: "mail" },
+                                        { label: "Chat", icon: "chat" },
+                                        { label: "Meet", icon: "videocam" }
+                                    ]
+                                }
+                            }
+                        }
+
+                        Text { text: "Navigation Rail Variants"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        Row {
+                            spacing: 40 * MeoTheme.globalScale
+                            Column {
+                                spacing: 8 * MeoTheme.globalScale
+                                Text { text: "With Header & Selected Labels"; font.pixelSize: 12 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+                                MeoNavigationRail {
+                                    height: 300 * MeoTheme.globalScale
+                                    labelType: "selected"
+                                    header: MeoFAB { type: "small"; icon: "edit" }
+                                    model: [
+                                        { label: "Inbox", icon: "inbox" },
+                                        { label: "Outbox", icon: "send" },
+                                        { label: "Drafts", icon: "drafts" }
+                                    ]
+                                }
+                            }
                         }
                     }
                 }
@@ -218,11 +271,12 @@ ApplicationWindow {
 
                         Text { text: "Cards & Items"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
                         MeoCard {
-                            width: 300 * MeoTheme.globalScale
+                            width: 320 * MeoTheme.globalScale
                             Column {
                                 anchors.fill: parent
                                 spacing: 8 * MeoTheme.globalScale
                                 Text { text: "Expressive List Item"; font.weight: Font.Bold; color: MeoTheme.onSurface }
+                                MeoListItem { overline: "OVERLINE"; headline: "3-Line Item"; supportingText: "Supporting text that spans multiple lines to demonstrate the new MD3 layout capabilities."; supportingTextLines: 2; width: parent.width - 32 }
                                 MeoListItem { headline: "Segmented Item"; supportingText: "New MD3 Expressive style"; isSegmented: true; selected: true; width: parent.width - 32 }
                                 MeoListItem { headline: "Standard Item"; supportingText: "Classic MD3 style"; width: parent.width - 32 }
                             }
