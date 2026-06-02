@@ -19,7 +19,8 @@ ApplicationWindow {
         { label: "Navigation", icon: "explore" },
         { label: "Selection", icon: "check_box" },
         { label: "Display", icon: "layers" },
-        { label: "Feedback", icon: "info" }
+        { label: "Feedback", icon: "info" },
+        { label: "Patterns", icon: "grid_view" }
     ]
 
     MeoDialog {
@@ -144,7 +145,19 @@ ApplicationWindow {
                         }
                         MeoRangeSlider { from: 0; to: 100; firstValue: 20; secondValue: 80; width: 300 * MeoTheme.globalScale }
 
-                        Text { text: "Chips"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        Text { text: "Filter Group"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        MeoFilterGroup {
+                            width: parent.width
+                            multiSelect: true
+                            model: [
+                                { label: "Travel", icon: "flight" },
+                                { label: "Food", icon: "restaurant" },
+                                { label: "Music", icon: "music_note" },
+                                { label: "Health", icon: "medical_services" }
+                            ]
+                        }
+
+                        Text { text: "Individual Chips"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
                         Flow {
                             width: parent.width
                             spacing: 8 * MeoTheme.globalScale
@@ -290,6 +303,13 @@ ApplicationWindow {
                             MeoPageIndicator { count: 5; currentIndex: 2 }
                         }
 
+                        Text { text: "Pull to Refresh"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        Row {
+                            spacing: 24 * MeoTheme.globalScale
+                            MeoPullToRefresh { refreshing: false; pullDistance: 0.7 }
+                            MeoPullToRefresh { refreshing: true }
+                        }
+
                         Text { text: "Carousel"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
                         MeoCarousel {
                             width: 500 * MeoTheme.globalScale
@@ -362,6 +382,31 @@ ApplicationWindow {
                                 }
                             }
                         }
+                    }
+                }
+
+                // Patterns Page
+                Item {
+                    id: patternsPage
+                    MeoScaffold {
+                        anchors.fill: parent
+                        topBar: MeoTopAppBar { title: "Scaffold Title"; type: "small" }
+                        navigationRail: MeoNavigationRail {
+                            model: [
+                                { label: "Home", icon: "home" },
+                                { label: "Search", icon: "search" },
+                                { label: "Settings", icon: "settings" }
+                            ]
+                            footer: MeoIconButton { icon: "logout"; type: "standard" }
+                        }
+                        content: Rectangle {
+                            color: MeoTheme.surfaceContainer
+                            radius: 16 * MeoTheme.globalScale
+                            anchors.fill: parent
+                            anchors.margins: 16 * MeoTheme.globalScale
+                            Text { anchors.centerIn: parent; text: "Main Content in Scaffold"; color: MeoTheme.onSurfaceVariant }
+                        }
+                        fab: MeoFAB { icon: "add" }
                     }
                 }
             }

@@ -9,6 +9,7 @@ Rectangle {
     property var model: [] // [{ icon: "", label: "" }]
     property int currentIndex: 0
     property Component header: null
+    property Component footer: null
     property string labelType: "always" // "always" | "selected" | "none"
 
     signal clicked(int index)
@@ -25,10 +26,13 @@ Rectangle {
     height: parent ? parent.height : 600 * themeGlobalScale
     color: themeSurface
 
+    // Top Section
     Column {
+        id: topSection
         anchors.top: parent.top
         anchors.topMargin: 24 * control.themeGlobalScale
         anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width
         spacing: 12 * control.themeGlobalScale
 
         Loader {
@@ -106,5 +110,15 @@ Rectangle {
                 }
             }
         }
+    }
+
+    // Bottom Section
+    Loader {
+        id: footerLoader
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 24 * control.themeGlobalScale
+        anchors.horizontalCenter: parent.horizontalCenter
+        sourceComponent: control.footer
+        visible: control.footer !== null
     }
 }
