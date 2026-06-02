@@ -40,6 +40,8 @@ qt_add_qml_module(meoui_module
         components/MeoStateLayer.qml
         components/MeoFilterChip.qml
         components/MeoInputChip.qml
+        components/MeoPullToRefresh.qml
+        components/MeoFilterGroup.qml
         components/MeoNavigationDrawerItem.qml
         components/MeoDateInput.qml
         components/MeoTimeInput.qml
@@ -51,11 +53,16 @@ qt_add_qml_module(meoui_module
         widgets/MeoNavigationDrawer.qml
         widgets/MeoBottomSheet.qml
         widgets/MeoSearchBar.qml
+        widgets/MeoDockedSearchBar.qml
         components/MeoAssistChip.qml
         components/MeoSuggestionChip.qml
         components/MeoSkeleton.qml
         widgets/MeoSideSheetModal.qml
+        widgets/MeoSideSheet.qml
         patterns/MeoEmptyState.qml
+        patterns/MeoScaffold.qml
+        patterns/MeoListDetailLayout.qml
+        patterns/MeoSettingsLayout.qml
         showcase/MeoShowcase.qml
 )
 

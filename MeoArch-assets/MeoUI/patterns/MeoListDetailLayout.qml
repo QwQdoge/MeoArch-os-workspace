@@ -8,6 +8,7 @@ Item {
 
     property Component listComponent: null
     property Component detailComponent: null
+    property bool showDetail: false
 
     // MD3 Adaptive Breakpoints
     readonly property bool isCompact: width < 600 * themeGlobalScale
@@ -49,8 +50,18 @@ Item {
         id: stackView
         anchors.fill: parent
         visible: control.isCompact
+
         initialItem: control.listComponent
+
+        onCurrentItemChanged: {
+            // Logic to sync with showDetail if needed
+        }
     }
 
-    // Logic to handle navigation on narrow screens could be added here
+    onShowDetailChanged: {
+        if (isCompact) {
+            if (showDetail) stackView.push(detailComponent)
+            else stackView.pop()
+        }
+    }
 }
