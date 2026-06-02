@@ -2,32 +2,45 @@ import QtQuick
 import QtQuick.Controls
 import MeoUI
 
-ScrollView {
+Flickable {
     id: control
-    anchors.fill: parent
-    clip: true
+    contentWidth: width
+    contentHeight: contentColumn.implicitHeight + padding * 2
 
-    property var sections: [] // [{ title: "", items: [{ type: "switch", label: "", value: true, onToggled: function }, { type: "navigation", label: "", subLabel: "", onClicked: function }] }]
+    property string title: "Settings"
+    property alias model: repeater.model
+    property real padding: 16 * themeGlobalScale
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property var fontTitleLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.titleLarge !== 'undefined') ? MeoTheme.titleLarge : { "size": 22, "weight": Font.Normal }
 
     Column {
-        width: control.width
+        id: contentColumn
+        width: parent.width - control.padding * 2
+        x: control.padding
+        y: control.padding
         spacing: 0
 
+        Text {
+            text: control.title
+            font.pixelSize: fontTitleLarge.size * control.themeGlobalScale
+            font.weight: fontTitleLarge.weight
+            color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
+            bottomPadding: 16 * control.themeGlobalScale
+        }
+
         Repeater {
-            model: control.sections
+            id: repeater
             delegate: Column {
                 width: parent.width
 
-                // Section Title
                 Text {
-                    text: modelData.title
+                    text: modelData.sectionTitle
                     visible: text !== ""
                     font.pixelSize: 14 * control.themeGlobalScale
                     font.weight: Font.Medium
                     color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
-                    padding: 16 * control.themeGlobalScale
+                    topPadding: 16 * control.themeGlobalScale
                     bottomPadding: 8 * control.themeGlobalScale
                 }
 
@@ -35,39 +48,22 @@ ScrollView {
                     model: modelData.items
                     delegate: MeoListItem {
                         width: parent.width
-                        headline: modelData.label
-                        supportingText: modelData.subLabel || ""
+                        headline: modelData.title
+                        supportingText: modelData.subtitle || ""
                         leadingIcon: modelData.icon || ""
-                        trailingComponent: {
-                            if (modelData.type === "switch") return switchComp
-                            if (modelData.type === "navigation") return arrowComp
-                            return null
-                        }
-                        interactive: modelData.type !== "switch"
-                        onClicked: if (modelData.onClicked) modelData.onClicked()
+                        trailingComponent: modelData.type === "switch" ? switchComp : (modelData.type === "chevron" ? chevronComp : null)
 
-                        Component {
-                            id: switchComp
-                            MeoSwitch {
-                                checked: modelData.value
-                                onToggled: if (modelData.onToggled) modelData.onToggled(checked)
-                            }
-                        }
+                        Component { id: switchComp; MeoSwitch { checked: modelData.checked; onToggled: modelData.checked = checked } }
+                        Component { id: chevronComp; MeoIcon { icon: "chevron_right"; size: 24; color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F" } }
 
-                        Component {
-                            id: arrowComp
-                            MeoIcon {
-                                icon: "chevron_right"
-                                size: 24
-                                color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
-                            }
-                        }
+                        onClicked: if (modelData.action) modelData.action()
                     }
                 }
 
                 MeoDivider {
-                    width: parent.width
-                    visible: index < control.sections.length - 1
+                    visible: index < repeater.count - 1
+                    topPadding: 8 * control.themeGlobalScale
+                    bottomPadding: 8 * control.themeGlobalScale
                 }
             }
         }

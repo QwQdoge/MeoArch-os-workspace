@@ -20,7 +20,7 @@ Rectangle {
 
     implicitWidth: 360 * themeGlobalScale
     implicitHeight: isExpanded ? 400 * themeGlobalScale : 56 * themeGlobalScale
-    radius: isExpanded ? 28 * themeGlobalScale : 28 * themeGlobalScale
+    radius: 28 * themeGlobalScale
     color: themeSurfaceContainerHighest
 
     Behavior on implicitHeight { NumberAnimation { duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
@@ -32,8 +32,6 @@ Rectangle {
         Row {
             width: parent.width
             height: 56 * control.themeGlobalScale
-            anchors.leftMargin: 16 * control.themeGlobalScale
-            anchors.rightMargin: 16 * control.themeGlobalScale
             spacing: 12 * control.themeGlobalScale
             leftPadding: 16 * control.themeGlobalScale
             rightPadding: 16 * control.themeGlobalScale
@@ -77,6 +75,4 @@ Rectangle {
             clip: true
         }
     }
-
-    // Dismiss when clicking outside if we had a proper overlay
 }
