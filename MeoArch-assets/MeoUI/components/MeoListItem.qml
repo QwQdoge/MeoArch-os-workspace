@@ -7,7 +7,8 @@ Control {
 
     property string headline: ""
     property string supportingText: ""
-    property int supportingTextLines: 1 // 1 or 2
+    property string overline: ""
+    property int supportingTextLines: 1 // 1, 2 or 3
     property string leadingIcon: ""
     property Component leadingComponent: null
     property Component trailingComponent: null
@@ -92,6 +93,17 @@ Control {
             width: parent.width - (control.leadingIcon !== "" || control.leadingComponent !== null ? 40 * control.themeGlobalScale : 0) - (control.trailingComponent !== null ? 40 * control.themeGlobalScale : 0)
             anchors.verticalCenter: parent.verticalCenter
             spacing: 0
+
+            Text {
+                text: control.overline
+                width: parent.width
+                font.pixelSize: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelSmall !== 'undefined' ? MeoTheme.labelSmall.size : 11) * control.themeGlobalScale
+                font.weight: Font.Normal
+                color: control.themeOnSurfaceVariant
+                visible: text !== ""
+                elide: Text.ElideRight
+                textFormat: Text.PlainText
+            }
 
             Text {
                 text: control.headline

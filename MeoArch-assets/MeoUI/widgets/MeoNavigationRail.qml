@@ -8,6 +8,10 @@ Rectangle {
     // 🌟 核心属性
     property var model: [] // [{ icon: "", label: "" }]
     property int currentIndex: 0
+    property Component header: null
+    property Component footer: null
+    property string labelType: "always" // "always" | "selected" | "none"
+
     signal clicked(int index)
 
     // 🌟 作用域与主题安全防御
@@ -22,11 +26,26 @@ Rectangle {
     height: parent ? parent.height : 600 * themeGlobalScale
     color: themeSurface
 
+    // Top Section
     Column {
+        id: topSection
         anchors.top: parent.top
         anchors.topMargin: 24 * control.themeGlobalScale
         anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width
         spacing: 12 * control.themeGlobalScale
+
+        Loader {
+            sourceComponent: control.header
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: control.header !== null
+        }
+
+        Item {
+            width: 1
+            height: 8 * control.themeGlobalScale
+            visible: control.header !== null
+        }
 
         Repeater {
             model: control.model
@@ -74,6 +93,11 @@ Rectangle {
                         font.weight: isSelected ? Font.Bold : Font.Normal
                         color: isSelected ? control.themePrimary : control.themeOnSurfaceVariant
                         anchors.horizontalCenter: parent.horizontalCenter
+                        visible: {
+                            if (control.labelType === "always") return true
+                            if (control.labelType === "selected") return isSelected
+                            return false
+                        }
                     }
                 }
 
@@ -86,5 +110,15 @@ Rectangle {
                 }
             }
         }
+    }
+
+    // Bottom Section
+    Loader {
+        id: footerLoader
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 24 * control.themeGlobalScale
+        anchors.horizontalCenter: parent.horizontalCenter
+        sourceComponent: control.footer
+        visible: control.footer !== null
     }
 }
