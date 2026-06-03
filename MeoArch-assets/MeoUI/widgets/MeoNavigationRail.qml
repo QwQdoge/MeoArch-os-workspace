@@ -87,6 +87,17 @@ Rectangle {
                         color: control.themeOnSurfaceVariant
                     }
 
+                    // 🏷️ Badge (Notification)
+                    MeoBadge {
+                        text: modelData.badgeText || (modelData.badgeCount !== undefined ? modelData.badgeCount.toString() : "")
+                        isDot: modelData.badgeDot || false
+                        visible: text !== "" || isDot
+                        anchors.horizontalCenter: selectionIndicator.right
+                        anchors.verticalCenter: selectionIndicator.top
+                        anchors.horizontalCenterOffset: -4 * control.themeGlobalScale
+                        anchors.verticalCenterOffset: 4 * control.themeGlobalScale
+                    }
+
                     Text {
                         text: modelData.label
                         font.pixelSize: 12 * control.themeGlobalScale

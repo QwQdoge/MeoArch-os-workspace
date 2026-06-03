@@ -162,7 +162,9 @@ ApplicationWindow {
                             width: parent.width
                             spacing: 8 * MeoTheme.globalScale
                             MeoAssistChip { label: "Assist"; icon: "event" }
+                            MeoAssistChip { label: "Avatar Assist"; avatarSource: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" }
                             MeoFilterChip { label: "Filter"; selected: true }
+                            MeoFilterChip { label: "Avatar Filter"; avatarSource: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aria" }
                             MeoInputChip { label: "Input"; onDeleted: {} }
                             MeoSuggestionChip { label: "Suggestion" }
                         }
@@ -198,13 +200,13 @@ ApplicationWindow {
                             spacing: 24 * MeoTheme.globalScale
                             Column {
                                 spacing: 8 * MeoTheme.globalScale
-                                Text { text: "Label: Always"; font.pixelSize: 12 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+                                Text { text: "Label: Always + Badges"; font.pixelSize: 12 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
                                 MeoNavigationBar {
                                     width: 320 * MeoTheme.globalScale
                                     labelType: "always"
                                     model: [
-                                        { label: "Mail", icon: "mail" },
-                                        { label: "Chat", icon: "chat" },
+                                        { label: "Mail", icon: "mail", badgeCount: 3 },
+                                        { label: "Chat", icon: "chat", badgeDot: true },
                                         { label: "Meet", icon: "videocam" }
                                     ]
                                 }
@@ -265,7 +267,12 @@ ApplicationWindow {
                         Text { text: "Controls"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
                         Row {
                             spacing: 24 * MeoTheme.globalScale
-                            MeoCheckbox { label: "Checkbox"; checked: true }
+                            Column {
+                                spacing: 8 * MeoTheme.globalScale
+                                MeoCheckbox { label: "Checked"; checked: true }
+                                MeoCheckbox { label: "Indeterminate"; indeterminate: true }
+                                MeoCheckbox { label: "Unchecked"; checked: false }
+                            }
                             MeoSwitch { label: "Switch"; checked: true }
                             MeoRadioButton { label: "Radio Button"; checked: true }
                         }
@@ -283,15 +290,26 @@ ApplicationWindow {
                         width: parent.width
 
                         Text { text: "Cards & Items"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
-                        MeoCard {
-                            width: 320 * MeoTheme.globalScale
-                            Column {
-                                anchors.fill: parent
-                                spacing: 8 * MeoTheme.globalScale
-                                Text { text: "Expressive List Item"; font.weight: Font.Bold; color: MeoTheme.onSurface }
-                                MeoListItem { overline: "OVERLINE"; headline: "3-Line Item"; supportingText: "Supporting text that spans multiple lines to demonstrate the new MD3 layout capabilities."; supportingTextLines: 2; width: parent.width - 32 }
-                                MeoListItem { headline: "Segmented Item"; supportingText: "New MD3 Expressive style"; isSegmented: true; selected: true; width: parent.width - 32 }
-                                MeoListItem { headline: "Standard Item"; supportingText: "Classic MD3 style"; width: parent.width - 32 }
+                        Flow {
+                            width: parent.width
+                            spacing: 24 * MeoTheme.globalScale
+                            MeoCard {
+                                width: 320 * MeoTheme.globalScale
+                                Column {
+                                    anchors.fill: parent
+                                    spacing: 8 * MeoTheme.globalScale
+                                    Text { text: "Expressive List Items"; font.weight: Font.Bold; color: MeoTheme.onSurface }
+                                    MeoListItem { headline: "With Badge"; badgeText: "New"; width: parent.width - 32 }
+                                    MeoListItem {
+                                        headline: "With Large Image"
+                                        supportingText: "MD3 Expressive layout"
+                                        leadingImage: "https://api.dicebear.com/7.x/shapes/svg?seed=Felix"
+                                        leadingImageSize: 56
+                                        width: parent.width - 32
+                                    }
+                                    MeoListItem { overline: "OVERLINE"; headline: "3-Line Item"; supportingText: "Supporting text that spans multiple lines to demonstrate the new MD3 layout capabilities."; supportingTextLines: 2; width: parent.width - 32 }
+                                    MeoListItem { headline: "Segmented Item"; supportingText: "New MD3 Expressive style"; isSegmented: true; selected: true; width: parent.width - 32 }
+                                }
                             }
                         }
 
@@ -310,16 +328,32 @@ ApplicationWindow {
                             MeoPullToRefresh { refreshing: true }
                         }
 
-                        Text { text: "Carousel"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
-                        MeoCarousel {
-                            width: 500 * MeoTheme.globalScale
-                            itemWidth: 150 * MeoTheme.globalScale
-                            itemHeight: 200 * MeoTheme.globalScale
-                            model: ["#FFB3B3", "#B3FFB3", "#B3B3FF", "#FFFFB3", "#FFB3FF"]
-                            delegate: Rectangle {
-                                color: modelData
-                                radius: 12 * MeoTheme.globalScale
-                                Text { anchors.centerIn: parent; text: "Item"; color: "white" }
+                        Text { text: "Carousel Variants"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        Column {
+                            spacing: 24 * MeoTheme.globalScale
+                            Text { text: "Hero Mode"; font.pixelSize: 14 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+                            MeoCarousel {
+                                type: "hero"
+                                width: 500 * MeoTheme.globalScale
+                                itemHeight: 200 * MeoTheme.globalScale
+                                model: ["#FFB3B3", "#B3FFB3", "#B3B3FF", "#FFFFB3", "#FFB3FF"]
+                                delegate: Rectangle {
+                                    color: modelData
+                                    radius: 28 * MeoTheme.globalScale
+                                    Text { anchors.centerIn: parent; text: "Hero Item"; color: "white"; font.bold: true }
+                                }
+                            }
+                            Text { text: "Uncontained (Peeking) Mode"; font.pixelSize: 14 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+                            MeoCarousel {
+                                type: "uncontained"
+                                width: 500 * MeoTheme.globalScale
+                                itemHeight: 150 * MeoTheme.globalScale
+                                model: ["#FFD8E4", "#EADDFF", "#E8DEF8", "#D0BCFF", "#B3261E"]
+                                delegate: Rectangle {
+                                    color: modelData
+                                    radius: 16 * MeoTheme.globalScale
+                                    Text { anchors.centerIn: parent; text: "Peek Item"; color: "white" }
+                                }
                             }
                         }
                     }
@@ -394,17 +428,42 @@ ApplicationWindow {
                         navigationRail: MeoNavigationRail {
                             model: [
                                 { label: "Home", icon: "home" },
-                                { label: "Search", icon: "search" },
+                                { label: "Search", icon: "search", badgeDot: true },
                                 { label: "Settings", icon: "settings" }
                             ]
                             footer: MeoIconButton { icon: "logout"; type: "standard" }
                         }
-                        content: Rectangle {
-                            color: MeoTheme.surfaceContainer
-                            radius: 16 * MeoTheme.globalScale
+                        content: Item {
                             anchors.fill: parent
-                            anchors.margins: 16 * MeoTheme.globalScale
-                            Text { anchors.centerIn: parent; text: "Main Content in Scaffold"; color: MeoTheme.onSurfaceVariant }
+
+                            Rectangle {
+                                color: MeoTheme.surfaceContainer
+                                radius: 16 * MeoTheme.globalScale
+                                anchors.fill: parent
+                                anchors.margins: 16 * MeoTheme.globalScale
+
+                                Column {
+                                    anchors.centerIn: parent
+                                    spacing: 24 * MeoTheme.globalScale
+                                    Text { text: "Main Content in Scaffold"; color: MeoTheme.onSurfaceVariant; anchors.horizontalCenter: parent.horizontalCenter }
+                                    MeoButton {
+                                        text: "Toggle Standard Bottom Sheet"
+                                        onClicked: persistentSheet.isOpen = !persistentSheet.isOpen
+                                    }
+                                }
+                            }
+
+                            MeoStandardBottomSheet {
+                                id: persistentSheet
+                                width: parent.width
+                                expandedHeight: 300 * MeoTheme.globalScale
+                                content: Column {
+                                    padding: 24 * MeoTheme.globalScale
+                                    spacing: 16 * MeoTheme.globalScale
+                                    Text { text: "Standard Bottom Sheet"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                                    Text { text: "This is a non-modal bottom sheet that co-exists with the main content."; color: MeoTheme.onSurfaceVariant; width: parent.width - 48 }
+                                }
+                            }
                         }
                         fab: MeoFAB { icon: "add" }
                     }

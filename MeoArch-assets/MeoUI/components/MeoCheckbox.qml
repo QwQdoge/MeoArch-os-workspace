@@ -7,6 +7,7 @@ Control {
 
     // 🌟 核心属性
     property bool checked: false
+    property bool indeterminate: false // 🌟 New: Indeterminate state support
     property string label: ""
     signal toggled(bool checked)
 
@@ -49,13 +50,13 @@ Control {
 
             color: {
                 if (!control.enabled) return "transparent"
-                if (control.checked) return control.themePrimary
+                if (control.checked || control.indeterminate) return control.themePrimary
                 return "transparent"
             }
 
             border.color: {
                 if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38)
-                if (control.checked) return control.themePrimary
+                if (control.checked || control.indeterminate) return control.themePrimary
                 return control.themeOutline
             }
             border.width: 2 * control.themeGlobalScale
@@ -75,14 +76,19 @@ Control {
                 }
             }
 
-            // 🌟 对勾图标 (Animated Canvas Path)
+            // 🌟 对勾/不确定态图标 (Animated Canvas Path)
             Canvas {
                 id: checkmarkCanvas
                 anchors.fill: parent
                 anchors.margins: 2 * control.themeGlobalScale
-                property real animationProgress: control.checked ? 1.0 : 0.0
+                property real animationProgress: (control.checked || control.indeterminate) ? 1.0 : 0.0
 
                 onAnimationProgressChanged: requestPaint()
+
+                Connections {
+                    target: control
+                    function onIndeterminateChanged() { checkmarkCanvas.requestPaint() }
+                }
 
                 Behavior on animationProgress {
                     NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] }
@@ -99,24 +105,32 @@ Control {
                     var w = width;
                     var h = height;
 
-                    // Checkmark points
-                    var p1 = { x: w * 0.15, y: h * 0.5 };
-                    var p2 = { x: w * 0.4, y: h * 0.75 };
-                    var p3 = { x: w * 0.85, y: h * 0.2 };
+                    if (control.indeterminate) {
+                        // Horizontal line for indeterminate
+                        ctx.beginPath();
+                        ctx.moveTo(w * 0.2, h * 0.5);
+                        ctx.lineTo(w * 0.2 + (w * 0.6) * animationProgress, h * 0.5);
+                        ctx.stroke();
+                    } else {
+                        // Checkmark points
+                        var p1 = { x: w * 0.15, y: h * 0.5 };
+                        var p2 = { x: w * 0.4, y: h * 0.75 };
+                        var p3 = { x: w * 0.85, y: h * 0.2 };
 
-                    ctx.beginPath();
-                    if (animationProgress > 0) {
-                        ctx.moveTo(p1.x, p1.y);
-                        if (animationProgress <= 0.4) {
-                            var t = animationProgress / 0.4;
-                            ctx.lineTo(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t);
-                        } else {
-                            ctx.lineTo(p2.x, p2.y);
-                            var t = (animationProgress - 0.4) / 0.6;
-                            ctx.lineTo(p2.x + (p3.x - p2.x) * t, p2.y + (p3.y - p2.y) * t);
+                        ctx.beginPath();
+                        if (animationProgress > 0) {
+                            ctx.moveTo(p1.x, p1.y);
+                            if (animationProgress <= 0.4) {
+                                var t = animationProgress / 0.4;
+                                ctx.lineTo(p1.x + (p2.x - p1.x) * t, p1.y + (p2.y - p1.y) * t);
+                            } else {
+                                ctx.lineTo(p2.x, p2.y);
+                                var t = (animationProgress - 0.4) / 0.6;
+                                ctx.lineTo(p2.x + (p3.x - p2.x) * t, p2.y + (p3.y - p2.y) * t);
+                            }
                         }
+                        ctx.stroke();
                     }
-                    ctx.stroke();
                 }
             }
 

@@ -9,6 +9,7 @@ Control {
     // 🌟 核心属性
     property string label: ""
     property string icon: ""
+    property string avatarSource: "" // 🖼️ New: Profile avatar support
     property bool elevated: false
 
     signal clicked()
@@ -27,7 +28,7 @@ Control {
     implicitHeight: 32 * themeGlobalScale
     implicitWidth: contentRow.implicitWidth + leftPadding + rightPadding
 
-    leftPadding: (icon !== "" ? 8 : 16) * themeGlobalScale
+    leftPadding: (icon !== "" || avatarSource !== "" ? 8 : 16) * themeGlobalScale
     rightPadding: 16 * themeGlobalScale
 
     background: Rectangle {
@@ -67,9 +68,24 @@ Control {
         spacing: 8 * control.themeGlobalScale
         anchors.verticalCenter: parent.verticalCenter
 
+        // 🖼️ Avatar Support
+        Rectangle {
+            width: 24 * control.themeGlobalScale
+            height: 24 * control.themeGlobalScale
+            radius: width / 2
+            clip: true
+            visible: control.avatarSource !== ""
+            anchors.verticalCenter: parent.verticalCenter
+            Image {
+                anchors.fill: parent
+                source: control.avatarSource
+                fillMode: Image.PreserveAspectCrop
+            }
+        }
+
         MeoIcon {
             icon: control.icon
-            visible: icon !== ""
+            visible: icon !== "" && control.avatarSource === ""
             size: 18
             color: control.themePrimary
             anchors.verticalCenter: parent.verticalCenter
