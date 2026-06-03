@@ -1,0 +1,4 @@
+set(__QT_DEPLOY_TARGET_meoui_module_FILE /home/shekong/Projects/MeoArch_os workspace/build/libmeoui_module.so)
+set(__QT_DEPLOY_TARGET_meoui_module_TYPE SHARED_LIBRARY)
+set(__QT_DEPLOY_TARGET_meoui_moduleplugin_FILE /home/shekong/Projects/MeoArch_os workspace/build/libmeoui_moduleplugin.so)
+set(__QT_DEPLOY_TARGET_meoui_moduleplugin_TYPE MODULE_LIBRARY)

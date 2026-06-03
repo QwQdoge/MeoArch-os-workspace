@@ -1,0 +1,57 @@
+module MeoUI
+linktarget meoui_moduleplugin
+optional plugin meoui_moduleplugin
+classname MeoUIPlugin
+typeinfo meoui_module.qmltypes
+prefer :/MeoUI/
+MeoTheme 1.0 MeoTheme.qml
+MeoButton 1.0 components/MeoButton.qml
+MeoSegmentedButtons 1.0 components/MeoSegmentedButtons.qml
+MeoTextField 1.0 components/MeoTextField.qml
+MeoTextArea 1.0 components/MeoTextArea.qml
+MeoBanner 1.0 components/MeoBanner.qml
+MeoBreadcrumbs 1.0 components/MeoBreadcrumbs.qml
+MeoRangeSlider 1.0 components/MeoRangeSlider.qml
+MeoCarousel 1.0 components/MeoCarousel.qml
+MeoFullScreenDialog 1.0 components/MeoFullScreenDialog.qml
+MeoNavigationDrawerModal 1.0 components/MeoNavigationDrawerModal.qml
+MeoPageIndicator 1.0 components/MeoPageIndicator.qml
+MeoCheckbox 1.0 components/MeoCheckbox.qml
+MeoSwitch 1.0 components/MeoSwitch.qml
+MeoSlider 1.0 components/MeoSlider.qml
+MeoRadioButton 1.0 components/MeoRadioButton.qml
+MeoFAB 1.0 components/MeoFAB.qml
+MeoCard 1.0 components/MeoCard.qml
+MeoChip 1.0 components/MeoChip.qml
+MeoProgressBar 1.0 components/MeoProgressBar.qml
+MeoNavigationBar 1.0 components/MeoNavigationBar.qml
+MeoDialog 1.0 components/MeoDialog.qml
+MeoBadge 1.0 components/MeoBadge.qml
+MeoDivider 1.0 components/MeoDivider.qml
+MeoListItem 1.0 components/MeoListItem.qml
+MeoMenu 1.0 components/MeoMenu.qml
+MeoTabs 1.0 components/MeoTabs.qml
+MeoTooltip 1.0 components/MeoTooltip.qml
+MeoSnackbar 1.0 components/MeoSnackbar.qml
+MeoStateLayer 1.0 components/MeoStateLayer.qml
+MeoFilterChip 1.0 components/MeoFilterChip.qml
+MeoInputChip 1.0 components/MeoInputChip.qml
+MeoNavigationDrawerItem 1.0 components/MeoNavigationDrawerItem.qml
+MeoDateInput 1.0 components/MeoDateInput.qml
+MeoTimeInput 1.0 components/MeoTimeInput.qml
+MeoMediaController 1.0 widgets/MeoMediaController.qml
+MeoDatePicker 1.0 widgets/MeoDatePicker.qml
+MeoDateRangePicker 1.0 widgets/MeoDateRangePicker.qml
+MeoTimePicker 1.0 widgets/MeoTimePicker.qml
+MeoNavigationRail 1.0 widgets/MeoNavigationRail.qml
+MeoNavigationDrawer 1.0 widgets/MeoNavigationDrawer.qml
+MeoBottomSheet 1.0 widgets/MeoBottomSheet.qml
+MeoSearchBar 1.0 widgets/MeoSearchBar.qml
+MeoAssistChip 1.0 components/MeoAssistChip.qml
+MeoSuggestionChip 1.0 components/MeoSuggestionChip.qml
+MeoSkeleton 1.0 components/MeoSkeleton.qml
+MeoSideSheetModal 1.0 widgets/MeoSideSheetModal.qml
+MeoEmptyState 1.0 patterns/MeoEmptyState.qml
+MeoShowcase 1.0 showcase/MeoShowcase.qml
+depends QtQuick
+
