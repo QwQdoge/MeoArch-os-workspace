@@ -83,7 +83,10 @@ Control {
             visible: width > 0
 
             Behavior on width {
-                NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
+                NumberAnimation {
+                    duration: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionDurationShort3 : 150)
+                    easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1])
+                }
             }
 
             MeoIcon {
@@ -95,8 +98,17 @@ Control {
                 scale: control.selected || control.leadingIcon !== "" ? 1.0 : 0.5
                 opacity: control.selected || control.leadingIcon !== "" ? 1.0 : 0.0
 
-                Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionDurationShort3 : 150)
+                        easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1])
+                    }
+                }
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionDurationShort3 : 150)
+                    }
+                }
             }
         }
 

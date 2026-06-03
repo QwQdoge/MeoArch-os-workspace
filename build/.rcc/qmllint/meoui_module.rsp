@@ -41,6 +41,8 @@
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoStateLayer.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoFilterChip.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoInputChip.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoPullToRefresh.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoFilterGroup.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoNavigationDrawerItem.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoDateInput.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoTimeInput.qml
@@ -52,9 +54,14 @@
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoNavigationDrawer.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoBottomSheet.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSearchBar.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDockedSearchBar.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoAssistChip.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSuggestionChip.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSkeleton.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSideSheetModal.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSideSheet.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoEmptyState.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoScaffold.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoListDetailLayout.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoSettingsLayout.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/showcase/MeoShowcase.qml

@@ -193,7 +193,14 @@
 				49,
 				50,
 				51,
-				52
+				52,
+				53,
+				54,
+				55,
+				56,
+				57,
+				58,
+				59
 			]
 		}
 	],
@@ -310,6 +317,12 @@
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
+			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoFilterGroup_qml.cpp.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
 			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoFullScreenDialog_qml.cpp.rule",
 			"sourceGroupIndex" : 1
 		},
@@ -359,6 +372,12 @@
 			"backtrace" : 0,
 			"isGenerated" : true,
 			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoProgressBar_qml.cpp.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoPullToRefresh_qml.cpp.rule",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -454,6 +473,24 @@
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
+			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoScaffold_qml.cpp.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoSettingsLayout_qml.cpp.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
 			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_showcase/MeoShowcase_qml.cpp.rule",
 			"sourceGroupIndex" : 1
 		},
@@ -473,6 +510,12 @@
 			"backtrace" : 0,
 			"isGenerated" : true,
 			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDateRangePicker_qml.cpp.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDockedSearchBar_qml.cpp.rule",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -503,6 +546,12 @@
 			"backtrace" : 0,
 			"isGenerated" : true,
 			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheetModal_qml.cpp.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "/home/shekong/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheet_qml.cpp.rule",
 			"sourceGroupIndex" : 1
 		},
 		{

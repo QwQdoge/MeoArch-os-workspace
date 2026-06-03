@@ -8,6 +8,8 @@ Rectangle {
     // 🌟 核心属性
     property string text: ""
     property string placeholder: "Search..."
+    property string leadingIcon: "search"
+    property string trailingIcon: "person"
 
     // 🌟 作用域与主题安全防御
     readonly property color themeSurfaceContainerHighest: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHighest !== 'undefined') ? MeoTheme.surfaceContainerHighest : "#E6E1E5"
@@ -17,7 +19,7 @@ Rectangle {
 
     implicitWidth: 360 * themeGlobalScale
     implicitHeight: 56 * themeGlobalScale
-    radius: height / 2
+    radius: 28 * themeGlobalScale
     color: themeSurfaceContainerHighest
 
     Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
@@ -28,16 +30,16 @@ Rectangle {
         anchors.rightMargin: 16 * control.themeGlobalScale
         spacing: 12 * control.themeGlobalScale
 
-        Text {
-            text: "🔍"
-            font.pixelSize: 20 * control.themeGlobalScale
+        MeoIcon {
+            icon: control.leadingIcon
+            size: 24
             anchors.verticalCenter: parent.verticalCenter
             color: control.themeOnSurfaceVariant
         }
 
         TextField {
             id: textField
-            width: parent.width - 80 * control.themeGlobalScale
+            width: parent.width - (control.leadingIcon !== "" ? 24 : 0) - (control.trailingIcon !== "" ? 24 : 0) - (parent.spacing * 2)
             height: parent.height
             background: null
             placeholderText: control.placeholder
@@ -49,11 +51,12 @@ Rectangle {
             onTextChanged: control.text = text
         }
 
-        Text {
-            text: "👤"
-            font.pixelSize: 20 * control.themeGlobalScale
+        MeoIcon {
+            icon: control.trailingIcon
+            size: 24
             anchors.verticalCenter: parent.verticalCenter
             color: control.themeOnSurfaceVariant
+            visible: control.trailingIcon !== ""
         }
     }
 }
