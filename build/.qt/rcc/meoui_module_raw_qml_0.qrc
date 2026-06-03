@@ -1,0 +1,54 @@
+<RCC>
+  <qresource prefix="/MeoUI/">
+    <file alias="MeoTheme.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/MeoTheme.qml</file>
+    <file alias="components/MeoButton.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoButton.qml</file>
+    <file alias="components/MeoSegmentedButtons.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSegmentedButtons.qml</file>
+    <file alias="components/MeoTextField.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoTextField.qml</file>
+    <file alias="components/MeoTextArea.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoTextArea.qml</file>
+    <file alias="components/MeoBanner.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoBanner.qml</file>
+    <file alias="components/MeoBreadcrumbs.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoBreadcrumbs.qml</file>
+    <file alias="components/MeoRangeSlider.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoRangeSlider.qml</file>
+    <file alias="components/MeoCarousel.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoCarousel.qml</file>
+    <file alias="components/MeoFullScreenDialog.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoFullScreenDialog.qml</file>
+    <file alias="components/MeoNavigationDrawerModal.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoNavigationDrawerModal.qml</file>
+    <file alias="components/MeoPageIndicator.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoPageIndicator.qml</file>
+    <file alias="components/MeoCheckbox.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoCheckbox.qml</file>
+    <file alias="components/MeoSwitch.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSwitch.qml</file>
+    <file alias="components/MeoSlider.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSlider.qml</file>
+    <file alias="components/MeoRadioButton.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoRadioButton.qml</file>
+    <file alias="components/MeoFAB.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoFAB.qml</file>
+    <file alias="components/MeoCard.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoCard.qml</file>
+    <file alias="components/MeoChip.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoChip.qml</file>
+    <file alias="components/MeoProgressBar.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoProgressBar.qml</file>
+    <file alias="components/MeoNavigationBar.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoNavigationBar.qml</file>
+    <file alias="components/MeoDialog.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoDialog.qml</file>
+    <file alias="components/MeoBadge.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoBadge.qml</file>
+    <file alias="components/MeoDivider.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoDivider.qml</file>
+    <file alias="components/MeoListItem.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoListItem.qml</file>
+    <file alias="components/MeoMenu.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoMenu.qml</file>
+    <file alias="components/MeoTabs.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoTabs.qml</file>
+    <file alias="components/MeoTooltip.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoTooltip.qml</file>
+    <file alias="components/MeoSnackbar.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSnackbar.qml</file>
+    <file alias="components/MeoStateLayer.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoStateLayer.qml</file>
+    <file alias="components/MeoFilterChip.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoFilterChip.qml</file>
+    <file alias="components/MeoInputChip.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoInputChip.qml</file>
+    <file alias="components/MeoNavigationDrawerItem.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoNavigationDrawerItem.qml</file>
+    <file alias="components/MeoDateInput.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoDateInput.qml</file>
+    <file alias="components/MeoTimeInput.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoTimeInput.qml</file>
+    <file alias="widgets/MeoMediaController.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoMediaController.qml</file>
+    <file alias="widgets/MeoDatePicker.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDatePicker.qml</file>
+    <file alias="widgets/MeoDateRangePicker.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDateRangePicker.qml</file>
+    <file alias="widgets/MeoTimePicker.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoTimePicker.qml</file>
+    <file alias="widgets/MeoNavigationRail.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoNavigationRail.qml</file>
+    <file alias="widgets/MeoNavigationDrawer.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoNavigationDrawer.qml</file>
+    <file alias="widgets/MeoBottomSheet.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoBottomSheet.qml</file>
+    <file alias="widgets/MeoSearchBar.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSearchBar.qml</file>
+    <file alias="components/MeoAssistChip.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoAssistChip.qml</file>
+    <file alias="components/MeoSuggestionChip.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSuggestionChip.qml</file>
+    <file alias="components/MeoSkeleton.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSkeleton.qml</file>
+    <file alias="widgets/MeoSideSheetModal.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSideSheetModal.qml</file>
+    <file alias="patterns/MeoEmptyState.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoEmptyState.qml</file>
+    <file alias="showcase/MeoShowcase.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/showcase/MeoShowcase.qml</file>
+  </qresource>
+</RCC>
+

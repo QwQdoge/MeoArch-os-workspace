@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/MeoUI">
+    <file alias="qmldir">$HOME/Projects/MeoArch_os workspace/build/qmldir</file>
+  </qresource>
+</RCC>
+

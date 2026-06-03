@@ -1,0 +1,12 @@
+-I
+$HOME/Projects/MeoArch_os workspace/build
+-I
+$HOME/Projects/MeoArch_os workspace/build
+-I
+/usr/lib/qt6/qml
+--resource
+$HOME/Projects/MeoArch_os workspace/build/.qt/rcc/qmake_MeoUI.qrc
+--resource
+$HOME/Projects/MeoArch_os workspace/build/.qt/rcc/meoui_module_raw_qml_0.qrc
+--module
+MeoUI
