@@ -25,3 +25,5 @@ __pycache__/
 # Other generated assets
 *.qmljs
 # End of ignore patterns
+/build
+./vscode
