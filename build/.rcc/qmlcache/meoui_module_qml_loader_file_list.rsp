@@ -34,6 +34,8 @@ $HOME/Projects/MeoArch_os workspace/build/.qt/rcc/meoui_module_raw_qml_0.qrc
 /MeoUI/components/MeoStateLayer.qml
 /MeoUI/components/MeoFilterChip.qml
 /MeoUI/components/MeoInputChip.qml
+/MeoUI/components/MeoPullToRefresh.qml
+/MeoUI/components/MeoFilterGroup.qml
 /MeoUI/components/MeoNavigationDrawerItem.qml
 /MeoUI/components/MeoDateInput.qml
 /MeoUI/components/MeoTimeInput.qml
@@ -45,9 +47,14 @@ $HOME/Projects/MeoArch_os workspace/build/.qt/rcc/meoui_module_raw_qml_0.qrc
 /MeoUI/widgets/MeoNavigationDrawer.qml
 /MeoUI/widgets/MeoBottomSheet.qml
 /MeoUI/widgets/MeoSearchBar.qml
+/MeoUI/widgets/MeoDockedSearchBar.qml
 /MeoUI/components/MeoAssistChip.qml
 /MeoUI/components/MeoSuggestionChip.qml
 /MeoUI/components/MeoSkeleton.qml
 /MeoUI/widgets/MeoSideSheetModal.qml
+/MeoUI/widgets/MeoSideSheet.qml
 /MeoUI/patterns/MeoEmptyState.qml
+/MeoUI/patterns/MeoScaffold.qml
+/MeoUI/patterns/MeoListDetailLayout.qml
+/MeoUI/patterns/MeoSettingsLayout.qml
 /MeoUI/showcase/MeoShowcase.qml

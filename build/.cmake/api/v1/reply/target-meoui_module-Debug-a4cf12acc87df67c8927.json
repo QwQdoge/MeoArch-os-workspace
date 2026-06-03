@@ -102,7 +102,7 @@
 			{
 				"command" : 5,
 				"file" : 2,
-				"line" : 63,
+				"line" : 70,
 				"parent" : 0
 			},
 			{
@@ -1057,6 +1057,90 @@
 				"parent" : 40
 			},
 			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3694,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3887,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3694,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3887,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3694,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3887,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3694,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3887,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3694,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3887,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3694,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3887,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3694,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3887,
+				"parent" : 40
+			},
+			{
 				"command" : 25,
 				"file" : 1,
 				"line" : 3979,
@@ -1066,19 +1150,19 @@
 				"command" : 24,
 				"file" : 0,
 				"line" : 419,
-				"parent" : 169
+				"parent" : 183
 			},
 			{
 				"command" : 29,
 				"file" : 0,
 				"line" : 2659,
-				"parent" : 170
+				"parent" : 184
 			},
 			{
 				"command" : 28,
 				"file" : 0,
 				"line" : 2199,
-				"parent" : 171
+				"parent" : 185
 			},
 			{
 				"command" : 31,
@@ -1090,13 +1174,13 @@
 				"command" : 30,
 				"file" : 0,
 				"line" : 892,
-				"parent" : 173
+				"parent" : 187
 			},
 			{
 				"command" : 28,
 				"file" : 0,
 				"line" : 2324,
-				"parent" : 174
+				"parent" : 188
 			}
 		]
 	},
@@ -1287,7 +1371,14 @@
 				98,
 				100,
 				102,
-				103
+				104,
+				106,
+				108,
+				110,
+				112,
+				114,
+				116,
+				117
 			]
 		}
 	],
@@ -1310,11 +1401,11 @@
 			"id" : "generate_qmlls_build_ini_file::@6890427a1f51a3e7e1df"
 		},
 		{
-			"backtrace" : 0,
-			"id" : "meoui_module_autogen::@6890427a1f51a3e7e1df"
+			"id" : "meoui_module_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
 		},
 		{
-			"id" : "meoui_module_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
+			"backtrace" : 0,
+			"id" : "meoui_module_autogen::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "meoui_module::@6890427a1f51a3e7e1df",
@@ -1459,11 +1550,11 @@
 			"id" : "generate_qmlls_build_ini_file::@6890427a1f51a3e7e1df"
 		},
 		{
-			"backtrace" : 0,
-			"id" : "meoui_module_autogen::@6890427a1f51a3e7e1df"
+			"id" : "meoui_module_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
 		},
 		{
-			"id" : "meoui_module_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
+			"backtrace" : 0,
+			"id" : "meoui_module_autogen::@6890427a1f51a3e7e1df"
 		}
 	],
 	"paths" : 
@@ -1526,7 +1617,14 @@
 				95,
 				97,
 				99,
-				101
+				101,
+				103,
+				105,
+				107,
+				109,
+				111,
+				113,
+				115
 			]
 		},
 		{
@@ -1586,16 +1684,23 @@
 				98,
 				100,
 				102,
-				103,
 				104,
-				106
+				106,
+				108,
+				110,
+				112,
+				114,
+				116,
+				117,
+				118,
+				120
 			]
 		},
 		{
 			"name" : "Resources",
 			"sourceIndexes" : 
 			[
-				105
+				119
 			]
 		},
 		{
@@ -1606,33 +1711,19 @@
 			"name" : "",
 			"sourceIndexes" : 
 			[
-				107,
-				164,
-				165,
-				166,
-				167,
-				168,
-				169
+				121,
+				185,
+				186,
+				187,
+				188,
+				189,
+				190
 			]
 		},
 		{
 			"name" : "CMake Rules",
 			"sourceIndexes" : 
 			[
-				108,
-				109,
-				110,
-				111,
-				112,
-				113,
-				114,
-				115,
-				116,
-				117,
-				118,
-				119,
-				120,
-				121,
 				122,
 				123,
 				124,
@@ -1674,7 +1765,28 @@
 				160,
 				161,
 				162,
-				163
+				163,
+				164,
+				165,
+				166,
+				167,
+				168,
+				169,
+				170,
+				171,
+				172,
+				173,
+				174,
+				175,
+				176,
+				177,
+				178,
+				179,
+				180,
+				181,
+				182,
+				183,
+				184
 			]
 		}
 	],
@@ -2100,229 +2212,313 @@
 		},
 		{
 			"backtrace" : 135,
-			"path" : "components/MeoNavigationDrawerItem.qml",
+			"path" : "components/MeoPullToRefresh.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 136,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoNavigationDrawerItem_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoPullToRefresh_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 137,
-			"path" : "components/MeoDateInput.qml",
+			"path" : "components/MeoFilterGroup.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 138,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoDateInput_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoFilterGroup_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 139,
-			"path" : "components/MeoTimeInput.qml",
+			"path" : "components/MeoNavigationDrawerItem.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 140,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoTimeInput_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoNavigationDrawerItem_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 141,
-			"path" : "widgets/MeoMediaController.qml",
+			"path" : "components/MeoDateInput.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 142,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoMediaController_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoDateInput_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 143,
-			"path" : "widgets/MeoDatePicker.qml",
+			"path" : "components/MeoTimeInput.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 144,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDatePicker_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoTimeInput_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 145,
-			"path" : "widgets/MeoDateRangePicker.qml",
+			"path" : "widgets/MeoMediaController.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 146,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDateRangePicker_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoMediaController_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 147,
-			"path" : "widgets/MeoTimePicker.qml",
+			"path" : "widgets/MeoDatePicker.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 148,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoTimePicker_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDatePicker_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 149,
-			"path" : "widgets/MeoNavigationRail.qml",
+			"path" : "widgets/MeoDateRangePicker.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 150,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoNavigationRail_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDateRangePicker_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 151,
-			"path" : "widgets/MeoNavigationDrawer.qml",
+			"path" : "widgets/MeoTimePicker.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 152,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoNavigationDrawer_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoTimePicker_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 153,
-			"path" : "widgets/MeoBottomSheet.qml",
+			"path" : "widgets/MeoNavigationRail.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 154,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoBottomSheet_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoNavigationRail_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 155,
-			"path" : "widgets/MeoSearchBar.qml",
+			"path" : "widgets/MeoNavigationDrawer.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 156,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSearchBar_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoNavigationDrawer_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 157,
-			"path" : "components/MeoAssistChip.qml",
+			"path" : "widgets/MeoBottomSheet.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 158,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoAssistChip_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoBottomSheet_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 159,
-			"path" : "components/MeoSuggestionChip.qml",
+			"path" : "widgets/MeoSearchBar.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 160,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoSuggestionChip_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSearchBar_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 161,
-			"path" : "components/MeoSkeleton.qml",
+			"path" : "widgets/MeoDockedSearchBar.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 162,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoSkeleton_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDockedSearchBar_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 163,
-			"path" : "widgets/MeoSideSheetModal.qml",
+			"path" : "components/MeoAssistChip.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 164,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheetModal_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoAssistChip_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 165,
-			"path" : "patterns/MeoEmptyState.qml",
+			"path" : "components/MeoSuggestionChip.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 166,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoEmptyState_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoSuggestionChip_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 167,
-			"path" : "showcase/MeoShowcase.qml",
+			"path" : "components/MeoSkeleton.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 168,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoSkeleton_qml.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 169,
+			"path" : "widgets/MeoSideSheetModal.qml",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 170,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheetModal_qml.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 171,
+			"path" : "widgets/MeoSideSheet.qml",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 172,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheet_qml.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 173,
+			"path" : "patterns/MeoEmptyState.qml",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 174,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoEmptyState_qml.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 175,
+			"path" : "patterns/MeoScaffold.qml",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 176,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoScaffold_qml.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 177,
+			"path" : "patterns/MeoListDetailLayout.qml",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 178,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 179,
+			"path" : "patterns/MeoSettingsLayout.qml",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 180,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoSettingsLayout_qml.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 181,
+			"path" : "showcase/MeoShowcase.qml",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 182,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_showcase/MeoShowcase_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
-			"backtrace" : 172,
+			"backtrace" : 186,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.qt/rcc/qrc_meoui_module_raw_qml_0.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
-			"backtrace" : 175,
+			"backtrace" : 189,
 			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.qt/rcc/qmake_MeoUI.qrc",
 			"sourceGroupIndex" : 1
 		},
 		{
-			"backtrace" : 175,
+			"backtrace" : 189,
 			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/qmldir",
 			"sourceGroupIndex" : 2
 		},
 		{
-			"backtrace" : 175,
+			"backtrace" : 189,
 			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.qt/rcc/meoui_module_raw_qml_0.qrc",
 			"sourceGroupIndex" : 1
@@ -2552,6 +2748,18 @@
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoPullToRefresh_qml.cpp.rule",
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoFilterGroup_qml.cpp.rule",
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoNavigationDrawerItem_qml.cpp.rule",
 			"sourceGroupIndex" : 4
 		},
@@ -2618,6 +2826,12 @@
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDockedSearchBar_qml.cpp.rule",
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoAssistChip_qml.cpp.rule",
 			"sourceGroupIndex" : 4
 		},
@@ -2642,7 +2856,31 @@
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheet_qml.cpp.rule",
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoEmptyState_qml.cpp.rule",
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoScaffold_qml.cpp.rule",
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp.rule",
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoSettingsLayout_qml.cpp.rule",
 			"sourceGroupIndex" : 4
 		},
 		{

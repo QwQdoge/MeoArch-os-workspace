@@ -36,6 +36,8 @@ MeoSnackbar 1.0 components/MeoSnackbar.qml
 MeoStateLayer 1.0 components/MeoStateLayer.qml
 MeoFilterChip 1.0 components/MeoFilterChip.qml
 MeoInputChip 1.0 components/MeoInputChip.qml
+MeoPullToRefresh 1.0 components/MeoPullToRefresh.qml
+MeoFilterGroup 1.0 components/MeoFilterGroup.qml
 MeoNavigationDrawerItem 1.0 components/MeoNavigationDrawerItem.qml
 MeoDateInput 1.0 components/MeoDateInput.qml
 MeoTimeInput 1.0 components/MeoTimeInput.qml
@@ -47,11 +49,16 @@ MeoNavigationRail 1.0 widgets/MeoNavigationRail.qml
 MeoNavigationDrawer 1.0 widgets/MeoNavigationDrawer.qml
 MeoBottomSheet 1.0 widgets/MeoBottomSheet.qml
 MeoSearchBar 1.0 widgets/MeoSearchBar.qml
+MeoDockedSearchBar 1.0 widgets/MeoDockedSearchBar.qml
 MeoAssistChip 1.0 components/MeoAssistChip.qml
 MeoSuggestionChip 1.0 components/MeoSuggestionChip.qml
 MeoSkeleton 1.0 components/MeoSkeleton.qml
 MeoSideSheetModal 1.0 widgets/MeoSideSheetModal.qml
+MeoSideSheet 1.0 widgets/MeoSideSheet.qml
 MeoEmptyState 1.0 patterns/MeoEmptyState.qml
+MeoScaffold 1.0 patterns/MeoScaffold.qml
+MeoListDetailLayout 1.0 patterns/MeoListDetailLayout.qml
+MeoSettingsLayout 1.0 patterns/MeoSettingsLayout.qml
 MeoShowcase 1.0 showcase/MeoShowcase.qml
 depends QtQuick
 

@@ -217,6 +217,18 @@
 },
 {
   "directory": "$HOME/Projects/MeoArch_os workspace/build",
+  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_QMLINTEGRATION_LIB -DQT_QML_LIB -DQT_QUICK_LIB -Dmeoui_module_EXPORTS -I\"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/include\" -I\"$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI\" -isystem /usr/include/qt6/QtQml -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtQmlIntegration -isystem /usr/include/qt6/QtNetwork -isystem /usr/include/qt6/QtQuick -isystem /usr/include/qt6/QtGui -isystem /usr/include/qt6/QtOpenGL -g -fPIC -mno-direct-extern-access -o CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_components/MeoPullToRefresh_qml.cpp.o -c \"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoPullToRefresh_qml.cpp\"",
+  "file": "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoPullToRefresh_qml.cpp",
+  "output": "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_components/MeoPullToRefresh_qml.cpp.o"
+},
+{
+  "directory": "$HOME/Projects/MeoArch_os workspace/build",
+  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_QMLINTEGRATION_LIB -DQT_QML_LIB -DQT_QUICK_LIB -Dmeoui_module_EXPORTS -I\"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/include\" -I\"$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI\" -isystem /usr/include/qt6/QtQml -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtQmlIntegration -isystem /usr/include/qt6/QtNetwork -isystem /usr/include/qt6/QtQuick -isystem /usr/include/qt6/QtGui -isystem /usr/include/qt6/QtOpenGL -g -fPIC -mno-direct-extern-access -o CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_components/MeoFilterGroup_qml.cpp.o -c \"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoFilterGroup_qml.cpp\"",
+  "file": "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoFilterGroup_qml.cpp",
+  "output": "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_components/MeoFilterGroup_qml.cpp.o"
+},
+{
+  "directory": "$HOME/Projects/MeoArch_os workspace/build",
   "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_QMLINTEGRATION_LIB -DQT_QML_LIB -DQT_QUICK_LIB -Dmeoui_module_EXPORTS -I\"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/include\" -I\"$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI\" -isystem /usr/include/qt6/QtQml -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtQmlIntegration -isystem /usr/include/qt6/QtNetwork -isystem /usr/include/qt6/QtQuick -isystem /usr/include/qt6/QtGui -isystem /usr/include/qt6/QtOpenGL -g -fPIC -mno-direct-extern-access -o CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_components/MeoNavigationDrawerItem_qml.cpp.o -c \"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoNavigationDrawerItem_qml.cpp\"",
   "file": "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoNavigationDrawerItem_qml.cpp",
   "output": "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_components/MeoNavigationDrawerItem_qml.cpp.o"
@@ -283,6 +295,12 @@
 },
 {
   "directory": "$HOME/Projects/MeoArch_os workspace/build",
+  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_QMLINTEGRATION_LIB -DQT_QML_LIB -DQT_QUICK_LIB -Dmeoui_module_EXPORTS -I\"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/include\" -I\"$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI\" -isystem /usr/include/qt6/QtQml -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtQmlIntegration -isystem /usr/include/qt6/QtNetwork -isystem /usr/include/qt6/QtQuick -isystem /usr/include/qt6/QtGui -isystem /usr/include/qt6/QtOpenGL -g -fPIC -mno-direct-extern-access -o CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_widgets/MeoDockedSearchBar_qml.cpp.o -c \"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDockedSearchBar_qml.cpp\"",
+  "file": "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDockedSearchBar_qml.cpp",
+  "output": "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_widgets/MeoDockedSearchBar_qml.cpp.o"
+},
+{
+  "directory": "$HOME/Projects/MeoArch_os workspace/build",
   "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_QMLINTEGRATION_LIB -DQT_QML_LIB -DQT_QUICK_LIB -Dmeoui_module_EXPORTS -I\"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/include\" -I\"$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI\" -isystem /usr/include/qt6/QtQml -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtQmlIntegration -isystem /usr/include/qt6/QtNetwork -isystem /usr/include/qt6/QtQuick -isystem /usr/include/qt6/QtGui -isystem /usr/include/qt6/QtOpenGL -g -fPIC -mno-direct-extern-access -o CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_components/MeoAssistChip_qml.cpp.o -c \"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoAssistChip_qml.cpp\"",
   "file": "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoAssistChip_qml.cpp",
   "output": "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_components/MeoAssistChip_qml.cpp.o"
@@ -307,9 +325,33 @@
 },
 {
   "directory": "$HOME/Projects/MeoArch_os workspace/build",
+  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_QMLINTEGRATION_LIB -DQT_QML_LIB -DQT_QUICK_LIB -Dmeoui_module_EXPORTS -I\"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/include\" -I\"$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI\" -isystem /usr/include/qt6/QtQml -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtQmlIntegration -isystem /usr/include/qt6/QtNetwork -isystem /usr/include/qt6/QtQuick -isystem /usr/include/qt6/QtGui -isystem /usr/include/qt6/QtOpenGL -g -fPIC -mno-direct-extern-access -o CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_widgets/MeoSideSheet_qml.cpp.o -c \"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheet_qml.cpp\"",
+  "file": "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheet_qml.cpp",
+  "output": "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_widgets/MeoSideSheet_qml.cpp.o"
+},
+{
+  "directory": "$HOME/Projects/MeoArch_os workspace/build",
   "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_QMLINTEGRATION_LIB -DQT_QML_LIB -DQT_QUICK_LIB -Dmeoui_module_EXPORTS -I\"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/include\" -I\"$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI\" -isystem /usr/include/qt6/QtQml -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtQmlIntegration -isystem /usr/include/qt6/QtNetwork -isystem /usr/include/qt6/QtQuick -isystem /usr/include/qt6/QtGui -isystem /usr/include/qt6/QtOpenGL -g -fPIC -mno-direct-extern-access -o CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_patterns/MeoEmptyState_qml.cpp.o -c \"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoEmptyState_qml.cpp\"",
   "file": "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoEmptyState_qml.cpp",
   "output": "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_patterns/MeoEmptyState_qml.cpp.o"
+},
+{
+  "directory": "$HOME/Projects/MeoArch_os workspace/build",
+  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_QMLINTEGRATION_LIB -DQT_QML_LIB -DQT_QUICK_LIB -Dmeoui_module_EXPORTS -I\"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/include\" -I\"$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI\" -isystem /usr/include/qt6/QtQml -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtQmlIntegration -isystem /usr/include/qt6/QtNetwork -isystem /usr/include/qt6/QtQuick -isystem /usr/include/qt6/QtGui -isystem /usr/include/qt6/QtOpenGL -g -fPIC -mno-direct-extern-access -o CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_patterns/MeoScaffold_qml.cpp.o -c \"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoScaffold_qml.cpp\"",
+  "file": "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoScaffold_qml.cpp",
+  "output": "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_patterns/MeoScaffold_qml.cpp.o"
+},
+{
+  "directory": "$HOME/Projects/MeoArch_os workspace/build",
+  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_QMLINTEGRATION_LIB -DQT_QML_LIB -DQT_QUICK_LIB -Dmeoui_module_EXPORTS -I\"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/include\" -I\"$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI\" -isystem /usr/include/qt6/QtQml -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtQmlIntegration -isystem /usr/include/qt6/QtNetwork -isystem /usr/include/qt6/QtQuick -isystem /usr/include/qt6/QtGui -isystem /usr/include/qt6/QtOpenGL -g -fPIC -mno-direct-extern-access -o CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp.o -c \"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp\"",
+  "file": "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp",
+  "output": "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp.o"
+},
+{
+  "directory": "$HOME/Projects/MeoArch_os workspace/build",
+  "command": "/usr/bin/g++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_OPENGL_LIB -DQT_QMLINTEGRATION_LIB -DQT_QML_LIB -DQT_QUICK_LIB -Dmeoui_module_EXPORTS -I\"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/include\" -I\"$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI\" -isystem /usr/include/qt6/QtQml -isystem /usr/include/qt6 -isystem /usr/include/qt6/QtCore -isystem /usr/lib/qt6/mkspecs/linux-g++ -isystem /usr/include/qt6/QtQmlIntegration -isystem /usr/include/qt6/QtNetwork -isystem /usr/include/qt6/QtQuick -isystem /usr/include/qt6/QtGui -isystem /usr/include/qt6/QtOpenGL -g -fPIC -mno-direct-extern-access -o CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_patterns/MeoSettingsLayout_qml.cpp.o -c \"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoSettingsLayout_qml.cpp\"",
+  "file": "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoSettingsLayout_qml.cpp",
+  "output": "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_patterns/MeoSettingsLayout_qml.cpp.o"
 },
 {
   "directory": "$HOME/Projects/MeoArch_os workspace/build",

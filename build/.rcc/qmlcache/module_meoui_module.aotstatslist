@@ -30,6 +30,8 @@ $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoStateLayer_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoFilterChip_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoInputChip_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoPullToRefresh_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoFilterGroup_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoNavigationDrawerItem_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoDateInput_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoTimeInput_qml.cpp.aotstats
@@ -41,9 +43,14 @@ $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/Meo
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoNavigationDrawer_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoBottomSheet_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSearchBar_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDockedSearchBar_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoAssistChip_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoSuggestionChip_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoSkeleton_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheetModal_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheet_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoEmptyState_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoScaffold_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoSettingsLayout_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_showcase/MeoShowcase_qml.cpp.aotstats

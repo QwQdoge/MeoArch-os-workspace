@@ -32,6 +32,8 @@
     <file alias="components/MeoStateLayer.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoStateLayer.qml</file>
     <file alias="components/MeoFilterChip.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoFilterChip.qml</file>
     <file alias="components/MeoInputChip.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoInputChip.qml</file>
+    <file alias="components/MeoPullToRefresh.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoPullToRefresh.qml</file>
+    <file alias="components/MeoFilterGroup.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoFilterGroup.qml</file>
     <file alias="components/MeoNavigationDrawerItem.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoNavigationDrawerItem.qml</file>
     <file alias="components/MeoDateInput.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoDateInput.qml</file>
     <file alias="components/MeoTimeInput.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoTimeInput.qml</file>
@@ -43,11 +45,16 @@
     <file alias="widgets/MeoNavigationDrawer.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoNavigationDrawer.qml</file>
     <file alias="widgets/MeoBottomSheet.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoBottomSheet.qml</file>
     <file alias="widgets/MeoSearchBar.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSearchBar.qml</file>
+    <file alias="widgets/MeoDockedSearchBar.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDockedSearchBar.qml</file>
     <file alias="components/MeoAssistChip.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoAssistChip.qml</file>
     <file alias="components/MeoSuggestionChip.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSuggestionChip.qml</file>
     <file alias="components/MeoSkeleton.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSkeleton.qml</file>
     <file alias="widgets/MeoSideSheetModal.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSideSheetModal.qml</file>
+    <file alias="widgets/MeoSideSheet.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSideSheet.qml</file>
     <file alias="patterns/MeoEmptyState.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoEmptyState.qml</file>
+    <file alias="patterns/MeoScaffold.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoScaffold.qml</file>
+    <file alias="patterns/MeoListDetailLayout.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoListDetailLayout.qml</file>
+    <file alias="patterns/MeoSettingsLayout.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoSettingsLayout.qml</file>
     <file alias="showcase/MeoShowcase.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/showcase/MeoShowcase.qml</file>
   </qresource>
 </RCC>
