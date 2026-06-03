@@ -59,6 +59,7 @@ qt_add_qml_module(meoui_module
         components/MeoSkeleton.qml
         widgets/MeoSideSheetModal.qml
         widgets/MeoSideSheet.qml
+        widgets/MeoStandardBottomSheet.qml
         patterns/MeoEmptyState.qml
         patterns/MeoScaffold.qml
         patterns/MeoListDetailLayout.qml
