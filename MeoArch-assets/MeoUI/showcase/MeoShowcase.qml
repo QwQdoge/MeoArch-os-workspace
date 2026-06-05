@@ -14,6 +14,7 @@ ApplicationWindow {
     property int currentCategoryIndex: 0
 
     readonly property var categories: [
+        { label: "Typography", icon: "format_size" },
         { label: "Buttons", icon: "smart_button" },
         { label: "Inputs", icon: "edit" },
         { label: "Navigation", icon: "explore" },
@@ -67,6 +68,38 @@ ApplicationWindow {
                 currentIndex: window.currentCategoryIndex
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+
+                // Typography Page
+                Flickable {
+                    contentHeight: typographyColumn.implicitHeight + 40
+                    clip: true
+                    Column {
+                        id: typographyColumn
+                        padding: 24 * MeoTheme.globalScale
+                        spacing: 24 * MeoTheme.globalScale
+                        width: parent.width
+
+                        Text { text: "MD3 Baseline Typography"; font.pixelSize: 22 * MeoTheme.globalScale; font.weight: Font.Bold; color: MeoTheme.primary }
+
+                        Column {
+                            spacing: 8 * MeoTheme.globalScale
+                            Text { text: "Display Large"; font.pixelSize: MeoTheme.displayLarge.size * MeoTheme.globalScale; font.weight: MeoTheme.displayLarge.weight; color: MeoTheme.onSurface }
+                            Text { text: "Headline Medium"; font.pixelSize: MeoTheme.headlineMedium.size * MeoTheme.globalScale; font.weight: MeoTheme.headlineMedium.weight; color: MeoTheme.onSurface }
+                            Text { text: "Title Small"; font.pixelSize: MeoTheme.titleSmall.size * MeoTheme.globalScale; font.weight: MeoTheme.titleSmall.weight; color: MeoTheme.onSurface }
+                            Text { text: "Body Medium"; font.pixelSize: MeoTheme.bodyMedium.size * MeoTheme.globalScale; font.weight: MeoTheme.bodyMedium.weight; color: MeoTheme.onSurface }
+                        }
+
+                        Text { text: "MD3 Emphasized Typography (Expressive)"; font.pixelSize: 22 * MeoTheme.globalScale; font.weight: Font.Bold; color: MeoTheme.primary }
+
+                        Column {
+                            spacing: 8 * MeoTheme.globalScale
+                            Text { text: "Display Large Emphasized"; font.pixelSize: MeoTheme.displayLargeEmphasized.size * MeoTheme.globalScale; font.weight: MeoTheme.displayLargeEmphasized.weight; color: MeoTheme.onSurface }
+                            Text { text: "Headline Medium Emphasized"; font.pixelSize: MeoTheme.headlineMediumEmphasized.size * MeoTheme.globalScale; font.weight: MeoTheme.headlineMediumEmphasized.weight; color: MeoTheme.onSurface }
+                            Text { text: "Title Small Emphasized"; font.pixelSize: MeoTheme.titleSmallEmphasized.size * MeoTheme.globalScale; font.weight: MeoTheme.titleSmallEmphasized.weight; color: MeoTheme.onSurface }
+                            Text { text: "Body Medium Emphasized"; font.pixelSize: MeoTheme.bodyMediumEmphasized.size * MeoTheme.globalScale; font.weight: MeoTheme.bodyMediumEmphasized.weight; color: MeoTheme.onSurface }
+                        }
+                    }
+                }
 
                 // Buttons Page
                 Flickable {
@@ -244,6 +277,31 @@ ApplicationWindow {
                                 }
                             }
                         }
+
+                        Text { text: "Navigation Drawer (Enhanced)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        Row {
+                            spacing: 40 * MeoTheme.globalScale
+                            MeoNavigationDrawer {
+                                width: 300 * MeoTheme.globalScale
+                                height: 400 * MeoTheme.globalScale
+                                header: MeoAccountHeader {
+                                    name: "Jules Engineer"
+                                    email: "jules@meoarch.dev"
+                                    avatarSource: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jules"
+                                }
+                                model: [
+                                    { label: "Inbox", icon: "inbox", badgeCount: 12 },
+                                    { label: "Starred", icon: "star" },
+                                    { label: "Sent", icon: "send" },
+                                    { label: "Trash", icon: "delete" }
+                                ]
+                                footer: Column {
+                                    width: parent.width
+                                    MeoDivider {}
+                                    MeoListItem { headline: "Settings"; leadingIcon: "settings" }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -264,7 +322,30 @@ ApplicationWindow {
                             MeoDateRangePicker {}
                         }
 
-                        Text { text: "Controls"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        Text { text: "Selection Groups"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        Row {
+                            spacing: 48 * MeoTheme.globalScale
+                            MeoSelectionGroup {
+                                title: "Notification Preferences"
+                                showSelectAll: true
+                                model: [
+                                    { label: "Email Alerts", value: "email", checked: true },
+                                    { label: "Push Notifications", value: "push", checked: false },
+                                    { label: "SMS Alerts", value: "sms", checked: true }
+                                ]
+                            }
+                            MeoSelectionGroup {
+                                title: "Theme Mode"
+                                multiSelect: false
+                                model: [
+                                    { label: "Light", value: "light", checked: true },
+                                    { label: "Dark", value: "dark", checked: false },
+                                    { label: "System", value: "system", checked: false }
+                                ]
+                            }
+                        }
+
+                        Text { text: "Individual Controls"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
                         Row {
                             spacing: 24 * MeoTheme.globalScale
                             Column {
@@ -299,7 +380,9 @@ ApplicationWindow {
                                     anchors.fill: parent
                                     spacing: 8 * MeoTheme.globalScale
                                     Text { text: "Expressive List Items"; font.weight: Font.Bold; color: MeoTheme.onSurface }
+                                    MeoListHeader { text: "TODAY" }
                                     MeoListItem { headline: "With Badge"; badgeText: "New"; width: parent.width - 32 }
+                                    MeoListHeader { text: "YESTERDAY"; emphasized: true }
                                     MeoListItem {
                                         headline: "With Large Image"
                                         supportingText: "MD3 Expressive layout"
