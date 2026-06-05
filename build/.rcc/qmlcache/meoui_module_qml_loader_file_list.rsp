@@ -39,6 +39,10 @@ $HOME/Projects/MeoArch_os workspace/build/.qt/rcc/meoui_module_raw_qml_0.qrc
 /MeoUI/components/MeoNavigationDrawerItem.qml
 /MeoUI/components/MeoDateInput.qml
 /MeoUI/components/MeoTimeInput.qml
+/MeoUI/components/MeoIcon.qml
+/MeoUI/components/MeoIconButton.qml
+/MeoUI/components/MeoExposedDropdown.qml
+/MeoUI/components/MeoRichTooltip.qml
 /MeoUI/widgets/MeoMediaController.qml
 /MeoUI/widgets/MeoDatePicker.qml
 /MeoUI/widgets/MeoDateRangePicker.qml
@@ -48,6 +52,9 @@ $HOME/Projects/MeoArch_os workspace/build/.qt/rcc/meoui_module_raw_qml_0.qrc
 /MeoUI/widgets/MeoBottomSheet.qml
 /MeoUI/widgets/MeoSearchBar.qml
 /MeoUI/widgets/MeoDockedSearchBar.qml
+/MeoUI/widgets/MeoBottomAppBar.qml
+/MeoUI/widgets/MeoSearchView.qml
+/MeoUI/widgets/MeoTopAppBar.qml
 /MeoUI/components/MeoAssistChip.qml
 /MeoUI/components/MeoSuggestionChip.qml
 /MeoUI/components/MeoSkeleton.qml

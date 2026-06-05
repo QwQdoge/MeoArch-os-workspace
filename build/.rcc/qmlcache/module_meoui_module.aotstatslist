@@ -35,6 +35,10 @@ $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoNavigationDrawerItem_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoDateInput_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoTimeInput_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoIcon_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoIconButton_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoExposedDropdown_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoRichTooltip_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoMediaController_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDatePicker_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDateRangePicker_qml.cpp.aotstats
@@ -44,6 +48,9 @@ $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/Meo
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoBottomSheet_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSearchBar_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoDockedSearchBar_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoBottomAppBar_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSearchView_qml.cpp.aotstats
+$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoTopAppBar_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoAssistChip_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoSuggestionChip_qml.cpp.aotstats
 $HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_components/MeoSkeleton_qml.cpp.aotstats

@@ -2,6 +2,8 @@
 -I
 $HOME/Projects/MeoArch_os workspace/build
 -I
+$HOME/Projects/MeoArch_os workspace/build/MeoUI
+-I
 $HOME/Projects/MeoArch_os workspace/build
 -I
 /usr/lib/qt6/qml
@@ -46,6 +48,10 @@ $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoFilterGro
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoNavigationDrawerItem.qml
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoDateInput.qml
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoTimeInput.qml
+$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoIcon.qml
+$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoIconButton.qml
+$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoExposedDropdown.qml
+$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoRichTooltip.qml
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoMediaController.qml
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDatePicker.qml
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDateRangePicker.qml
@@ -55,6 +61,9 @@ $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoNavigationDr
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoBottomSheet.qml
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSearchBar.qml
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDockedSearchBar.qml
+$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoBottomAppBar.qml
+$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSearchView.qml
+$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoTopAppBar.qml
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoAssistChip.qml
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSuggestionChip.qml
 $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSkeleton.qml
