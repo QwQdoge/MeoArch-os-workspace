@@ -1,0 +1,79 @@
+# ==========================================
+# MeoArch OS Workspace Git Ignore Patterns
+# ==========================================
+
+# --- C++ & CMake Build Outputs ---
+build/
+out/
+bin/
+lib/
+CMakeCache.txt
+CMakeFiles/
+CMakeSettings.json
+cmake_install.cmake
+Makefile
+*.ninja
+.ninja_*
+compile_commands.json
+
+# --- Compiled Object Files & Libraries ---
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.la
+*.lai
+*.lo
+
+# --- Qt & QML Generated Files ---
+*.qmlc
+*.jsc
+*.moc
+moc_*.cpp
+qrc_*.cpp
+*.qrc.depends
+ui_*.h
+*.qmltypes
+*.qmljs
+.qt/
+
+# --- Archiso / OS Build Outputs ---
+*.iso
+*.img
+work/
+MeoArch_os*.iso
+MeoArch-os*.iso
+
+# --- Python Cache & Virtual Environments ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# --- IDEs and Editors ---
+.vscode/
+.idea/
+*.suo
+*.user
+*.workspace
+*.sublime-project
+*.sublime-workspace
+
+# --- Logs, Temps & Dumps ---
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.directory
+.DS_Store
+Thumbs.db
