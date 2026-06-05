@@ -7,6 +7,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Quick)
 qt_add_qml_module(meoui_module
     URI "MeoUI"
     VERSION 1.0
+    OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/MeoUI"
     QML_FILES
         MeoTheme.qml
         components/MeoButton.qml
@@ -45,6 +46,10 @@ qt_add_qml_module(meoui_module
         components/MeoNavigationDrawerItem.qml
         components/MeoDateInput.qml
         components/MeoTimeInput.qml
+        components/MeoIcon.qml
+        components/MeoIconButton.qml
+        components/MeoExposedDropdown.qml
+        components/MeoRichTooltip.qml
         widgets/MeoMediaController.qml
         widgets/MeoDatePicker.qml
         widgets/MeoDateRangePicker.qml
@@ -54,6 +59,9 @@ qt_add_qml_module(meoui_module
         widgets/MeoBottomSheet.qml
         widgets/MeoSearchBar.qml
         widgets/MeoDockedSearchBar.qml
+        widgets/MeoBottomAppBar.qml
+        widgets/MeoSearchView.qml
+        widgets/MeoTopAppBar.qml
         components/MeoAssistChip.qml
         components/MeoSuggestionChip.qml
         components/MeoSkeleton.qml

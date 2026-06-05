@@ -37,6 +37,10 @@
     <file alias="components/MeoNavigationDrawerItem.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoNavigationDrawerItem.qml</file>
     <file alias="components/MeoDateInput.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoDateInput.qml</file>
     <file alias="components/MeoTimeInput.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoTimeInput.qml</file>
+    <file alias="components/MeoIcon.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoIcon.qml</file>
+    <file alias="components/MeoIconButton.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoIconButton.qml</file>
+    <file alias="components/MeoExposedDropdown.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoExposedDropdown.qml</file>
+    <file alias="components/MeoRichTooltip.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoRichTooltip.qml</file>
     <file alias="widgets/MeoMediaController.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoMediaController.qml</file>
     <file alias="widgets/MeoDatePicker.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDatePicker.qml</file>
     <file alias="widgets/MeoDateRangePicker.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDateRangePicker.qml</file>
@@ -46,6 +50,9 @@
     <file alias="widgets/MeoBottomSheet.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoBottomSheet.qml</file>
     <file alias="widgets/MeoSearchBar.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSearchBar.qml</file>
     <file alias="widgets/MeoDockedSearchBar.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDockedSearchBar.qml</file>
+    <file alias="widgets/MeoBottomAppBar.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoBottomAppBar.qml</file>
+    <file alias="widgets/MeoSearchView.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSearchView.qml</file>
+    <file alias="widgets/MeoTopAppBar.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoTopAppBar.qml</file>
     <file alias="components/MeoAssistChip.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoAssistChip.qml</file>
     <file alias="components/MeoSuggestionChip.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSuggestionChip.qml</file>
     <file alias="components/MeoSkeleton.qml">/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSkeleton.qml</file>

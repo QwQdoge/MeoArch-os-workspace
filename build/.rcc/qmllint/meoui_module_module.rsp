@@ -1,6 +1,8 @@
 -I
 /home/shekong/Projects/MeoArch_os workspace/build
 -I
+/home/shekong/Projects/MeoArch_os workspace/build/MeoUI
+-I
 /home/shekong/Projects/MeoArch_os workspace/build
 -I
 /usr/lib/qt6/qml

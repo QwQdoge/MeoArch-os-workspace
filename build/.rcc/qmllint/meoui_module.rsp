@@ -2,6 +2,8 @@
 -I
 /home/shekong/Projects/MeoArch_os workspace/build
 -I
+/home/shekong/Projects/MeoArch_os workspace/build/MeoUI
+-I
 /home/shekong/Projects/MeoArch_os workspace/build
 -I
 /usr/lib/qt6/qml
@@ -46,6 +48,10 @@
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoNavigationDrawerItem.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoDateInput.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoTimeInput.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoIcon.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoIconButton.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoExposedDropdown.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoRichTooltip.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoMediaController.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDatePicker.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDateRangePicker.qml
@@ -55,6 +61,9 @@
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoBottomSheet.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSearchBar.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoDockedSearchBar.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoBottomAppBar.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSearchView.qml
+/home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoTopAppBar.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoAssistChip.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSuggestionChip.qml
 /home/shekong/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSkeleton.qml
