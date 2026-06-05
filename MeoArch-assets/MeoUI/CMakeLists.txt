@@ -32,6 +32,8 @@ qt_add_qml_module(meoui_module
         components/MeoDialog.qml
         components/MeoBadge.qml
         components/MeoDivider.qml
+        components/MeoListHeader.qml
+        components/MeoSelectionGroup.qml
         components/MeoListItem.qml
         components/MeoMenu.qml
         components/MeoTabs.qml
@@ -64,6 +66,7 @@ qt_add_qml_module(meoui_module
         patterns/MeoScaffold.qml
         patterns/MeoListDetailLayout.qml
         patterns/MeoSettingsLayout.qml
+        patterns/MeoAccountHeader.qml
         showcase/MeoShowcase.qml
 )
 
