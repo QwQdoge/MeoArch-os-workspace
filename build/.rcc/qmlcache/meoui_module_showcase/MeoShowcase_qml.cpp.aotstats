@@ -110,20 +110,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 4000,
                             "functionName": "padding",
                             "line": 77,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 78,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -134,92 +134,92 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 106,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 81,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 72,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 81,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 83,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 96,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 91,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 62,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 91,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 93,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 104,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 100,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 70,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 100,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 102,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 109,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 109,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 75,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 109,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -238,20 +238,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "padding",
                             "line": 122,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 123,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -262,100 +262,100 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 103,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 126,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 69,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 126,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 128,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 132,
                             "durationMicroseconds": 0,
                             "functionName": "width",
                             "line": 129,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 123,
                             "durationMicroseconds": 0,
                             "functionName": "width",
                             "line": 130,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 103,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 133,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 69,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 133,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 99,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 138,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 65,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 138,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 140,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 113,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 141,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 79,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 141,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -366,20 +366,20 @@
                             "message": "Could not find property \"width\"."
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 125,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 143,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 91,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 143,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -398,20 +398,20 @@
                             "message": "Could not find property \"width\"."
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 104,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 148,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 70,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 148,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -430,20 +430,20 @@
                             "message": "Cannot generate efficient code for storing an array in a non-sequence type"
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 108,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 160,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 74,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 160,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -454,12 +454,12 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 163,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -478,20 +478,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "padding",
                             "line": 180,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 181,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -502,20 +502,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 103,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 184,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 69,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 184,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -526,20 +526,20 @@
                             "message": "Cannot generate efficient code for storing an array in a non-sequence type"
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 96,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 193,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 62,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 193,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -550,60 +550,60 @@
                             "message": "Cannot generate efficient code for storing an array in a non-sequence type"
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 115,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 198,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 81,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 198,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 200,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 42,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 202,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 122,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 203,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 88,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 203,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 44,
                             "durationMicroseconds": 0,
                             "functionName": "width",
                             "line": 205,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -614,36 +614,36 @@
                             "message": "Cannot generate efficient code for storing an array in a non-sequence type"
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 42,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 215,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 115,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 216,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 81,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 216,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 44,
                             "durationMicroseconds": 0,
                             "functionName": "width",
                             "line": 218,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -654,60 +654,60 @@
                             "message": "Cannot generate efficient code for storing an array in a non-sequence type"
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 116,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 229,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 82,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 229,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 231,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 42,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 233,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 129,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 234,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 95,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 234,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 45,
                             "durationMicroseconds": 0,
                             "functionName": "height",
                             "line": 236,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -726,20 +726,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "padding",
                             "line": 256,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 257,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -750,60 +750,60 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 99,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 260,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 65,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 260,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 262,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 100,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 267,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 66,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 267,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 269,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 42,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 271,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -814,20 +814,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "padding",
                             "line": 288,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 289,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -838,20 +838,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 105,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 292,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 71,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 292,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -862,12 +862,12 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 295,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -878,12 +878,12 @@
                             "message": "Could not find property \"width\"."
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 46,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 300,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -894,12 +894,12 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 106,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 301,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -942,92 +942,92 @@
                             "message": "Could not find property \"width\"."
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 113,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 316,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 79,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 316,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 318,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 107,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 324,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 73,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 324,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 326,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 109,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 331,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 75,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 331,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 333,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 105,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 334,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 71,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 334,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -1038,12 +1038,12 @@
                             "message": "Could not find property \"width\"."
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 45,
                             "durationMicroseconds": 0,
                             "functionName": "itemHeight",
                             "line": 338,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -1062,12 +1062,12 @@
                             "message": "Cannot access value for name modelData"
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 45,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
                             "line": 342,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -1078,20 +1078,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 122,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 346,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 88,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 346,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -1102,12 +1102,12 @@
                             "message": "Could not find property \"width\"."
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 45,
                             "durationMicroseconds": 0,
                             "functionName": "itemHeight",
                             "line": 350,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -1126,12 +1126,12 @@
                             "message": "Cannot access value for name modelData"
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 45,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
                             "line": 354,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -1150,20 +1150,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "padding",
                             "line": 368,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 34,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 369,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -1174,28 +1174,28 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 99,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 372,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 65,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 372,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 374,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -1206,28 +1206,28 @@
                             "message": "Could not find signal \"clicked\"."
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 111,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 381,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 77,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 381,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 383,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -1246,28 +1246,28 @@
                             "message": "Could not find property \"width\"."
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 100,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 396,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 66,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 396,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 398,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
@@ -1318,20 +1318,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 40,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 440,
-                            "message": "Cannot load property surfaceContainer from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 41,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
                             "line": 441,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -1342,20 +1342,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 50,
                             "durationMicroseconds": 0,
                             "functionName": "margins",
                             "line": 443,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 46,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 447,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -1366,12 +1366,12 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 85,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 448,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
@@ -1398,52 +1398,52 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 49,
                             "durationMicroseconds": 0,
                             "functionName": "expandedHeight",
                             "line": 459,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 46,
                             "durationMicroseconds": 0,
                             "functionName": "padding",
                             "line": 461,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 46,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 462,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 125,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 463,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 91,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 463,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 131,
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 464,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,

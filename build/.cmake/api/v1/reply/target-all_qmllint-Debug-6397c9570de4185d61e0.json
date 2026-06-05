@@ -28,7 +28,7 @@
 			{
 				"command" : 6,
 				"file" : 2,
-				"line" : 7,
+				"line" : 9,
 				"parent" : 0
 			},
 			{
@@ -52,7 +52,7 @@
 			{
 				"command" : 2,
 				"file" : 1,
-				"line" : 1817,
+				"line" : 1815,
 				"parent" : 4
 			},
 			{
@@ -90,20 +90,20 @@
 	[
 		{
 			"backtrace" : 9,
-			"id" : "meoui_module_qmllint_json::@6890427a1f51a3e7e1df"
+			"id" : "meoui_module_qmllint::@6890427a1f51a3e7e1df"
 		}
 	],
 	"folder" : 
 	{
 		"name" : "/QmlLinter"
 	},
-	"id" : "all_qmllint_json::@6890427a1f51a3e7e1df",
-	"name" : "all_qmllint_json",
+	"id" : "all_qmllint::@6890427a1f51a3e7e1df",
+	"name" : "all_qmllint",
 	"orderDependencies" : 
 	[
 		{
 			"backtrace" : 9,
-			"id" : "meoui_module_qmllint_json::@6890427a1f51a3e7e1df"
+			"id" : "meoui_module_qmllint::@6890427a1f51a3e7e1df"
 		}
 	],
 	"paths" : 

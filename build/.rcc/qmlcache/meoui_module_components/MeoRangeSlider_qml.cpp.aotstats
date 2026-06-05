@@ -8,10 +8,10 @@
                         {
                             "codegenResult": 2,
                             "column": 40,
-                            "durationMicroseconds": 12000,
+                            "durationMicroseconds": 3000,
                             "functionName": "isDarkMode",
                             "line": 15,
-                            "message": "Cannot load property isDarkMode from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -19,7 +19,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themePrimary",
                             "line": 16,
-                            "message": "Cannot load property primary from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -27,7 +27,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurfaceVariant",
                             "line": 17,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -35,7 +35,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
                             "line": 18,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -71,14 +71,6 @@
                         },
                         {
                             "codegenResult": 2,
-                            "column": 18,
-                            "durationMicroseconds": 0,
-                            "functionName": "onMoved",
-                            "line": 31,
-                            "message": "Could not find signal \"moved\"."
-                        },
-                        {
-                            "codegenResult": 2,
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
@@ -95,6 +87,14 @@
                         },
                         {
                             "codegenResult": 2,
+                            "column": 24,
+                            "durationMicroseconds": 0,
+                            "functionName": "onMoved",
+                            "line": 31,
+                            "message": "Could not find signal \"moved\"."
+                        },
+                        {
+                            "codegenResult": 2,
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "value",
@@ -103,10 +103,18 @@
                         },
                         {
                             "codegenResult": 2,
+                            "column": 25,
+                            "durationMicroseconds": 0,
+                            "functionName": "onMoved",
+                            "line": 35,
+                            "message": "Could not find signal \"moved\"."
+                        },
+                        {
+                            "codegenResult": 2,
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "x",
-                            "line": 38,
+                            "line": 41,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -114,7 +122,7 @@
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "y",
-                            "line": 39,
+                            "line": 42,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -122,7 +130,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 40,
+                            "line": 43,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -130,7 +138,7 @@
                             "column": 21,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 41,
+                            "line": 44,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -138,7 +146,7 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 45,
+                            "line": 48,
                             "message": ""
                         },
                         {
@@ -146,7 +154,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 46,
+                            "line": 49,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -154,7 +162,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
-                            "line": 47,
+                            "line": 50,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -162,7 +170,7 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 48,
+                            "line": 51,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -170,7 +178,7 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "centerIn",
-                            "line": 44,
+                            "line": 47,
                             "message": ""
                         },
                         {
@@ -178,7 +186,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "y",
-                            "line": 52,
+                            "line": 55,
                             "message": ""
                         },
                         {
@@ -186,7 +194,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "x",
-                            "line": 53,
+                            "line": 56,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -194,7 +202,7 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 54,
+                            "line": 57,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -202,7 +210,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 55,
+                            "line": 58,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -210,7 +218,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
-                            "line": 56,
+                            "line": 59,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -218,7 +226,7 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 57,
+                            "line": 60,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -226,7 +234,7 @@
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "x",
-                            "line": 62,
+                            "line": 65,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -234,7 +242,7 @@
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "y",
-                            "line": 63,
+                            "line": 66,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -242,39 +250,39 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 64,
-                            "message": "Cannot access value for name control"
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 21,
-                            "durationMicroseconds": 0,
-                            "functionName": "height",
-                            "line": 65,
-                            "message": "Cannot access value for name control"
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 21,
-                            "durationMicroseconds": 0,
-                            "functionName": "radius",
-                            "line": 66,
-                            "message": "Cannot access value for name control"
-                        },
-                        {
-                            "codegenResult": 2,
-                            "column": 20,
-                            "durationMicroseconds": 0,
-                            "functionName": "color",
                             "line": 67,
                             "message": "Cannot access value for name control"
                         },
                         {
                             "codegenResult": 2,
+                            "column": 21,
+                            "durationMicroseconds": 0,
+                            "functionName": "height",
+                            "line": 68,
+                            "message": "Cannot access value for name control"
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 21,
+                            "durationMicroseconds": 0,
+                            "functionName": "radius",
+                            "line": 69,
+                            "message": "Cannot access value for name control"
+                        },
+                        {
+                            "codegenResult": 2,
+                            "column": 20,
+                            "durationMicroseconds": 0,
+                            "functionName": "color",
+                            "line": 70,
+                            "message": "Cannot access value for name control"
+                        },
+                        {
+                            "codegenResult": 2,
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 71,
+                            "line": 74,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -282,7 +290,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 72,
+                            "line": 75,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -290,7 +298,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
-                            "line": 73,
+                            "line": 76,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -298,7 +306,7 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 75,
+                            "line": 78,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -306,7 +314,7 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "centerIn",
-                            "line": 70,
+                            "line": 73,
                             "message": ""
                         },
                         {
@@ -314,7 +322,7 @@
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "x",
-                            "line": 82,
+                            "line": 85,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -322,7 +330,7 @@
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "y",
-                            "line": 83,
+                            "line": 86,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -330,7 +338,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 84,
+                            "line": 87,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -338,7 +346,7 @@
                             "column": 21,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 85,
+                            "line": 88,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -346,7 +354,7 @@
                             "column": 21,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
-                            "line": 86,
+                            "line": 89,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -354,7 +362,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 87,
+                            "line": 90,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -362,7 +370,7 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 91,
+                            "line": 94,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -370,7 +378,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "height",
-                            "line": 92,
+                            "line": 95,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -378,7 +386,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
-                            "line": 93,
+                            "line": 96,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -386,7 +394,7 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 95,
+                            "line": 98,
                             "message": "Cannot access value for name internalSlider"
                         },
                         {
@@ -394,7 +402,7 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "centerIn",
-                            "line": 90,
+                            "line": 93,
                             "message": ""
                         }
                     ],

@@ -23,7 +23,7 @@
 			{
 				"command" : 4,
 				"file" : 1,
-				"line" : 7,
+				"line" : 9,
 				"parent" : 0
 			},
 			{
@@ -47,7 +47,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 1761,
+				"line" : 1799,
 				"parent" : 4
 			}
 		]
@@ -67,8 +67,8 @@
 	{
 		"name" : "/QmlLinter"
 	},
-	"id" : "meoui_module_qmllint_json::@6890427a1f51a3e7e1df",
-	"name" : "meoui_module_qmllint_json",
+	"id" : "meoui_module_qmllint_module::@6890427a1f51a3e7e1df",
+	"name" : "meoui_module_qmllint_module",
 	"orderDependencies" : 
 	[
 		{
@@ -106,13 +106,13 @@
 		{
 			"backtrace" : 5,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module_qmllint_json",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module_qmllint_module",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module_qmllint_json.rule",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/CMakeFiles/meoui_module_qmllint_module.rule",
 			"sourceGroupIndex" : 1
 		}
 	],

@@ -39,7 +39,7 @@ Popup {
 
             MeoIconButton {
                 id: closeBtn
-                icon: "close"
+                icon.name: "close"
                 anchors.left: parent.left
                 anchors.leftMargin: 4 * control.themeGlobalScale
                 anchors.verticalCenter: parent.verticalCenter

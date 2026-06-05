@@ -191,7 +191,7 @@ TextField {
         // Clear Button
         MeoIconButton {
             visible: control.showClearButton && control.text !== "" && control.enabled && control.trailingIcon === ""
-            icon: "close"
+            icon.name: "close"
             anchors.verticalCenter: parent.verticalCenter
             width: 28 * control.themeGlobalScale
             height: 28 * control.themeGlobalScale

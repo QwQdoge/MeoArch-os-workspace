@@ -8,7 +8,7 @@ Control {
     // 🌟 核心属性
     property var model: [] // Array of { label: "", value: any, icon: "" }
     property string separator: "chevron_right"
-    property real spacing: 4 * themeGlobalScale
+    spacing: 4 * themeGlobalScale
 
     signal clicked(int index, var data)
 

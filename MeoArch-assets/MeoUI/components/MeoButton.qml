@@ -8,7 +8,6 @@ Button {
 
     // 🌟 核心开关
     property string type: "filled" // "filled" (默认) | "tonal" | "outlined" | "elevated" | "text"
-    property string icon: ""
 
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
 
@@ -43,7 +42,7 @@ Button {
     }
 
     leftPadding: {
-        if (control.icon !== "") return 16 * MeoTheme.globalScale;
+        if (control.icon.name !== "" || control.icon.source.toString() !== "") return 16 * MeoTheme.globalScale;
         return (control.type === "text" ? 12 : 24) * MeoTheme.globalScale;
     }
     rightPadding: (control.type === "text" ? 12 : 24) * MeoTheme.globalScale
@@ -56,8 +55,8 @@ Button {
         anchors.centerIn: parent
 
         MeoIcon {
-            icon: control.icon
-            visible: control.icon !== ""
+            icon: control.icon.name || control.icon.source.toString()
+            visible: control.icon.name !== "" || control.icon.source.toString() !== ""
             size: 18
             color: control.textColor
             anchors.verticalCenter: parent.verticalCenter

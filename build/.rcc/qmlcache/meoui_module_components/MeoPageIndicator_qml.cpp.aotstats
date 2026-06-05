@@ -6,12 +6,12 @@
                 {
                     "entries": [
                         {
-                            "codegenResult": 0,
-                            "column": 28,
+                            "codegenResult": 2,
+                            "column": 14,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 11,
-                            "message": ""
+                            "message": "Could not find property \"spacing\"."
                         },
                         {
                             "codegenResult": 0,
@@ -32,10 +32,10 @@
                         {
                             "codegenResult": 2,
                             "column": 43,
-                            "durationMicroseconds": 4000,
+                            "durationMicroseconds": 8000,
                             "functionName": "themePrimary",
                             "line": 16,
-                            "message": "Cannot load property primary from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -43,7 +43,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOutlineVariant",
                             "line": 17,
-                            "message": "Cannot load property outlineVariant from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -51,7 +51,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
                             "line": 18,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,

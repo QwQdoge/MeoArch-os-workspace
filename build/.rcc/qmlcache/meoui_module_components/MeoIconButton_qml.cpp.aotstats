@@ -10,87 +10,87 @@
                             "column": 40,
                             "durationMicroseconds": 5000,
                             "functionName": "isDarkMode",
-                            "line": 16,
-                            "message": "Cannot load property isDarkMode from const QMetaObject."
+                            "line": 15,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "themePrimary",
-                            "line": 17,
-                            "message": "Cannot load property primary from const QMetaObject."
+                            "line": 16,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 45,
                             "durationMicroseconds": 0,
                             "functionName": "themeOnPrimary",
-                            "line": 18,
-                            "message": "Cannot load property onPrimary from const QMetaObject."
+                            "line": 17,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 54,
                             "durationMicroseconds": 0,
                             "functionName": "themeSecondaryContainer",
-                            "line": 19,
-                            "message": "Cannot load property secondaryContainer from const QMetaObject."
+                            "line": 18,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 56,
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSecondaryContainer",
-                            "line": 20,
-                            "message": "Cannot load property onSecondaryContainer from const QMetaObject."
+                            "line": 19,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 50,
                             "durationMicroseconds": 0,
                             "functionName": "themeSurfaceVariant",
-                            "line": 21,
-                            "message": "Cannot load property surfaceVariant from const QMetaObject."
+                            "line": 20,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 45,
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurface",
-                            "line": 22,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "line": 21,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 52,
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurfaceVariant",
-                            "line": 23,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "line": 22,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "themeOutline",
-                            "line": 24,
-                            "message": "Cannot load property outline from const QMetaObject."
+                            "line": 23,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 46,
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
-                            "line": 25,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "line": 24,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "implicitWidth",
-                            "line": 27,
+                            "line": 26,
                             "message": "Could not find property \"implicitWidth\"."
                         },
                         {
@@ -98,7 +98,7 @@
                             "column": 21,
                             "durationMicroseconds": 0,
                             "functionName": "implicitHeight",
-                            "line": 28,
+                            "line": 27,
                             "message": "Could not find property \"implicitHeight\"."
                         },
                         {
@@ -106,7 +106,7 @@
                             "column": 14,
                             "durationMicroseconds": 0,
                             "functionName": "padding",
-                            "line": 29,
+                            "line": 28,
                             "message": "Could not find property \"padding\"."
                         },
                         {
@@ -114,7 +114,7 @@
                             "column": 17,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
-                            "line": 32,
+                            "line": 31,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -122,7 +122,7 @@
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 33,
+                            "line": 32,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -130,7 +130,7 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 39,
+                            "line": 38,
                             "message": "Cannot access value for name type"
                         },
                         {
@@ -138,7 +138,7 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 40,
+                            "line": 39,
                             "message": "Cannot access value for name type"
                         },
                         {
@@ -146,7 +146,7 @@
                             "column": 21,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
-                            "line": 43,
+                            "line": 42,
                             "message": "Cannot load property radius from (component in $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoIconButton.qml)::parent with type QQuickItem."
                         },
                         {
@@ -154,7 +154,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "pressed",
-                            "line": 44,
+                            "line": 43,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -162,7 +162,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "hovered",
-                            "line": 45,
+                            "line": 44,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -170,7 +170,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 46,
+                            "line": 45,
                             "message": "Cannot access value for name type"
                         },
                         {
@@ -178,7 +178,7 @@
                             "column": 15,
                             "durationMicroseconds": 0,
                             "functionName": "icon",
-                            "line": 57,
+                            "line": 56,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -186,7 +186,7 @@
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 59,
+                            "line": 58,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -194,7 +194,7 @@
                             "column": 30,
                             "durationMicroseconds": 0,
                             "functionName": "horizontalAlignment",
-                            "line": 65,
+                            "line": 64,
                             "message": ""
                         },
                         {
@@ -202,7 +202,7 @@
                             "column": 28,
                             "durationMicroseconds": 0,
                             "functionName": "verticalAlignment",
-                            "line": 66,
+                            "line": 65,
                             "message": ""
                         }
                     ],

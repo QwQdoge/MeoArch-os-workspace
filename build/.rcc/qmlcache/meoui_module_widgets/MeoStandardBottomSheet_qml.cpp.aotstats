@@ -24,10 +24,10 @@
                         {
                             "codegenResult": 2,
                             "column": 55,
-                            "durationMicroseconds": 5000,
+                            "durationMicroseconds": 6000,
                             "functionName": "themeSurfaceContainerLow",
                             "line": 16,
-                            "message": "Cannot load property surfaceContainerLow from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -35,7 +35,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOutlineVariant",
                             "line": 17,
-                            "message": "Cannot load property outlineVariant from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -43,7 +43,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
                             "line": 18,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 0,

@@ -24,7 +24,6 @@ Control {
         id: flowLayout
         width: control.width
         spacing: control.chipSpacing
-        runSpacing: control.chipSpacing
 
         Repeater {
             model: control.model

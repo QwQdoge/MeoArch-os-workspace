@@ -8,7 +8,6 @@ Button {
     // 🌟 核心属性
     // type: "standard" | "filled" | "tonal" | "outlined"
     property string type: "standard"
-    property string icon: ""
     property bool selected: false
     property string selectedIcon: ""
 
@@ -54,7 +53,7 @@ Button {
     }
 
     contentItem: MeoIcon {
-        icon: (control.selected && control.selectedIcon !== "") ? control.selectedIcon : control.icon
+        icon: (control.selected && control.selectedIcon !== "") ? control.selectedIcon : (control.icon.name || control.icon.source.toString())
         size: 24
         color: {
             if (!control.enabled) return isDarkMode ? Qt.rgba(1,1,1,0.38) : Qt.rgba(0,0,0,0.38)

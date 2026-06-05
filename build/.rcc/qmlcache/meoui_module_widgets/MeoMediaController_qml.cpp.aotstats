@@ -8,10 +8,10 @@
                         {
                             "codegenResult": 2,
                             "column": 40,
-                            "durationMicroseconds": 17000,
+                            "durationMicroseconds": 5000,
                             "functionName": "isDarkMode",
                             "line": 25,
-                            "message": "Cannot load property isDarkMode from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -19,7 +19,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themePrimary",
                             "line": 26,
-                            "message": "Cannot load property primary from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -27,7 +27,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnPrimary",
                             "line": 27,
-                            "message": "Cannot load property onPrimary from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -35,7 +35,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeSecondaryContainer",
                             "line": 28,
-                            "message": "Cannot load property secondaryContainer from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -43,7 +43,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSecondaryContainer",
                             "line": 29,
-                            "message": "Cannot load property onSecondaryContainer from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -51,7 +51,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeSurfaceContainerLow",
                             "line": 30,
-                            "message": "Cannot load property surfaceContainerLow from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -59,7 +59,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurface",
                             "line": 31,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -67,7 +67,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurfaceVariant",
                             "line": 32,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -75,7 +75,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOutline",
                             "line": 33,
-                            "message": "Cannot load property outline from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -83,7 +83,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
                             "line": 34,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -224,7 +224,7 @@
                         {
                             "codegenResult": 2,
                             "column": 30,
-                            "durationMicroseconds": 4000,
+                            "durationMicroseconds": 0,
                             "functionName": "visible",
                             "line": 78,
                             "message": "Cannot generate efficient code for incomparable types QString and (component in $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoMediaController.qml)::source with type QUrl"
@@ -504,7 +504,7 @@
                         {
                             "codegenResult": 2,
                             "column": 29,
-                            "durationMicroseconds": 4000,
+                            "durationMicroseconds": 0,
                             "functionName": "radius",
                             "line": 152,
                             "message": "Cannot access value for name control"
@@ -648,7 +648,7 @@
                         {
                             "codegenResult": 2,
                             "column": 28,
-                            "durationMicroseconds": 4000,
+                            "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 204,
                             "message": "Cannot retrieve a non-object type by ID: control"

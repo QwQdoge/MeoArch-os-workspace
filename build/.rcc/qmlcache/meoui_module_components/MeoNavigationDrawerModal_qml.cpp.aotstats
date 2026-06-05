@@ -19,7 +19,7 @@
                             "durationMicroseconds": 5000,
                             "functionName": "isDarkMode",
                             "line": 12,
-                            "message": "Cannot load property isDarkMode from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -27,7 +27,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeSurfaceContainerLow",
                             "line": 13,
-                            "message": "Cannot load property surfaceContainerLow from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -35,7 +35,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
                             "line": 14,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -179,7 +179,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 59,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,

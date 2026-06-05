@@ -8,25 +8,25 @@
                         {
                             "codegenResult": 2,
                             "column": 40,
-                            "durationMicroseconds": 6000,
+                            "durationMicroseconds": 14000,
                             "functionName": "isDarkMode",
-                            "line": 13,
-                            "message": "Cannot load property isDarkMode from const QMetaObject."
+                            "line": 12,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "fontLabelLarge",
-                            "line": 15,
-                            "message": "Cannot load property labelLarge from const QMetaObject."
+                            "line": 14,
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
                             "column": 38,
                             "durationMicroseconds": 0,
                             "functionName": "bgColor",
-                            "line": 17,
+                            "line": 16,
                             "message": "Cannot retrieve a non-object type by ID: control"
                         },
                         {
@@ -34,7 +34,7 @@
                             "column": 39,
                             "durationMicroseconds": 0,
                             "functionName": "elevation",
-                            "line": 29,
+                            "line": 28,
                             "message": "Cannot retrieve a non-object type by ID: control"
                         },
                         {
@@ -42,7 +42,7 @@
                             "column": 40,
                             "durationMicroseconds": 0,
                             "functionName": "textColor",
-                            "line": 36,
+                            "line": 35,
                             "message": "Cannot retrieve a non-object type by ID: control"
                         },
                         {
@@ -50,7 +50,7 @@
                             "column": 18,
                             "durationMicroseconds": 0,
                             "functionName": "leftPadding",
-                            "line": 45,
+                            "line": 44,
                             "message": "Could not find property \"leftPadding\"."
                         },
                         {
@@ -58,7 +58,7 @@
                             "column": 19,
                             "durationMicroseconds": 0,
                             "functionName": "rightPadding",
-                            "line": 49,
+                            "line": 48,
                             "message": "Could not find property \"rightPadding\"."
                         },
                         {
@@ -66,23 +66,23 @@
                             "column": 21,
                             "durationMicroseconds": 0,
                             "functionName": "implicitHeight",
-                            "line": 52,
+                            "line": 51,
                             "message": "Could not find property \"implicitHeight\"."
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 18,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
-                            "line": 55,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "line": 54,
+                            "message": ""
                         },
                         {
                             "codegenResult": 0,
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "centerIn",
-                            "line": 56,
+                            "line": 55,
                             "message": ""
                         },
                         {
@@ -90,7 +90,7 @@
                             "column": 19,
                             "durationMicroseconds": 0,
                             "functionName": "icon",
-                            "line": 59,
+                            "line": 58,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -98,7 +98,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "visible",
-                            "line": 60,
+                            "line": 59,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -106,7 +106,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 62,
+                            "line": 61,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -114,7 +114,7 @@
                             "column": 37,
                             "durationMicroseconds": 0,
                             "functionName": "verticalCenter",
-                            "line": 63,
+                            "line": 62,
                             "message": ""
                         },
                         {
@@ -122,7 +122,7 @@
                             "column": 19,
                             "durationMicroseconds": 0,
                             "functionName": "text",
-                            "line": 68,
+                            "line": 67,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -130,7 +130,7 @@
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "lineHeight",
-                            "line": 72,
+                            "line": 71,
                             "message": "Cannot access value for name fontLabelLarge"
                         },
                         {
@@ -138,7 +138,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 73,
+                            "line": 72,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -146,7 +146,7 @@
                             "column": 32,
                             "durationMicroseconds": 0,
                             "functionName": "verticalAlignment",
-                            "line": 74,
+                            "line": 73,
                             "message": ""
                         },
                         {
@@ -154,7 +154,7 @@
                             "column": 29,
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
-                            "line": 69,
+                            "line": 68,
                             "message": "Cannot access value for name fontLabelLarge"
                         },
                         {
@@ -162,7 +162,7 @@
                             "column": 26,
                             "durationMicroseconds": 0,
                             "functionName": "weight",
-                            "line": 70,
+                            "line": 69,
                             "message": "Cannot access value for name fontLabelLarge"
                         },
                         {
@@ -170,7 +170,7 @@
                             "column": 33,
                             "durationMicroseconds": 0,
                             "functionName": "letterSpacing",
-                            "line": 71,
+                            "line": 70,
                             "message": "Cannot access value for name fontLabelLarge"
                         },
                         {
@@ -178,7 +178,7 @@
                             "column": 37,
                             "durationMicroseconds": 0,
                             "functionName": "verticalCenter",
-                            "line": 75,
+                            "line": 74,
                             "message": ""
                         },
                         {
@@ -186,31 +186,31 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "implicitWidth",
-                            "line": 81,
+                            "line": 80,
                             "message": "Cannot access value for name control"
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "implicitHeight",
-                            "line": 82,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "line": 81,
+                            "message": ""
                         },
                         {
-                            "codegenResult": 2,
+                            "codegenResult": 0,
                             "column": 17,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
-                            "line": 83,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "line": 82,
+                            "message": ""
                         },
                         {
                             "codegenResult": 2,
                             "column": 16,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 85,
+                            "line": 84,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -218,7 +218,7 @@
                             "column": 21,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
-                            "line": 90,
+                            "line": 89,
                             "message": "Cannot load property radius from (component in $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoButton.qml)::parent with type QQuickItem."
                         },
                         {
@@ -226,7 +226,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 91,
+                            "line": 90,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -234,7 +234,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "visible",
-                            "line": 92,
+                            "line": 91,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -242,7 +242,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "fill",
-                            "line": 89,
+                            "line": 88,
                             "message": ""
                         },
                         {
@@ -250,7 +250,7 @@
                             "column": 21,
                             "durationMicroseconds": 0,
                             "functionName": "radius",
-                            "line": 97,
+                            "line": 96,
                             "message": "Cannot load property radius from (component in $HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoButton.qml)::parent with type QQuickItem."
                         },
                         {
@@ -258,7 +258,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "pressed",
-                            "line": 98,
+                            "line": 97,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -266,7 +266,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "hovered",
-                            "line": 99,
+                            "line": 98,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -274,7 +274,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "focused",
-                            "line": 100,
+                            "line": 99,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -282,7 +282,7 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 101,
+                            "line": 100,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -290,7 +290,7 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "color",
-                            "line": 104,
+                            "line": 103,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -298,7 +298,7 @@
                             "column": 23,
                             "durationMicroseconds": 0,
                             "functionName": "width",
-                            "line": 110,
+                            "line": 109,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -306,7 +306,7 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "enabled",
-                            "line": 113,
+                            "line": 112,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -314,7 +314,7 @@
                             "column": 35,
                             "durationMicroseconds": 0,
                             "functionName": "shadowVerticalOffset",
-                            "line": 117,
+                            "line": 116,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -322,7 +322,7 @@
                             "column": 26,
                             "durationMicroseconds": 0,
                             "functionName": "shadowColor",
-                            "line": 118,
+                            "line": 117,
                             "message": "Cannot generate efficient code for internal conversion with incompatible or ambiguous types: call to method rgba, returning QVariant -> QColor stored as QVariant"
                         },
                         {
@@ -330,7 +330,7 @@
                             "column": 81,
                             "durationMicroseconds": 0,
                             "functionName": "bezierCurve",
-                            "line": 121,
+                            "line": 120,
                             "message": ""
                         }
                     ],

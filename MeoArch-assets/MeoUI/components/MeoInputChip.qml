@@ -101,7 +101,7 @@ Control {
 
         // Delete Icon
         MeoIconButton {
-            icon: "close"
+            icon.name: "close"
             width: 18 * control.themeGlobalScale
             height: 18 * control.themeGlobalScale
             padding: 2 * control.themeGlobalScale

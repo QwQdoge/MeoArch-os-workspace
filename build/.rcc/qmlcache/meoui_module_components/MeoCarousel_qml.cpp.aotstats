@@ -30,20 +30,20 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 0,
-                            "column": 28,
+                            "codegenResult": 2,
+                            "column": 14,
                             "durationMicroseconds": 0,
                             "functionName": "spacing",
                             "line": 13,
-                            "message": ""
+                            "message": "Could not find property \"spacing\"."
                         },
                         {
                             "codegenResult": 2,
                             "column": 46,
-                            "durationMicroseconds": 5000,
+                            "durationMicroseconds": 16000,
                             "functionName": "themeGlobalScale",
                             "line": 15,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,

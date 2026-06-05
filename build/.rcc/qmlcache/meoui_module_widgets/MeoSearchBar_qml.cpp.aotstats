@@ -11,7 +11,7 @@
                             "durationMicroseconds": 4000,
                             "functionName": "themeSurfaceContainerHighest",
                             "line": 15,
-                            "message": "Cannot load property surfaceContainerHighest from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -19,7 +19,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurface",
                             "line": 16,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -27,7 +27,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurfaceVariant",
                             "line": 17,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -35,7 +35,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
                             "line": 18,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 0,

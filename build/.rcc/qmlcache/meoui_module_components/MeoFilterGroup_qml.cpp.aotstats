@@ -32,10 +32,10 @@
                         {
                             "codegenResult": 2,
                             "column": 46,
-                            "durationMicroseconds": 5000,
+                            "durationMicroseconds": 4000,
                             "functionName": "themeGlobalScale",
                             "line": 18,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -71,18 +71,10 @@
                         },
                         {
                             "codegenResult": 2,
-                            "column": 21,
-                            "durationMicroseconds": 0,
-                            "functionName": "runSpacing",
-                            "line": 27,
-                            "message": "Could not find property \"runSpacing\"."
-                        },
-                        {
-                            "codegenResult": 2,
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "model",
-                            "line": 30,
+                            "line": 29,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -90,7 +82,7 @@
                             "column": 24,
                             "durationMicroseconds": 0,
                             "functionName": "label",
-                            "line": 32,
+                            "line": 31,
                             "message": "Cannot access value for name modelData"
                         },
                         {
@@ -98,7 +90,7 @@
                             "column": 30,
                             "durationMicroseconds": 0,
                             "functionName": "leadingIcon",
-                            "line": 33,
+                            "line": 32,
                             "message": "Cannot access value for name modelData"
                         },
                         {
@@ -106,7 +98,7 @@
                             "column": 27,
                             "durationMicroseconds": 0,
                             "functionName": "selected",
-                            "line": 34,
+                            "line": 33,
                             "message": "Cannot access value for name control"
                         },
                         {
@@ -114,7 +106,7 @@
                             "column": 28,
                             "durationMicroseconds": 0,
                             "functionName": "onClicked",
-                            "line": 36,
+                            "line": 35,
                             "message": "Cannot access value for name control"
                         }
                     ],

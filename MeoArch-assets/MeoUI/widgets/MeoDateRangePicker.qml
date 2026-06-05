@@ -90,7 +90,7 @@ MeoCard {
                 anchors.verticalCenter: parent.verticalCenter
 
                 MeoIconButton {
-                    icon: "chevron_left"
+                    icon.name: "chevron_left"
                     onClicked: {
                         let d = new Date(control.displayDate)
                         d.setMonth(d.getMonth() - 1)
@@ -98,7 +98,7 @@ MeoCard {
                     }
                 }
                 MeoIconButton {
-                    icon: "chevron_right"
+                    icon.name: "chevron_right"
                     onClicked: {
                         let d = new Date(control.displayDate)
                         d.setMonth(d.getMonth() + 1)

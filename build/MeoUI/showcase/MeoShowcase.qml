@@ -91,19 +91,19 @@ ApplicationWindow {
                         Text { text: "FABs"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
                         Row {
                             spacing: 16 * MeoTheme.globalScale
-                            MeoFAB { icon: "add"; type: "small" }
-                            MeoFAB { icon: "add"; type: "regular" }
-                            MeoFAB { icon: "add"; type: "large" }
-                            MeoFAB { icon: "add"; text: "Create New"; type: "extended" }
+                            MeoFAB { icon.name: "add"; type: "small" }
+                            MeoFAB { icon.name: "add"; type: "regular" }
+                            MeoFAB { icon.name: "add"; type: "large" }
+                            MeoFAB { icon.name: "add"; text: "Create New"; type: "extended" }
                         }
 
                         Text { text: "Icon Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
                         Row {
                             spacing: 12 * MeoTheme.globalScale
-                            MeoIconButton { icon: "settings"; type: "standard" }
-                            MeoIconButton { icon: "favorite"; type: "filled"; selected: true }
-                            MeoIconButton { icon: "share"; type: "tonal" }
-                            MeoIconButton { icon: "search"; type: "outlined" }
+                            MeoIconButton { icon.name: "settings"; type: "standard" }
+                            MeoIconButton { icon.name: "favorite"; type: "filled"; selected: true }
+                            MeoIconButton { icon.name: "share"; type: "tonal" }
+                            MeoIconButton { icon.name: "search"; type: "outlined" }
                         }
 
                         Text { text: "Segmented Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
@@ -235,7 +235,7 @@ ApplicationWindow {
                                 MeoNavigationRail {
                                     height: 300 * MeoTheme.globalScale
                                     labelType: "selected"
-                                    header: MeoFAB { type: "small"; icon: "edit" }
+                                    header: MeoFAB { type: "small"; icon.name: "edit" }
                                     model: [
                                         { label: "Inbox", icon: "inbox" },
                                         { label: "Outbox", icon: "send" },
@@ -431,7 +431,7 @@ ApplicationWindow {
                                 { label: "Search", icon: "search", badgeDot: true },
                                 { label: "Settings", icon: "settings" }
                             ]
-                            footer: MeoIconButton { icon: "logout"; type: "standard" }
+                            footer: MeoIconButton { icon.name: "logout"; type: "standard" }
                         }
                         content: Item {
                             anchors.fill: parent
@@ -465,7 +465,7 @@ ApplicationWindow {
                                 }
                             }
                         }
-                        fab: MeoFAB { icon: "add" }
+                        fab: MeoFAB { icon.name: "add" }
                     }
                 }
             }

@@ -11,7 +11,7 @@
                             "durationMicroseconds": 5000,
                             "functionName": "isDarkMode",
                             "line": 18,
-                            "message": "Cannot load property isDarkMode from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -19,7 +19,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themePrimary",
                             "line": 19,
-                            "message": "Cannot load property primary from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -27,7 +27,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurface",
                             "line": 20,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -35,7 +35,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurfaceVariant",
                             "line": 21,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -43,7 +43,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOutline",
                             "line": 22,
-                            "message": "Cannot load property outline from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -51,7 +51,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeSurfaceContainerLow",
                             "line": 23,
-                            "message": "Cannot load property surfaceContainerLow from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -59,7 +59,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
                             "line": 24,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -67,7 +67,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "fontLabelLarge",
                             "line": 26,
-                            "message": "Cannot load property labelLarge from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
