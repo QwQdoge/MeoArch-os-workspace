@@ -1401,11 +1401,11 @@
 			"id" : "generate_qmlls_build_ini_file::@6890427a1f51a3e7e1df"
 		},
 		{
-			"id" : "meoui_module_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
-		},
-		{
 			"backtrace" : 0,
 			"id" : "meoui_module_autogen::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "meoui_module_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
 		}
 	],
 	"id" : "meoui_module::@6890427a1f51a3e7e1df",
@@ -1550,11 +1550,11 @@
 			"id" : "generate_qmlls_build_ini_file::@6890427a1f51a3e7e1df"
 		},
 		{
-			"id" : "meoui_module_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
-		},
-		{
 			"backtrace" : 0,
 			"id" : "meoui_module_autogen::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "meoui_module_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
 		}
 	],
 	"paths" : 
