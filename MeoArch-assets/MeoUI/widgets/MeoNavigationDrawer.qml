@@ -10,6 +10,8 @@ Rectangle {
     property int currentIndex: 0
     property bool isModal: false
     property string title: ""
+    property Component header: null
+    property Component footer: null
 
     signal clicked(int index)
 
@@ -24,36 +26,71 @@ Rectangle {
     height: parent ? parent.height : 600 * themeGlobalScale
     color: themeSurfaceContainerLow
 
-    // Drawer Header
     Column {
         id: mainColumn
         anchors.fill: parent
-        anchors.topMargin: 24 * control.themeGlobalScale
-        spacing: 4 * control.themeGlobalScale
+        anchors.topMargin: control.header !== null ? 0 : 24 * control.themeGlobalScale
+        spacing: 0
 
+        // 🌟 Custom Header
+        Loader {
+            id: headerLoader
+            width: parent.width
+            sourceComponent: control.header
+            visible: control.header !== null
+        }
+
+        // Standard Title (if no custom header)
         Text {
             text: control.title
-            visible: text !== ""
+            visible: text !== "" && control.header === null
+            width: parent.width
             padding: 16 * control.themeGlobalScale
+            topPadding: 24 * control.themeGlobalScale
             font.pixelSize: fontLabelLarge.size * control.themeGlobalScale
             font.weight: fontLabelLarge.weight
             color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
         }
 
-        Repeater {
-            model: control.model
-            delegate: MeoNavigationDrawerItem {
-                width: parent.width - 24 * control.themeGlobalScale
-                anchors.horizontalCenter: parent.horizontalCenter
-                label: modelData.label
-                icon: modelData.icon
-                badgeText: modelData.badgeText || ""
-                selected: control.currentIndex === index
-                onClicked: {
-                    control.currentIndex = index
-                    control.clicked(index)
+        // 🌟 Scrollable Navigation List
+        Flickable {
+            id: flickable
+            width: parent.width
+            height: parent.height - headerLoader.height - footerLoader.height
+            contentHeight: contentColumn.implicitHeight + 24 * control.themeGlobalScale
+            clip: true
+
+            Column {
+                id: contentColumn
+                width: parent.width
+                spacing: 4 * control.themeGlobalScale
+                topPadding: 12 * control.themeGlobalScale
+
+                Repeater {
+                    model: control.model
+                    delegate: MeoNavigationDrawerItem {
+                        width: parent.width - 24 * control.themeGlobalScale
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        label: modelData.label
+                        icon: modelData.icon
+                        badgeText: modelData.badgeText || ""
+                        selected: control.currentIndex === index
+                        onClicked: {
+                            control.currentIndex = index
+                            control.clicked(index)
+                        }
+                    }
                 }
             }
+        }
+
+        // 🌟 Custom Footer
+        Loader {
+            id: footerLoader
+            width: parent.width
+            sourceComponent: control.footer
+            visible: control.footer !== null
+            anchors.bottom: parent.bottom
         }
     }
 }

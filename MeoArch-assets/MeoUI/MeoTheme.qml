@@ -121,4 +121,30 @@ QtObject {
     readonly property var labelLarge: { "size": 14, "weight": Font.Medium, "lineHeight": 20, "letterSpacing": 0.1 }
     readonly property var labelMedium: { "size": 12, "weight": Font.Medium, "lineHeight": 16, "letterSpacing": 0.5 }
     readonly property var labelSmall: { "size": 11, "weight": Font.Medium, "lineHeight": 16, "letterSpacing": 0.5 }
+
+    // 🌟 Material Design 3 Emphasized Typography (M3 Expressive)
+    // Display Emphasized
+    readonly property var displayLargeEmphasized: { "size": 57, "weight": Font.Bold, "lineHeight": 64, "letterSpacing": -0.25 }
+    readonly property var displayMediumEmphasized: { "size": 45, "weight": Font.Bold, "lineHeight": 52, "letterSpacing": 0 }
+    readonly property var displaySmallEmphasized: { "size": 36, "weight": Font.Bold, "lineHeight": 44, "letterSpacing": 0 }
+
+    // Headline Emphasized
+    readonly property var headlineLargeEmphasized: { "size": 32, "weight": Font.Bold, "lineHeight": 40, "letterSpacing": 0 }
+    readonly property var headlineMediumEmphasized: { "size": 28, "weight": Font.Bold, "lineHeight": 36, "letterSpacing": 0 }
+    readonly property var headlineSmallEmphasized: { "size": 24, "weight": Font.Bold, "lineHeight": 32, "letterSpacing": 0 }
+
+    // Title Emphasized
+    readonly property var titleLargeEmphasized: { "size": 22, "weight": Font.Bold, "lineHeight": 28, "letterSpacing": 0 }
+    readonly property var titleMediumEmphasized: { "size": 16, "weight": Font.Bold, "lineHeight": 24, "letterSpacing": 0.15 }
+    readonly property var titleSmallEmphasized: { "size": 14, "weight": Font.Bold, "lineHeight": 20, "letterSpacing": 0.1 }
+
+    // Body Emphasized
+    readonly property var bodyLargeEmphasized: { "size": 16, "weight": Font.Bold, "lineHeight": 24, "letterSpacing": 0.5 }
+    readonly property var bodyMediumEmphasized: { "size": 14, "weight": Font.Bold, "lineHeight": 20, "letterSpacing": 0.25 }
+    readonly property var bodySmallEmphasized: { "size": 12, "weight": Font.Bold, "lineHeight": 16, "letterSpacing": 0.4 }
+
+    // Label Emphasized
+    readonly property var labelLargeEmphasized: { "size": 14, "weight": Font.Bold, "lineHeight": 20, "letterSpacing": 0.1 }
+    readonly property var labelMediumEmphasized: { "size": 12, "weight": Font.Bold, "lineHeight": 16, "letterSpacing": 0.5 }
+    readonly property var labelSmallEmphasized: { "size": 11, "weight": Font.Bold, "lineHeight": 16, "letterSpacing": 0.5 }
 }
