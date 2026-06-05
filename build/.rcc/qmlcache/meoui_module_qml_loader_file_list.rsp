@@ -53,6 +53,7 @@ $HOME/Projects/MeoArch_os workspace/build/.qt/rcc/meoui_module_raw_qml_0.qrc
 /MeoUI/components/MeoSkeleton.qml
 /MeoUI/widgets/MeoSideSheetModal.qml
 /MeoUI/widgets/MeoSideSheet.qml
+/MeoUI/widgets/MeoStandardBottomSheet.qml
 /MeoUI/patterns/MeoEmptyState.qml
 /MeoUI/patterns/MeoScaffold.qml
 /MeoUI/patterns/MeoListDetailLayout.qml

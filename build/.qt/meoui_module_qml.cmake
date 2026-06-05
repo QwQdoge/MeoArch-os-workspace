@@ -104,6 +104,8 @@ set(src_and_dest_list
     "$HOME/Projects/MeoArch_os workspace/build/widgets/MeoSideSheetModal.qml"
     "$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSideSheet.qml"
     "$HOME/Projects/MeoArch_os workspace/build/widgets/MeoSideSheet.qml"
+    "$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoStandardBottomSheet.qml"
+    "$HOME/Projects/MeoArch_os workspace/build/widgets/MeoStandardBottomSheet.qml"
     "$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoEmptyState.qml"
     "$HOME/Projects/MeoArch_os workspace/build/patterns/MeoEmptyState.qml"
     "$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoScaffold.qml"

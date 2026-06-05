@@ -51,6 +51,7 @@
     <file alias="components/MeoSkeleton.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/components/MeoSkeleton.qml</file>
     <file alias="widgets/MeoSideSheetModal.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSideSheetModal.qml</file>
     <file alias="widgets/MeoSideSheet.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoSideSheet.qml</file>
+    <file alias="widgets/MeoStandardBottomSheet.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/widgets/MeoStandardBottomSheet.qml</file>
     <file alias="patterns/MeoEmptyState.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoEmptyState.qml</file>
     <file alias="patterns/MeoScaffold.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoScaffold.qml</file>
     <file alias="patterns/MeoListDetailLayout.qml">$HOME/Projects/MeoArch_os workspace/MeoArch-assets/MeoUI/patterns/MeoListDetailLayout.qml</file>

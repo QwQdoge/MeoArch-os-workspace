@@ -102,7 +102,7 @@
 			{
 				"command" : 5,
 				"file" : 2,
-				"line" : 70,
+				"line" : 71,
 				"parent" : 0
 			},
 			{
@@ -1141,6 +1141,18 @@
 				"parent" : 40
 			},
 			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3694,
+				"parent" : 40
+			},
+			{
+				"command" : 28,
+				"file" : 1,
+				"line" : 3887,
+				"parent" : 40
+			},
+			{
 				"command" : 25,
 				"file" : 1,
 				"line" : 3979,
@@ -1150,19 +1162,19 @@
 				"command" : 24,
 				"file" : 0,
 				"line" : 419,
-				"parent" : 183
+				"parent" : 185
 			},
 			{
 				"command" : 29,
 				"file" : 0,
 				"line" : 2659,
-				"parent" : 184
+				"parent" : 186
 			},
 			{
 				"command" : 28,
 				"file" : 0,
 				"line" : 2199,
-				"parent" : 185
+				"parent" : 187
 			},
 			{
 				"command" : 31,
@@ -1174,13 +1186,13 @@
 				"command" : 30,
 				"file" : 0,
 				"line" : 892,
-				"parent" : 187
+				"parent" : 189
 			},
 			{
 				"command" : 28,
 				"file" : 0,
 				"line" : 2324,
-				"parent" : 188
+				"parent" : 190
 			}
 		]
 	},
@@ -1378,7 +1390,8 @@
 				112,
 				114,
 				116,
-				117
+				118,
+				119
 			]
 		}
 	],
@@ -1624,7 +1637,8 @@
 				109,
 				111,
 				113,
-				115
+				115,
+				117
 			]
 		},
 		{
@@ -1691,16 +1705,17 @@
 				112,
 				114,
 				116,
-				117,
 				118,
-				120
+				119,
+				120,
+				122
 			]
 		},
 		{
 			"name" : "Resources",
 			"sourceIndexes" : 
 			[
-				119
+				121
 			]
 		},
 		{
@@ -1711,21 +1726,19 @@
 			"name" : "",
 			"sourceIndexes" : 
 			[
-				121,
-				185,
-				186,
-				187,
+				123,
 				188,
 				189,
-				190
+				190,
+				191,
+				192,
+				193
 			]
 		},
 		{
 			"name" : "CMake Rules",
 			"sourceIndexes" : 
 			[
-				122,
-				123,
 				124,
 				125,
 				126,
@@ -1786,7 +1799,10 @@
 				181,
 				182,
 				183,
-				184
+				184,
+				185,
+				186,
+				187
 			]
 		}
 	],
@@ -2440,85 +2456,97 @@
 		},
 		{
 			"backtrace" : 173,
-			"path" : "patterns/MeoEmptyState.qml",
+			"path" : "widgets/MeoStandardBottomSheet.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 174,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoEmptyState_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoStandardBottomSheet_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 175,
-			"path" : "patterns/MeoScaffold.qml",
+			"path" : "patterns/MeoEmptyState.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 176,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoScaffold_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoEmptyState_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 177,
-			"path" : "patterns/MeoListDetailLayout.qml",
+			"path" : "patterns/MeoScaffold.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 178,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoScaffold_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 179,
-			"path" : "patterns/MeoSettingsLayout.qml",
+			"path" : "patterns/MeoListDetailLayout.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 180,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
-			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoSettingsLayout_qml.cpp",
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 181,
-			"path" : "showcase/MeoShowcase.qml",
+			"path" : "patterns/MeoSettingsLayout.qml",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 182,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_patterns/MeoSettingsLayout_qml.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 183,
+			"path" : "showcase/MeoShowcase.qml",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 184,
+			"compileGroupIndex" : 0,
+			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_showcase/MeoShowcase_qml.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
-			"backtrace" : 186,
+			"backtrace" : 188,
 			"compileGroupIndex" : 0,
 			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.qt/rcc/qrc_meoui_module_raw_qml_0.cpp",
 			"sourceGroupIndex" : 1
 		},
 		{
-			"backtrace" : 189,
+			"backtrace" : 191,
 			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.qt/rcc/qmake_MeoUI.qrc",
 			"sourceGroupIndex" : 1
 		},
 		{
-			"backtrace" : 189,
+			"backtrace" : 191,
 			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/qmldir",
 			"sourceGroupIndex" : 2
 		},
 		{
-			"backtrace" : 189,
+			"backtrace" : 191,
 			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.qt/rcc/meoui_module_raw_qml_0.qrc",
 			"sourceGroupIndex" : 1
@@ -2857,6 +2885,12 @@
 			"backtrace" : 0,
 			"isGenerated" : true,
 			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheet_qml.cpp.rule",
+			"sourceGroupIndex" : 4
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoStandardBottomSheet_qml.cpp.rule",
 			"sourceGroupIndex" : 4
 		},
 		{

@@ -1876,6 +1876,7 @@
 		"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSearchBar_qml.cpp",
 		"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheetModal_qml.cpp",
 		"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoSideSheet_qml.cpp",
+		"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoStandardBottomSheet_qml.cpp",
 		"$HOME/Projects/MeoArch_os workspace/build/.rcc/qmlcache/meoui_module_widgets/MeoTimePicker_qml.cpp",
 		"$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/mocs_compilation.cpp",
 		"$HOME/Projects/MeoArch_os workspace/build/meoui_module_qmltyperegistrations.cpp"
