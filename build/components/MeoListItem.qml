@@ -10,6 +10,11 @@ Control {
     property string overline: ""
     property int supportingTextLines: 1 // 1, 2 or 3
     property string leadingIcon: ""
+    property string leadingImage: "" // 🖼️ New: MD3 Expressive Large Image/Avatar
+    property string leadingImageVariant: "square" // "square" | "circle"
+    property real leadingImageSize: 40 // 40 (Avatar) | 56 (Small Image) | 64 (Large Image)
+    property string badgeText: "" // 🌟 New: Notification badge support
+    property color badgeColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.error !== 'undefined') ? MeoTheme.error : "#B3261E"
     property Component leadingComponent: null
     property Component trailingComponent: null
     property bool interactive: true
@@ -30,7 +35,16 @@ Control {
     readonly property var fontBodyMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyMedium !== 'undefined') ? MeoTheme.bodyMedium : { "size": 14, "weight": Font.Normal }
 
     implicitWidth: 360 * themeGlobalScale
-    implicitHeight: Math.max((isSegmented ? 64 : 56) * themeGlobalScale, contentRow.implicitHeight + padding * 2)
+    // MD3 Heights: 1-line (56/72), 2-line (72/88), 3-line (88)
+    implicitHeight: {
+        let h = 56;
+        if (supportingText !== "") {
+            h = (supportingTextLines > 1 || overline !== "") ? 88 : 72;
+        }
+        if (leadingImage !== "" && leadingImageSize > 40) h = Math.max(h, leadingImageSize + 16);
+        if (isSegmented) h += 8;
+        return Math.max(h * themeGlobalScale, contentRow.implicitHeight + padding * 2);
+    }
 
     padding: isSegmented ? 12 * themeGlobalScale : 16 * themeGlobalScale
 
@@ -68,11 +82,16 @@ Control {
         spacing: 16 * control.themeGlobalScale
         width: parent.width
 
+        // 🖼️ Leading Visuals Area
         Item {
-            width: 24 * control.themeGlobalScale
-            height: 24 * control.themeGlobalScale
+            width: {
+                if (control.leadingImage !== "") return control.leadingImageSize * control.themeGlobalScale;
+                if (control.leadingIcon !== "" || control.leadingComponent !== null) return 24 * control.themeGlobalScale;
+                return 0;
+            }
+            height: width > 0 ? Math.max(24 * control.themeGlobalScale, control.leadingImageSize * control.themeGlobalScale) : 0
             anchors.verticalCenter: parent.verticalCenter
-            visible: control.leadingIcon !== "" || control.leadingComponent !== null
+            visible: width > 0
 
             Loader {
                 anchors.centerIn: parent
@@ -85,12 +104,27 @@ Control {
                 icon: control.leadingIcon
                 size: 24
                 color: control.themeOnSurfaceVariant
-                visible: control.leadingIcon !== "" && control.leadingComponent === null
+                visible: control.leadingIcon !== "" && control.leadingComponent === null && control.leadingImage === ""
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: control.leadingImageVariant === "circle" ? width / 2 : 8 * control.themeGlobalScale
+                clip: true
+                visible: control.leadingImage !== ""
+                color: control.themeSecondaryContainer
+
+                Image {
+                    anchors.fill: parent
+                    source: control.leadingImage
+                    fillMode: Image.PreserveAspectCrop
+                }
             }
         }
 
+        // 🔤 Content Area
         Column {
-            width: parent.width - (control.leadingIcon !== "" || control.leadingComponent !== null ? 40 * control.themeGlobalScale : 0) - (control.trailingComponent !== null ? 40 * control.themeGlobalScale : 0)
+            width: parent.width - (leadingRowItemWidth() > 0 ? leadingRowItemWidth() + spacing : 0) - trailingRowItemWidth()
             anchors.verticalCenter: parent.verticalCenter
             spacing: 0
 
@@ -131,12 +165,41 @@ Control {
             }
         }
 
-        Loader {
-            width: 24 * control.themeGlobalScale
-            height: 24 * control.themeGlobalScale
+        // 🏷️ Trailing Area
+        Row {
+            spacing: 8 * control.themeGlobalScale
             anchors.verticalCenter: parent.verticalCenter
-            sourceComponent: control.trailingComponent
-            visible: control.trailingComponent !== null
+            visible: control.badgeText !== "" || control.trailingComponent !== null
+
+            MeoBadge {
+                text: control.badgeText
+                visible: control.badgeText !== ""
+                color: control.badgeColor
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Loader {
+                width: 24 * control.themeGlobalScale
+                height: 24 * control.themeGlobalScale
+                anchors.verticalCenter: parent.verticalCenter
+                sourceComponent: control.trailingComponent
+                visible: control.trailingComponent !== null
+            }
         }
+    }
+
+    // Helper functions for dynamic width calculation
+    function leadingRowItemWidth() {
+        if (control.leadingImage !== "") return control.leadingImageSize * control.themeGlobalScale;
+        if (control.leadingIcon !== "" || control.leadingComponent !== null) return 24 * control.themeGlobalScale;
+        return 0;
+    }
+
+    function trailingRowItemWidth() {
+        let w = 0;
+        if (control.badgeText !== "") w += 24 * control.themeGlobalScale; // estimated
+        if (control.trailingComponent !== null) w += 24 * control.themeGlobalScale;
+        if (w > 0) w += spacing;
+        return w;
     }
 }

@@ -55,6 +55,7 @@ MeoSuggestionChip 1.0 components/MeoSuggestionChip.qml
 MeoSkeleton 1.0 components/MeoSkeleton.qml
 MeoSideSheetModal 1.0 widgets/MeoSideSheetModal.qml
 MeoSideSheet 1.0 widgets/MeoSideSheet.qml
+MeoStandardBottomSheet 1.0 widgets/MeoStandardBottomSheet.qml
 MeoEmptyState 1.0 patterns/MeoEmptyState.qml
 MeoScaffold 1.0 patterns/MeoScaffold.qml
 MeoListDetailLayout 1.0 patterns/MeoListDetailLayout.qml

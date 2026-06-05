@@ -8,6 +8,7 @@ Control {
     // 🌟 核心属性
     property string label: ""
     property string leadingIcon: ""
+    property string avatarSource: "" // 🖼️ New: Profile avatar support
     property bool selected: false
     property bool elevated: false
 
@@ -29,7 +30,7 @@ Control {
     implicitHeight: 32 * themeGlobalScale
     implicitWidth: contentRow.implicitWidth + leftPadding + rightPadding
 
-    leftPadding: (selected || leadingIcon !== "" ? 8 : 12) * themeGlobalScale
+    leftPadding: (selected || leadingIcon !== "" || avatarSource !== "" ? 8 : 12) * themeGlobalScale
     rightPadding: 12 * themeGlobalScale
 
     background: Rectangle {
@@ -73,10 +74,26 @@ Control {
         spacing: 8 * control.themeGlobalScale
         anchors.verticalCenter: parent.verticalCenter
 
+        // 🖼️ Avatar Support
+        Rectangle {
+            width: (control.avatarSource !== "" && !control.selected) ? 24 * control.themeGlobalScale : 0
+            height: 24 * control.themeGlobalScale
+            radius: width / 2
+            clip: true
+            visible: width > 0
+            anchors.verticalCenter: parent.verticalCenter
+            Image {
+                anchors.fill: parent
+                source: control.avatarSource
+                fillMode: Image.PreserveAspectCrop
+            }
+            Behavior on width { NumberAnimation { duration: 150 } }
+        }
+
         // 🌟 Checkmark Animation
         Item {
             id: checkmarkContainer
-            width: (control.selected || control.leadingIcon !== "") ? 18 * control.themeGlobalScale : 0
+            width: (control.selected || (control.leadingIcon !== "" && control.avatarSource === "")) ? 18 * control.themeGlobalScale : 0
             height: 18 * control.themeGlobalScale
             anchors.verticalCenter: parent.verticalCenter
             clip: true
@@ -95,8 +112,8 @@ Control {
                 size: 18
                 color: control.selected ? control.themePrimary : control.themeOnSurfaceVariant
 
-                scale: control.selected || control.leadingIcon !== "" ? 1.0 : 0.5
-                opacity: control.selected || control.leadingIcon !== "" ? 1.0 : 0.0
+                scale: control.selected || (control.leadingIcon !== "" && control.avatarSource === "") ? 1.0 : 0.5
+                opacity: control.selected || (control.leadingIcon !== "" && control.avatarSource === "") ? 1.0 : 0.0
 
                 Behavior on scale {
                     NumberAnimation {

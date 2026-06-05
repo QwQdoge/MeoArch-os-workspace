@@ -53,6 +53,7 @@
 /MeoUI/components/MeoSkeleton.qml
 /MeoUI/widgets/MeoSideSheetModal.qml
 /MeoUI/widgets/MeoSideSheet.qml
+/MeoUI/widgets/MeoStandardBottomSheet.qml
 /MeoUI/patterns/MeoEmptyState.qml
 /MeoUI/patterns/MeoScaffold.qml
 /MeoUI/patterns/MeoListDetailLayout.qml
