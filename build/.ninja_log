@@ -674,3 +674,9 @@
 19804	23999	1780670520567457465	CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_patterns/MeoListDetailLayout_qml.cpp.o	78dab8310f2c7252
 20001	24026	1780670520764453881	CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_showcase/MeoShowcase_qml.cpp.o	bd4d318ac4a07953
 18806	24279	1780670519569475621	CMakeFiles/meoui_module.dir/.rcc/qmlcache/meoui_module_widgets/MeoStandardBottomSheet_qml.cpp.o	cb79946cc9ce781a
+24279	25146	1780670525042376053	libmeoui_module.so	fa977049335bb0e9
+25146	25185	1780670525909360279	meoui_moduleplugin_autogen/timestamp	10c0f0cb4d07385e
+25146	25185	1780670525909360279	meoui_moduleplugin_autogen/mocs_compilation.cpp	10c0f0cb4d07385e
+25146	25185	1780670525909360279	$HOME/Projects/MeoArch_os workspace/build/meoui_moduleplugin_autogen/timestamp	10c0f0cb4d07385e
+25146	25185	1780670525909360279	$HOME/Projects/MeoArch_os workspace/build/meoui_moduleplugin_autogen/mocs_compilation.cpp	10c0f0cb4d07385e
+25185	25425	1780670525948359570	MeoUI/libmeoui_moduleplugin.so	41e4e3392071ba0b
