@@ -1,6 +1,6 @@
 # ninja log v7
-3	459	1780669441152147501	build.ninja	5d92d3291362dd1f
-3	459	1780669441152147501	$HOME/Projects/MeoArch_os workspace/build/cmake_install.cmake	5d92d3291362dd1f
+3	459	1780669904833866187	build.ninja	5d92d3291362dd1f
+3	459	1780669904829939207	$HOME/Projects/MeoArch_os workspace/build/cmake_install.cmake	5d92d3291362dd1f
 4	49	1780669441273689653	.qt/qmlls.ini.build	2976b2a1e4624a35
 4	49	1780669441273689653	$HOME/Projects/MeoArch_os workspace/build/.qt/qmlls.ini.build	2976b2a1e4624a35
 49	63	1780669441287689414	.qt/meoui_module_qml.txt	c76dff821c6f9041
@@ -28,3 +28,19 @@
 209	257	1780669441466782202	meoui_module.qmltypes	909227f97be075da
 209	257	1780669441466782202	$HOME/Projects/MeoArch_os workspace/build/meoui_module_qmltyperegistrations.cpp	909227f97be075da
 209	257	1780669441466782202	$HOME/Projects/MeoArch_os workspace/build/meoui_module.qmltypes	909227f97be075da
+5	417	1780669904833866187	build.ninja	5d92d3291362dd1f
+5	417	1780669904833866187	$HOME/Projects/MeoArch_os workspace/build/cmake_install.cmake	5d92d3291362dd1f
+2	13	1780669904892569590	.qt/meoui_module_qml.txt	c76dff821c6f9041
+2	13	1780669904892569590	$HOME/Projects/MeoArch_os workspace/build/.qt/meoui_module_qml.txt	c76dff821c6f9041
+13	37	1780669904893569572	meoui_module_autogen/timestamp	35059e9caa6d3983
+13	37	1780669904893569572	meoui_module_autogen/mocs_compilation.cpp	35059e9caa6d3983
+13	37	1780669904893569572	$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/timestamp	35059e9caa6d3983
+13	37	1780669904893569572	$HOME/Projects/MeoArch_os workspace/build/meoui_module_autogen/mocs_compilation.cpp	35059e9caa6d3983
+37	39	1780669904918852769	meta_types/meoui_module_json_file_list.txt	97be5fa49335f610
+37	39	1780669904918852769	meta_types/meoui_module_json_file_list.txt.timestamp	97be5fa49335f610
+37	39	1780669904918852769	$HOME/Projects/MeoArch_os workspace/build/meta_types/meoui_module_json_file_list.txt	97be5fa49335f610
+37	39	1780669904918852769	$HOME/Projects/MeoArch_os workspace/build/meta_types/meoui_module_json_file_list.txt.timestamp	97be5fa49335f610
+39	78	1780669904943705287	meoui_module_qmltyperegistrations.cpp	909227f97be075da
+39	78	1780669904943705287	meoui_module.qmltypes	909227f97be075da
+39	78	1780669904943705287	$HOME/Projects/MeoArch_os workspace/build/meoui_module_qmltyperegistrations.cpp	909227f97be075da
+39	78	1780669904943705287	$HOME/Projects/MeoArch_os workspace/build/meoui_module.qmltypes	909227f97be075da
