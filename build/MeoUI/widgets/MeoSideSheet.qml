@@ -67,7 +67,7 @@ Rectangle {
                 }
 
                 MeoIconButton {
-                    icon: "close"
+                    icon.name: "close"
                     visible: control.showCloseButton
                     anchors.verticalCenter: parent.verticalCenter
                     onClicked: control.isOpen = false

@@ -9,7 +9,7 @@ Button {
     // 🌟 核心属性
     // type: "small" | "regular" (默认) | "large" | "extended"
     property string type: "regular"
-    property string icon: "add"
+    icon.name: "add"
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -71,7 +71,7 @@ Button {
         anchors.centerIn: parent
 
         MeoIcon {
-            icon: control.icon
+            icon: control.icon.name || control.icon.source.toString()
             size: (control.type === "large" ? 36 : 24)
             color: control.themeOnPrimaryContainer
             anchors.verticalCenter: parent.verticalCenter

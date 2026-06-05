@@ -58,7 +58,7 @@ Rectangle {
             }
 
             MeoIconButton {
-                icon: "more_vert"
+                icon.name: "more_vert"
                 type: "standard"
                 anchors.verticalCenter: parent.verticalCenter
                 onClicked: control.clicked()

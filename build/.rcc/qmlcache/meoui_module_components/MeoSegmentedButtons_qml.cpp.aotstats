@@ -200,7 +200,7 @@
                         {
                             "codegenResult": 2,
                             "column": 32,
-                            "durationMicroseconds": 1000,
+                            "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 88,
                             "message": "Cannot generate efficient code for calling method with argument affected by side effects"

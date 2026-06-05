@@ -16,10 +16,10 @@
                         {
                             "codegenResult": 2,
                             "column": 52,
-                            "durationMicroseconds": 4000,
+                            "durationMicroseconds": 6000,
                             "functionName": "themeSurfaceContainer",
                             "line": 13,
-                            "message": "Cannot load property surfaceContainer from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -27,7 +27,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
                             "line": 14,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 0,

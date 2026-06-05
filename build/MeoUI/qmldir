@@ -4,7 +4,7 @@ optional plugin meoui_moduleplugin
 classname MeoUIPlugin
 typeinfo meoui_module.qmltypes
 prefer :/MeoUI/
-MeoTheme 1.0 MeoTheme.qml
+singleton MeoTheme 1.0 MeoTheme.qml
 MeoButton 1.0 components/MeoButton.qml
 MeoSegmentedButtons 1.0 components/MeoSegmentedButtons.qml
 MeoTextField 1.0 components/MeoTextField.qml

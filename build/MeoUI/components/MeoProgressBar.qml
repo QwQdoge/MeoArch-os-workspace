@@ -94,7 +94,6 @@ Control {
 
         onStartAngleChanged: requestPaint()
         onEndAngleChanged: requestPaint()
-        onValueChanged: requestPaint()
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
 

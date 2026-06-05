@@ -28,8 +28,11 @@ Control {
         first.value: control.firstValue
         second.value: control.secondValue
 
-        onMoved: {
+        first.onMoved: {
             control.firstValue = first.value
+            control.moved()
+        }
+        second.onMoved: {
             control.secondValue = second.value
             control.moved()
         }

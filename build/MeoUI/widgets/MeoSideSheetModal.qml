@@ -65,7 +65,7 @@ Popup {
                 spacing: 12 * control.themeGlobalScale
 
                 MeoIconButton {
-                    icon: "close"
+                    icon.name: "close"
                     visible: control.showCloseButton
                     anchors.verticalCenter: parent.verticalCenter
                     onClicked: control.close()

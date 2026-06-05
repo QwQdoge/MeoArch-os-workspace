@@ -8,7 +8,7 @@ Control {
     // 🌟 核心属性
     property int count: 0
     property int currentIndex: 0
-    property real spacing: 8 * themeGlobalScale
+    spacing: 8 * themeGlobalScale
     property real dotSize: 8 * themeGlobalScale
     property real activeDotWidth: 24 * themeGlobalScale
 

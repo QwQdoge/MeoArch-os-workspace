@@ -8,10 +8,10 @@
                         {
                             "codegenResult": 2,
                             "column": 32,
-                            "durationMicroseconds": 10000,
+                            "durationMicroseconds": 5000,
                             "functionName": "badgeColor",
                             "line": 17,
-                            "message": "Cannot load property error from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -19,7 +19,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "isDarkMode",
                             "line": 26,
-                            "message": "Cannot load property isDarkMode from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -27,7 +27,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themePrimary",
                             "line": 27,
-                            "message": "Cannot load property primary from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -35,7 +35,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurface",
                             "line": 28,
-                            "message": "Cannot load property onSurface from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -43,7 +43,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSurfaceVariant",
                             "line": 29,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -51,7 +51,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeSecondaryContainer",
                             "line": 30,
-                            "message": "Cannot load property secondaryContainer from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -59,7 +59,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeOnSecondaryContainer",
                             "line": 31,
-                            "message": "Cannot load property onSecondaryContainer from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -67,7 +67,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
                             "line": 32,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -75,7 +75,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "fontBodyLarge",
                             "line": 34,
-                            "message": "Cannot load property bodyLarge from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -83,7 +83,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "fontBodyMedium",
                             "line": 35,
-                            "message": "Cannot load property bodyMedium from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -248,7 +248,7 @@
                         {
                             "codegenResult": 2,
                             "column": 20,
-                            "durationMicroseconds": 4000,
+                            "durationMicroseconds": 0,
                             "functionName": "width",
                             "line": 87,
                             "message": "Cannot access value for name control"
@@ -392,7 +392,7 @@
                         {
                             "codegenResult": 2,
                             "column": 20,
-                            "durationMicroseconds": 2000,
+                            "durationMicroseconds": 0,
                             "functionName": "width",
                             "line": 127,
                             "message": "method leadingRowItemWidth cannot be resolved."
@@ -459,7 +459,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "pixelSize",
                             "line": 134,
-                            "message": "Cannot load property labelSmall from const QMetaObject."
+                            "message": "Cannot load property size from MeoTheme::labelSmall with type QVariant."
                         },
                         {
                             "codegenResult": 0,

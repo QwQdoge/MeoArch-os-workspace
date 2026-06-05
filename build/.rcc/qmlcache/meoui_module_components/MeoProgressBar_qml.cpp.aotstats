@@ -214,19 +214,11 @@
                             "message": ""
                         },
                         {
-                            "codegenResult": 2,
-                            "column": 25,
-                            "durationMicroseconds": 0,
-                            "functionName": "onValueChanged",
-                            "line": 97,
-                            "message": "Could not find signal \"valueChanged\"."
-                        },
-                        {
                             "codegenResult": 0,
                             "column": 25,
                             "durationMicroseconds": 0,
                             "functionName": "onWidthChanged",
-                            "line": 98,
+                            "line": 97,
                             "message": ""
                         },
                         {
@@ -234,7 +226,7 @@
                             "column": 26,
                             "durationMicroseconds": 0,
                             "functionName": "onHeightChanged",
-                            "line": 99,
+                            "line": 98,
                             "message": ""
                         },
                         {
@@ -250,7 +242,7 @@
                             "column": 22,
                             "durationMicroseconds": 0,
                             "functionName": "running",
-                            "line": 103,
+                            "line": 102,
                             "message": "Cannot retrieve a non-object type by ID: control"
                         },
                         {
@@ -258,7 +250,23 @@
                             "column": 20,
                             "durationMicroseconds": 0,
                             "functionName": "loops",
-                            "line": 104,
+                            "line": 103,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 43,
+                            "durationMicroseconds": 0,
+                            "functionName": "target",
+                            "line": 106,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 122,
+                            "durationMicroseconds": 0,
+                            "functionName": "type",
+                            "line": 106,
                             "message": ""
                         },
                         {
@@ -283,22 +291,6 @@
                             "durationMicroseconds": 0,
                             "functionName": "target",
                             "line": 108,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 122,
-                            "durationMicroseconds": 0,
-                            "functionName": "type",
-                            "line": 108,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 43,
-                            "durationMicroseconds": 0,
-                            "functionName": "target",
-                            "line": 109,
                             "message": ""
                         },
                         {
@@ -306,7 +298,7 @@
                             "column": 119,
                             "durationMicroseconds": 0,
                             "functionName": "type",
-                            "line": 109,
+                            "line": 108,
                             "message": ""
                         },
                         {
@@ -314,7 +306,7 @@
                             "column": 43,
                             "durationMicroseconds": 0,
                             "functionName": "target",
-                            "line": 112,
+                            "line": 111,
                             "message": ""
                         },
                         {
@@ -322,6 +314,22 @@
                             "column": 124,
                             "durationMicroseconds": 0,
                             "functionName": "type",
+                            "line": 111,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 43,
+                            "durationMicroseconds": 0,
+                            "functionName": "target",
+                            "line": 112,
+                            "message": ""
+                        },
+                        {
+                            "codegenResult": 0,
+                            "column": 122,
+                            "durationMicroseconds": 0,
+                            "functionName": "type",
                             "line": 112,
                             "message": ""
                         },
@@ -335,26 +343,10 @@
                         },
                         {
                             "codegenResult": 0,
-                            "column": 122,
-                            "durationMicroseconds": 0,
-                            "functionName": "type",
-                            "line": 113,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
-                            "column": 43,
-                            "durationMicroseconds": 0,
-                            "functionName": "target",
-                            "line": 114,
-                            "message": ""
-                        },
-                        {
-                            "codegenResult": 0,
                             "column": 121,
                             "durationMicroseconds": 0,
                             "functionName": "type",
-                            "line": 114,
+                            "line": 113,
                             "message": ""
                         },
                         {
@@ -362,7 +354,7 @@
                             "column": 36,
                             "durationMicroseconds": 0,
                             "functionName": "script",
-                            "line": 118,
+                            "line": 117,
                             "message": "Skipped code generation for binding for property of type QQmlScriptString; nothing to do."
                         }
                     ],

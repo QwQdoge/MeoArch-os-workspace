@@ -10,7 +10,7 @@ Control {
     property string type: "standard" // "standard" | "uncontained" | "hero"
     property real itemWidth: type === "hero" ? (width - 32 * themeGlobalScale) : 200 * themeGlobalScale
     property real itemHeight: 300 * themeGlobalScale
-    property real spacing: 16 * themeGlobalScale
+    spacing: 16 * themeGlobalScale
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 

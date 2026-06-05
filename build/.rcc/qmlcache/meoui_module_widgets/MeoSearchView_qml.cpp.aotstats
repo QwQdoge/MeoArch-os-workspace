@@ -11,7 +11,7 @@
                             "durationMicroseconds": 5000,
                             "functionName": "themeSurface",
                             "line": 12,
-                            "message": "Cannot load property surface from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -19,7 +19,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "themeGlobalScale",
                             "line": 13,
-                            "message": "Cannot load property globalScale from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 2,
@@ -91,7 +91,7 @@
                             "durationMicroseconds": 0,
                             "functionName": "color",
                             "line": 39,
-                            "message": "Cannot load property onSurfaceVariant from const QMetaObject."
+                            "message": "Cannot generate efficient code for TypeofName"
                         },
                         {
                             "codegenResult": 0,

@@ -3,6 +3,8 @@ project(MeoUI LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
 find_package(Qt6 REQUIRED COMPONENTS Core Quick)
 
+set_source_files_properties(MeoTheme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+
 # 定义 QML 模块
 qt_add_qml_module(meoui_module
     URI "MeoUI"
