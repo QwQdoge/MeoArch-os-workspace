@@ -13,6 +13,7 @@ MeoFAB 1.0 MeoArch-assets/MeoUI/components/MeoFAB.qml
 MeoFullScreenDialog 1.0 MeoArch-assets/MeoUI/components/MeoFullScreenDialog.qml
 MeoIcon 1.0 MeoArch-assets/MeoUI/components/MeoIcon.qml
 MeoIconButton 1.0 MeoArch-assets/MeoUI/components/MeoIconButton.qml
+MeoListHeader 1.0 MeoArch-assets/MeoUI/components/MeoListHeader.qml
 MeoListItem 1.0 MeoArch-assets/MeoUI/components/MeoListItem.qml
 MeoMenu 1.0 MeoArch-assets/MeoUI/components/MeoMenu.qml
 MeoNavigationBar 1.0 MeoArch-assets/MeoUI/components/MeoNavigationBar.qml
@@ -21,6 +22,7 @@ MeoProgressBar 1.0 MeoArch-assets/MeoUI/components/MeoProgressBar.qml
 MeoRadioButton 1.0 MeoArch-assets/MeoUI/components/MeoRadioButton.qml
 MeoRangeSlider 1.0 MeoArch-assets/MeoUI/components/MeoRangeSlider.qml
 MeoSegmentedButtons 1.0 MeoArch-assets/MeoUI/components/MeoSegmentedButtons.qml
+MeoSelectionGroup 1.0 MeoArch-assets/MeoUI/components/MeoSelectionGroup.qml
 MeoSlider 1.0 MeoArch-assets/MeoUI/components/MeoSlider.qml
 MeoSnackbar 1.0 MeoArch-assets/MeoUI/components/MeoSnackbar.qml
 MeoSwitch 1.0 MeoArch-assets/MeoUI/components/MeoSwitch.qml
@@ -39,3 +41,4 @@ MeoSearchView 1.0 MeoArch-assets/MeoUI/widgets/MeoSearchView.qml
 MeoSideSheet 1.0 MeoArch-assets/MeoUI/widgets/MeoSideSheet.qml
 MeoTimePicker 1.0 MeoArch-assets/MeoUI/widgets/MeoTimePicker.qml
 MeoTopAppBar 1.0 MeoArch-assets/MeoUI/widgets/MeoTopAppBar.qml
+MeoAccountHeader 1.0 MeoArch-assets/MeoUI/patterns/MeoAccountHeader.qml
