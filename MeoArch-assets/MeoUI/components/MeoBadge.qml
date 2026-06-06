@@ -22,7 +22,7 @@ Rectangle {
     // Auto anchoring
     x: target ? target.width - width/2 : 0
     y: target ? -height/2 : 0
-    parent: target ? target : undefined
+    onTargetChanged: if (target) parent = target
 
     Text {
         id: label
