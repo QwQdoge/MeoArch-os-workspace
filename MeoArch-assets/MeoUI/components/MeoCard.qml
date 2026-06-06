@@ -38,7 +38,7 @@ Frame {
         Rectangle {
             anchors.fill: parent
             radius: parent.radius
-            color: MeoTheme.surfaceTint(control.level)
+            color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceTint !== 'undefined') ? MeoTheme.surfaceTint(control.level) : "transparent"
             visible: type !== "filled"
             Behavior on color { ColorAnimation { duration: 150 } }
         }
