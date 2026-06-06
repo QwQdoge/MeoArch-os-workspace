@@ -19,9 +19,9 @@ Button {
                 return Qt.rgba(textColor.r, textColor.g, textColor.b, 0);
             return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
         }
-        if (type === "filled") return MeoTheme.primary;
-        if (type === "tonal") return MeoTheme.secondaryContainer;
-        if (type === "elevated") return MeoTheme.surfaceContainerLow;
+        if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
+        if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8";
+        if (type === "elevated") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA";
         return Qt.rgba(textColor.r, textColor.g, textColor.b, 0);
     }
 
@@ -36,9 +36,9 @@ Button {
         if (!control.enabled) {
             return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
         }
-        if (type === "filled") return MeoTheme.onPrimary;
-        if (type === "tonal") return MeoTheme.onSecondaryContainer;
-        return MeoTheme.primary;
+        if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimary !== 'undefined') ? MeoTheme.onPrimary : "#FFFFFF";
+        if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B";
+        return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
     }
 
     leftPadding: {
@@ -87,7 +87,7 @@ Button {
         Rectangle {
             anchors.fill: parent
             radius: parent.radius
-            color: control.type === "elevated" ? MeoTheme.surfaceTint(control.elevation) : "transparent"
+            color: (control.type === "elevated" && typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceTint !== 'undefined') ? MeoTheme.surfaceTint(control.elevation) : "transparent"
             visible: control.type === "elevated"
             Behavior on color { ColorAnimation { duration: 150 } }
         }
@@ -103,8 +103,8 @@ Button {
         border.color: {
             if (control.type !== "outlined") return "transparent";
             if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
-            if (control.activeFocus) return MeoTheme.primary;
-            return MeoTheme.outline;
+            if (control.activeFocus) return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
+            return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E";
         }
         border.width: (control.type === "outlined" && control.activeFocus) ? 2 : (control.type === "outlined" ? 1 : 0)
 
