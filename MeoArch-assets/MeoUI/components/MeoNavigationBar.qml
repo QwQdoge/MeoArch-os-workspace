@@ -40,6 +40,7 @@ Rectangle {
                     anchors.centerIn: parent
                     spacing: 4 * control.themeGlobalScale
 
+                    // 使用 anchors.horizontalCenter 来代替 anchors.centerIn，防止在 Column 内抛出警告并破坏布局
                     Rectangle {
                         id: selectionIndicator
                         width: isSelected ? 64 * control.themeGlobalScale : 32 * control.themeGlobalScale
@@ -47,7 +48,6 @@ Rectangle {
                         radius: 16 * control.themeGlobalScale
                         anchors.horizontalCenter: parent.horizontalCenter
                         color: isSelected ? control.themeSecondaryContainer : "transparent"
-                        opacity: isSelected ? 1.0 : 0.0
 
                         MeoIcon {
                             anchors.centerIn: parent
@@ -57,19 +57,12 @@ Rectangle {
                         }
 
                         Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
-                        Behavior on opacity { NumberAnimation { duration: 150 } }
                         Behavior on color { ColorAnimation { duration: 200 } }
                     }
 
-                    // Always show icon if not selected
-                    MeoIcon {
-                        id: unselectedIcon
-                        visible: !isSelected
-                        anchors.centerIn: selectionIndicator
-                        icon: modelData.icon
-                        size: 24
-                        color: control.themeOnSurfaceVariant
-                    }
+
+                    // 移除 unselectedIcon，防止 Column 内部非法定位导致布局失效
+
 
                     // 🏷️ Badge (Notification)
                     MeoBadge {

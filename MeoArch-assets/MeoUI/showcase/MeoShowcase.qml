@@ -1,7 +1,7 @@
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
-import MeoUI
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import MeoUI 1.0
 
 ApplicationWindow {
     id: window
@@ -37,8 +37,9 @@ ApplicationWindow {
         actionText: "Undo"
     }
 
-    Row {
+    RowLayout {
         anchors.fill: parent
+        spacing: 0
 
         MeoNavigationRail {
             id: navRail
@@ -50,23 +51,27 @@ ApplicationWindow {
         }
 
         MeoDivider {
+            Layout.fillHeight: true
             width: 1
-            height: parent.height
         }
 
-        Column {
-            width: parent.width - navRail.width
-            height: parent.height
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: 0
 
             MeoTopAppBar {
+                Layout.fillWidth: true
                 title: window.categories[window.currentCategoryIndex].label
                 type: "small"
             }
 
             StackLayout {
+                id: stackLayout
                 currentIndex: window.currentCategoryIndex
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+
 
                 // Buttons Page
                 Flickable {
@@ -472,3 +477,4 @@ ApplicationWindow {
         }
     }
 }
+
