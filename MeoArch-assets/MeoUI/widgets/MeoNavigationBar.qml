@@ -12,6 +12,7 @@ Rectangle {
 
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
+    readonly property color themeSurfaceContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainer !== 'undefined') ? MeoTheme.surfaceContainer : "#F3EDF7"
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
@@ -23,7 +24,7 @@ Rectangle {
 
     implicitWidth: 360 * themeGlobalScale
     implicitHeight: 80 * themeGlobalScale
-    color: themeSurface
+    color: themeSurfaceContainer
 
     Row {
         anchors.fill: parent
@@ -40,14 +41,23 @@ Rectangle {
                     anchors.centerIn: parent
                     spacing: 4 * control.themeGlobalScale
 
-                    // 使用 anchors.horizontalCenter 来代替 anchors.centerIn，防止在 Column 内抛出警告并破坏布局
-                    Rectangle {
-                        id: selectionIndicator
-                        width: isSelected ? 64 * control.themeGlobalScale : 32 * control.themeGlobalScale
+                    Item {
+                        width: 64 * control.themeGlobalScale
                         height: 32 * control.themeGlobalScale
-                        radius: 16 * control.themeGlobalScale
                         anchors.horizontalCenter: parent.horizontalCenter
-                        color: isSelected ? control.themeSecondaryContainer : "transparent"
+
+                        Rectangle {
+                            id: selectionIndicator
+                            width: isSelected ? 64 * control.themeGlobalScale : 0
+                            height: 32 * control.themeGlobalScale
+                            radius: 16 * control.themeGlobalScale
+                            anchors.centerIn: parent
+                            color: isSelected ? control.themeSecondaryContainer : "transparent"
+                            opacity: isSelected ? 1.0 : 0.0
+
+                            Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                            Behavior on opacity { NumberAnimation { duration: 250 } }
+                        }
 
                         MeoIcon {
                             anchors.centerIn: parent
@@ -56,23 +66,16 @@ Rectangle {
                             color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                         }
 
-                        Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
-                        Behavior on color { ColorAnimation { duration: 200 } }
-                    }
-
-
-                    // 移除 unselectedIcon，防止 Column 内部非法定位导致布局失效
-
-
-                    // 🏷️ Badge (Notification)
-                    MeoBadge {
-                        text: modelData.badgeText || (modelData.badgeCount !== undefined ? modelData.badgeCount.toString() : "")
-                        isDot: modelData.badgeDot || false
-                        visible: text !== "" || isDot
-                        anchors.horizontalCenter: selectionIndicator.right
-                        anchors.verticalCenter: selectionIndicator.top
-                        anchors.horizontalCenterOffset: -4 * control.themeGlobalScale
-                        anchors.verticalCenterOffset: 4 * control.themeGlobalScale
+                        // 🏷️ Badge (Notification)
+                        MeoBadge {
+                            text: modelData.badgeText || (modelData.badgeCount !== undefined ? modelData.badgeCount.toString() : "")
+                            isDot: modelData.badgeDot || false
+                            visible: text !== "" || isDot
+                            anchors.top: parent.top
+                            anchors.right: parent.right
+                            anchors.topMargin: -4 * control.themeGlobalScale
+                            anchors.rightMargin: -4 * control.themeGlobalScale
+                        }
                     }
 
                     Text {
@@ -89,8 +92,10 @@ Rectangle {
                     }
                 }
 
-                MouseArea {
+                MeoStateLayer {
                     anchors.fill: parent
+                    anchors.margins: 4 * control.themeGlobalScale
+                    radius: 16 * control.themeGlobalScale
                     onClicked: {
                         control.currentIndex = index
                         control.clicked(index)
@@ -98,12 +103,5 @@ Rectangle {
                 }
             }
         }
-    }
-
-    Rectangle {
-        width: parent.width
-        height: 1
-        color: Qt.rgba(0,0,0,0.05)
-        anchors.top: parent.top
     }
 }

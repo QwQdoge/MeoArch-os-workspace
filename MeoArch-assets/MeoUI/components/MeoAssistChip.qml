@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import MeoUI
 
 Control {
@@ -39,11 +39,11 @@ Control {
 
         // MD3 Elevation for 'elevated' variant
         layer.enabled: control.elevated && control.enabled
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.1
-            shadowVerticalOffset: (control.pressed ? 1 : (control.hovered ? 2 : 1)) * themeGlobalScale
-            shadowColor: Qt.rgba(0,0,0,0.2)
+        layer.effect: DropShadow {
+
+            radius: 0.1
+            verticalOffset: (control.pressed ? 1 : (control.hovered ? 2 : 1)) * themeGlobalScale
+            color: Qt.rgba(0,0,0,0.2)
         }
 
         MeoStateLayer {
