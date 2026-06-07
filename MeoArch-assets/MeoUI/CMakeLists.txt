@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(MeoUI LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
-find_package(Qt6 REQUIRED COMPONENTS Core Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2)
 
 set_source_files_properties(MeoTheme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
@@ -78,4 +78,23 @@ qt_add_qml_module(meoui_module
 )
 
 # 确保链接到 QtQuick
-target_link_libraries(meoui_module PUBLIC Qt6::Core Qt6::Quick)
+target_link_libraries(meoui_module PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2)
+
+# 新增 Demo 展示程序可执行目标
+qt_add_executable(MeoShowcaseDemo
+    main.cpp
+)
+
+target_link_libraries(MeoShowcaseDemo PRIVATE
+    Qt6::Core
+    Qt6::Quick
+    Qt6::QuickControls2
+    meoui_module
+)
+
+# 移除不支持的 qt_import_qml_modules，改用设置 target 属性
+set_target_properties(MeoShowcaseDemo PROPERTIES
+    QT_QML_IMPORT_PATH "${CMAKE_BINARY_DIR}"
+)
+
+
