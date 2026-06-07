@@ -17,14 +17,15 @@ Popup {
     padding: 0
 
     background: Rectangle {
-        color: control.themeSurface
+        color: "transparent"
     }
 
     contentItem: Column {
         MeoSearchBar {
+            id: searchBar
             width: parent.width
             text: control.text
-            radius: 0
+            active: control.opened
             onTextChanged: control.text = text
         }
 
@@ -42,6 +43,10 @@ Popup {
     }
 
     enter: Transition {
-        NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
+        NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
+    }
+
+    exit: Transition {
+        NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 200 }
     }
 }

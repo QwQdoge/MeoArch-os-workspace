@@ -50,6 +50,7 @@ qt_add_qml_module(meoui_module
         components/MeoTimeInput.qml
         components/MeoIcon.qml
         components/MeoIconButton.qml
+        components/MeoDataTable.qml
         components/MeoExposedDropdown.qml
         components/MeoRichTooltip.qml
         widgets/MeoMediaController.qml
