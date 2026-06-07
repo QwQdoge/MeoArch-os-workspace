@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 
 Frame {
     id: control
@@ -48,11 +48,11 @@ Frame {
 
         // MD3 Elevation for 'elevated' type
         layer.enabled: control.elevation > 0
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.2
-            shadowVerticalOffset: control.elevation * control.themeGlobalScale
-            shadowColor: Qt.rgba(0,0,0,0.2)
+        layer.effect: DropShadow {
+
+            radius: 0.2
+            verticalOffset: control.elevation * control.themeGlobalScale
+            color: Qt.rgba(0,0,0,0.2)
         }
 
         Behavior on color { ColorAnimation { duration: 150 } }

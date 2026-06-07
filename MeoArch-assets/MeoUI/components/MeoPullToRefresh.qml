@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import MeoUI
 
 Control {
@@ -25,11 +25,11 @@ Control {
 
         // Elevation Shadow (Standard MD3 Level 2 for pull-to-refresh)
         layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.2
-            shadowVerticalOffset: 2 * control.themeGlobalScale
-            shadowColor: Qt.rgba(0,0,0,0.2)
+        layer.effect: DropShadow {
+
+            radius: 0.2
+            verticalOffset: 2 * control.themeGlobalScale
+            color: Qt.rgba(0,0,0,0.2)
         }
 
         // Indeterminate Progress (using the logic from MeoProgressBar circular type)

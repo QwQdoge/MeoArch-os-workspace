@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 
 Popup {
     id: control
@@ -22,11 +22,11 @@ Popup {
 
         // MD3 Elevation Level 2
         layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.2
-            shadowVerticalOffset: 2 * control.themeGlobalScale
-            shadowColor: Qt.rgba(0,0,0,0.2)
+        layer.effect: DropShadow {
+
+            radius: 0.2
+            verticalOffset: 2 * control.themeGlobalScale
+            color: Qt.rgba(0,0,0,0.2)
         }
     }
 

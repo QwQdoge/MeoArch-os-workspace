@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
+import Qt5Compat.GraphicalEffects
 import MeoUI
 
 Rectangle {
@@ -30,11 +30,11 @@ Rectangle {
 
     // Elevation Shadow
     layer.enabled: true
-    layer.effect: MultiEffect {
-        shadowEnabled: true
-        shadowBlur: 0.1
-        shadowHorizontalOffset: -1 * control.themeGlobalScale
-        shadowColor: Qt.rgba(0,0,0,0.1)
+    layer.effect: DropShadow {
+
+        radius: 0.1
+        horizontalOffset: -1 * control.themeGlobalScale
+        color: Qt.rgba(0,0,0,0.1)
     }
 
     Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
