@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(MeoUI LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
-find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Core5Compat)
 
 set_source_files_properties(MeoTheme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
@@ -11,7 +11,20 @@ qt_add_qml_module(meoui_module
     VERSION 1.0
     OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/MeoUI"
     QML_FILES
-        MeoTheme.qml
+                widgets/MeoNavigationBar.qml
+        widgets/MeoNavigationDrawerModal.qml
+        patterns/MeoAppLayout.qml
+        patterns/MeoFeedLayout.qml
+        patterns/MeoDashboardLayout.qml
+        showcase/pages/ButtonsPage.qml
+        showcase/pages/InputsPage.qml
+        showcase/pages/NavigationPage.qml
+        showcase/pages/SelectionPage.qml
+        showcase/pages/DisplayPage.qml
+        showcase/pages/FeedbackPage.qml
+        showcase/pages/PatternsPage.qml
+        showcase/pages/DataTablePage.qml
+MeoTheme.qml
         components/MeoButton.qml
         components/MeoSegmentedButtons.qml
         components/MeoTextField.qml
@@ -21,7 +34,6 @@ qt_add_qml_module(meoui_module
         components/MeoRangeSlider.qml
         components/MeoCarousel.qml
         components/MeoFullScreenDialog.qml
-        components/MeoNavigationDrawerModal.qml
         components/MeoPageIndicator.qml
         components/MeoCheckbox.qml
         components/MeoSwitch.qml
@@ -31,7 +43,6 @@ qt_add_qml_module(meoui_module
         components/MeoCard.qml
         components/MeoChip.qml
         components/MeoProgressBar.qml
-        components/MeoNavigationBar.qml
         components/MeoDialog.qml
         components/MeoBadge.qml
         components/MeoDivider.qml
@@ -79,7 +90,7 @@ qt_add_qml_module(meoui_module
 )
 
 # 确保链接到 QtQuick
-target_link_libraries(meoui_module PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2)
+target_link_libraries(meoui_module PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2 Qt6::Core5Compat)
 
 # 新增 Demo 展示程序可执行目标
 qt_add_executable(MeoShowcaseDemo
@@ -90,6 +101,7 @@ target_link_libraries(MeoShowcaseDemo PRIVATE
     Qt6::Core
     Qt6::Quick
     Qt6::QuickControls2
+    Qt6::Core5Compat
     meoui_module
 )
 
