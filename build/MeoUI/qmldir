@@ -70,3 +70,6 @@ MeoSettingsLayout 1.0 patterns/MeoSettingsLayout.qml
 MeoShowcase 1.0 showcase/MeoShowcase.qml
 depends QtQuick
 
+MeoListHeader 1.0 components/MeoListHeader.qml
+MeoSelectionGroup 1.0 components/MeoSelectionGroup.qml
+MeoAccountHeader 1.0 widgets/MeoAccountHeader.qml
