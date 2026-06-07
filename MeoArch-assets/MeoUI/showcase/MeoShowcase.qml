@@ -20,7 +20,8 @@ ApplicationWindow {
         { label: "Selection", icon: "check_box" },
         { label: "Display", icon: "layers" },
         { label: "Feedback", icon: "info" },
-        { label: "Patterns", icon: "grid_view" }
+        { label: "Patterns", icon: "grid_view" },
+        { label: "Data Table", icon: "table_chart" }
     ]
 
     MeoDialog {
@@ -128,11 +129,19 @@ ApplicationWindow {
                         spacing: 24 * MeoTheme.globalScale
                         width: parent.width
 
-                        Text { text: "Search Bars"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        Text { text: "Search Bars (Expressive Expanding)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
                         Row {
                             spacing: 12 * MeoTheme.globalScale
-                            MeoSearchBar { placeholder: "Search mail"; leadingIcon: "menu"; trailingIcon: "account_circle"; width: 300 * MeoTheme.globalScale }
-                            MeoSearchBar { placeholder: "Search maps"; leadingIcon: "search"; trailingIcon: "mic"; width: 300 * MeoTheme.globalScale }
+                            MeoButton {
+                                text: "Open Expanding Search"
+                                onClicked: searchView.open()
+                            }
+                            MeoSearchView {
+                                id: searchView
+                                width: parent.width
+                                height: parent.height
+                            }
+                            MeoSearchBar { placeholder: "Static Search"; leadingIcon: "search"; trailingIcon: "mic"; width: 300 * MeoTheme.globalScale }
                         }
 
                         Text { text: "Text Fields"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
@@ -247,6 +256,22 @@ ApplicationWindow {
                                         { label: "Drafts", icon: "drafts" }
                                     ]
                                 }
+                            }
+                        }
+
+                        Text { text: "Menus"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        MeoButton {
+                            id: menuBtn
+                            text: "Show MD3 Menu"
+                            onClicked: md3Menu.open()
+                            MeoMenu {
+                                id: md3Menu
+                                y: menuBtn.height
+                                model: [
+                                    { label: "Refresh", icon: "refresh" },
+                                    { label: "Settings", icon: "settings" },
+                                    { label: "Help", icon: "help" }
+                                ]
                             }
                         }
                     }
@@ -471,6 +496,37 @@ ApplicationWindow {
                             }
                         }
                         fab: MeoFAB { icon.name: "add" }
+                    }
+                }
+
+                // Data Table Page
+                Flickable {
+                    contentHeight: tableColumn.implicitHeight + 40
+                    clip: true
+                    Column {
+                        id: tableColumn
+                        padding: 24 * MeoTheme.globalScale
+                        spacing: 24 * MeoTheme.globalScale
+                        width: parent.width
+
+                        Text { text: "MD3 Data Table"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+                        MeoDataTable {
+                            width: parent.width - 48
+                            selectable: true
+                            columns: [
+                                { label: "Dessert (100g serving)", property: "name", width: 250, sortable: true },
+                                { label: "Calories", property: "calories", width: 100, sortable: true },
+                                { label: "Fat (g)", property: "fat", width: 100, sortable: true },
+                                { label: "Carbs (g)", property: "carbs", width: 100, sortable: true }
+                            ]
+                            model: [
+                                { name: "Frozen yogurt", calories: 159, fat: 6.0, carbs: 24, selected: false },
+                                { name: "Ice cream sandwich", calories: 237, fat: 9.0, carbs: 37, selected: false },
+                                { name: "Eclair", calories: 262, fat: 16.0, carbs: 24, selected: false },
+                                { name: "Cupcake", calories: 305, fat: 3.7, carbs: 67, selected: false },
+                                { name: "Gingerbread", calories: 356, fat: 16.0, carbs: 49, selected: false }
+                            ]
+                        }
                     }
                 }
             }

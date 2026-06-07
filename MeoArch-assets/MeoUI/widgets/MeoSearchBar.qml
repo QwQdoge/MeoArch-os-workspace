@@ -10,6 +10,7 @@ Rectangle {
     property string placeholder: "Search..."
     property string leadingIcon: "search"
     property string trailingIcon: "person"
+    property bool active: false // 🌟 MD3 Expressive: Active state for transition
 
     // 🌟 作用域与主题安全防御
     readonly property color themeSurfaceContainerHighest: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHighest !== 'undefined') ? MeoTheme.surfaceContainerHighest : "#E6E1E5"
@@ -19,10 +20,13 @@ Rectangle {
 
     implicitWidth: 360 * themeGlobalScale
     implicitHeight: 56 * themeGlobalScale
-    radius: 28 * themeGlobalScale
-    color: themeSurfaceContainerHighest
+    radius: active ? 0 : 28 * themeGlobalScale
+    color: active ? themeSurface : themeSurfaceContainerHighest
 
-    Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+    readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
+
+    Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+    Behavior on radius { NumberAnimation { duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
 
     Row {
         anchors.fill: parent
@@ -30,11 +34,13 @@ Rectangle {
         anchors.rightMargin: 16 * control.themeGlobalScale
         spacing: 12 * control.themeGlobalScale
 
-        MeoIcon {
-            icon: control.leadingIcon
-            size: 24
+        MeoIconButton {
+            icon.name: control.active ? "arrow_back" : control.leadingIcon
+            type: "standard"
             anchors.verticalCenter: parent.verticalCenter
-            color: control.themeOnSurfaceVariant
+            onClicked: {
+                if (control.active) control.active = false
+            }
         }
 
         TextField {
