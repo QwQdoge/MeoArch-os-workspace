@@ -78,6 +78,18 @@ QtObject {
     property color windowBg: isDarkMode ? "#121212" : "#F4F4F6"
     property color background: windowBg
 
+    // 🌟 M3 Shape Scale (MD3 Standard)
+    readonly property real shapeNone: 0
+    readonly property real shapeExtraSmall: 4 * globalScale
+    readonly property real shapeSmall: 8 * globalScale
+    readonly property real shapeMedium: 12 * globalScale
+    readonly property real shapeLarge: 16 * globalScale
+    readonly property real shapeLargeIncreased: 20 * globalScale
+    readonly property real shapeExtraLarge: 28 * globalScale
+    readonly property real shapeExtraLargeIncreased: 32 * globalScale
+    readonly property real shapeExtraExtraLarge: 48 * globalScale
+    readonly property real shapeFull: 1000 * globalScale // Large value for full rounding
+
     // 🌟 M3 间距网格系统 (Spacing Tokens)
     property int space2: 2
     property int space4: 4
@@ -121,4 +133,30 @@ QtObject {
     readonly property var labelLarge: { "size": 14, "weight": Font.Medium, "lineHeight": 20, "letterSpacing": 0.1 }
     readonly property var labelMedium: { "size": 12, "weight": Font.Medium, "lineHeight": 16, "letterSpacing": 0.5 }
     readonly property var labelSmall: { "size": 11, "weight": Font.Medium, "lineHeight": 16, "letterSpacing": 0.5 }
+
+    // 🌟 MD3 Expressive Typography (Emphasized Type Scale)
+    // Display Emphasized (Bold weight 700)
+    readonly property var displayLargeEmphasized: { "size": 57, "weight": Font.Bold, "lineHeight": 64, "letterSpacing": -0.25 }
+    readonly property var displayMediumEmphasized: { "size": 45, "weight": Font.Bold, "lineHeight": 52, "letterSpacing": 0 }
+    readonly property var displaySmallEmphasized: { "size": 36, "weight": Font.Bold, "lineHeight": 44, "letterSpacing": 0 }
+
+    // Headline Emphasized (Bold weight 700)
+    readonly property var headlineLargeEmphasized: { "size": 32, "weight": Font.Bold, "lineHeight": 40, "letterSpacing": 0 }
+    readonly property var headlineMediumEmphasized: { "size": 28, "weight": Font.Bold, "lineHeight": 36, "letterSpacing": 0 }
+    readonly property var headlineSmallEmphasized: { "size": 24, "weight": Font.Bold, "lineHeight": 32, "letterSpacing": 0 }
+
+    // Title Emphasized (DemiBold weight 600)
+    readonly property var titleLargeEmphasized: { "size": 22, "weight": Font.DemiBold, "lineHeight": 28, "letterSpacing": 0 }
+    readonly property var titleMediumEmphasized: { "size": 16, "weight": Font.DemiBold, "lineHeight": 24, "letterSpacing": 0.15 }
+    readonly property var titleSmallEmphasized: { "size": 14, "weight": Font.DemiBold, "lineHeight": 20, "letterSpacing": 0.1 }
+
+    // Body Emphasized (DemiBold weight 600)
+    readonly property var bodyLargeEmphasized: { "size": 16, "weight": Font.DemiBold, "lineHeight": 24, "letterSpacing": 0.5 }
+    readonly property var bodyMediumEmphasized: { "size": 14, "weight": Font.DemiBold, "lineHeight": 20, "letterSpacing": 0.25 }
+    readonly property var bodySmallEmphasized: { "size": 12, "weight": Font.DemiBold, "lineHeight": 16, "letterSpacing": 0.4 }
+
+    // Label Emphasized (DemiBold weight 600)
+    readonly property var labelLargeEmphasized: { "size": 14, "weight": Font.DemiBold, "lineHeight": 20, "letterSpacing": 0.1 }
+    readonly property var labelMediumEmphasized: { "size": 12, "weight": Font.DemiBold, "lineHeight": 16, "letterSpacing": 0.5 }
+    readonly property var labelSmallEmphasized: { "size": 11, "weight": Font.DemiBold, "lineHeight": 16, "letterSpacing": 0.5 }
 }
