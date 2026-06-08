@@ -1,6 +1,0 @@
-<RCC>
-  <qresource prefix="/">
-    <file alias="/MeoUI">$HOME/Projects/MeoArch_os workspace/build/MeoUI</file>
-
-  </qresource>
-</RCC>

@@ -20,8 +20,8 @@ Popup {
 
     background: Rectangle {
         color: control.themeSurfaceContainer
-        radius: 12 * control.themeGlobalScale
-        // MD3 Elevation 3
+        radius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * control.themeGlobalScale
+        // MD3 Elevation 2
         border.color: Qt.rgba(0,0,0,0.1)
         border.width: 0.5 * themeGlobalScale
     }
