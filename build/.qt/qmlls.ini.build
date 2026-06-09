@@ -1,5 +1,0 @@
-[General]
-buildDir="$HOME/Projects/MeoArch_os workspace/build"
-no-cmake-calls=false
-docDir=/usr/share/doc/qt6
-importPaths="/usr/lib/qt6/qml"

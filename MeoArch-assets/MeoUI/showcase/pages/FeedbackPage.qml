@@ -14,10 +14,23 @@ Flickable {
         Text { text: "Feedback"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
 
         MeoBanner {
-            text: "This is a banner with important information."
+            text: "This is an updated MD3 Expressive Banner with a leading icon and refined layout."
+            icon: "info"
             confirmText: "Action"
             cancelText: "Dismiss"
             width: 400 * MeoTheme.globalScale
+        }
+
+        MeoButton {
+            text: "Show Snackbar (Expressive)"
+            onClicked: snackbar.open()
+        }
+
+        MeoSnackbar {
+            id: snackbar
+            message: "This is an expressive snackbar with a 4dp radius."
+            actionText: "UNDO"
+            parent: ApplicationWindow.window ? ApplicationWindow.window.contentItem : undefined
         }
     }
 }

@@ -23,7 +23,7 @@ Popup {
 
     background: Rectangle {
         color: control.themeInverseSurface
-        radius: 4 * control.themeGlobalScale
+        radius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeExtraSmall !== 'undefined') ? MeoTheme.shapeExtraSmall : 4 * control.themeGlobalScale
     }
 
     contentItem: Row {

@@ -19,7 +19,7 @@ ToolTip {
 
     background: Rectangle {
         color: control.themeInverseSurface
-        radius: 4 * control.themeGlobalScale
+        radius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeExtraSmall !== 'undefined') ? MeoTheme.shapeExtraSmall : 4 * control.themeGlobalScale
         // MD3 Elevation (Simplified)
         border.color: Qt.rgba(0,0,0,0.1)
         border.width: 0.5 * themeGlobalScale

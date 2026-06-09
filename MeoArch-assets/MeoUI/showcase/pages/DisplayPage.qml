@@ -27,6 +27,77 @@ Flickable {
             color: MeoTheme.onSurfaceVariant
         }
 
+        Text {
+            text: "MD3 Expressive Emphasized Typography"
+            font.pixelSize: 20 * MeoTheme.globalScale
+            font.bold: true
+            color: MeoTheme.primary
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 12 * MeoTheme.globalScale
+
+            Text {
+                text: "Display Large Emphasized"
+                font.pixelSize: MeoTheme.displayLargeEmphasized.size * MeoTheme.globalScale
+                font.weight: MeoTheme.displayLargeEmphasized.weight
+                color: MeoTheme.onSurface
+            }
+            Text {
+                text: "Headline Medium Emphasized"
+                font.pixelSize: MeoTheme.headlineMediumEmphasized.size * MeoTheme.globalScale
+                font.weight: MeoTheme.headlineMediumEmphasized.weight
+                color: MeoTheme.onSurface
+            }
+            Text {
+                text: "Body Large Emphasized (Prominent)"
+                font.pixelSize: MeoTheme.bodyLargeEmphasized.size * MeoTheme.globalScale
+                font.weight: MeoTheme.bodyLargeEmphasized.weight
+                color: MeoTheme.onSurface
+            }
+        }
+
+        Text {
+            text: "MD3 Toolbars (Expressive)"
+            font.pixelSize: 20 * MeoTheme.globalScale
+            font.bold: true
+            color: MeoTheme.primary
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 16 * MeoTheme.globalScale
+
+            Text { text: "Docked Toolbar (Full Width)"; font.pixelSize: 14 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+            MeoDockedToolbar {
+                Layout.fillWidth: true
+                actions: [
+                    Component { MeoIconButton { icon.name: "menu" } },
+                    Component { MeoIconButton { icon.name: "search" } },
+                    Component { MeoIconButton { icon.name: "favorite" } },
+                    Component { MeoIconButton { icon.name: "more_vert" } }
+                ]
+            }
+
+            Text { text: "Floating Toolbar (Horizontal)"; font.pixelSize: 14 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+            MeoFloatingToolbar {
+                Layout.alignment: Qt.AlignHCenter
+                actions: [
+                    Component { MeoIconButton { icon.name: "edit" } },
+                    Component { MeoIconButton { icon.name: "content_copy" } },
+                    Component { MeoIconButton { icon.name: "delete" } }
+                ]
+            }
+        }
+
+        Text {
+            text: "MD3 Cards & Containers"
+            font.pixelSize: 20 * MeoTheme.globalScale
+            font.bold: true
+            color: MeoTheme.primary
+        }
+
         Flow {
             Layout.fillWidth: true
             spacing: 24 * MeoTheme.globalScale

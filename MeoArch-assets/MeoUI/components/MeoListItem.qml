@@ -50,7 +50,7 @@ Control {
 
     background: Rectangle {
         color: isSegmented && selected ? themeSecondaryContainer : "transparent"
-        radius: isSegmented ? 16 * themeGlobalScale : 0
+        radius: isSegmented ? (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale) : 0
 
         anchors.left: parent.left
         anchors.right: parent.right
@@ -161,7 +161,7 @@ Control {
                 visible: text !== ""
                 elide: Text.ElideRight
                 wrapMode: Text.WordWrap
-                maximumLineCount: control.supportingTextLines
+                maximumLineCount: Math.min(3, control.supportingTextLines)
             }
         }
 
