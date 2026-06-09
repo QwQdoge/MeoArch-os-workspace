@@ -26,6 +26,8 @@ qt_add_qml_module(meoui_module
         showcase/pages/DataTablePage.qml
 MeoTheme.qml
         components/MeoButton.qml
+        components/MeoDockedToolbar.qml
+        components/MeoFloatingToolbar.qml
         components/MeoSegmentedButtons.qml
         components/MeoTextField.qml
         components/MeoTextArea.qml

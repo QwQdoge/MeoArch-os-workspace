@@ -27,7 +27,7 @@ Control {
     padding: 16 * themeGlobalScale
 
     background: Rectangle {
-        color: control.themeSurfaceContainerLow
+        color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : control.themeSurfaceContainerLow
     }
 
     contentItem: Column {
@@ -38,16 +38,23 @@ Control {
             width: parent.width
             spacing: 16 * control.themeGlobalScale
 
-            MeoIcon {
-                icon: control.icon
+            Item {
+                width: 40 * control.themeGlobalScale
+                height: 40 * control.themeGlobalScale
                 visible: control.icon !== ""
                 anchors.verticalCenter: parent.verticalCenter
-                color: control.themePrimary
+
+                MeoIcon {
+                    icon: control.icon
+                    size: 24
+                    anchors.centerIn: parent
+                    color: control.themePrimary
+                }
             }
 
             Text {
                 text: control.text
-                width: parent.width - (control.icon !== "" ? 40 * control.themeGlobalScale : 0)
+                width: parent.width - (control.icon !== "" ? 56 * control.themeGlobalScale : 0)
                 font.pixelSize: control.fontBodyMedium.size * control.themeGlobalScale
                 font.weight: control.fontBodyMedium.weight
                 color: control.themeOnSurface

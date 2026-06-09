@@ -35,9 +35,9 @@ Popup {
 
     background: Rectangle {
         color: control.themeSurfaceContainerLow
-        // MD3 Modal Side Sheet: 28dp radius on the side facing the main content
-        topLeftRadius: 28 * control.themeGlobalScale
-        bottomLeftRadius: 28 * control.themeGlobalScale
+        // MD3 Modal Side Sheet: 16dp radius (shapeLarge) on the side facing the main content
+        topLeftRadius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * control.themeGlobalScale
+        bottomLeftRadius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * control.themeGlobalScale
 
         // Elevation Shadow (Standard MD3 Sheet Elevation)
         layer.enabled: true
