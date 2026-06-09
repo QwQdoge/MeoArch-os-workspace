@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(MeoUI LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
-find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Core5Compat)
+find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Core5Compat Gui Qml)
 
 set_source_files_properties(MeoTheme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
@@ -101,6 +101,8 @@ qt_add_executable(MeoShowcaseDemo
 
 target_link_libraries(MeoShowcaseDemo PRIVATE
     Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
     Qt6::Quick
     Qt6::QuickControls2
     Qt6::Core5Compat
