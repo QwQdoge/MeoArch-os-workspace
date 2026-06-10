@@ -1,91 +1,88 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import MeoUI
 
 Flickable {
-    contentHeight: buttonColumn.implicitHeight + 40
+    anchors.fill: parent
+    contentHeight: column.implicitHeight + 64 * MeoTheme.globalScale
     clip: true
+
     Column {
-        id: buttonColumn
-        padding: 24 * MeoTheme.globalScale
-        spacing: 24 * MeoTheme.globalScale
-        width: parent.width
+        id: column
+        width: parent.width - 48 * MeoTheme.globalScale
+        anchors.horizontalCenter: parent.horizontalCenter
+        spacing: 32 * MeoTheme.globalScale
+        topPadding: 32 * MeoTheme.globalScale
 
-        Text { text: "Common Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
-        Row {
-            spacing: 12 * MeoTheme.globalScale
-            MeoButton { text: "Filled"; type: "filled" }
-            MeoButton { text: "Tonal"; type: "tonal" }
-            MeoButton { text: "Outlined"; type: "outlined" }
-            MeoButton { text: "Text"; type: "text" }
-            MeoButton { text: "Elevated"; type: "elevated" }
-        }
-
-        Text { text: "Icon Buttons & States"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
-        Row {
-            spacing: 12 * MeoTheme.globalScale
-            MeoIconButton { icon.name: "settings"; type: "standard" }
-            MeoIconButton { icon.name: "favorite"; type: "filled" }
-            MeoIconButton { icon.name: "share"; type: "tonal" }
-            MeoIconButton { icon.name: "search"; type: "outlined" }
-
-            // Dragged State Example
-            Item {
-                width: 40 * MeoTheme.globalScale; height: 40 * MeoTheme.globalScale
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 20 * MeoTheme.globalScale
-                    color: "transparent"
-                    MeoIcon {
-                        anchors.centerIn: parent
-                        icon: "drag_handle"
-                        size: 24
-                        color: MeoTheme.primary
-                    }
-                    MeoStateLayer {
-                        radius: parent.radius
-                        dragged: true
-                        color: MeoTheme.primary
-                    }
-                }
-            }
-        }
-
-        Text { text: "Fixed Color Roles"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
-        Row {
+        // Standard Buttons
+        Column {
+            width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            Rectangle {
-                width: 100 * MeoTheme.globalScale; height: 50 * MeoTheme.globalScale
-                color: MeoTheme.primaryFixed
-                radius: 8 * MeoTheme.globalScale
-                Text { text: "Primary Fixed"; anchors.centerIn: parent; color: MeoTheme.onPrimaryFixed; font.pixelSize: 12 * MeoTheme.globalScale }
-            }
-            Rectangle {
-                width: 100 * MeoTheme.globalScale; height: 50 * MeoTheme.globalScale
-                color: MeoTheme.secondaryFixed
-                radius: 8 * MeoTheme.globalScale
-                Text { text: "Secondary Fixed"; anchors.centerIn: parent; color: MeoTheme.onSecondaryFixed; font.pixelSize: 12 * MeoTheme.globalScale }
-            }
-            Rectangle {
-                width: 100 * MeoTheme.globalScale; height: 50 * MeoTheme.globalScale
-                color: MeoTheme.tertiaryFixed
-                radius: 8 * MeoTheme.globalScale
-                Text { text: "Tertiary Fixed"; anchors.centerIn: parent; color: MeoTheme.onTertiaryFixed; font.pixelSize: 12 * MeoTheme.globalScale }
+            Text { text: "Common Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Flow {
+                width: parent.width
+                spacing: 12 * MeoTheme.globalScale
+                MeoButton { text: "Filled"; type: "filled" }
+                MeoButton { text: "Tonal"; type: "tonal" }
+                MeoButton { text: "Outlined"; type: "outlined" }
+                MeoButton { text: "Elevated"; type: "elevated" }
+                MeoButton { text: "Text"; type: "text" }
             }
         }
 
-        Text { text: "Floating Action Buttons (FAB)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
-        Row {
-            spacing: 24 * MeoTheme.globalScale
-            MeoFAB { icon.name: "add"; size: "small" }
-            MeoFAB { icon.name: "edit"; size: "standard" }
-            MeoFAB { icon.name: "navigate_next"; size: "large" }
-            MeoFAB { icon.name: "add"; text: "Create"; extended: true }
+        // Segmented Buttons (Enhanced)
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            Text { text: "Segmented Buttons (Icons + Text)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+
+            MeoSegmentedButtons {
+                width: 400 * MeoTheme.globalScale
+                model: [
+                    { label: "Day", icon: "wb_sunny" },
+                    { label: "Night", icon: "dark_mode" }
+                ]
+            }
+
+            MeoSegmentedButtons {
+                width: parent.width
+                multiSelect: true
+                model: [
+                    { label: "Bold", icon: "format_bold" },
+                    { label: "Italic", icon: "format_italic" },
+                    { label: "Underline", icon: "format_underlined" }
+                ]
+                selectedIndices: [0]
+            }
         }
 
-        Text { text: "Segmented Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
-        MeoSegmentedButtons {
-            model: ["Day", "Week", "Month"]
+        // Floating Action Buttons
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            Text { text: "Floating Action Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Row {
+                spacing: 16 * MeoTheme.globalScale
+                MeoFAB { type: "small"; icon.name: "edit" }
+                MeoFAB { type: "regular"; icon.name: "add" }
+                MeoFAB { type: "large"; icon.name: "palette" }
+                MeoFAB { type: "extended"; icon.name: "mail"; text: "Compose" }
+            }
+        }
+
+        // Icon Buttons
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            Text { text: "Icon Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Row {
+                spacing: 16 * MeoTheme.globalScale
+                MeoIconButton { type: "standard"; icon.name: "settings" }
+                MeoIconButton { type: "filled"; icon.name: "favorite"; selected: true }
+                MeoIconButton { type: "tonal"; icon.name: "bookmark" }
+                MeoIconButton { type: "outlined"; icon.name: "share" }
+            }
         }
     }
 }
