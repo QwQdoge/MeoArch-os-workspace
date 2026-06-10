@@ -74,6 +74,22 @@ QtObject {
     property color errorContainer: isDarkMode ? "#8C1D18" : "#F9DEDC"
     property color onErrorContainer: isDarkMode ? "#F9DEDC" : "#410E0B"
 
+    // MD3 Fixed Colors (Same in both Light and Dark mode)
+    property color primaryFixed: "#EADDFF"
+    property color onPrimaryFixed: "#21005D"
+    property color primaryFixedDim: "#D0BCFF"
+    property color onPrimaryFixedVariant: "#4F378B"
+
+    property color secondaryFixed: "#E8DEF8"
+    property color onSecondaryFixed: "#1D192B"
+    property color secondaryFixedDim: "#CCC2DC"
+    property color onSecondaryFixedVariant: "#4A4458"
+
+    property color tertiaryFixed: "#FFD8E4"
+    property color onTertiaryFixed: "#31111D"
+    property color tertiaryFixedDim: "#EFB8C8"
+    property color onTertiaryFixedVariant: "#633B48"
+
     // 🌟 辅助/窗口背景色
     property color windowBg: isDarkMode ? "#121212" : "#F4F4F6"
     property color background: windowBg

@@ -42,16 +42,33 @@ Rectangle {
 
         Repeater {
             model: control.model
-            delegate: MeoNavigationDrawerItem {
-                width: parent.width - 24 * control.themeGlobalScale
-                anchors.horizontalCenter: parent.horizontalCenter
-                label: modelData.label
-                icon: modelData.icon
-                badgeText: modelData.badgeText || ""
-                selected: control.currentIndex === index
-                onClicked: {
-                    control.currentIndex = index
-                    control.clicked(index)
+            delegate: Loader {
+                width: parent.width
+                sourceComponent: modelData.type === "header" ? headerItemComp : itemComp
+
+                Component {
+                    id: headerItemComp
+                    MeoListHeader {
+                        text: modelData.label
+                        topPadding: 16 * control.themeGlobalScale
+                        bottomPadding: 8 * control.themeGlobalScale
+                    }
+                }
+
+                Component {
+                    id: itemComp
+                    MeoNavigationDrawerItem {
+                        width: parent.width - 24 * control.themeGlobalScale
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        label: modelData.label
+                        icon: modelData.icon
+                        badgeText: modelData.badgeText || ""
+                        selected: control.currentIndex === index
+                        onClicked: {
+                            control.currentIndex = index
+                            control.clicked(index)
+                        }
+                    }
                 }
             }
         }
