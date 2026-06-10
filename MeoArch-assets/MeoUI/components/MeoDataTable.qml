@@ -141,7 +141,8 @@ Control {
                 width: listView.width
                 height: 52 * control.themeGlobalScale
 
-                readonly property bool isSelected: modelData.selected || false
+                readonly property var row: modelData
+                readonly property bool isSelected: row.selected || false
 
                 Rectangle {
                     anchors.fill: parent
@@ -182,17 +183,24 @@ Control {
                             width: modelData.width ? modelData.width * control.themeGlobalScale : (rowDelegate.width - (control.selectable ? 48 : 0) - 32) / control.columns.length
                             height: parent.height
 
-                            Text {
+                            Loader {
                                 anchors.fill: parent
                                 anchors.rightMargin: 8 * control.themeGlobalScale
-                                text: modelData.property ? modelData.property.split('.').reduce((obj, i) => obj[i], modelData_val) : ""
-                                font.pixelSize: control.fontBodyMedium.size * control.themeGlobalScale
-                                color: control.themeOnSurfaceVariant
-                                verticalAlignment: Text.AlignVCenter
-                                elide: Text.ElideRight
+                                sourceComponent: modelData.delegate || defaultTextDelegate
 
-                                // Handling nested properties in model data
-                                readonly property var modelData_val: listView.model[index]
+                                property var rowData: rowDelegate.row
+                                property var columnData: modelData
+                            }
+
+                            Component {
+                                id: defaultTextDelegate
+                                Text {
+                                    text: columnData.property ? columnData.property.split('.').reduce((obj, i) => obj[i], rowData) : ""
+                                    font.pixelSize: control.fontBodyMedium.size * control.themeGlobalScale
+                                    color: control.themeOnSurfaceVariant
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
                             }
                         }
                     }
