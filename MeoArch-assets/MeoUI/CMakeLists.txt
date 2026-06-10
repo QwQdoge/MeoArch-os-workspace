@@ -58,6 +58,8 @@ MeoTheme.qml
         components/MeoInputChip.qml
         components/MeoPullToRefresh.qml
         components/MeoFilterGroup.qml
+        components/MeoListHeader.qml
+        components/MeoSelectionGroup.qml
         components/MeoNavigationDrawerItem.qml
         components/MeoDateInput.qml
         components/MeoTimeInput.qml
@@ -73,6 +75,7 @@ MeoTheme.qml
         widgets/MeoNavigationRail.qml
         widgets/MeoNavigationDrawer.qml
         widgets/MeoBottomSheet.qml
+        widgets/MeoAccountHeader.qml
         widgets/MeoSearchBar.qml
         widgets/MeoDockedSearchBar.qml
         widgets/MeoBottomAppBar.qml
@@ -88,6 +91,7 @@ MeoTheme.qml
         patterns/MeoScaffold.qml
         patterns/MeoListDetailLayout.qml
         patterns/MeoSettingsLayout.qml
+        patterns/MeoSearchFilterBar.qml
         showcase/MeoShowcase.qml
 )
 

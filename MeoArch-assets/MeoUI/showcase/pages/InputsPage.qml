@@ -25,5 +25,13 @@ Flickable {
             placeholderText: "Enter multiline text..."
             type: "outlined"
         }
+
+        Text { text: "Custom Icons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+        Row {
+            spacing: 24 * MeoTheme.globalScale
+            MeoIcon { icon: "favorite"; fill: true; color: MeoTheme.primary }
+            MeoIcon { icon: "favorite"; weight: 700; color: MeoTheme.primary }
+            MeoIcon { icon: "favorite"; weight: 100; color: MeoTheme.primary }
+        }
     }
 }

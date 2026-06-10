@@ -19,7 +19,31 @@ Flickable {
                 { label: "Dessert (100g serving)", property: "name", width: 250, sortable: true },
                 { label: "Calories", property: "calories", width: 100, sortable: true },
                 { label: "Fat (g)", property: "fat", width: 100, sortable: true },
-                { label: "Carbs (g)", property: "carbs", width: 100, sortable: true }
+                { label: "Carbs (g)", property: "carbs", width: 100, sortable: true },
+                {
+                    label: "Status",
+                    width: 120,
+                    delegate: Component {
+                        Item {
+                            anchors.fill: parent
+                            Row {
+                                anchors.centerIn: parent
+                                spacing: 4 * MeoTheme.globalScale
+                                Rectangle {
+                                    width: 8 * MeoTheme.globalScale; height: 8 * MeoTheme.globalScale; radius: 4 * MeoTheme.globalScale
+                                    color: rowData.calories > 300 ? MeoTheme.error : "#4CAF50"
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                                Text {
+                                    text: rowData.calories > 300 ? "High" : "Normal"
+                                    font.pixelSize: 12 * MeoTheme.globalScale
+                                    color: MeoTheme.onSurfaceVariant
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                            }
+                        }
+                    }
+                }
             ]
             model: [
                 { name: "Frozen yogurt", calories: 159, fat: 6.0, carbs: 24, selected: false },
