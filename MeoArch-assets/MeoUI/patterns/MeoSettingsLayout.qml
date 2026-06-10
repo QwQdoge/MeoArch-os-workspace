@@ -34,12 +34,10 @@ Flickable {
             delegate: Column {
                 width: parent.width
 
-                Text {
+                MeoListHeader {
                     text: modelData.sectionTitle
                     visible: text !== ""
-                    font.pixelSize: 14 * control.themeGlobalScale
-                    font.weight: Font.Medium
-                    color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
+                    type: "emphasized"
                     topPadding: 16 * control.themeGlobalScale
                     bottomPadding: 8 * control.themeGlobalScale
                 }
