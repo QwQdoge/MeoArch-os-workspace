@@ -5,6 +5,7 @@ import MeoUI
 Control {
     id: control
 
+    // 🌟 核心属性
     property string headline: ""
     property string supportingText: ""
     property string overline: ""
@@ -13,10 +14,14 @@ Control {
     property string leadingImage: "" // 🖼️ New: MD3 Expressive Large Image/Avatar
     property string leadingImageVariant: "square" // "square" | "circle"
     property real leadingImageSize: 40 // 40 (Avatar) | 56 (Small Image) | 64 (Large Image)
-    property string badgeText: "" // 🌟 New: Notification badge support
+
+    // Trailing Area Properties
+    property string badgeText: ""
     property color badgeColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.error !== 'undefined') ? MeoTheme.error : "#B3261E"
     property Component leadingComponent: null
     property Component trailingComponent: null
+    property var actions: [] // 🌟 New: Multiple trailing actions support (Array of Components)
+
     property bool interactive: true
     property bool isSegmented: false // MD3 Expressive: Segmented list style
     property bool selected: false
@@ -47,6 +52,7 @@ Control {
     }
 
     padding: isSegmented ? 12 * themeGlobalScale : 16 * themeGlobalScale
+    spacing: 16 * themeGlobalScale // Standardized MD3 spacing
 
     background: Rectangle {
         color: isSegmented && selected ? themeSecondaryContainer : "transparent"
@@ -79,7 +85,7 @@ Control {
 
     contentItem: Row {
         id: contentRow
-        spacing: 16 * control.themeGlobalScale
+        spacing: control.spacing
         width: parent.width
 
         // 🖼️ Leading Visuals Area
@@ -124,7 +130,7 @@ Control {
 
         // 🔤 Content Area
         Column {
-            width: parent.width - (leadingRowItemWidth() > 0 ? leadingRowItemWidth() + spacing : 0) - trailingRowItemWidth()
+            width: parent.width - (leadingRowItemWidth() > 0 ? leadingRowItemWidth() + control.spacing : 0) - trailingRowItemWidth()
             anchors.verticalCenter: parent.verticalCenter
             spacing: 0
 
@@ -143,7 +149,7 @@ Control {
                 text: control.headline
                 width: parent.width
                 font.pixelSize: fontBodyLarge.size * control.themeGlobalScale
-                font.weight: control.selected ? Font.Bold : fontBodyLarge.weight
+                font.weight: (control.selected && !isSegmented) ? Font.Bold : fontBodyLarge.weight
                 font.letterSpacing: (fontBodyLarge.letterSpacing || 0) * control.themeGlobalScale
                 lineHeight: (fontBodyLarge.lineHeight ? (fontBodyLarge.lineHeight / fontBodyLarge.size) : 1.2)
                 color: control.selected && isSegmented ? control.themeOnSecondaryContainer : control.themeOnSurface
@@ -167,9 +173,10 @@ Control {
 
         // 🏷️ Trailing Area
         Row {
-            spacing: 8 * control.themeGlobalScale
+            id: trailingActionsRow
+            spacing: 12 * control.themeGlobalScale // Keeping 12 for compact action row
             anchors.verticalCenter: parent.verticalCenter
-            visible: control.badgeText !== "" || control.trailingComponent !== null
+            visible: control.badgeText !== "" || control.trailingComponent !== null || control.actions.length > 0
 
             MeoBadge {
                 text: control.badgeText
@@ -185,6 +192,15 @@ Control {
                 sourceComponent: control.trailingComponent
                 visible: control.trailingComponent !== null
             }
+
+            // 🌟 Multiple Actions
+            Repeater {
+                model: control.actions
+                delegate: Loader {
+                    anchors.verticalCenter: parent.verticalCenter
+                    sourceComponent: modelData
+                }
+            }
         }
     }
 
@@ -197,9 +213,16 @@ Control {
 
     function trailingRowItemWidth() {
         let w = 0;
-        if (control.badgeText !== "") w += 24 * control.themeGlobalScale; // estimated
+        if (control.badgeText !== "") w += 24 * control.themeGlobalScale;
         if (control.trailingComponent !== null) w += 24 * control.themeGlobalScale;
-        if (w > 0) w += spacing;
+
+        // Actions width estimation
+        if (control.actions.length > 0) {
+            w += control.actions.length * 40 * control.themeGlobalScale; // estimated button width
+            w += (control.actions.length - 1) * (12 * control.themeGlobalScale);
+        }
+
+        if (w > 0) w += control.spacing;
         return w;
     }
 }
