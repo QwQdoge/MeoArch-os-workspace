@@ -81,6 +81,7 @@ MeoTheme.qml
         widgets/MeoBottomAppBar.qml
         widgets/MeoSearchView.qml
         widgets/MeoTopAppBar.qml
+        widgets/MeoSearchSuggestions.qml
         components/MeoAssistChip.qml
         components/MeoSuggestionChip.qml
         components/MeoSkeleton.qml
@@ -117,5 +118,3 @@ target_link_libraries(MeoShowcaseDemo PRIVATE
 set_target_properties(MeoShowcaseDemo PROPERTIES
     QT_QML_IMPORT_PATH "${CMAKE_BINARY_DIR}"
 )
-
-

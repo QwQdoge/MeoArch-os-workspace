@@ -7,7 +7,7 @@ ScrollView {
     anchors.fill: parent
     contentHeight: column.implicitHeight + 64 * MeoTheme.globalScale
 
-    property bool isSideSheetOpen: false // 🌟 Fix: Use a property in the root scope for shared state
+    property bool isSideSheetOpen: false
 
     Column {
         id: column
@@ -30,13 +30,11 @@ ScrollView {
             MeoSearchView {
                 id: searchView
                 placeholder: "Search anything..."
-                content: MeoSearchSuggestions {
-                    width: parent.width
-                    historyModel: ["Material Design 3", "QML Animation", "MD3 Icons"]
-                    suggestionsModel: ["Material Design Guidelines", "Material Symbols", "Expressive Layouts"]
-                }
-                actions: [
-                    Component { MeoIconButton { icon.name: "mic"; type: "standard" } }
+                suggestions: [
+                    { label: "Material Design 3", isHistory: true },
+                    { label: "QML Animation", isHistory: true },
+                    { label: "MD3 Icons", isHistory: false },
+                    { label: "Expressive Layouts", isHistory: false }
                 ]
             }
         }
