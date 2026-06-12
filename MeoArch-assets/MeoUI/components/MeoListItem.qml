@@ -24,6 +24,7 @@ Control {
 
     property bool interactive: true
     property bool isSegmented: false // MD3 Expressive: Segmented list style
+    property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool selected: false
 
     signal clicked()
@@ -36,8 +37,14 @@ Control {
     readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
-    readonly property var fontBodyLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyLarge !== 'undefined') ? MeoTheme.bodyLarge : { "size": 16, "weight": Font.Normal }
-    readonly property var fontBodyMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyMedium !== 'undefined') ? MeoTheme.bodyMedium : { "size": 14, "weight": Font.Normal }
+    readonly property var fontBodyLarge: {
+        if (typeof MeoTheme === 'undefined') return { "size": 16, "weight": Font.Normal };
+        return isEmphasized ? (MeoTheme.bodyLargeEmphasized || MeoTheme.bodyLarge) : MeoTheme.bodyLarge;
+    }
+    readonly property var fontBodyMedium: {
+        if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Normal };
+        return isEmphasized ? (MeoTheme.bodyMediumEmphasized || MeoTheme.bodyMedium) : MeoTheme.bodyMedium;
+    }
 
     implicitWidth: 360 * themeGlobalScale
     // MD3 Heights: 1-line (56/72), 2-line (72/88), 3-line (88)

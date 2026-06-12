@@ -26,11 +26,27 @@ Flickable {
             onClicked: snackbar.open()
         }
 
+        MeoButton {
+            text: "Show Expressive Dialog"
+            onClicked: expressiveDialog.open()
+        }
+
         MeoSnackbar {
             id: snackbar
             message: "This is an expressive snackbar with a 4dp radius."
             actionText: "UNDO"
             parent: ApplicationWindow.window ? ApplicationWindow.window.contentItem : undefined
+        }
+
+        MeoExpressiveDialog {
+            id: expressiveDialog
+            title: "Permission Required"
+            message: "This app needs access to your camera to take expressive photos. We will never share your photos without permission."
+            icon: "camera"
+            confirmText: "Allow"
+            cancelText: "Deny"
+            onConfirmed: console.log("Confirmed")
+            onCancelled: console.log("Cancelled")
         }
     }
 }
