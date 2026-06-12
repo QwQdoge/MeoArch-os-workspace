@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import MeoUI
 
 Flickable {
+    id: scrollArea
     anchors.fill: parent
     contentHeight: column.implicitHeight + 64 * MeoTheme.globalScale
     clip: true
@@ -19,7 +20,7 @@ Flickable {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Common Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Text { text: "Common Buttons (Standard & Emphasized)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
             Flow {
                 width: parent.width
                 spacing: 12 * MeoTheme.globalScale
@@ -28,6 +29,13 @@ Flickable {
                 MeoButton { text: "Outlined"; type: "outlined" }
                 MeoButton { text: "Elevated"; type: "elevated" }
                 MeoButton { text: "Text"; type: "text" }
+            }
+            Flow {
+                width: parent.width
+                spacing: 12 * MeoTheme.globalScale
+                MeoButton { text: "Filled Emphasized"; type: "filled"; isEmphasized: true }
+                MeoButton { text: "Tonal Emphasized"; type: "tonal"; isEmphasized: true }
+                MeoButton { text: "Outlined Emphasized"; type: "outlined"; isEmphasized: true }
             }
         }
 
@@ -61,13 +69,23 @@ Flickable {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Floating Action Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Text { text: "Floating Action Buttons (Scroll to Collapse)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
             Row {
                 spacing: 16 * MeoTheme.globalScale
                 MeoFAB { type: "small"; icon.name: "edit" }
                 MeoFAB { type: "regular"; icon.name: "add" }
                 MeoFAB { type: "large"; icon.name: "palette" }
-                MeoFAB { type: "extended"; icon.name: "mail"; text: "Compose" }
+                MeoFAB {
+                    id: fabExtended
+                    type: "extended"
+                    icon.name: "mail"
+                    text: "Compose"
+                    collapsed: scrollArea.contentY > 100
+                }
+                MeoButton {
+                    text: fabExtended.collapsed ? "Expand FAB" : "Collapse FAB"
+                    onClicked: fabExtended.collapsed = !fabExtended.collapsed
+                }
             }
         }
 

@@ -8,10 +8,14 @@ Button {
 
     // 🌟 核心开关
     property string type: "filled" // "filled" (默认) | "tonal" | "outlined" | "elevated" | "text"
+    property bool isEmphasized: false // MD3 Expressive: Use bold typography
 
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
 
-    readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
+    readonly property var fontLabelLarge: {
+        if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
+        return isEmphasized ? (MeoTheme.labelLargeEmphasized || MeoTheme.labelLarge) : MeoTheme.labelLarge;
+    }
 
     readonly property color bgColor: {
         if (!control.enabled) {
