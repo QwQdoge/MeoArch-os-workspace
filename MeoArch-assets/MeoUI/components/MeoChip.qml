@@ -11,6 +11,7 @@ Control {
     property string icon: ""
     property bool selected: false
     property bool closable: false
+    property bool isEmphasized: false // MD3 Expressive: Use bold typography
 
     signal clicked()
     signal closed()
@@ -79,7 +80,11 @@ Control {
         Text {
             text: control.label
             font.pixelSize: 14 * control.themeGlobalScale
-            font.weight: control.selected ? Font.Medium : Font.Normal
+            font.weight: {
+                if (control.selected) return Font.Medium;
+                if (control.isEmphasized) return Font.DemiBold;
+                return Font.Normal;
+            }
             color: control.selected ? control.themePrimary : control.themeOnSurfaceVariant
             verticalAlignment: Text.AlignVCenter
         }
