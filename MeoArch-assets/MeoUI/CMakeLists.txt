@@ -83,6 +83,7 @@ MeoTheme.qml
         widgets/MeoTopAppBar.qml
         widgets/MeoSearchSuggestions.qml
         components/MeoAssistChip.qml
+        components/MeoAvatar.qml
         components/MeoSuggestionChip.qml
         components/MeoSkeleton.qml
         widgets/MeoSideSheetModal.qml

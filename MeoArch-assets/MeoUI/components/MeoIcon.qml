@@ -20,7 +20,13 @@ Text {
 
     font.weight: weight
 
-    // Using font.styleName or specific font features if supported by the environment's QML version
-    // For simplicity in standard QML, we'll map weight. Grade and Optical Size often require
-    // raw font feature settings which might not be universally exposed in all Qt versions' Font type.
+    // 🌟 MD3 Variable Font Features (Material Symbols)
+    font.featureSettings: {
+        let features = [];
+        features.push("'FILL' " + (fill ? 1 : 0));
+        features.push("'wght' " + weight);
+        features.push("'GRAD' " + grade);
+        features.push("'opsz' " + opticalSize);
+        return features.join(", ");
+    }
 }

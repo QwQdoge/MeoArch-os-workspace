@@ -12,6 +12,8 @@ Item {
     property Component navigationBar: null
     property Component navigationRail: null
     property Component navigationDrawer: null
+    property Component sideSheet: null
+    property bool sideSheetOpen: false
     property Component fab: null
     property Component content: null
     property Component snackbar: null
@@ -61,9 +63,22 @@ Item {
                 width: parent.width
                 height: parent.height - (topBarLoader.visible ? topBarLoader.height : 0) - (bottomBarLoader.visible ? bottomBarLoader.height : 0) - (navBarLoader.visible ? navBarLoader.height : 0)
 
-                Loader {
+                Row {
                     anchors.fill: parent
-                    sourceComponent: control.content
+
+                    Loader {
+                        id: contentLoader
+                        width: parent.width - (sideSheetLoader.visible ? sideSheetLoader.width : 0)
+                        height: parent.height
+                        sourceComponent: control.content
+                    }
+
+                    Loader {
+                        id: sideSheetLoader
+                        height: parent.height
+                        sourceComponent: control.sideSheet
+                        visible: control.sideSheetOpen && control.sideSheet !== null
+                    }
                 }
 
                 // FAB Slot (MD3: Floating above content, usually bottom-right)
