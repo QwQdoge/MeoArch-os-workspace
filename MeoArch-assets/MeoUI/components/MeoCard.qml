@@ -10,6 +10,9 @@ Frame {
     property string type: "elevated"
     property int level: type === "elevated" ? 1 : 0
     property real radius: 12 * themeGlobalScale
+    property bool interactive: false // 🌟 MD3: Supports click interaction
+
+    signal clicked()
 
     // MD3 Elevation (Shadow)
     readonly property real elevation: {
@@ -53,6 +56,21 @@ Frame {
             radius: 0.2
             verticalOffset: control.elevation * control.themeGlobalScale
             color: Qt.rgba(0,0,0,0.2)
+        }
+
+        MeoStateLayer {
+            radius: parent.radius
+            visible: control.interactive
+            pressed: mouseArea.pressed
+            hovered: mouseArea.containsMouse
+            color: control.isDarkMode ? "#FFFFFF" : "#000000"
+        }
+
+        MouseArea {
+            id: mouseArea
+            anchors.fill: parent
+            enabled: control.interactive
+            onClicked: control.clicked()
         }
 
         Behavior on color { ColorAnimation { duration: 150 } }
