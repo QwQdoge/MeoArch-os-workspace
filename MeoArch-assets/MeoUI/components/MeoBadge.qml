@@ -6,6 +6,7 @@ Rectangle {
 
     // 🌟 核心属性
     property string text: ""
+    property int maxCount: 99
     property bool isDot: false
 
     // 🌟 作用域与主题安全防御
@@ -27,7 +28,13 @@ Rectangle {
     Text {
         id: label
         anchors.centerIn: parent
-        text: control.text
+        text: {
+            let count = parseInt(control.text);
+            if (!isNaN(count) && count > control.maxCount) {
+                return control.maxCount + "+";
+            }
+            return control.text;
+        }
         visible: !control.isDot
         font.pixelSize: 10 * control.themeGlobalScale
         font.weight: Font.Medium

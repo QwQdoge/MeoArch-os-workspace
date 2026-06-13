@@ -66,6 +66,9 @@ QtObject {
     readonly property var motionEasingEmphasizedAccelerate: [0.3, 0, 0.8, 0.15]
     readonly property var motionEasingEmphasizedDecelerate: [0.05, 0.7, 0.1, 1]
 
+    // 🌟 Soul Curve (MD3 Expressive Standard)
+    readonly property var motionEasingSoul: [0.34, 0.8, 0.34, 1.0]
+
     property color outline: isDarkMode ? "#938F99" : "#79747E"
     property color outlineVariant: isDarkMode ? "#44474F" : "#C4C7C5"
 
