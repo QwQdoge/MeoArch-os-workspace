@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import MeoUI
 
 Rectangle {
@@ -10,6 +11,8 @@ Rectangle {
     property int currentIndex: 0
     property bool isModal: false
     property string title: ""
+    property Component header: null
+    property Component footer: null
 
     signal clicked(int index)
 
@@ -24,53 +27,78 @@ Rectangle {
     height: parent ? parent.height : 600 * themeGlobalScale
     color: themeSurfaceContainerLow
 
-    // Drawer Header
-    Column {
-        id: mainColumn
+    // Drawer Content Layout
+    ColumnLayout {
+        id: mainLayout
         anchors.fill: parent
         anchors.topMargin: 24 * control.themeGlobalScale
-        spacing: 4 * control.themeGlobalScale
+        spacing: 0
+
+        Loader {
+            Layout.fillWidth: true
+            sourceComponent: control.header
+            visible: control.header !== null
+        }
 
         Text {
             text: control.title
             visible: text !== ""
+            Layout.fillWidth: true
             padding: 16 * control.themeGlobalScale
             font.pixelSize: fontLabelLarge.size * control.themeGlobalScale
             font.weight: fontLabelLarge.weight
             color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
         }
 
-        Repeater {
-            model: control.model
-            delegate: Loader {
+        ScrollView {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
+            Column {
                 width: parent.width
-                sourceComponent: modelData.type === "header" ? headerItemComp : itemComp
+                spacing: 4 * control.themeGlobalScale
 
-                Component {
-                    id: headerItemComp
-                    MeoListHeader {
-                        text: modelData.label
-                        topPadding: 16 * control.themeGlobalScale
-                        bottomPadding: 8 * control.themeGlobalScale
-                    }
-                }
+                Repeater {
+                    model: control.model
+                    delegate: Loader {
+                        width: parent.width
+                        sourceComponent: modelData.type === "header" ? headerItemComp : itemComp
 
-                Component {
-                    id: itemComp
-                    MeoNavigationDrawerItem {
-                        width: parent.width - 24 * control.themeGlobalScale
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        label: modelData.label
-                        icon: modelData.icon
-                        badgeText: modelData.badgeText || ""
-                        selected: control.currentIndex === index
-                        onClicked: {
-                            control.currentIndex = index
-                            control.clicked(index)
+                        Component {
+                            id: headerItemComp
+                            MeoListHeader {
+                                text: modelData.label
+                                topPadding: 16 * control.themeGlobalScale
+                                bottomPadding: 8 * control.themeGlobalScale
+                            }
+                        }
+
+                        Component {
+                            id: itemComp
+                            MeoNavigationDrawerItem {
+                                width: parent.width - 24 * control.themeGlobalScale
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                label: modelData.label
+                                icon: modelData.icon
+                                badgeText: modelData.badgeText || ""
+                                selected: control.currentIndex === index
+                                onClicked: {
+                                    control.currentIndex = index
+                                    control.clicked(index)
+                                }
+                            }
                         }
                     }
                 }
             }
+        }
+
+        Loader {
+            Layout.fillWidth: true
+            sourceComponent: control.footer
+            visible: control.footer !== null
+            Layout.bottomMargin: 16 * control.themeGlobalScale
         }
     }
 }

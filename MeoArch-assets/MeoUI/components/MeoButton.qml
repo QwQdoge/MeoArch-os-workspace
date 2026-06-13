@@ -9,6 +9,7 @@ Button {
     // 🌟 核心开关
     property string type: "filled" // "filled" (默认) | "tonal" | "outlined" | "elevated" | "text"
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
+    property bool loading: false // 🌟 MD3: Loading state with progress indicator
 
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
 
@@ -54,29 +55,49 @@ Button {
     bottomPadding: 0
     implicitHeight: 40 * MeoTheme.globalScale
 
-    contentItem: Row {
-        spacing: 8 * MeoTheme.globalScale
-        anchors.centerIn: parent
+    contentItem: Item {
+        implicitWidth: loading ? 24 * MeoTheme.globalScale : contentRow.implicitWidth
+        implicitHeight: loading ? 24 * MeoTheme.globalScale : contentRow.implicitHeight
 
-        MeoIcon {
-            icon: control.icon.name || control.icon.source.toString()
-            visible: control.icon.name !== "" || control.icon.source.toString() !== ""
-            size: 18
-            color: control.textColor
-            anchors.verticalCenter: parent.verticalCenter
-            Behavior on color { ColorAnimation { duration: 150 } }
+        Row {
+            id: contentRow
+            spacing: 8 * MeoTheme.globalScale
+            anchors.centerIn: parent
+            opacity: control.loading ? 0.0 : 1.0
+            visible: opacity > 0
+            Behavior on opacity { NumberAnimation { duration: 150 } }
+
+            MeoIcon {
+                icon: control.icon.name || control.icon.source.toString()
+                visible: control.icon.name !== "" || control.icon.source.toString() !== ""
+                size: 18
+                color: control.textColor
+                anchors.verticalCenter: parent.verticalCenter
+                Behavior on color { ColorAnimation { duration: 150 } }
+            }
+
+            Text {
+                text: control.text
+                font.pixelSize: fontLabelLarge.size * MeoTheme.globalScale
+                font.weight: fontLabelLarge.weight
+                font.letterSpacing: (fontLabelLarge.letterSpacing || 0) * MeoTheme.globalScale
+                lineHeight: (fontLabelLarge.lineHeight ? (fontLabelLarge.lineHeight / fontLabelLarge.size) : 1.2)
+                color: control.textColor
+                verticalAlignment: Text.AlignVCenter
+                anchors.verticalCenter: parent.verticalCenter
+                Behavior on color { ColorAnimation { duration: 150 } }
+            }
         }
 
-        Text {
-            text: control.text
-            font.pixelSize: fontLabelLarge.size * MeoTheme.globalScale
-            font.weight: fontLabelLarge.weight
-            font.letterSpacing: (fontLabelLarge.letterSpacing || 0) * MeoTheme.globalScale
-            lineHeight: (fontLabelLarge.lineHeight ? (fontLabelLarge.lineHeight / fontLabelLarge.size) : 1.2)
-            color: control.textColor
-            verticalAlignment: Text.AlignVCenter
-            anchors.verticalCenter: parent.verticalCenter
-            Behavior on color { ColorAnimation { duration: 150 } }
+        MeoProgressBar {
+            type: "circular"
+            indeterminate: true
+            anchors.centerIn: parent
+            width: 24 * MeoTheme.globalScale
+            height: 24 * MeoTheme.globalScale
+            visible: control.loading
+            opacity: control.loading ? 1.0 : 0.0
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
     }
 
