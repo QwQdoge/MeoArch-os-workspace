@@ -20,7 +20,8 @@ ApplicationWindow {
         { label: "Display", icon: "layers" },
         { label: "Feedback", icon: "info" },
         { label: "Patterns", icon: "grid_view" },
-        { label: "Data Table", icon: "table_chart" }
+        { label: "Data Table", icon: "table_chart" },
+        { label: "Expressive", icon: "auto_awesome" }
     ]
 
     MeoAppLayout {
@@ -37,7 +38,8 @@ ApplicationWindow {
             Component { DisplayPage {} },
             Component { FeedbackPage {} },
             Component { PatternsPage {} },
-            Component { DataTablePage {} }
+            Component { DataTablePage {} },
+            Component { ExpressivePage {} }
         ]
     }
 }
