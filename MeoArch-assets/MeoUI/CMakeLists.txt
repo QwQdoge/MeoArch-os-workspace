@@ -23,9 +23,13 @@ qt_add_qml_module(meoui_module
         showcase/pages/DisplayPage.qml
         showcase/pages/FeedbackPage.qml
         showcase/pages/PatternsPage.qml
+        showcase/pages/ExpressivePage.qml
         showcase/pages/DataTablePage.qml
 MeoTheme.qml
         components/MeoButton.qml
+        components/MeoSplitButton.qml
+        components/MeoButtonGroup.qml
+        components/MeoFABMenu.qml
         components/MeoDockedToolbar.qml
         components/MeoFloatingToolbar.qml
         components/MeoSegmentedButtons.qml

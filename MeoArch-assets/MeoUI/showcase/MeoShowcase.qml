@@ -20,6 +20,7 @@ ApplicationWindow {
         { label: "Display", icon: "layers" },
         { label: "Feedback", icon: "info" },
         { label: "Patterns", icon: "grid_view" },
+        { label: "Expressive", icon: "palette" },
         { label: "Data Table", icon: "table_chart" }
     ]
 
@@ -37,6 +38,7 @@ ApplicationWindow {
             Component { DisplayPage {} },
             Component { FeedbackPage {} },
             Component { PatternsPage {} },
+            Component { ExpressivePage {} },
             Component { DataTablePage {} }
         ]
     }
