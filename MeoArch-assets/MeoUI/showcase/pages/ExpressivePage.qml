@@ -99,6 +99,102 @@ ScrollView {
 
         MeoDivider { topInset: 16; bottomInset: 16 }
 
+        // 🌟 Vibrant & Segmented Menus
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            MeoListHeader { text: "Expressive Menus"; type: "emphasized" }
+
+            Row {
+                spacing: 24 * MeoTheme.globalScale
+
+                MeoButton {
+                    id: menuBtn
+                    text: "Show Vibrant Menu"
+                    type: "filled"
+                    onClicked: vibrantMenu.open()
+
+                    MeoMenu {
+                        id: vibrantMenu
+                        y: parent.height + 8 * MeoTheme.globalScale
+                        vibrant: true
+                        itemSpacing: 4 * MeoTheme.globalScale
+                        model: [
+                            { label: "High Priority", icon: "priority_high" },
+                            { label: "Vibrant Action", icon: "bolt" },
+                            { label: "Standard Action", icon: "settings", isVibrant: false }
+                        ]
+                    }
+                }
+
+                MeoButton {
+                    text: "Show Segmented Menu"
+                    type: "tonal"
+                    onClicked: segmentedMenu.open()
+
+                    MeoMenu {
+                        id: segmentedMenu
+                        y: parent.height + 8 * MeoTheme.globalScale
+                        itemSpacing: 8 * MeoTheme.globalScale
+                        model: [
+                            { label: "Option 1", icon: "filter_1" },
+                            { label: "Option 2", icon: "filter_2" },
+                            { label: "Option 3", icon: "filter_3" }
+                        ]
+                    }
+                }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // 🌟 Expressive Sliders
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            MeoListHeader { text: "Expressive Sliders"; type: "emphasized" }
+
+            Column {
+                width: parent.width
+                spacing: 24 * MeoTheme.globalScale
+
+                MeoSlider {
+                    width: parent.width * 0.8
+                    expressive: true
+                    value: 40
+                }
+
+                MeoSlider {
+                    width: parent.width * 0.8
+                    expressive: true
+                    discrete: true
+                    stepSize: 20
+                    value: 60
+                }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // 🌟 Expressive Shapes
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            MeoListHeader { text: "Expressive Shapes & Avatars"; type: "emphasized" }
+
+            Flow {
+                width: parent.width
+                spacing: 24 * MeoTheme.globalScale
+
+                MeoAvatar { size: 64; variant: "squircle"; initials: "SQ" }
+                MeoAvatar { size: 64; variant: "hexagon"; color: MeoTheme.secondaryContainer }
+                MeoAvatar { size: 64; variant: "diamond"; color: MeoTheme.tertiaryContainer }
+                MeoAvatar { size: 64; variant: "pentagon"; initials: "PT" }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
         // 🌟 FAB Menu Section
         Column {
             width: parent.width
