@@ -109,6 +109,13 @@ QtObject {
     readonly property real shapeExtraExtraLarge: 48 * globalScale
     readonly property real shapeFull: 1000 * globalScale // Large value for full rounding
 
+    // 🌟 MD3 Expressive Shape Library (Conceptual Tokens)
+    readonly property string shapeSquircle: "squircle"
+    readonly property string shapeHexagon: "hexagon"
+    readonly property string shapeDiamond: "diamond"
+    readonly property string shapePentagon: "pentagon"
+    readonly property string shapeOctagon: "octagon"
+
     // 🌟 M3 间距网格系统 (Spacing Tokens)
     property int space2: 2
     property int space4: 4
