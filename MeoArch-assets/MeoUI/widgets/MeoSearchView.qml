@@ -98,13 +98,16 @@ Popup {
     // 🌟 MD3 Expressive Expanding Animation
     enter: Transition {
         ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
-            // If we had a reference to the source search bar, we could animate from its geometry
+            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingSoul !== 'undefined') ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] }
+            NumberAnimation { property: "scale"; from: 0.95; to: 1.0; duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingSoul !== 'undefined') ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] }
             NumberAnimation { target: mainColumn; property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
         }
     }
 
     exit: Transition {
-        NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 200 }
+        ParallelAnimation {
+            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 200 }
+            NumberAnimation { property: "scale"; from: 1.0; to: 0.95; duration: 200 }
+        }
     }
 }
