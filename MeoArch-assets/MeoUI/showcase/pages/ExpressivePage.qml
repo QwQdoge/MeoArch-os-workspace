@@ -4,177 +4,142 @@ import QtQuick.Layouts
 import MeoUI
 
 ScrollView {
-    anchors.fill: parent
-    contentHeight: column.implicitHeight + 64 * MeoTheme.globalScale
+    id: root
+    contentWidth: availableWidth
 
-    Column {
-        id: column
-        width: parent.width - 32 * MeoTheme.globalScale
-        anchors.horizontalCenter: parent.horizontalCenter
+    ColumnLayout {
+        width: parent.width
         spacing: 32 * MeoTheme.globalScale
-        topPadding: 32 * MeoTheme.globalScale
+        Layout.margins: 24 * MeoTheme.globalScale
 
-        // 🌟 Split Button Section
-        Column {
-            width: parent.width
+        Text {
+            text: "MD3 Expressive Components"
+            font.pixelSize: MeoTheme.headlineMedium.size * MeoTheme.globalScale
+            font.weight: Font.Bold
+            color: MeoTheme.onSurface
+        }
+
+        // --- Split Buttons Section ---
+        ColumnLayout {
             spacing: 16 * MeoTheme.globalScale
-            MeoListHeader { text: "Split Buttons"; type: "emphasized" }
+
+            Text {
+                text: "Split Buttons"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
 
             Flow {
-                width: parent.width
+                Layout.fillWidth: true
                 spacing: 16 * MeoTheme.globalScale
 
                 MeoSplitButton {
                     text: "Filled Split"
                     type: "filled"
-                    icon: "send"
+                    icon: "save"
                     menuModel: [
-                        { label: "Send later", icon: "schedule" },
-                        { label: "Send as draft", icon: "drafts" }
+                        { label: "Save as...", icon: "content_copy" },
+                        { label: "Export to PDF", icon: "picture_as_pdf" }
                     ]
                 }
 
                 MeoSplitButton {
                     text: "Tonal Split"
                     type: "tonal"
-                    icon: "download"
+                    icon: "share"
                     menuModel: [
-                        { label: "Download ZIP", icon: "folder_zip" },
-                        { label: "Download PDF", icon: "picture_as_pdf" }
+                        { label: "Copy Link", icon: "link" },
+                        { label: "Share via Email", icon: "email" }
                     ]
                 }
 
                 MeoSplitButton {
                     text: "Outlined"
                     type: "outlined"
-                    icon: "share"
+                    sizeVariant: "small"
                     menuModel: [
-                        { label: "Copy link", icon: "link" },
-                        { label: "Email", icon: "email" }
+                        { label: "Quick Action 1" },
+                        { label: "Quick Action 2" }
                     ]
                 }
             }
         }
 
-        MeoDivider { topInset: 16; bottomInset: 16 }
-
-        // 🌟 Button Group Section
-        Column {
-            width: parent.width
+        // --- Button Groups Section ---
+        ColumnLayout {
             spacing: 16 * MeoTheme.globalScale
-            MeoListHeader { text: "Button Groups"; type: "emphasized" }
 
-            Column {
-                spacing: 24 * MeoTheme.globalScale
+            Text {
+                text: "Button Groups"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            ColumnLayout {
+                spacing: 12 * MeoTheme.globalScale
 
                 MeoButtonGroup {
-                    model: [
-                        { label: "Day", icon: "calendar_view_day" },
-                        { label: "Week", icon: "calendar_view_week" },
-                        { label: "Month", icon: "calendar_view_month" }
-                    ]
                     type: "outlined"
+                    model: [
+                        { label: "Day", icon: "light_mode" },
+                        { label: "Week", icon: "calendar_view_week" },
+                        { label: "Month", icon: "calendar_month" }
+                    ]
                 }
 
                 MeoButtonGroup {
-                    model: [
-                        { label: "Left", icon: "format_align_left" },
-                        { label: "Center", icon: "format_align_center" },
-                        { label: "Right", icon: "format_align_right" }
-                    ]
                     type: "tonal"
-                }
-
-                MeoButtonGroup {
-                    orientation: Qt.Vertical
+                    sizeVariant: "small"
                     model: [
-                        { label: "High", icon: "signal_cellular_alt" },
-                        { label: "Medium", icon: "signal_cellular_alt_2_bar" },
-                        { label: "Low", icon: "signal_cellular_alt_1_bar" }
-                    ]
-                    type: "elevated"
-                }
-            }
-        }
-
-        MeoDivider { topInset: 16; bottomInset: 16 }
-
-        // 🌟 FAB Menu Section
-        Column {
-            width: parent.width
-            spacing: 16 * MeoTheme.globalScale
-            MeoListHeader { text: "FAB Menus"; type: "emphasized" }
-
-            Row {
-                spacing: 32 * MeoTheme.globalScale
-
-                MeoFABMenu {
-                    icon: "add"
-                    model: [
-                        { label: "New Message", icon: "chat" },
-                        { label: "New Post", icon: "article" },
-                        { label: "New Event", icon: "event" }
-                    ]
-                }
-
-                MeoFABMenu {
-                    icon: "share"
-                    text: "Share"
-                    model: [
-                        { label: "WhatsApp", icon: "share" },
-                        { label: "Facebook", icon: "facebook" },
-                        { label: "Twitter", icon: "close" }
+                        { icon: "format_align_left" },
+                        { icon: "format_align_center" },
+                        { icon: "format_align_right" }
                     ]
                 }
             }
         }
 
-        MeoDivider { topInset: 16; bottomInset: 16 }
-
-        // 🌟 Expressive Sliders Section
-        Column {
-            width: parent.width
+        // --- FAB Menu Section ---
+        ColumnLayout {
             spacing: 16 * MeoTheme.globalScale
-            MeoListHeader { text: "Expressive Sliders"; type: "emphasized" }
 
-            Column {
-                width: parent.width
-                spacing: 24 * MeoTheme.globalScale
-
-                MeoSlider {
-                    width: parent.width * 0.8
-                    expressive: true
-                    value: 40
-                    label: "Expressive Slider"
-                }
-
-                MeoSlider {
-                    width: parent.width * 0.8
-                    expressive: true
-                    discrete: true
-                    stepSize: 20
-                    value: 60
-                }
+            Text {
+                text: "FAB Menu (Expressive Speed Dial Replacement)"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
             }
-        }
 
-        MeoDivider { topInset: 16; bottomInset: 16 }
+            Item {
+                implicitHeight: 300 * MeoTheme.globalScale
+                Layout.fillWidth: true
 
-        // 🌟 Expressive Shapes Section
-        Column {
-            width: parent.width
-            spacing: 16 * MeoTheme.globalScale
-            MeoListHeader { text: "Expressive Shapes"; type: "emphasized" }
+                Rectangle {
+                    anchors.fill: parent
+                    color: MeoTheme.surfaceContainerLow
+                    radius: 12 * MeoTheme.globalScale
+                    border.color: MeoTheme.outlineVariant
 
-            Flow {
-                width: parent.width
-                spacing: 24 * MeoTheme.globalScale
+                    Text {
+                        anchors.centerIn: parent
+                        text: "Click FAB to see Menu"
+                        color: MeoTheme.onSurfaceVariant
+                        font.italic: true
+                    }
 
-                MeoShape { type: "squircle"; width: 80 * MeoTheme.globalScale; height: 80 * MeoTheme.globalScale; color: MeoTheme.primary }
-                MeoShape { type: "hexagon"; width: 80 * MeoTheme.globalScale; height: 80 * MeoTheme.globalScale; color: MeoTheme.secondary }
-                MeoShape { type: "diamond"; width: 80 * MeoTheme.globalScale; height: 80 * MeoTheme.globalScale; color: MeoTheme.tertiary }
-                MeoShape { type: "pentagon"; width: 80 * MeoTheme.globalScale; height: 80 * MeoTheme.globalScale; color: MeoTheme.error }
-                MeoShape { type: "octagon"; width: 80 * MeoTheme.globalScale; height: 80 * MeoTheme.globalScale; color: MeoTheme.primaryContainer }
+                    MeoFABMenu {
+                        anchors.bottom: parent.bottom
+                        anchors.right: parent.right
+                        anchors.margins: 16 * MeoTheme.globalScale
+                        model: [
+                            { label: "New Task", icon: "assignment" },
+                            { label: "New Event", icon: "event" },
+                            { label: "Add Photo", icon: "photo_camera" }
+                        ]
+                    }
+                }
             }
         }
     }
