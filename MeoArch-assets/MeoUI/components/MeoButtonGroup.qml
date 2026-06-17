@@ -6,110 +6,111 @@ Control {
     id: control
 
     // 🌟 核心属性
-    property var model: [] // [{ label: "", icon: "", action: function }]
-    property int orientation: Qt.Horizontal // Qt.Horizontal | Qt.Vertical
-    property string type: "outlined" // "outlined" | "tonal" | "filled" | "elevated"
+    // model: [{ label: "Action", icon: "add", action: function }]
+    property var model: []
+    property string type: "outlined" // "filled" | "tonal" | "outlined" | "elevated"
+    property string sizeVariant: "medium" // small | medium | large
 
-    // 🌟 作用域与主题安全防御
-    readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
 
-    implicitWidth: layout.implicitWidth
-    implicitHeight: layout.implicitHeight
+    implicitHeight: (sizeVariant === "small" ? 32 : (sizeVariant === "large" ? 48 : 40)) * themeGlobalScale
+    implicitWidth: contentRow.implicitWidth
 
-    contentItem: ListView {
-        id: layout
-        orientation: control.orientation === Qt.Horizontal ? ListView.Horizontal : ListView.Vertical
-        model: control.model
-        interactive: false
-        spacing: 0
+    contentItem: Row {
+        id: contentRow
+        spacing: -1 * themeGlobalScale // Overlap borders
 
-        implicitWidth: control.orientation === Qt.Horizontal ? (contentItem.children.length * 80 * themeGlobalScale) : 120 * themeGlobalScale
-        implicitHeight: control.orientation === Qt.Vertical ? (contentItem.children.length * 40 * themeGlobalScale) : 40 * themeGlobalScale
+        Repeater {
+            model: control.model
+            delegate: Button {
+                id: btn
+                property var itemData: modelData
 
-        delegate: MeoButton {
-            id: btn
-            text: modelData.label
-            icon.name: modelData.icon || ""
-            type: control.type
-            width: control.orientation === Qt.Horizontal ? undefined : layout.width
+                implicitHeight: control.height
+                implicitWidth: contentItem.implicitWidth + (sizeVariant === "small" ? 16 : 24) * control.themeGlobalScale
 
-            // 📐 MD3 Expressive: Custom radii for grouped buttons
-            background: Rectangle {
-                radius: 20 * themeGlobalScale
-                color: btn.bgColor
-                border.color: (control.type === "outlined") ? themeOutline : "transparent"
-                border.width: (control.type === "outlined") ? 1 : 0
+                background: Rectangle {
+                    // Overall radius for state layer and interaction
+                    radius: control.height / 2
+                    color: "transparent"
 
-                // Overlays to square off internal corners
-                Rectangle {
-                    anchors.fill: parent
-                    radius: 0
-                    color: parent.color
-                    visible: false // Logic below
+                    // MD3: start has left round, end has right round, middle is square
+                    Rectangle {
+                        id: mainBg
+                        anchors.fill: parent
+                        radius: (index === 0 || index === control.model.length - 1) ? parent.radius : 0
+                        color: {
+                            if (!control.enabled) return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined' && MeoTheme.isDarkMode) ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
+                            if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
+                            if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8";
+                            if (type === "elevated") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA";
+                            return "transparent";
+                        }
+                        border.color: {
+                            if (control.type !== "outlined") return "transparent";
+                            return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E";
+                        }
+                        border.width: control.type === "outlined" ? 1 * themeGlobalScale : 0
+
+                        // Squaring off logic
+                        Rectangle {
+                            anchors.right: parent.right
+                            width: parent.radius
+                            height: parent.height
+                            color: parent.color
+                            visible: index === 0 && control.model.length > 1
+                        }
+                        Rectangle {
+                            anchors.left: parent.left
+                            width: parent.radius
+                            height: parent.height
+                            color: parent.color
+                            visible: index === control.model.length - 1 && control.model.length > 1
+                        }
+                    }
+
+                    MeoStateLayer {
+                        radius: parent.radius
+                        pressed: btn.pressed
+                        hovered: btn.hovered
+                        color: {
+                            if (type === "filled") return "white";
+                            return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
+                        }
+                    }
                 }
 
-                // Top-left/Bottom-left for first item, etc.
-                // In QML, Rectangle doesn't support individual corner radius easily.
-                // We use the same technique as DateRangePicker: overlaying square rectangles.
+                contentItem: Row {
+                    spacing: 8 * control.themeGlobalScale
+                    anchors.centerIn: parent
 
-                // Square off Right side if NOT the last item (Horizontal)
-                Rectangle {
-                    visible: control.orientation === Qt.Horizontal && index < control.model.length - 1
-                    width: parent.radius
-                    height: parent.height
-                    anchors.right: parent.right
-                    color: parent.color
+                    MeoIcon {
+                        icon: btn.itemData.icon || ""
+                        visible: icon !== ""
+                        size: sizeVariant === "small" ? 16 : 18
+                        color: {
+                            if (type === "filled") return "white";
+                            return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
+                        }
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    Text {
+                        text: btn.itemData.label || ""
+                        visible: text !== ""
+                        font.pixelSize: (sizeVariant === "small" ? 12 : 14) * control.themeGlobalScale
+                        font.weight: Font.Medium
+                        color: {
+                            if (type === "filled") return "white";
+                            return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
+                        }
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
 
-                // Square off Left side if NOT the first item (Horizontal)
-                Rectangle {
-                    visible: control.orientation === Qt.Horizontal && index > 0
-                    width: parent.radius
-                    height: parent.height
-                    anchors.left: parent.left
-                    color: parent.color
+                onClicked: {
+                    if (btn.itemData.action) btn.itemData.action();
                 }
-
-                // Square off Bottom side if NOT the last item (Vertical)
-                Rectangle {
-                    visible: control.orientation === Qt.Vertical && index < control.model.length - 1
-                    width: parent.width
-                    height: parent.radius
-                    anchors.bottom: parent.bottom
-                    color: parent.color
-                }
-
-                // Square off Top side if NOT the first item (Vertical)
-                Rectangle {
-                    visible: control.orientation === Qt.Vertical && index > 0
-                    width: parent.width
-                    height: parent.radius
-                    anchors.top: parent.top
-                    color: parent.color
-                }
-
-                // Internal Dividers
-                Rectangle {
-                    visible: index < control.model.length - 1
-                    width: control.orientation === Qt.Horizontal ? 1 : parent.width
-                    height: control.orientation === Qt.Vertical ? 1 : parent.height
-                    anchors.right: control.orientation === Qt.Horizontal ? parent.right : undefined
-                    anchors.bottom: control.orientation === Qt.Vertical ? parent.bottom : undefined
-                    color: Qt.rgba(btn.textColor.r, btn.textColor.g, btn.textColor.b, 0.12)
-                }
-
-                MeoStateLayer {
-                    radius: parent.radius
-                    pressed: btn.pressed
-                    hovered: btn.hovered
-                    color: btn.textColor
-                }
-            }
-
-            onClicked: {
-                if (modelData.action) modelData.action()
             }
         }
     }
