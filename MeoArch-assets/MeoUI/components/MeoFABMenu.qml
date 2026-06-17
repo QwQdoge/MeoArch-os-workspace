@@ -7,119 +7,110 @@ Item {
     id: control
 
     // 🌟 核心属性
+    property var model: [] // [{ label: "Action", icon: "add", action: function }]
+    property bool opened: false
     property string icon: "add"
-    property string text: ""
-    property var model: [] // [{ label: "", icon: "", action: function }]
-    readonly property alias isOpen: menuPopup.opened
+    property string activeIcon: "close"
+    property color color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
+    property color onColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimaryContainer !== 'undefined') ? MeoTheme.onPrimaryContainer : "#21005D"
 
-    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
-    implicitWidth: 56 * themeGlobalScale
-    implicitHeight: 56 * themeGlobalScale
+    width: 56 * themeGlobalScale
+    height: 56 * themeGlobalScale
 
-    // Overlay to catch clicks outside the menu
+    // FAB Menu Container (the part that expands)
+    // Using a Popup for better MD3 compliance and full-screen dismissal
     Popup {
         id: menuPopup
+        x: control.width - width
+        y: control.height - height
+        width: control.opened ? (200 * themeGlobalScale) : (56 * themeGlobalScale)
+        height: control.opened ? (model.length * 56 * themeGlobalScale + 64 * themeGlobalScale) : (56 * themeGlobalScale)
         padding: 0
-        margins: 0
-        modal: false
-        focus: true
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        visible: control.opened
+        onClosed: control.opened = false
+        modal: true
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnEscape
 
-        parent: Overlay.overlay
-        x: control.mapToItem(Overlay.overlay, 0, 0).x - (menuContainer.width - control.width)
-        y: control.mapToItem(Overlay.overlay, 0, 0).y - menuContainer.height - 8 * themeGlobalScale
+        background: Rectangle {
+            radius: control.opened ? 28 * themeGlobalScale : 16 * themeGlobalScale
+            color: control.color
 
-        background: Item {}
+            // Elevation Shadow
+            layer.enabled: true
+            layer.effect: DropShadow {
+                radius: 0.2
+                verticalOffset: (control.opened ? 4 : 3) * themeGlobalScale
+                color: Qt.rgba(0,0,0,0.2)
+            }
 
-        contentItem: Item {
-            id: menuContainer
-            width: 240 * themeGlobalScale
-            height: menuColumn.implicitHeight + 16 * themeGlobalScale
-            clip: true
+            Behavior on radius { NumberAnimation { duration: 300 } }
+        }
 
-            Rectangle {
-                anchors.fill: parent
-                radius: 16 * themeGlobalScale
-                color: (typeof MeoTheme !== 'undefined') ? MeoTheme.surfaceContainer : "#F3EDF7"
+        contentItem: Column {
+            anchors.fill: parent
+            anchors.margins: 4 * control.themeGlobalScale
+            spacing: 0
 
-                layer.enabled: true
-                layer.effect: DropShadow {
-                    radius: 0.2
-                    verticalOffset: 2 * themeGlobalScale
-                    color: Qt.rgba(0,0,0,0.2)
+            // Placeholder for the main FAB position at bottom right
+            Item {
+                Layout.fillHeight: true
+                width: 1
+            }
+
+            Repeater {
+                model: control.model
+                delegate: MeoListItem {
+                    width: parent.width
+                    headline: modelData.label
+                    leadingIcon: modelData.icon || ""
+                    padding: 12 * control.themeGlobalScale
+                    implicitHeight: 56 * control.themeGlobalScale
+                    isEmphasized: true
+                    background: Rectangle {
+                        color: "transparent"
+                        radius: 24 * control.themeGlobalScale
+                        MeoStateLayer {
+                            radius: parent.radius
+                            pressed: mouseArea.pressed
+                            hovered: mouseArea.containsMouse
+                            color: control.onColor
+                        }
+                    }
+                    onClicked: {
+                        if (modelData.action) modelData.action();
+                        control.opened = false;
+                    }
                 }
             }
 
-            Column {
-                id: menuColumn
-                anchors.fill: parent
-                anchors.margins: 8 * themeGlobalScale
-                spacing: 4 * themeGlobalScale
-
-                Repeater {
-                    model: control.model
-                    delegate: MeoListItem {
-                        width: parent.width
-                        headline: modelData.label
-                        leadingIcon: modelData.icon || ""
-                        padding: 12 * themeGlobalScale
-                        implicitHeight: 48 * themeGlobalScale
-                        interactive: true
-                        onClicked: {
-                            if (modelData.action) modelData.action()
-                            menuPopup.close()
-                        }
-                    }
-                }
+            // Spacer at bottom
+            Item {
+                implicitHeight: 56 * control.themeGlobalScale
+                width: 1
             }
         }
 
         enter: Transition {
-            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
-            NumberAnimation { property: "scale"; from: 0.8; to: 1.0; duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
-            NumberAnimation { property: "y"; from: menuPopup.y + 20; to: menuPopup.y; duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
+            NumberAnimation { property: "width"; from: 56 * themeGlobalScale; to: 200 * themeGlobalScale; duration: 300; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
+            NumberAnimation { property: "height"; from: 56 * themeGlobalScale; to: model.length * 56 * themeGlobalScale + 64 * themeGlobalScale; duration: 300; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
+            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 150 }
         }
-
         exit: Transition {
-            NumberAnimation { property: "opacity"; to: 0.0; duration: 150 }
-            NumberAnimation { property: "scale"; to: 0.8; duration: 150 }
+            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 100 }
         }
     }
 
+    // The Main FAB Button (triggers the menu)
     MeoFAB {
-        id: fab
+        id: fabButton
         anchors.fill: parent
-        icon.name: control.icon
-        text: control.text
-        type: control.text !== "" ? "extended" : "regular"
-        onClicked: {
-            if (menuPopup.opened) menuPopup.close()
-            else menuPopup.open()
-        }
+        icon.name: control.opened ? control.activeIcon : control.icon
+        onClicked: control.opened = !control.opened
+        z: 100 // Ensure it's above the popup background if needed
 
-        // Icon rotation animation
-        contentItem: Item {
-            anchors.fill: parent
-            Row {
-                anchors.centerIn: parent
-                spacing: 8 * themeGlobalScale
-
-                MeoIcon {
-                    icon: fab.icon.name
-                    size: 24
-                    color: fab.themeOnPrimaryContainer
-                    rotation: control.isOpen ? 45 : 0
-                    Behavior on rotation { NumberAnimation { duration: 200 } }
-                }
-
-                Text {
-                    text: fab.text
-                    visible: fab.type === "extended" && text !== ""
-                    font.pixelSize: 14 * themeGlobalScale
-                    color: fab.themeOnPrimaryContainer
-                }
-            }
-        }
+        // Hide shadow when menu is open because the container has it
+        layer.enabled: !control.opened
     }
 }
