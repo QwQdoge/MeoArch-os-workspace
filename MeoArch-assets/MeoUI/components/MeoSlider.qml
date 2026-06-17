@@ -10,7 +10,7 @@ Control {
     property real value: 0.0
     property bool discrete: false
     property real stepSize: 1.0
-    property bool expressive: false // 🌟 MD3 Expressive: Thick track style
+    property bool expressive: true // MD3 Expressive: Thicker track and larger handles
 
     signal moved(real value)
 
@@ -48,15 +48,13 @@ Control {
             width: internalSlider.availableWidth
             height: (control.expressive ? 24 : 16) * control.themeGlobalScale
 
-            Behavior on height { NumberAnimation { duration: 200 } }
-
             // 轨道背景
             Rectangle {
                 anchors.centerIn: parent
                 width: parent.width
-                height: (control.expressive ? 24 : 4) * control.themeGlobalScale
+                height: (control.expressive ? 16 : 4) * control.themeGlobalScale
                 radius: height / 2
-                color: Qt.rgba(control.themeOnSurfaceVariant.r, control.themeOnSurfaceVariant.g, control.themeOnSurfaceVariant.b, 0.24)
+                color: Qt.rgba(control.themeOnSurfaceVariant.r, control.themeOnSurfaceVariant.g, control.themeOnSurfaceVariant.b, 0.12)
 
                 Behavior on height { NumberAnimation { duration: 200 } }
 
@@ -79,7 +77,7 @@ Control {
             Rectangle {
                 y: (parent.height - height) / 2
                 width: internalSlider.visualPosition * parent.width
-                height: (control.expressive ? 24 : 4) * control.themeGlobalScale
+                height: (control.expressive ? 16 : 4) * control.themeGlobalScale
                 radius: height / 2
                 color: control.themePrimary
 
@@ -90,24 +88,25 @@ Control {
         handle: Item {
             x: internalSlider.leftPadding + internalSlider.visualPosition * (internalSlider.availableWidth - width)
             y: internalSlider.topPadding + (internalSlider.availableHeight - height) / 2
-            width: (control.expressive ? 28 : 20) * control.themeGlobalScale
+            width: (control.expressive ? 4 : 20) * control.themeGlobalScale
             height: (control.expressive ? 28 : 20) * control.themeGlobalScale
-
-            Behavior on width { NumberAnimation { duration: 200 } }
-            Behavior on height { NumberAnimation { duration: 200 } }
 
             // 🌟 滑块主体 (Thumb)
             Rectangle {
                 anchors.centerIn: parent
-                width: internalSlider.pressed ? 2 * control.themeGlobalScale : (control.expressive ? 4 : 20) * control.themeGlobalScale
+                width: {
+                    if (control.expressive) return (internalSlider.pressed ? 2 : 4) * control.themeGlobalScale
+                    return (internalSlider.pressed ? 2 : 20) * control.themeGlobalScale
+                }
                 height: (control.expressive ? 28 : 20) * control.themeGlobalScale
                 radius: width / 2
                 color: control.expressive ? control.themeOnPrimary : control.themePrimary
 
+                border.color: control.expressive ? control.themePrimary : "transparent"
+                border.width: control.expressive ? 1 * control.themeGlobalScale : 0
+
                 // MD3 规范中，按下时 Thumb 会变细长或者有状态层
-                Behavior on width { NumberAnimation { duration: 100 } }
-                Behavior on height { NumberAnimation { duration: 100 } }
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on width { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
             }
 
             // 🌟 Value Label (MD3 Tooltip style)
