@@ -39,7 +39,7 @@ Frame {
         color: "transparent"
         border.color: control.themeOutline
         border.width: 1
-        radius: 20 * control.themeGlobalScale
+        radius: (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeFull : 20 * control.themeGlobalScale)
     }
 
     Row {
@@ -74,10 +74,10 @@ Frame {
 
                     Rectangle {
                         id: bgRect
-                        width: (index === 0 || index === control.model.length - 1) ? parent.width + 20 * control.themeGlobalScale : parent.width
+                        width: (index === 0 || index === control.model.length - 1) ? parent.width + 28 * control.themeGlobalScale : parent.width
                         height: parent.height
-                        x: index === control.model.length - 1 ? -20 * control.themeGlobalScale : 0
-                        radius: (index === 0 || index === control.model.length - 1) ? 20 * control.themeGlobalScale : 0
+                        x: index === control.model.length - 1 ? -28 * control.themeGlobalScale : 0
+                        radius: (index === 0 || index === control.model.length - 1) ? (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeFull : 20 * control.themeGlobalScale) : 0
 
                         color: {
                             let base = delegateItem.baseColor;
