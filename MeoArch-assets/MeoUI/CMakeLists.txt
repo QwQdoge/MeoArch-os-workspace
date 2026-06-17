@@ -99,6 +99,7 @@ MeoTheme.qml
         patterns/MeoSettingsLayout.qml
         patterns/MeoSearchFilterBar.qml
         patterns/MeoExpressiveDialog.qml
+        components/MeoShape.qml
         showcase/MeoShowcase.qml
 )
 

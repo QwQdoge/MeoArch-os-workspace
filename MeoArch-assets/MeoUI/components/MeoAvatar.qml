@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import MeoUI
 
 Item {
@@ -8,7 +9,7 @@ Item {
     property string source: "" // Image source
     property string initials: "" // Fallback initials (e.g. "JD")
     property real size: 40 // MD3 Standard: 40dp
-    property string variant: "circle" // "circle" | "square"
+    property string variant: "circle" // "circle" | "square" | "squircle" | "hexagon" | ...
     property color color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
     property color textColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimaryContainer !== 'undefined') ? MeoTheme.onPrimaryContainer : "#21005D"
 
@@ -17,11 +18,17 @@ Item {
     implicitWidth: size * themeGlobalScale
     implicitHeight: size * themeGlobalScale
 
-    Rectangle {
+    Item {
         anchors.fill: parent
-        radius: variant === "circle" ? width / 2 : 8 * themeGlobalScale
-        color: control.color
         clip: true
+
+        MeoShape {
+            id: shapeBg
+            anchors.fill: parent
+            type: (control.variant === "circle" || control.variant === "square") ? "rect" : control.variant
+            radius: control.variant === "circle" ? width / 2 : 8 * themeGlobalScale
+            color: control.color
+        }
 
         // Initial fallback
         Text {
@@ -33,12 +40,19 @@ Item {
             color: control.textColor
         }
 
-        // Image
+        // Image (with clipping to shape via OpacityMask)
         Image {
+            id: img
             anchors.fill: parent
             source: control.source
             visible: control.source !== ""
             fillMode: Image.PreserveAspectCrop
+
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                maskEnabled: true
+                maskSource: shapeBg
+            }
         }
 
         // Icon fallback if no source and no initials
