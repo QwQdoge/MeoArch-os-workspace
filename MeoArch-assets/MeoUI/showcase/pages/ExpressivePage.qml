@@ -19,6 +19,58 @@ ScrollView {
             color: MeoTheme.onSurface
         }
 
+        // --- Expressive Buttons Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive Button Sizes & Shapes"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            ColumnLayout {
+                spacing: 16 * MeoTheme.globalScale
+
+                // Round Sizes
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 12 * MeoTheme.globalScale
+                    MeoButton { text: "XS Round"; size: "xs"; type: "filled" }
+                    MeoButton { text: "S Round"; size: "s"; type: "tonal" }
+                    MeoButton { text: "M Round (Default)"; size: "m"; type: "outlined" }
+                    MeoButton { text: "L Round"; size: "l"; type: "elevated" }
+                    MeoButton { text: "XL Round"; size: "xl"; type: "filled"; isEmphasized: true }
+                }
+
+                // Square Sizes
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 12 * MeoTheme.globalScale
+                    MeoButton { text: "XS Square"; size: "xs"; shape: "square"; type: "filled" }
+                    MeoButton { text: "S Square"; size: "s"; shape: "square"; type: "tonal" }
+                    MeoButton { text: "M Square"; size: "m"; shape: "square"; type: "outlined" }
+                    MeoButton { text: "L Square"; size: "l"; shape: "square"; type: "elevated" }
+                    MeoButton { text: "XL Square"; size: "xl"; shape: "square"; type: "filled"; isEmphasized: true }
+                }
+
+                // Toggle Buttons
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: 12 * MeoTheme.globalScale
+                    MeoButton { text: "Toggle Me"; checkable: true; type: "outlined"; icon: "favorite" }
+                    MeoButton { text: "Always On"; checkable: true; checked: true; type: "filled"; icon: "notifications" }
+
+                    MeoIconButton { size: "xs"; icon.name: "settings"; type: "standard" }
+                    MeoIconButton { size: "s"; icon.name: "settings"; type: "tonal" }
+                    MeoIconButton { size: "m"; icon.name: "settings"; type: "filled" }
+                    MeoIconButton { size: "l"; icon.name: "settings"; type: "outlined" }
+                    MeoIconButton { size: "xl"; icon.name: "settings"; type: "filled" }
+                }
+            }
+        }
+
         // --- Split Buttons Section ---
         ColumnLayout {
             spacing: 16 * MeoTheme.globalScale
@@ -156,25 +208,17 @@ ScrollView {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            MeoListHeader { text: "Expressive Sliders"; type: "emphasized" }
+            MeoListHeader { text: "Expressive Sliders (XS to XL)"; type: "emphasized" }
 
             Column {
                 width: parent.width
                 spacing: 24 * MeoTheme.globalScale
 
-                MeoSlider {
-                    width: parent.width * 0.8
-                    expressive: true
-                    value: 40
-                }
-
-                MeoSlider {
-                    width: parent.width * 0.8
-                    expressive: true
-                    discrete: true
-                    stepSize: 20
-                    value: 60
-                }
+                MeoSlider { width: parent.width * 0.8; size: "xs"; value: 20 }
+                MeoSlider { width: parent.width * 0.8; size: "s"; value: 40 }
+                MeoSlider { width: parent.width * 0.8; size: "m"; value: 60 }
+                MeoSlider { width: parent.width * 0.8; size: "l"; value: 80 }
+                MeoSlider { width: parent.width * 0.8; size: "xl"; value: 100 }
             }
         }
 
