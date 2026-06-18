@@ -8,6 +8,7 @@ Button {
     // 🌟 核心属性
     // type: "standard" | "filled" | "tonal" | "outlined"
     property string type: "standard"
+    property string size: "s" // "xs" | "s" | "m" | "l" | "xl"
     property bool selected: false
     property string selectedIcon: ""
 
@@ -23,12 +24,19 @@ Button {
     readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
-    implicitWidth: 40 * themeGlobalScale
-    implicitHeight: 40 * themeGlobalScale
-    padding: 8 * themeGlobalScale
+    implicitWidth: {
+        if (size === "xs") return MeoTheme.buttonHeightXS || 32 * themeGlobalScale
+        if (size === "s") return MeoTheme.buttonHeightS || 40 * themeGlobalScale
+        if (size === "m") return MeoTheme.buttonHeightM || 48 * themeGlobalScale
+        if (size === "l") return MeoTheme.buttonHeightL || 56 * themeGlobalScale
+        if (size === "xl") return MeoTheme.buttonHeightXL || 72 * themeGlobalScale
+        return 40 * themeGlobalScale
+    }
+    implicitHeight: implicitWidth
+    padding: (implicitWidth - iconItem.implicitWidth) / 2
 
     background: Rectangle {
-        radius: 20 * control.themeGlobalScale
+        radius: height / 2
         color: {
             if (!control.enabled) return (type === "filled" || type === "tonal") ? (isDarkMode ? Qt.rgba(1,1,1,0.12) : Qt.rgba(0,0,0,0.12)) : "transparent"
             if (type === "filled") return control.selected ? control.themePrimary : control.themeSurfaceVariant
@@ -53,8 +61,14 @@ Button {
     }
 
     contentItem: MeoIcon {
+        id: iconItem
         icon: (control.selected && control.selectedIcon !== "") ? control.selectedIcon : (control.icon.name || control.icon.source.toString())
-        size: 24
+        size: {
+            if (size === "xs") return 18
+            if (size === "xl") return 36
+            if (size === "l") return 28
+            return 24
+        }
         color: {
             if (!control.enabled) return isDarkMode ? Qt.rgba(1,1,1,0.38) : Qt.rgba(0,0,0,0.38)
             if (type === "filled") return control.selected ? control.themeOnPrimary : control.themePrimary
