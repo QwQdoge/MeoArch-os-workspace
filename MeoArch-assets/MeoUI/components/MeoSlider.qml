@@ -10,7 +10,8 @@ Control {
     property real value: 0.0
     property bool discrete: false
     property real stepSize: 1.0
-    property bool expressive: true // MD3 Expressive: Thicker track and larger handles
+    property string size: "xs" // "xs" | "s" | "m" | "l" | "xl"
+    property bool expressive: size !== "xs" // MD3 Expressive: Thicker track and larger handles
 
     signal moved(real value)
 
@@ -22,8 +23,32 @@ Control {
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
+    // 📐 尺寸映射 (MD3 Expressive Slider)
+    readonly property real trackHeight: {
+        if (size === "s") return 16
+        if (size === "m") return 28
+        if (size === "l") return 36
+        if (size === "xl") return 44
+        return 4 // default "xs"
+    }
+
+    readonly property real activeTrackHeight: {
+        if (size === "xs") return 4
+        return trackHeight // MD3 Expressive usually has same height for active track
+    }
+
+    readonly property real thumbWidth: {
+        if (size === "xs") return 20
+        return 4 // Vertical pill shape in Expressive
+    }
+
+    readonly property real thumbHeight: {
+        if (size === "xs") return 20
+        return trackHeight + 4
+    }
+
     implicitWidth: 200 * themeGlobalScale
-    implicitHeight: 44 * themeGlobalScale
+    implicitHeight: Math.max(44, trackHeight + 20) * themeGlobalScale
 
     // 内部逻辑：计算百分比
     readonly property real visualPosition: (value - from) / (to - from)
@@ -46,13 +71,13 @@ Control {
             x: internalSlider.leftPadding
             y: internalSlider.topPadding + (internalSlider.availableHeight - height) / 2
             width: internalSlider.availableWidth
-            height: (control.expressive ? 24 : 16) * control.themeGlobalScale
+            height: control.trackHeight * control.themeGlobalScale
 
             // 轨道背景
             Rectangle {
                 anchors.centerIn: parent
                 width: parent.width
-                height: (control.expressive ? 16 : 4) * control.themeGlobalScale
+                height: control.trackHeight * control.themeGlobalScale
                 radius: height / 2
                 color: Qt.rgba(control.themeOnSurfaceVariant.r, control.themeOnSurfaceVariant.g, control.themeOnSurfaceVariant.b, 0.12)
 
@@ -64,8 +89,8 @@ Control {
                     delegate: Rectangle {
                         x: index * (parent.width / (model - 1)) - width / 2
                         y: (parent.height - height) / 2
-                        width: (control.expressive ? 4 : 2) * control.themeGlobalScale
-                        height: (control.expressive ? 4 : 2) * control.themeGlobalScale
+                        width: (control.size === "xs" ? 2 : 4) * control.themeGlobalScale
+                        height: (control.size === "xs" ? 2 : 4) * control.themeGlobalScale
                         radius: width / 2
                         color: control.themeOnSurfaceVariant
                         opacity: 0.38
@@ -77,7 +102,7 @@ Control {
             Rectangle {
                 y: (parent.height - height) / 2
                 width: internalSlider.visualPosition * parent.width
-                height: (control.expressive ? 16 : 4) * control.themeGlobalScale
+                height: control.activeTrackHeight * control.themeGlobalScale
                 radius: height / 2
                 color: control.themePrimary
 
@@ -88,24 +113,23 @@ Control {
         handle: Item {
             x: internalSlider.leftPadding + internalSlider.visualPosition * (internalSlider.availableWidth - width)
             y: internalSlider.topPadding + (internalSlider.availableHeight - height) / 2
-            width: (control.expressive ? 4 : 20) * control.themeGlobalScale
-            height: (control.expressive ? 28 : 20) * control.themeGlobalScale
+            width: control.thumbWidth * control.themeGlobalScale
+            height: control.thumbHeight * control.themeGlobalScale
 
             // 🌟 滑块主体 (Thumb)
             Rectangle {
                 anchors.centerIn: parent
                 width: {
-                    if (control.expressive) return (internalSlider.pressed ? 2 : 4) * control.themeGlobalScale
-                    return (internalSlider.pressed ? 2 : 20) * control.themeGlobalScale
+                    if (control.size === "xs") return (internalSlider.pressed ? 2 : 20) * control.themeGlobalScale
+                    return (internalSlider.pressed ? 2 : 4) * control.themeGlobalScale
                 }
-                height: (control.expressive ? 28 : 20) * control.themeGlobalScale
+                height: control.thumbHeight * control.themeGlobalScale
                 radius: width / 2
-                color: control.expressive ? control.themeOnPrimary : control.themePrimary
+                color: control.size === "xs" ? control.themePrimary : control.themeOnPrimary
 
-                border.color: control.expressive ? control.themePrimary : "transparent"
-                border.width: control.expressive ? 1 * control.themeGlobalScale : 0
+                border.color: control.size === "xs" ? "transparent" : control.themePrimary
+                border.width: control.size === "xs" ? 0 : 1 * control.themeGlobalScale
 
-                // MD3 规范中，按下时 Thumb 会变细长或者有状态层
                 Behavior on width { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
             }
 
