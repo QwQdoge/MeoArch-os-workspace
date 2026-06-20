@@ -20,13 +20,11 @@ Text {
 
     font.weight: weight
 
-    // 🌟 MD3 Variable Font Features (Material Symbols)
-    font.featureSettings: {
-        let features = [];
-        features.push("'FILL' " + (fill ? 1 : 0));
-        features.push("'wght' " + weight);
-        features.push("'GRAD' " + grade);
-        features.push("'opsz' " + opticalSize);
-        return features.join(", ");
-    }
+    // 🔤 Qt 6 variable-font axes used by Material Symbols.
+    font.variableAxes: ({
+        "FILL": control.fill ? 1 : 0,
+        "wght": control.weight,
+        "GRAD": control.grade,
+        "opsz": control.opticalSize
+    })
 }

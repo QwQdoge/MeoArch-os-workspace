@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import Qt5Compat.GraphicalEffects 1.15
+import QtQuick.Effects
 import MeoUI 1.0
 
 pragma ComponentBehavior: Bound
@@ -188,10 +188,11 @@ Button {
 
         // Simplified Elevation Shadow
         layer.enabled: control.elevation > 0
-        layer.effect: DropShadow {
-            radius: 0.2
-            verticalOffset: control.elevation * MeoTheme.globalScale
-            color: Qt.rgba(0,0,0,0.2)
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.2
+            shadowVerticalOffset: control.elevation * MeoTheme.globalScale
+            shadowColor: Qt.rgba(0,0,0,0.2)
         }
 
         Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1] } }

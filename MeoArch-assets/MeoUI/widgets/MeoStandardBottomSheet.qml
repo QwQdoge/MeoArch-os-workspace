@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import MeoUI
 
 Item {
@@ -43,11 +43,11 @@ Item {
 
         // MD3 Elevation Shadow
         layer.enabled: true
-        layer.effect: DropShadow {
-
-            radius: 0.2
-            verticalOffset: -2 * control.themeGlobalScale
-            color: Qt.rgba(0,0,0,0.1)
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.2
+            shadowVerticalOffset: -2 * control.themeGlobalScale
+            shadowColor: Qt.rgba(0,0,0,0.1)
         }
 
         Behavior on y {
