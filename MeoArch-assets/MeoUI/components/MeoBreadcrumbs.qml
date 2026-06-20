@@ -1,6 +1,5 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
-import Qt5Compat.GraphicalEffects 1.15
 import MeoUI 1.0
 pragma ComponentBehavior: Bound
 Control {

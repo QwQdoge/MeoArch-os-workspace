@@ -10,26 +10,115 @@ QtObject {
     // 🌟 主题模式开关
     property bool isDarkMode: false
 
-    // 🌟 Material Design 3 调色板定义 (基于动态浅色/深色切换)
-    property color primary: isDarkMode ? "#D0BCFF" : "#6750A4"
-    property color onPrimary: isDarkMode ? "#381E72" : "#FFFFFF"
-    property color primaryContainer: isDarkMode ? "#4F378B" : "#EADDFF"
-    property color onPrimaryContainer: isDarkMode ? "#EADDFF" : "#21005D"
+    // 🎨 MeoArch MD3 fallback color schemes
+    // Used role-by-role whenever a dynamic color scheme is unavailable or incomplete.
+    readonly property var fallbackLightColorScheme: ({
+        "primary": "#6750A4",
+        "onPrimary": "#FFFFFF",
+        "primaryContainer": "#CBC0E6",
+        "onPrimaryContainer": "#201933",
+        "secondary": "#625B71",
+        "onSecondary": "#FFFFFF",
+        "secondaryContainer": "#DCD8E6",
+        "onSecondaryContainer": "#2C2933",
+        "tertiary": "#7D5260",
+        "onTertiary": "#FFFFFF",
+        "tertiaryContainer": "#E6CDD5",
+        "onTertiaryContainer": "#332227",
+        "error": "#B3261E",
+        "onError": "#FFFFFF",
+        "errorContainer": "#E6ACA9",
+        "onErrorContainer": "#330B09",
+        "background": "#FCFCFC",
+        "onBackground": "#323233",
+        "surface": "#FCFCFC",
+        "onSurface": "#323233",
+        "surfaceVariant": "#E0DEE6",
+        "onSurfaceVariant": "#5E5C66",
+        "outline": "#8E8999"
+    })
 
-    property color secondary: isDarkMode ? "#CCC2DC" : "#625B71"
-    property color onSecondary: isDarkMode ? "#332D41" : "#FFFFFF"
-    property color secondaryContainer: isDarkMode ? "#4A4458" : "#E8DEF8"
-    property color onSecondaryContainer: isDarkMode ? "#E8DEF8" : "#1D192B"
+    readonly property var fallbackDarkColorScheme: ({
+        "primary": "#C0B1E6",
+        "onPrimary": "#30254C",
+        "primaryContainer": "#403266",
+        "onPrimaryContainer": "#CBC0E6",
+        "secondary": "#D8D2E6",
+        "onSecondary": "#433E4C",
+        "secondaryContainer": "#595366",
+        "onSecondaryContainer": "#DCD8E6",
+        "tertiary": "#E6C3CE",
+        "onTertiary": "#4C323B",
+        "tertiaryContainer": "#66434F",
+        "onTertiaryContainer": "#E6CDD5",
+        "error": "#E69490",
+        "onError": "#4C100D",
+        "errorContainer": "#661511",
+        "onErrorContainer": "#E6ACA9",
+        "background": "#323233",
+        "onBackground": "#E4E4E6",
+        "surface": "#323233",
+        "onSurface": "#E4E4E6",
+        "surfaceVariant": "#5E5C66",
+        "onSurfaceVariant": "#DEDBE6",
+        "outline": "#AAA7B3"
+    })
 
-    property color tertiary: isDarkMode ? "#EFB8C8" : "#7D5260"
-    property color onTertiary: isDarkMode ? "#492532" : "#FFFFFF"
-    property color tertiaryContainer: isDarkMode ? "#633B48" : "#FFD8E4"
-    property color onTertiaryContainer: isDarkMode ? "#FFD8E4" : "#31111D"
+    // 🎨 Dynamic color provider API
+    // Replace the complete object through applyDynamicColorScheme() so QML bindings update.
+    property bool dynamicColorsAvailable: false
+    property var dynamicColorScheme: ({})
 
-    property color surface: isDarkMode ? "#1C1B1F" : "#FFFBFE"
-    property color onSurface: isDarkMode ? "#E6E1E5" : "#1C1B1F"
-    property color surfaceVariant: isDarkMode ? "#49454F" : "#E7E0EC"
-    property color onSurfaceVariant: isDarkMode ? "#CAC4D0" : "#49454F"
+    function applyDynamicColorScheme(scheme) {
+        dynamicColorScheme = scheme || ({})
+        dynamicColorsAvailable = scheme !== null && typeof scheme === "object"
+    }
+
+    function clearDynamicColorScheme() {
+        dynamicColorsAvailable = false
+        dynamicColorScheme = ({})
+    }
+
+    function colorForRole(role) {
+        const fallbackScheme = isDarkMode ? fallbackDarkColorScheme : fallbackLightColorScheme
+        if (dynamicColorsAvailable
+                && dynamicColorScheme
+                && typeof dynamicColorScheme[role] !== "undefined"
+                && dynamicColorScheme[role] !== null
+                && dynamicColorScheme[role] !== "") {
+            return dynamicColorScheme[role]
+        }
+        return fallbackScheme[role]
+    }
+
+    // 🎨 Active MD3 roles; existing components continue using MeoTheme.primary, etc.
+    property color primary: colorForRole("primary")
+    property color onPrimary: colorForRole("onPrimary")
+    property color primaryContainer: colorForRole("primaryContainer")
+    property color onPrimaryContainer: colorForRole("onPrimaryContainer")
+
+    property color secondary: colorForRole("secondary")
+    property color onSecondary: colorForRole("onSecondary")
+    property color secondaryContainer: colorForRole("secondaryContainer")
+    property color onSecondaryContainer: colorForRole("onSecondaryContainer")
+
+    property color tertiary: colorForRole("tertiary")
+    property color onTertiary: colorForRole("onTertiary")
+    property color tertiaryContainer: colorForRole("tertiaryContainer")
+    property color onTertiaryContainer: colorForRole("onTertiaryContainer")
+
+    property color error: colorForRole("error")
+    property color onError: colorForRole("onError")
+    property color errorContainer: colorForRole("errorContainer")
+    property color onErrorContainer: colorForRole("onErrorContainer")
+
+    property color background: colorForRole("background")
+    property color onBackground: colorForRole("onBackground")
+    property color surface: colorForRole("surface")
+    property color onSurface: colorForRole("onSurface")
+    property color surfaceVariant: colorForRole("surfaceVariant")
+    property color onSurfaceVariant: colorForRole("onSurfaceVariant")
+    property color outline: colorForRole("outline")
     
     // M3 Surface Containers
     property color surfaceContainerLowest: isDarkMode ? "#0F0E11" : "#FFFFFF"
@@ -69,33 +158,26 @@ QtObject {
     // 🌟 Soul Curve (MD3 Expressive Standard)
     readonly property var motionEasingSoul: [0.34, 0.8, 0.34, 1.0]
 
-    property color outline: isDarkMode ? "#938F99" : "#79747E"
     property color outlineVariant: isDarkMode ? "#44474F" : "#C4C7C5"
-
-    property color error: isDarkMode ? "#F2B8B5" : "#B3261E"
-    property color onError: isDarkMode ? "#601410" : "#FFFFFF"
-    property color errorContainer: isDarkMode ? "#8C1D18" : "#F9DEDC"
-    property color onErrorContainer: isDarkMode ? "#F9DEDC" : "#410E0B"
 
     // MD3 Fixed Colors (Same in both Light and Dark mode)
     property color primaryFixed: "#EADDFF"
-    property color onPrimaryFixed: "#21005D"
+    property color fixedOnPrimary: "#21005D"
     property color primaryFixedDim: "#D0BCFF"
-    property color onPrimaryFixedVariant: "#4F378B"
+    property color fixedOnPrimaryVariant: "#4F378B"
 
     property color secondaryFixed: "#E8DEF8"
-    property color onSecondaryFixed: "#1D192B"
+    property color fixedOnSecondary: "#1D192B"
     property color secondaryFixedDim: "#CCC2DC"
-    property color onSecondaryFixedVariant: "#4A4458"
+    property color fixedOnSecondaryVariant: "#4A4458"
 
     property color tertiaryFixed: "#FFD8E4"
-    property color onTertiaryFixed: "#31111D"
+    property color fixedOnTertiary: "#31111D"
     property color tertiaryFixedDim: "#EFB8C8"
-    property color onTertiaryFixedVariant: "#633B48"
+    property color fixedOnTertiaryVariant: "#633B48"
 
     // 🌟 辅助/窗口背景色
-    property color windowBg: isDarkMode ? "#121212" : "#F4F4F6"
-    property color background: windowBg
+    property color windowBg: background
 
     // 🌟 M3 Shape Scale (MD3 Standard)
     readonly property real shapeNone: 0

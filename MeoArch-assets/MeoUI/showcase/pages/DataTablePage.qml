@@ -3,8 +3,34 @@ import QtQuick.Controls
 import MeoUI
 
 Flickable {
-    contentHeight: tableColumn.implicitHeight + 40
+    contentHeight: tableColumn.implicitHeight + 40 * MeoTheme.globalScale
     clip: true
+
+    Component {
+        id: statusDelegate
+
+        Item {
+            anchors.fill: parent
+            Row {
+                anchors.centerIn: parent
+                spacing: 4 * MeoTheme.globalScale
+                Rectangle {
+                    width: 8 * MeoTheme.globalScale
+                    height: 8 * MeoTheme.globalScale
+                    radius: 4 * MeoTheme.globalScale
+                    color: rowData.calories > 300 ? MeoTheme.error : "#4CAF50"
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+                Text {
+                    text: rowData.calories > 300 ? "High" : "Normal"
+                    font.pixelSize: 12 * MeoTheme.globalScale
+                    color: MeoTheme.onSurfaceVariant
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+        }
+    }
+
     Column {
         id: tableColumn
         padding: 24 * MeoTheme.globalScale
@@ -13,7 +39,7 @@ Flickable {
 
         Text { text: "MD3 Data Table"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
         MeoDataTable {
-            width: parent.width - 48
+            width: parent.width - 48 * MeoTheme.globalScale
             selectable: true
             columns: [
                 { label: "Dessert (100g serving)", property: "name", width: 250, sortable: true },
@@ -23,26 +49,7 @@ Flickable {
                 {
                     label: "Status",
                     width: 120,
-                    delegate: Component {
-                        Item {
-                            anchors.fill: parent
-                            Row {
-                                anchors.centerIn: parent
-                                spacing: 4 * MeoTheme.globalScale
-                                Rectangle {
-                                    width: 8 * MeoTheme.globalScale; height: 8 * MeoTheme.globalScale; radius: 4 * MeoTheme.globalScale
-                                    color: rowData.calories > 300 ? MeoTheme.error : "#4CAF50"
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                                Text {
-                                    text: rowData.calories > 300 ? "High" : "Normal"
-                                    font.pixelSize: 12 * MeoTheme.globalScale
-                                    color: MeoTheme.onSurfaceVariant
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                            }
-                        }
-                    }
+                    delegate: statusDelegate
                 }
             ]
             model: [

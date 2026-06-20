@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import MeoUI
 
 Button {
@@ -44,11 +44,11 @@ Button {
 
         // MD3 Elevation (Shadow)
         layer.enabled: true
-        layer.effect: DropShadow {
-
-            radius: 0.2
-            verticalOffset: (control.pressed ? 3 : (control.hovered ? 4 : 3)) * control.themeGlobalScale
-            color: Qt.rgba(0,0,0,0.2)
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.2
+            shadowVerticalOffset: (control.pressed ? 3 : (control.hovered ? 4 : 3)) * control.themeGlobalScale
+            shadowColor: Qt.rgba(0,0,0,0.2)
         }
 
         // 🌟 状态层

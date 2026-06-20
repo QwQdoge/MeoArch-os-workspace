@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 import MeoUI
 
 Item {
@@ -39,10 +39,11 @@ Item {
 
             // Elevation Shadow
             layer.enabled: true
-            layer.effect: DropShadow {
-                radius: 0.2
-                verticalOffset: (control.opened ? 4 : 3) * themeGlobalScale
-                color: Qt.rgba(0,0,0,0.2)
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowBlur: 0.2
+                shadowVerticalOffset: (control.opened ? 4 : 3) * themeGlobalScale
+                shadowColor: Qt.rgba(0,0,0,0.2)
             }
 
             Behavior on radius { NumberAnimation { duration: 300 } }

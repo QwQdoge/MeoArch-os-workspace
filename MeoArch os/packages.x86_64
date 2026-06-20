@@ -127,13 +127,23 @@ xdg-utils
 xfsprogs
 xl2tpd
 zsh
-# 基础图形显示
+
+# 基础图形环境
 xorg-server
-xorg-xinit
-xf86-video-amdgpu  # 根据你的显卡添加驱动，或者只用 mesa
 mesa
+# 根据你的显卡添加驱动；多数 AMD 机器可先不用
+# xf86-video-amdgpu
+
+# 如果用 startx 手动启动图形界面，才保留
+xorg-xinit
+
+# 轻量窗口管理器
+openbox
+xterm
+
+# 图形安装器，包名应小写，并确保 pacman.conf 能找到这个包
+calamares
 
 
 # 你的安装程序及其依赖
-python-pyside6      # 假设你用 PySide 写 UI
-Calamares
+calamares
