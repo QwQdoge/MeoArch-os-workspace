@@ -126,7 +126,11 @@ Button {
             MeoIcon {
                 icon: control.checked ? "check" : (control.icon.name || control.icon.source.toString())
                 visible: control.checked || control.icon.name !== "" || control.icon.source.toString() !== ""
-                size: (size === "xs" ? 14 : (size === "xl" ? 24 : 18))
+                size: {
+                    if (size === "xs" || size === "s") return 18;
+                    if (size === "xl") return 32;
+                    return 24;
+                }
                 color: control.textColor
                 anchors.verticalCenter: parent.verticalCenter
                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -170,8 +174,11 @@ Button {
         implicitWidth: Math.max((control.type === "text" ? 48 : 64) * MeoTheme.globalScale, contentItem.implicitWidth + leftPadding + rightPadding)
         implicitHeight: control.implicitHeight
         radius: {
-            let targetRadius = shape === "square" ? MeoTheme.shapeSquareRadius : height / 2;
-            return targetRadius;
+            if (shape === "square") {
+                if (size === "xs" || size === "s") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * MeoTheme.globalScale;
+                return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * MeoTheme.globalScale;
+            }
+            return height / 2;
         }
         
         color: control.bgColor

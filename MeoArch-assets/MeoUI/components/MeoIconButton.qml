@@ -9,6 +9,7 @@ Button {
     // type: "standard" | "filled" | "tonal" | "outlined"
     property string type: "standard"
     property string size: "s" // "xs" | "s" | "m" | "l" | "xl"
+    property string shape: "round" // "round" | "square"
     property bool selected: false
     property string selectedIcon: ""
 
@@ -36,7 +37,13 @@ Button {
     padding: (implicitWidth - iconItem.implicitWidth) / 2
 
     background: Rectangle {
-        radius: height / 2
+        radius: {
+            if (shape === "square") {
+                if (size === "xs" || size === "s") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * themeGlobalScale;
+                return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * themeGlobalScale;
+            }
+            return height / 2;
+        }
         color: {
             if (!control.enabled) return (type === "filled" || type === "tonal") ? (isDarkMode ? Qt.rgba(1,1,1,0.12) : Qt.rgba(0,0,0,0.12)) : "transparent"
             if (type === "filled") return control.selected ? control.themePrimary : control.themeSurfaceVariant
@@ -65,9 +72,8 @@ Button {
         id: iconItem
         icon: (control.selected && control.selectedIcon !== "") ? control.selectedIcon : (control.icon.name || control.icon.source.toString())
         size: {
-            if (size === "xs") return 18
-            if (size === "xl") return 36
-            if (size === "l") return 28
+            if (size === "xs" || size === "s") return 18
+            if (size === "xl") return 40
             return 24
         }
         color: {
