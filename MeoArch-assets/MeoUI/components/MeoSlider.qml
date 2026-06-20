@@ -25,30 +25,30 @@ Control {
 
     // 📐 尺寸映射 (MD3 Expressive Slider)
     readonly property real trackHeight: {
-        if (size === "s") return 16
-        if (size === "m") return 28
-        if (size === "l") return 36
-        if (size === "xl") return 44
-        return 4 // default "xs"
+        if (size === "xs") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderTrackHeightXS !== 'undefined') ? MeoTheme.sliderTrackHeightXS : 4 * themeGlobalScale
+        if (size === "s") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderTrackHeightS !== 'undefined') ? MeoTheme.sliderTrackHeightS : 16 * themeGlobalScale
+        if (size === "m") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderTrackHeightM !== 'undefined') ? MeoTheme.sliderTrackHeightM : 28 * themeGlobalScale
+        if (size === "l") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderTrackHeightL !== 'undefined') ? MeoTheme.sliderTrackHeightL : 36 * themeGlobalScale
+        if (size === "xl") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderTrackHeightXL !== 'undefined') ? MeoTheme.sliderTrackHeightXL : 44 * themeGlobalScale
+        return 4 * themeGlobalScale
     }
 
-    readonly property real activeTrackHeight: {
-        if (size === "xs") return 4
-        return trackHeight // MD3 Expressive usually has same height for active track
-    }
+    readonly property real activeTrackHeight: trackHeight
 
     readonly property real thumbWidth: {
-        if (size === "xs") return 20
-        return 4 // Vertical pill shape in Expressive
+        if (size === "xs") return 20 * themeGlobalScale
+        return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderThumbWidthExpressive !== 'undefined') ? MeoTheme.sliderThumbWidthExpressive : 4 * themeGlobalScale
     }
 
     readonly property real thumbHeight: {
-        if (size === "xs") return 20
-        return trackHeight + 4
+        if (size === "xs") return 20 * themeGlobalScale
+        return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderThumbHeightExpressive !== 'undefined') ? MeoTheme.sliderThumbHeightExpressive : 44 * themeGlobalScale
     }
 
+    readonly property real thumbGap: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderThumbGapExpressive !== 'undefined') ? MeoTheme.sliderThumbGapExpressive : 6 * themeGlobalScale
+
     implicitWidth: 200 * themeGlobalScale
-    implicitHeight: Math.max(44, trackHeight + 20) * themeGlobalScale
+    implicitHeight: Math.max(thumbHeight + 8 * themeGlobalScale, 44 * themeGlobalScale)
 
     // 内部逻辑：计算百分比
     readonly property real visualPosition: (value - from) / (to - from)
@@ -121,18 +121,15 @@ Control {
         handle: Item {
             x: internalSlider.leftPadding + internalSlider.visualPosition * (internalSlider.availableWidth - width)
             y: internalSlider.topPadding + (internalSlider.availableHeight - height) / 2
-            width: (control.size !== "xs" ? 4 : 20) * control.themeGlobalScale
-            height: {
-                if (size === "xs") return 20 * control.themeGlobalScale
-                return (trackRect.height + 4 * control.themeGlobalScale)
-            }
+            width: control.thumbWidth
+            height: control.thumbHeight
 
             // 🌟 滑块主体 (Thumb)
             Rectangle {
                 anchors.centerIn: parent
                 width: {
-                    if (control.size !== "xs") return (internalSlider.pressed ? 2 : 4) * control.themeGlobalScale
-                    return (internalSlider.pressed ? 2 : 20) * control.themeGlobalScale
+                    if (control.size !== "xs") return (internalSlider.pressed ? 2 : control.thumbWidth)
+                    return (internalSlider.pressed ? 2 : control.thumbWidth)
                 }
                 height: parent.height
                 radius: width / 2

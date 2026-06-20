@@ -309,6 +309,54 @@ ScrollView {
 
         MeoDivider { topInset: 16; bottomInset: 16 }
 
+        // 🌟 Expressive Carousels
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            MeoListHeader { text: "Expressive Carousels"; type: "emphasized" }
+
+            Column {
+                width: parent.width
+                spacing: 24 * MeoTheme.globalScale
+
+                Text { text: "Multi-browse Strategy"; font.weight: Font.Medium; color: MeoTheme.onSurfaceVariant }
+                MeoCarousel {
+                    width: parent.width
+                    height: 240 * MeoTheme.globalScale
+                    itemHeight: 200 * MeoTheme.globalScale
+                    type: "multi-browse"
+                    model: [1, 2, 3, 4, 5, 6, 7, 8]
+                    delegate: Rectangle {
+                        color: index % 2 === 0 ? MeoTheme.primaryContainer : MeoTheme.secondaryContainer
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Item " + modelData
+                            color: index % 2 === 0 ? MeoTheme.onPrimaryContainer : MeoTheme.onSecondaryContainer
+                        }
+                    }
+                }
+
+                Text { text: "Uncontained Strategy"; font.weight: Font.Medium; color: MeoTheme.onSurfaceVariant }
+                MeoCarousel {
+                    width: parent.width
+                    height: 240 * MeoTheme.globalScale
+                    itemHeight: 200 * MeoTheme.globalScale
+                    type: "uncontained"
+                    model: [1, 2, 3, 4, 5]
+                    delegate: Rectangle {
+                        color: MeoTheme.tertiaryContainer
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Uncontained " + modelData
+                            color: MeoTheme.onTertiaryContainer
+                        }
+                    }
+                }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
         // 🌟 Expressive Shapes
         Column {
             width: parent.width

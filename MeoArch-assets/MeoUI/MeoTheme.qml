@@ -204,6 +204,10 @@ QtObject {
     readonly property real sliderTrackHeightL: 36 * globalScale
     readonly property real sliderTrackHeightXL: 44 * globalScale
 
+    readonly property real sliderThumbWidthExpressive: 4 * globalScale
+    readonly property real sliderThumbHeightExpressive: 44 * globalScale
+    readonly property real sliderThumbGapExpressive: 6 * globalScale
+
     readonly property real shapeSquareRadius: 4 * globalScale
 
     // 🌟 MD3 Expressive Shape Library (Conceptual Tokens)
@@ -214,20 +218,20 @@ QtObject {
     readonly property string shapeOctagon: "octagon"
 
     // 🌟 M3 间距网格系统 (Spacing Tokens)
-    property int space2: 2
-    property int space4: 4
-    property int space8: 8
-    property int space12: 12
-    property int space16: 16
-    property int space24: 24
-    property int space32: 32
-    property int space40: 40
-    property int space48: 48
+    readonly property real space2: 2 * globalScale
+    readonly property real space4: 4 * globalScale
+    readonly property real space8: 8 * globalScale
+    readonly property real space12: 12 * globalScale
+    readonly property real space16: 16 * globalScale
+    readonly property real space24: 24 * globalScale
+    readonly property real space32: 32 * globalScale
+    readonly property real space40: 40 * globalScale
+    readonly property real space48: 48 * globalScale
 
     // 🌟 兼容老版组件的 Padding 定义
-    property int compactPadding: 8
-    property int standardPadding: 16
-    property int largePadding: 24
+    readonly property real compactPadding: 8 * globalScale
+    readonly property real standardPadding: 16 * globalScale
+    readonly property real largePadding: 24 * globalScale
 
     // 🌟 Material Design 3 Typography (Type Scale)
     // Format: { size, weight, lineHeight, letterSpacing }
