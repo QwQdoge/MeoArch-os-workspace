@@ -191,6 +191,21 @@ QtObject {
     readonly property real shapeExtraExtraLarge: 48 * globalScale
     readonly property real shapeFull: 1000 * globalScale // Large value for full rounding
 
+    // 🌟 MD3 Expressive Dimension Tokens
+    readonly property real buttonHeightXS: 32 * globalScale
+    readonly property real buttonHeightS: 40 * globalScale
+    readonly property real buttonHeightM: 48 * globalScale
+    readonly property real buttonHeightL: 56 * globalScale
+    readonly property real buttonHeightXL: 72 * globalScale
+
+    readonly property real sliderTrackHeightXS: 4 * globalScale
+    readonly property real sliderTrackHeightS: 16 * globalScale
+    readonly property real sliderTrackHeightM: 28 * globalScale
+    readonly property real sliderTrackHeightL: 36 * globalScale
+    readonly property real sliderTrackHeightXL: 44 * globalScale
+
+    readonly property real shapeSquareRadius: 4 * globalScale
+
     // 🌟 MD3 Expressive Shape Library (Conceptual Tokens)
     readonly property string shapeSquircle: "squircle"
     readonly property string shapeHexagon: "hexagon"
