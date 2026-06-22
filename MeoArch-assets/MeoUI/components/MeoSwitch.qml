@@ -83,7 +83,7 @@ Control {
                     color: control.checked ? control.themePrimary : control.themeOnSurfaceVariant
                     visible: icon !== ""
                     scale: (control.checked ? control.icon : control.uncheckedIcon) !== "" ? 1.0 : 0.0
-                    Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: [0.2, 0, 0, 1] } }
+                    Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
                 }
 
                 color: {
@@ -106,9 +106,9 @@ Control {
                     }
                 }
 
-                Behavior on x { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
-                Behavior on width { NumberAnimation { duration: 150; easing.bezierCurve: [0.2, 0, 0, 1] } }
-                Behavior on height { NumberAnimation { duration: 150; easing.bezierCurve: [0.2, 0, 0, 1] } }
+                Behavior on x { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+                Behavior on width { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+                Behavior on height { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
                 Behavior on color { ColorAnimation { duration: 150 } }
             }
 

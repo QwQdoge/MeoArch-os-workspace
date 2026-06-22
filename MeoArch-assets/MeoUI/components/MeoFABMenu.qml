@@ -94,8 +94,8 @@ Item {
         }
 
         enter: Transition {
-            NumberAnimation { property: "width"; from: 56 * themeGlobalScale; to: 200 * themeGlobalScale; duration: 300; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
-            NumberAnimation { property: "height"; from: 56 * themeGlobalScale; to: model.length * 56 * themeGlobalScale + 64 * themeGlobalScale; duration: 300; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
+            NumberAnimation { property: "width"; from: 56 * themeGlobalScale; to: 200 * themeGlobalScale; duration: 300; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] }
+            NumberAnimation { property: "height"; from: 56 * themeGlobalScale; to: model.length * 56 * themeGlobalScale + 64 * themeGlobalScale; duration: 300; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] }
             NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 150 }
         }
         exit: Transition {

@@ -54,7 +54,7 @@ Item {
             id: yBehavior
             NumberAnimation {
                 duration: 300
-                easing.bezierCurve: [0.05, 0.7, 0.1, 1.0]
+                easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1.0]
             }
         }
 

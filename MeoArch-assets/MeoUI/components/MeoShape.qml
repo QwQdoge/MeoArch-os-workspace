@@ -11,6 +11,10 @@ Item {
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
+    onRadiusChanged: canvas.requestPaint()
+    onTypeChanged: canvas.requestPaint()
+    onColorChanged: canvas.requestPaint()
+
     Canvas {
         id: canvas
         anchors.fill: parent
@@ -25,19 +29,16 @@ Item {
             var r = control.radius;
 
             if (control.type === "squircle" || control.type === "MeoTheme.shapeSquircle") {
-                // Approximate squircle using bezier curves
-                var kappa = 0.552284749831; // For a circle, but we'll adjust for squircle look
-                // For a more "squircle" look, we use a different approach or larger kappa
-                var s = r * 1.2;
-                ctx.moveTo(r, 0);
-                ctx.lineTo(w - r, 0);
-                ctx.bezierCurveTo(w - r + s, 0, w, r - s, w, r);
-                ctx.lineTo(w, h - r);
-                ctx.bezierCurveTo(w, h - r + s, w - r + s, h, w - r, h);
-                ctx.lineTo(r, h);
-                ctx.bezierCurveTo(r - s, h, 0, h - r + s, 0, h - r);
-                ctx.lineTo(0, r);
-                ctx.bezierCurveTo(0, r - s, r - s, 0, r, 0);
+                // 🌟 MD3 Expressive Squircle (Superellipse approximation)
+                // Using a more accurate squircle approximation for brand-expressive shapes
+                var n = 4; // Power for superellipse (n=4 is a common squircle)
+                var step = Math.PI / 100;
+                for (var angle = 0; angle < 2 * Math.PI; angle += step) {
+                    var x = Math.pow(Math.abs(Math.cos(angle)), 2/n) * (w/2) * Math.sign(Math.cos(angle)) + w/2;
+                    var y = Math.pow(Math.abs(Math.sin(angle)), 2/n) * (h/2) * Math.sign(Math.sin(angle)) + h/2;
+                    if (angle === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
             } else if (control.type === "hexagon") {
                 ctx.moveTo(w * 0.5, 0);
                 ctx.lineTo(w, h * 0.25);
@@ -45,6 +46,17 @@ Item {
                 ctx.lineTo(w * 0.5, h);
                 ctx.lineTo(0, h * 0.75);
                 ctx.lineTo(0, h * 0.25);
+            } else if (control.type === "octagon") {
+                // 🌟 MD3 Expressive Octagon
+                var s = 0.3; // Proportion of the side
+                ctx.moveTo(w * s, 0);
+                ctx.lineTo(w * (1-s), 0);
+                ctx.lineTo(w, h * s);
+                ctx.lineTo(w, h * (1-s));
+                ctx.lineTo(w * (1-s), h);
+                ctx.lineTo(w * s, h);
+                ctx.lineTo(0, h * (1-s));
+                ctx.lineTo(0, h * s);
             } else if (control.type === "diamond") {
                 ctx.moveTo(w * 0.5, 0);
                 ctx.lineTo(w, h * 0.5);
@@ -67,6 +79,5 @@ Item {
 
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
-        onColorChanged: requestPaint()
     }
 }
