@@ -11,6 +11,7 @@ Frame {
     property int currentIndex: 0 // 当前选中的索引
     property bool multiSelect: false
     property var selectedIndices: []
+    property string size: "m" // "xs" | "s" | "m" | "l" | "xl"
     signal selected(int index, var data) // 选中时向外发射的信号
 
     // 🌟 消除外部作用域歧义
@@ -22,15 +23,31 @@ Frame {
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
     readonly property int themeSpace4: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.space4 !== 'undefined') ? MeoTheme.space4 : 4
 
+    readonly property var fontToken: {
+        if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
+        if (size === "xs") return MeoTheme.labelSmall;
+        if (size === "s") return MeoTheme.labelMedium;
+        if (size === "l") return MeoTheme.titleSmall;
+        if (size === "xl") return MeoTheme.titleMedium;
+        return MeoTheme.labelLarge;
+    }
+
     padding: 0
-    implicitHeight: 40 * themeGlobalScale
+    implicitHeight: {
+        if (size === "xs") return MeoTheme.buttonHeightXS || 32 * themeGlobalScale;
+        if (size === "s") return MeoTheme.buttonHeightS || 40 * themeGlobalScale;
+        if (size === "l") return MeoTheme.buttonHeightL || 56 * themeGlobalScale;
+        if (size === "xl") return MeoTheme.buttonHeightXL || 72 * themeGlobalScale;
+        return MeoTheme.buttonHeightM || 48 * themeGlobalScale;
+    }
     
     implicitWidth: {
         let total = 0;
         for (let i = 0; i < model.length; i++) {
             let labelText = typeof model[i] === 'string' ? model[i] : (model[i].label || "");
             let hasIcon = typeof model[i] === 'object' && model[i].icon;
-            total += Math.max(80 * themeGlobalScale, labelText.length * 8 * themeGlobalScale + (hasIcon ? 48 : 32) * themeGlobalScale);
+            let base = (size === "xs" ? 64 : (size === "xl" ? 100 : 80));
+            total += Math.max(base * themeGlobalScale, labelText.length * 8 * themeGlobalScale + (hasIcon ? 48 : 32) * themeGlobalScale);
         }
         return Math.max(240 * themeGlobalScale, total);
     }
@@ -94,7 +111,7 @@ Frame {
                         Behavior on color { 
                             ColorAnimation { 
                                 duration: 150; 
-                                easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] 
+                                easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]
                             } 
                         }
                     }
@@ -124,36 +141,36 @@ Frame {
 
                     // Checkmark or Icon
                     Item {
-                        width: (isSelected || itemIcon !== "") ? 18 * control.themeGlobalScale : 0
-                        height: 18 * control.themeGlobalScale
+                        width: (isSelected || itemIcon !== "") ? (control.size === "xl" ? 24 : 18) * control.themeGlobalScale : 0
+                        height: width
                         anchors.verticalCenter: parent.verticalCenter
                         clip: true
                         
                         MeoIcon {
                             anchors.centerIn: parent
                             icon: isSelected ? "check" : itemIcon
-                            size: 18
+                            size: (control.size === "xl" ? 24 : 18)
                             color: delegateItem.textColor
 
                             opacity: (isSelected || itemIcon !== "") ? 1.0 : 0.0
                             scale: (isSelected || itemIcon !== "") ? 1.0 : 0.5
 
                             Behavior on opacity { NumberAnimation { duration: 150 } }
-                            Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+                            Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
                         }
 
                         Behavior on width {
                             NumberAnimation {
                                 duration: 150
-                                easing.bezierCurve: [0.34, 0.8, 0.34, 1.0]
+                                easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]
                             }
                         }
                     }
 
                     Text {
                         text: delegateItem.itemLabel
-                        font.pixelSize: 14 * control.themeGlobalScale
-                        font.weight: isSelected ? Font.DemiBold : Font.Normal
+                        font.pixelSize: control.fontToken.size * control.themeGlobalScale
+                        font.weight: isSelected ? (control.fontToken.weight === Font.Normal ? Font.Medium : Font.Bold) : control.fontToken.weight
                         color: delegateItem.textColor
                         anchors.verticalCenter: parent.verticalCenter
                         visible: text !== ""

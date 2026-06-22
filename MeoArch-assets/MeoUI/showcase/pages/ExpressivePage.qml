@@ -54,73 +54,27 @@ ScrollView {
                     MeoButton { text: "L Square"; size: "l"; shape: "square"; type: "elevated" }
                     MeoButton { text: "XL Square"; size: "xl"; shape: "square"; type: "filled"; isEmphasized: true }
                 }
-
-                // Toggle Buttons
-                Flow {
-                    Layout.fillWidth: true
-                    spacing: 12 * MeoTheme.globalScale
-                    MeoButton { text: "Toggle Me"; checkable: true; type: "outlined"; icon: "favorite" }
-                    MeoButton { text: "Always On"; checkable: true; checked: true; type: "filled"; icon: "notifications" }
-
-                    MeoIconButton { size: "xs"; icon.name: "settings"; type: "standard" }
-                    MeoIconButton { size: "s"; icon.name: "settings"; type: "tonal" }
-                    MeoIconButton { size: "m"; icon.name: "settings"; type: "filled" }
-                    MeoIconButton { size: "l"; icon.name: "settings"; type: "outlined" }
-                    MeoIconButton { size: "xl"; icon.name: "settings"; type: "filled" }
-                }
             }
         }
 
-        // --- Split Buttons Section ---
+        // --- Segmented Buttons Section ---
         ColumnLayout {
             spacing: 16 * MeoTheme.globalScale
 
             Text {
-                text: "Buttons (XS to XL)"
+                text: "Expressive Segmented Buttons (XS to XL)"
                 font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
                 font.weight: Font.DemiBold
                 color: MeoTheme.primary
             }
 
-            Flow {
-                Layout.fillWidth: true
+            ColumnLayout {
                 spacing: 16 * MeoTheme.globalScale
-
-                MeoButton { text: "XS Filled"; size: "xs"; type: "filled"; icon: "add" }
-                MeoButton { text: "Small Tonal"; size: "s"; type: "tonal"; icon: "edit" }
-                MeoButton { text: "Medium Outlined"; size: "m"; type: "outlined"; icon: "share" }
-                MeoButton { text: "Large Elevated"; size: "l"; type: "elevated"; icon: "favorite" }
-                MeoButton { text: "XL Text"; size: "xl"; type: "text"; icon: "settings" }
-            }
-
-            Text {
-                text: "Square Buttons & Toggle States"
-                font.pixelSize: MeoTheme.titleMedium.size * MeoTheme.globalScale
-                font.weight: Font.Medium
-                color: MeoTheme.onSurfaceVariant
-            }
-
-            Flow {
-                Layout.fillWidth: true
-                spacing: 16 * MeoTheme.globalScale
-
-                MeoButton { text: "Square XS"; size: "xs"; shape: "square"; type: "filled" }
-                MeoButton { text: "Square M"; size: "m"; shape: "square"; type: "tonal" }
-
-                MeoButton {
-                    text: selected ? "Selected" : "Toggle Me"
-                    type: "outlined"
-                    selected: false
-                    onClicked: selected = !selected
-                }
-
-                MeoButton {
-                    icon: "star"
-                    text: "Favorite"
-                    type: "text"
-                    selected: true
-                    onClicked: selected = !selected
-                }
+                MeoSegmentedButtons { size: "xs"; model: ["XS 1", "XS 2", "XS 3"] }
+                MeoSegmentedButtons { size: "s"; model: ["Small 1", "Small 2"] }
+                MeoSegmentedButtons { size: "m"; model: ["Medium 1", "Medium 2", "Medium 3"] }
+                MeoSegmentedButtons { size: "l"; model: ["Large 1", "Large 2"] }
+                MeoSegmentedButtons { size: "xl"; model: ["XL 1", "XL 2"] }
             }
         }
 
@@ -154,7 +108,7 @@ ScrollView {
             spacing: 16 * MeoTheme.globalScale
 
             Text {
-                text: "Expressive Sliders"
+                text: "Expressive Sliders & Range Sliders"
                 font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
                 font.weight: Font.DemiBold
                 color: MeoTheme.primary
@@ -162,32 +116,37 @@ ScrollView {
 
             Column {
                 Layout.fillWidth: true
-                spacing: 24 * MeoTheme.globalScale
+                spacing: 32 * MeoTheme.globalScale
 
                 Row {
                     spacing: 16 * MeoTheme.globalScale
                     Text { text: "XS"; width: 40 * MeoTheme.globalScale; anchors.verticalCenter: parent.verticalCenter }
                     MeoSlider { width: 300 * MeoTheme.globalScale; size: "xs"; value: 20 }
+                    MeoRangeSlider { width: 300 * MeoTheme.globalScale; size: "xs"; firstValue: 10; secondValue: 30 }
                 }
                 Row {
                     spacing: 16 * MeoTheme.globalScale
                     Text { text: "S"; width: 40 * MeoTheme.globalScale; anchors.verticalCenter: parent.verticalCenter }
                     MeoSlider { width: 300 * MeoTheme.globalScale; size: "s"; value: 40 }
+                    MeoRangeSlider { width: 300 * MeoTheme.globalScale; size: "s"; firstValue: 20; secondValue: 50 }
                 }
                 Row {
                     spacing: 16 * MeoTheme.globalScale
                     Text { text: "M"; width: 40 * MeoTheme.globalScale; anchors.verticalCenter: parent.verticalCenter }
                     MeoSlider { width: 300 * MeoTheme.globalScale; size: "m"; value: 60 }
+                    MeoRangeSlider { width: 300 * MeoTheme.globalScale; size: "m"; firstValue: 30; secondValue: 70 }
                 }
                 Row {
                     spacing: 16 * MeoTheme.globalScale
                     Text { text: "L"; width: 40 * MeoTheme.globalScale; anchors.verticalCenter: parent.verticalCenter }
                     MeoSlider { width: 300 * MeoTheme.globalScale; size: "l"; value: 80 }
+                    MeoRangeSlider { width: 300 * MeoTheme.globalScale; size: "l"; firstValue: 40; secondValue: 90 }
                 }
                 Row {
                     spacing: 16 * MeoTheme.globalScale
                     Text { text: "XL"; width: 40 * MeoTheme.globalScale; anchors.verticalCenter: parent.verticalCenter }
                     MeoSlider { width: 300 * MeoTheme.globalScale; size: "xl"; value: 100 }
+                    MeoRangeSlider { width: 300 * MeoTheme.globalScale; size: "xl"; firstValue: 50; secondValue: 100 }
                 }
             }
         }
@@ -199,7 +158,7 @@ ScrollView {
             spacing: 16 * MeoTheme.globalScale
 
             Text {
-                text: "Patterns & Layouts"
+                text: "Expressive Split Buttons (XS to XL)"
                 font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
                 font.weight: Font.DemiBold
                 color: MeoTheme.primary
@@ -209,101 +168,11 @@ ScrollView {
                 Layout.fillWidth: true
                 spacing: 16 * MeoTheme.globalScale
 
-                MeoSplitButton {
-                    text: "Filled Split"
-                    type: "filled"
-                    icon: "save"
-                    menuModel: [
-                        { label: "Save as...", icon: "content_copy" },
-                        { label: "Export to PDF", icon: "picture_as_pdf" }
-                    ]
-                }
-
-                MeoFABMenu {
-                    model: [
-                        { label: "New Task", icon: "assignment" },
-                        { label: "New Event", icon: "event" }
-                    ]
-                }
-
-                MeoButtonGroup {
-                    type: "tonal"
-                    sizeVariant: "small"
-                    model: [
-                        { icon: "format_align_left" },
-                        { icon: "format_align_center" },
-                        { icon: "format_align_right" }
-                    ]
-                }
-            }
-        }
-
-        MeoDivider { topInset: 16; bottomInset: 16 }
-
-        // 🌟 Vibrant & Segmented Menus
-        Column {
-            width: parent.width
-            spacing: 16 * MeoTheme.globalScale
-            MeoListHeader { text: "Expressive Menus"; type: "emphasized" }
-
-            Row {
-                spacing: 24 * MeoTheme.globalScale
-
-                MeoButton {
-                    id: menuBtn
-                    text: "Show Vibrant Menu"
-                    type: "filled"
-                    onClicked: vibrantMenu.open()
-
-                    MeoMenu {
-                        id: vibrantMenu
-                        y: parent.height + 8 * MeoTheme.globalScale
-                        vibrant: true
-                        itemSpacing: 4 * MeoTheme.globalScale
-                        model: [
-                            { label: "High Priority", icon: "priority_high" },
-                            { label: "Vibrant Action", icon: "bolt" },
-                            { label: "Standard Action", icon: "settings", isVibrant: false }
-                        ]
-                    }
-                }
-
-                MeoButton {
-                    text: "Show Segmented Menu"
-                    type: "tonal"
-                    onClicked: segmentedMenu.open()
-
-                    MeoMenu {
-                        id: segmentedMenu
-                        y: parent.height + 8 * MeoTheme.globalScale
-                        itemSpacing: 8 * MeoTheme.globalScale
-                        model: [
-                            { label: "Option 1", icon: "filter_1" },
-                            { label: "Option 2", icon: "filter_2" },
-                            { label: "Option 3", icon: "filter_3" }
-                        ]
-                    }
-                }
-            }
-        }
-
-        MeoDivider { topInset: 16; bottomInset: 16 }
-
-        // 🌟 Expressive Sliders
-        Column {
-            width: parent.width
-            spacing: 16 * MeoTheme.globalScale
-            MeoListHeader { text: "Expressive Sliders (XS to XL)"; type: "emphasized" }
-
-            Column {
-                width: parent.width
-                spacing: 24 * MeoTheme.globalScale
-
-                MeoSlider { width: parent.width * 0.8; size: "xs"; value: 20 }
-                MeoSlider { width: parent.width * 0.8; size: "s"; value: 40 }
-                MeoSlider { width: parent.width * 0.8; size: "m"; value: 60 }
-                MeoSlider { width: parent.width * 0.8; size: "l"; value: 80 }
-                MeoSlider { width: parent.width * 0.8; size: "xl"; value: 100 }
+                MeoSplitButton { size: "xs"; text: "XS Split"; icon: "add" }
+                MeoSplitButton { size: "s"; type: "tonal"; text: "Small Split"; icon: "edit" }
+                MeoSplitButton { size: "m"; type: "outlined"; text: "Medium Split"; icon: "share" }
+                MeoSplitButton { size: "l"; type: "elevated"; text: "Large Split"; icon: "favorite" }
+                MeoSplitButton { size: "xl"; type: "filled"; text: "XL Split"; icon: "settings"; isEmphasized: true }
             }
         }
 
@@ -321,7 +190,8 @@ ScrollView {
 
                 MeoAvatar { size: 64; variant: "squircle"; initials: "SQ" }
                 MeoAvatar { size: 64; variant: "hexagon"; color: MeoTheme.secondaryContainer }
-                MeoAvatar { size: 64; variant: "diamond"; color: MeoTheme.tertiaryContainer }
+                MeoAvatar { size: 64; variant: "octagon"; color: MeoTheme.tertiaryContainer; initials: "OC" }
+                MeoAvatar { size: 64; variant: "diamond"; color: MeoTheme.primaryContainer }
                 MeoAvatar { size: 64; variant: "pentagon"; initials: "PT" }
             }
         }
