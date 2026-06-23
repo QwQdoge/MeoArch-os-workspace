@@ -38,13 +38,13 @@ Control {
     }
 
     readonly property real thumbWidth: {
-        if (size === "xs") return 20
-        return 4 // Vertical pill shape in Expressive
+        if (size === "xs") return 20 * themeGlobalScale
+        return (typeof MeoTheme !== 'undefined' ? MeoTheme.sliderThumbWidthExpressive : 4 * themeGlobalScale)
     }
 
     readonly property real thumbHeight: {
-        if (size === "xs") return 20
-        return trackHeight + 4
+        if (size === "xs") return 20 * themeGlobalScale
+        return (typeof MeoTheme !== 'undefined' ? MeoTheme.sliderThumbHeightExpressive : 44 * themeGlobalScale)
     }
 
     implicitWidth: 200 * themeGlobalScale
@@ -121,20 +121,20 @@ Control {
         handle: Item {
             x: internalSlider.leftPadding + internalSlider.visualPosition * (internalSlider.availableWidth - width)
             y: internalSlider.topPadding + (internalSlider.availableHeight - height) / 2
-            width: (control.size !== "xs" ? 4 : 20) * control.themeGlobalScale
-            height: {
-                if (size === "xs") return 20 * control.themeGlobalScale
-                return (trackRect.height + 4 * control.themeGlobalScale)
-            }
+            width: control.thumbWidth
+            height: control.thumbHeight
 
             // 🌟 滑块主体 (Thumb)
             Rectangle {
                 anchors.centerIn: parent
                 width: {
-                    if (control.size !== "xs") return (internalSlider.pressed ? 2 : 4) * control.themeGlobalScale
-                    return (internalSlider.pressed ? 2 : 20) * control.themeGlobalScale
+                    if (control.size !== "xs") return (internalSlider.pressed ? 2 * control.themeGlobalScale : control.thumbWidth)
+                    return (internalSlider.pressed ? 2 * control.themeGlobalScale : 20 * control.themeGlobalScale)
                 }
-                height: parent.height
+                height: {
+                    if (control.size !== "xs") return control.thumbHeight
+                    return 20 * control.themeGlobalScale
+                }
                 radius: width / 2
                 color: control.size !== "xs" ? control.themeOnPrimary : control.themePrimary
 

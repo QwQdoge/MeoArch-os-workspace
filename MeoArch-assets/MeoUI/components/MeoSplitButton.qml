@@ -13,9 +13,8 @@ Control {
     property bool isEmphasized: false
     property var menuModel: []
 
-    // Size variants (simplified from MD3 XL-XS)
-    // small | medium (default) | large
-    property string sizeVariant: "medium"
+    // Size variants (XS to XL)
+    property string size: "m"
 
     signal clicked()
     signal menuOpened()
@@ -43,7 +42,13 @@ Control {
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
-    implicitHeight: (sizeVariant === "small" ? 32 : (sizeVariant === "large" ? 48 : 40)) * themeGlobalScale
+    implicitHeight: {
+        if (size === "xs") return MeoTheme.buttonHeightXS || 32 * themeGlobalScale
+        if (size === "s") return MeoTheme.buttonHeightS || 40 * themeGlobalScale
+        if (size === "l") return MeoTheme.buttonHeightL || 56 * themeGlobalScale
+        if (size === "xl") return MeoTheme.buttonHeightXL || 72 * themeGlobalScale
+        return MeoTheme.buttonHeightM || 48 * themeGlobalScale
+    }
     implicitWidth: mainAction.implicitWidth + menuAction.implicitWidth + 1 * themeGlobalScale
 
     background: Rectangle {
@@ -75,7 +80,15 @@ Control {
         Item {
             id: mainAction
             height: control.height
-            implicitWidth: contentRow.implicitWidth + (sizeVariant === "small" ? 16 : 24) * control.themeGlobalScale
+            implicitWidth: {
+                let base;
+                if (control.size === "xs") base = 12;
+                else if (control.size === "s") base = 16;
+                else if (control.size === "l") base = 32;
+                else if (control.size === "xl") base = 48;
+                else base = 24;
+                return contentRow.implicitWidth + base * control.themeGlobalScale;
+            }
 
             Rectangle {
                 id: mainState
@@ -102,20 +115,38 @@ Control {
             Row {
                 id: contentRow
                 anchors.centerIn: parent
-                spacing: 8 * control.themeGlobalScale
+                spacing: (size === "xs" ? 4 : 8) * control.themeGlobalScale
 
                 MeoIcon {
                     icon: control.icon
                     visible: icon !== ""
-                    size: sizeVariant === "small" ? 16 : 18
+                    size: (control.size === "xs" || control.size === "s" ? 18 : (control.size === "xl" ? 32 : 24))
                     color: control.textColor
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
                 Text {
                     text: control.text
-                    font.pixelSize: (sizeVariant === "small" ? 12 : 14) * control.themeGlobalScale
-                    font.weight: control.isEmphasized ? Font.Bold : Font.Medium
+                    readonly property var fontToken: {
+                        if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
+                        let token;
+                        if (control.size === "xs") token = MeoTheme.labelSmall;
+                        else if (control.size === "s") token = MeoTheme.labelMedium;
+                        else if (control.size === "l") token = MeoTheme.titleSmall;
+                        else if (control.size === "xl") token = MeoTheme.titleMedium;
+                        else token = MeoTheme.labelLarge;
+
+                        if (control.isEmphasized) {
+                            if (control.size === "xs") return MeoTheme.labelSmallEmphasized || token;
+                            if (control.size === "s") return MeoTheme.labelMediumEmphasized || token;
+                            if (control.size === "l") return MeoTheme.titleSmallEmphasized || token;
+                            if (control.size === "xl") return MeoTheme.titleMediumEmphasized || token;
+                            return MeoTheme.labelLargeEmphasized || token;
+                        }
+                        return token;
+                    }
+                    font.pixelSize: fontToken.size * control.themeGlobalScale
+                    font.weight: fontToken.weight
                     color: control.textColor
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -142,7 +173,11 @@ Control {
         Item {
             id: menuAction
             height: control.height
-            implicitWidth: (sizeVariant === "small" ? 32 : 40) * control.themeGlobalScale
+            implicitWidth: {
+                if (control.size === "xs") return 32 * control.themeGlobalScale
+                if (control.size === "xl") return 56 * control.themeGlobalScale
+                return 40 * control.themeGlobalScale
+            }
 
             Rectangle {
                 id: menuState
@@ -170,7 +205,7 @@ Control {
                 id: menuIcon
                 anchors.centerIn: parent
                 icon: "arrow_drop_down"
-                size: sizeVariant === "small" ? 18 : 24
+                size: (control.size === "xs" || control.size === "s" ? 18 : (control.size === "xl" ? 40 : 24))
                 color: control.textColor
 
                 // MD3 Expressive: Rotate icon when menu is open
