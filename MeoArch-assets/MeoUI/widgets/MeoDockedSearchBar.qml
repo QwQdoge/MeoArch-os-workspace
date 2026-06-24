@@ -23,7 +23,7 @@ Rectangle {
     radius: 28 * themeGlobalScale
     color: themeSurfaceContainerHighest
 
-    Behavior on implicitHeight { NumberAnimation { duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+    Behavior on implicitHeight { NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
 
     Column {
         anchors.fill: parent

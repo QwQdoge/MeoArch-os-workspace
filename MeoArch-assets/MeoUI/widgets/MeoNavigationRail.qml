@@ -76,7 +76,7 @@ Rectangle {
                             color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                         }
 
-                        Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
+                        Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
                         Behavior on color { ColorAnimation { duration: 150 } }
                     }
 

@@ -18,6 +18,8 @@ MeoTextField {
         regularExpression: /^\d{4}\/\d{2}\/\d{2}$/
     }
 
+    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+
     onTextChanged: {
         // Basic validation logic could go here
         if (text.length === format.length) {
