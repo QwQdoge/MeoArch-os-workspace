@@ -39,8 +39,8 @@ Button {
     background: Rectangle {
         radius: {
             if (shape === "square") {
-                if (size === "xs" || size === "s") return (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeMedium : 12 * themeGlobalScale);
-                return (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale);
+                if (size === "xs" || size === "s") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * themeGlobalScale;
+                return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * themeGlobalScale;
             }
             return height / 2;
         }
@@ -72,8 +72,8 @@ Button {
         id: iconItem
         icon: (control.selected && control.selectedIcon !== "") ? control.selectedIcon : (control.icon.name || control.icon.source.toString())
         size: {
-            if (control.size === "xs" || control.size === "s") return 18
-            if (control.size === "xl") return 40
+            if (size === "xs" || size === "s") return 18
+            if (size === "xl") return 40
             return 24
         }
         color: {
