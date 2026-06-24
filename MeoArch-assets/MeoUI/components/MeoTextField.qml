@@ -114,7 +114,7 @@ TextField {
                 visible: control.type === "filled"
             }
 
-            Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+            Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
 
             border.color: control.type === "outlined" ? control.indicatorColor : "transparent"
             border.width: control.type === "outlined" ? (control.activeFocus ? 2 : 1) : 0
@@ -130,7 +130,7 @@ TextField {
                 color: control.indicatorColor
                 visible: control.type === "filled"
 
-                Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
+                Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
                 Behavior on color { ColorAnimation { duration: 150 } }
             }
         }
@@ -224,8 +224,8 @@ TextField {
             scale: overlayLayer.isCollapsed ? (control.fontLabelSmall.size / control.fontBodyLarge.size) : 1.0
             transformOrigin: Item.Left
 
-            Behavior on y { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
-            Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: [0.2, 0, 0, 1] } }
+            Behavior on y { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+            Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
 
             Rectangle {
                 anchors.fill: parent

@@ -61,7 +61,7 @@ Control {
                 Behavior on width {
                     NumberAnimation {
                         duration: 150;
-                        easing.bezierCurve: [0.34, 0.8, 0.34, 1.0]
+                        easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]
                     }
                 }
             }

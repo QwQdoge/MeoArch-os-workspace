@@ -45,7 +45,7 @@ Control {
             color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurface
         }
 
-        Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+        Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
     }
 
     MouseArea {

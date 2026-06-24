@@ -93,9 +93,9 @@ Popup {
     }
 
     enter: Transition {
-        NumberAnimation { property: "x"; from: parent.width; to: parent.width - control.width; duration: 400; easing.bezierCurve: [0.05, 0.7, 0.1, 1.0] }
+        NumberAnimation { property: "x"; from: parent.width; to: parent.width - control.width; duration: 400; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1.0] }
     }
     exit: Transition {
-        NumberAnimation { property: "x"; from: parent.width - control.width; to: parent.width; duration: 300; easing.bezierCurve: [0.3, 0, 0.8, 0.15] }
+        NumberAnimation { property: "x"; from: parent.width - control.width; to: parent.width; duration: 300; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedAccelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15] }
     }
 }
