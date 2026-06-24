@@ -159,6 +159,132 @@ ScrollView {
                 MeoSplitButton { size: "l"; type: "elevated"; text: "Large Split"; icon: "favorite" }
                 MeoSplitButton { size: "xl"; type: "filled"; text: "XL Split"; icon: "settings"; isEmphasized: true }
             }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // 🌟 Vibrant & Segmented Menus
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            MeoListHeader { text: "Expressive Menus"; type: "emphasized" }
+
+            Row {
+                spacing: 24 * MeoTheme.globalScale
+
+                MeoButton {
+                    id: menuBtn
+                    text: "Show Vibrant Menu"
+                    type: "filled"
+                    onClicked: vibrantMenu.open()
+
+                    MeoMenu {
+                        id: vibrantMenu
+                        y: parent.height + 8 * MeoTheme.globalScale
+                        vibrant: true
+                        itemSpacing: 4 * MeoTheme.globalScale
+                        model: [
+                            { label: "High Priority", icon: "priority_high" },
+                            { label: "Vibrant Action", icon: "bolt" },
+                            { label: "Standard Action", icon: "settings", isVibrant: false }
+                        ]
+                    }
+                }
+
+                MeoButton {
+                    text: "Show Segmented Menu"
+                    type: "tonal"
+                    onClicked: segmentedMenu.open()
+
+                    MeoMenu {
+                        id: segmentedMenu
+                        y: parent.height + 8 * MeoTheme.globalScale
+                        itemSpacing: 8 * MeoTheme.globalScale
+                        model: [
+                            { label: "Option 1", icon: "filter_1" },
+                            { label: "Option 2", icon: "filter_2" },
+                            { label: "Option 3", icon: "filter_3" }
+                        ]
+                    }
+                }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // 🌟 Expressive Sliders
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            MeoListHeader { text: "Expressive Sliders (XS to XL)"; type: "emphasized" }
+
+            Column {
+                width: parent.width
+                spacing: 24 * MeoTheme.globalScale
+
+                MeoSlider { width: parent.width * 0.8; size: "xs"; value: 20 }
+                MeoSlider { width: parent.width * 0.8; size: "s"; value: 40 }
+                MeoSlider { width: parent.width * 0.8; size: "m"; value: 60 }
+                MeoSlider { width: parent.width * 0.8; size: "l"; value: 80 }
+                MeoSlider { width: parent.width * 0.8; size: "xl"; value: 100 }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // 🌟 Expressive Carousels
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            MeoListHeader { text: "Expressive Carousels"; type: "emphasized" }
+
+            Column {
+                width: parent.width
+                spacing: 24 * MeoTheme.globalScale
+
+                Text { text: "Multi-browse Strategy"; font.weight: Font.Medium; color: MeoTheme.onSurfaceVariant }
+                MeoCarousel {
+                    width: parent.width
+                    height: 240 * MeoTheme.globalScale
+                    itemHeight: 200 * MeoTheme.globalScale
+                    type: "multi-browse"
+                    model: [1, 2, 3, 4, 5, 6, 7, 8]
+                    delegate: Rectangle {
+                        color: index % 2 === 0 ? MeoTheme.primaryContainer : MeoTheme.secondaryContainer
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Item " + modelData
+                            color: index % 2 === 0 ? MeoTheme.onPrimaryContainer : MeoTheme.onSecondaryContainer
+                        }
+                    }
+                }
+
+                Text { text: "Uncontained Strategy"; font.weight: Font.Medium; color: MeoTheme.onSurfaceVariant }
+                MeoCarousel {
+                    width: parent.width
+                    height: 240 * MeoTheme.globalScale
+                    itemHeight: 200 * MeoTheme.globalScale
+                    type: "uncontained"
+                    model: [1, 2, 3, 4, 5]
+                    delegate: Rectangle {
+                        color: MeoTheme.tertiaryContainer
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Uncontained " + modelData
+                            color: MeoTheme.onTertiaryContainer
+                        }
+                    }
+                }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // 🌟 Expressive Shapes
+        Column {
+            width: parent.width
+            spacing: 16 * MeoTheme.globalScale
+            MeoListHeader { text: "Expressive Shapes & Avatars"; type: "emphasized" }
 
             Flow {
                 Layout.fillWidth: true
