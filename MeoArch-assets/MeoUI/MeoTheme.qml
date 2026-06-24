@@ -206,6 +206,11 @@ QtObject {
 
     readonly property real shapeSquareRadius: 4 * globalScale
 
+    // 🌟 MD3 Expressive Slider Tokens
+    readonly property real sliderThumbWidthExpressive: 4 * globalScale
+    readonly property real sliderThumbHeightExpressive: 44 * globalScale
+    readonly property real sliderThumbGapExpressive: 6 * globalScale
+
     // 🌟 MD3 Expressive Shape Library (Conceptual Tokens)
     readonly property string shapeSquircle: "squircle"
     readonly property string shapeHexagon: "hexagon"

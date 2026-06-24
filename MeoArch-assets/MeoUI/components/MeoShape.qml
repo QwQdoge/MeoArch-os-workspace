@@ -25,19 +25,17 @@ Item {
             var r = control.radius;
 
             if (control.type === "squircle" || control.type === "MeoTheme.shapeSquircle") {
-                // Approximate squircle using bezier curves
-                var kappa = 0.552284749831; // For a circle, but we'll adjust for squircle look
-                // For a more "squircle" look, we use a different approach or larger kappa
-                var s = r * 1.2;
+                // High-fidelity superellipse (n=4) approximation for MD3 compliance
+                var cp = r * 0.05; // Control point adjustment for flatter sides
                 ctx.moveTo(r, 0);
                 ctx.lineTo(w - r, 0);
-                ctx.bezierCurveTo(w - r + s, 0, w, r - s, w, r);
+                ctx.bezierCurveTo(w - cp, 0, w, cp, w, r);
                 ctx.lineTo(w, h - r);
-                ctx.bezierCurveTo(w, h - r + s, w - r + s, h, w - r, h);
+                ctx.bezierCurveTo(w, h - cp, w - cp, h, w - r, h);
                 ctx.lineTo(r, h);
-                ctx.bezierCurveTo(r - s, h, 0, h - r + s, 0, h - r);
+                ctx.bezierCurveTo(cp, h, 0, h - cp, 0, h - r);
                 ctx.lineTo(0, r);
-                ctx.bezierCurveTo(0, r - s, r - s, 0, r, 0);
+                ctx.bezierCurveTo(0, cp, cp, 0, r, 0);
             } else if (control.type === "hexagon") {
                 ctx.moveTo(w * 0.5, 0);
                 ctx.lineTo(w, h * 0.25);

@@ -68,6 +68,12 @@ Button {
         return 0;
     }
 
+    readonly property int iconSize: {
+        if (size === "xs" || size === "s") return 18;
+        if (size === "xl") return 32;
+        return 24;
+    }
+
     readonly property color textColor: {
         if (!control.enabled) {
             return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
@@ -126,7 +132,7 @@ Button {
             MeoIcon {
                 icon: control.checked ? "check" : (control.icon.name || control.icon.source.toString())
                 visible: control.checked || control.icon.name !== "" || control.icon.source.toString() !== ""
-                size: (size === "xs" ? 14 : (size === "xl" ? 24 : 18))
+                size: control.iconSize
                 color: control.textColor
                 anchors.verticalCenter: parent.verticalCenter
                 Behavior on color { ColorAnimation { duration: 150 } }
