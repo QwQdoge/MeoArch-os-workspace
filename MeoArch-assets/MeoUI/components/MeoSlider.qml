@@ -178,7 +178,7 @@ Control {
 
                 scale: internalSlider.pressed ? 1.0 : 0.0
                 opacity: internalSlider.pressed ? 1.0 : 0.0
-                Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: [0.2, 0, 0, 1] } }
+                Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
                 Behavior on opacity { NumberAnimation { duration: 150 } }
             }
 

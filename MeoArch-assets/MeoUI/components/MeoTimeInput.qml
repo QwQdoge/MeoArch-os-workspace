@@ -18,6 +18,8 @@ MeoTextField {
         regularExpression: /^([01]\d|2[0-3]):([0-5]\d)$/
     }
 
+    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+
     onTextChanged: {
         if (text.length === format.length) {
             let parts = text.split(":")

@@ -91,7 +91,7 @@ Control {
                 }
 
                 Behavior on animationProgress {
-                    NumberAnimation { duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
+                    NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] }
                 }
 
                 onPaint: {

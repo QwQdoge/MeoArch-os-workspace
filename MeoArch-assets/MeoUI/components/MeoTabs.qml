@@ -58,7 +58,7 @@ Control {
                     radius: 3 * control.themeGlobalScale
                     color: control.themePrimary
                     visible: isSelected
-                    Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+                    Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
                 }
 
                 MouseArea {

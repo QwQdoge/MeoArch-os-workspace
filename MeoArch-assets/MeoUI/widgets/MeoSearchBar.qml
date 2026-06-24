@@ -25,8 +25,8 @@ Rectangle {
 
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
 
-    Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
-    Behavior on radius { NumberAnimation { duration: 250; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+    Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
+    Behavior on radius { NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
 
     Row {
         anchors.fill: parent

@@ -10,6 +10,9 @@ Rectangle {
     property bool dragged: false
     property color color: "#000000" // 默认覆盖颜色（通常为 On-Surface 或 Primary）
 
+    // 🌟 作用域与主题安全防御
+    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+
     // 🌟 状态层透明度定义 (MD3 规范)
     readonly property real hoverOpacity: 0.08
     readonly property real focusOpacity: 0.10
@@ -31,7 +34,7 @@ Rectangle {
     Behavior on opacity {
         NumberAnimation {
             duration: 150
-            easing.bezierCurve: [0.34, 0.8, 0.34, 1.0]
+            easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingSoul !== 'undefined') ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]
         }
     }
 }
