@@ -123,7 +123,7 @@ TextArea {
             width: labelText.implicitWidth
             height: labelText.implicitHeight
 
-            Behavior on y { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+            Behavior on y { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
 
             Rectangle {
                 anchors.fill: parent
@@ -144,7 +144,7 @@ TextArea {
                     if (control.activeFocus) return control.themePrimary;
                     return control.themeOnSurfaceVariant;
                 }
-                Behavior on font.pixelSize { NumberAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+                Behavior on font.pixelSize { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
             }
         }
     }

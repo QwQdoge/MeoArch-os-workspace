@@ -36,7 +36,7 @@ Button {
     implicitWidth: (type === "extended" && !collapsed) ? Math.max(80 * themeGlobalScale, contentRow.implicitWidth + 32 * themeGlobalScale) : size
     implicitHeight: size
 
-    Behavior on implicitWidth { NumberAnimation { duration: 300; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+    Behavior on implicitWidth { NumberAnimation { duration: 300; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
 
     background: Rectangle {
         radius: control.radiusSize
@@ -94,7 +94,7 @@ Button {
             // Clip text when collapsing to avoid layout artifacts
             clip: true
             width: (control.type === "extended" && control.collapsed) ? 0 : implicitWidth
-            Behavior on width { NumberAnimation { duration: 300; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+            Behavior on width { NumberAnimation { duration: 300; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
         }
     }
 }

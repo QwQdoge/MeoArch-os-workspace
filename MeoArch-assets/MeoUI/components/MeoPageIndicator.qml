@@ -33,7 +33,7 @@ Control {
                 color: index === control.currentIndex ? control.themePrimary : control.themeOutlineVariant
 
                 Behavior on width {
-                    NumberAnimation { duration: 200; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] }
+                    NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] }
                 }
                 Behavior on color {
                     ColorAnimation { duration: 200 }

@@ -127,6 +127,6 @@ Control {
     // Scale and opacity transitions
     scale: visible ? 1.0 : 0.0
     opacity: visible ? 1.0 : 0.0
-    Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+    Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
     Behavior on opacity { NumberAnimation { duration: 150 } }
 }
