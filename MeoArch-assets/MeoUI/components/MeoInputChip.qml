@@ -9,6 +9,8 @@ Control {
     property string label: ""
     property string avatarSource: ""
     property string leadingIcon: ""
+    property string size: "m" // 🌟 MD3 Expressive: "xs" | "s" | "m" | "l" | "xl"
+    property bool isEmphasized: false
     property bool selected: false
 
     signal clicked()
@@ -24,16 +26,40 @@ Control {
     readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
-    readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
+    readonly property var fontToken: {
+        if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
+        let token;
+        if (size === "xs") token = MeoTheme.labelSmall;
+        else if (size === "s") token = MeoTheme.labelMedium;
+        else if (size === "l") token = MeoTheme.titleSmall;
+        else if (size === "xl") token = MeoTheme.titleMedium;
+        else token = MeoTheme.labelLarge;
 
-    implicitHeight: 32 * themeGlobalScale
+        if (isEmphasized) {
+            if (size === "xs") return MeoTheme.labelSmallEmphasized || token;
+            if (size === "s") return MeoTheme.labelMediumEmphasized || token;
+            if (size === "l") return MeoTheme.titleSmallEmphasized || token;
+            if (size === "xl") return MeoTheme.titleMediumEmphasized || token;
+            return MeoTheme.labelLargeEmphasized || token;
+        }
+        return token;
+    }
+
+    implicitHeight: {
+        if (size === "xs") return 24 * themeGlobalScale;
+        if (size === "s") return 28 * themeGlobalScale;
+        if (size === "m") return 32 * themeGlobalScale;
+        if (size === "l") return 40 * themeGlobalScale;
+        if (size === "xl") return 48 * themeGlobalScale;
+        return 32 * themeGlobalScale;
+    }
     implicitWidth: contentRow.implicitWidth + leftPadding + rightPadding
 
-    leftPadding: (avatarSource !== "" || leadingIcon !== "" ? 4 : 12) * themeGlobalScale
-    rightPadding: 8 * themeGlobalScale
+    leftPadding: (avatarSource !== "" || leadingIcon !== "" ? 4 : (size === "xl" ? 24 : 12)) * themeGlobalScale
+    rightPadding: (size === "xl" ? 16 : 8) * themeGlobalScale
 
     background: Rectangle {
-        radius: 8 * themeGlobalScale
+        radius: (size === "xl" ? 16 : 8) * themeGlobalScale
         color: control.selected ? control.themeSecondaryContainer : "transparent"
         border.color: control.selected ? "transparent" : (control.enabled ? control.themeOutline : Qt.rgba(control.themeOutline.r, control.themeOutline.g, control.themeOutline.b, 0.12))
         border.width: control.selected ? 0 : 1 * themeGlobalScale
@@ -57,13 +83,13 @@ Control {
 
     contentItem: Row {
         id: contentRow
-        spacing: 8 * control.themeGlobalScale
+        spacing: (size === "xs" ? 4 : 8) * control.themeGlobalScale
         anchors.verticalCenter: parent.verticalCenter
 
         // Avatar or Leading Icon
         Item {
-            width: (avatarSource !== "" || leadingIcon !== "") ? 24 * control.themeGlobalScale : 0
-            height: 24 * control.themeGlobalScale
+            width: (avatarSource !== "" || leadingIcon !== "") ? (size === "xl" ? 40 : 24) * control.themeGlobalScale : 0
+            height: (size === "xl" ? 40 : 24) * control.themeGlobalScale
             anchors.verticalCenter: parent.verticalCenter
             visible: width > 0
 
@@ -84,7 +110,11 @@ Control {
             MeoIcon {
                 visible: control.avatarSource === "" && control.leadingIcon !== ""
                 icon: control.leadingIcon
-                size: 18
+                size: {
+                    if (size === "xs" || size === "s") return 18;
+                    if (size === "xl") return 32;
+                    return 24;
+                }
                 color: control.selected ? control.themePrimary : control.themeOnSurfaceVariant
                 anchors.centerIn: parent
             }
@@ -92,8 +122,9 @@ Control {
 
         Text {
             text: control.label
-            font.pixelSize: fontLabelLarge.size * control.themeGlobalScale
-            font.weight: fontLabelLarge.weight
+            font.pixelSize: fontToken.size * control.themeGlobalScale
+            font.weight: fontToken.weight
+            font.letterSpacing: (fontToken.letterSpacing || 0) * control.themeGlobalScale
             color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
             verticalAlignment: Text.AlignVCenter
             anchors.verticalCenter: parent.verticalCenter
@@ -102,8 +133,8 @@ Control {
         // Delete Icon
         MeoIconButton {
             icon.name: "close"
-            width: 18 * control.themeGlobalScale
-            height: 18 * control.themeGlobalScale
+            width: (size === "xl" ? 32 : 18) * control.themeGlobalScale
+            height: (size === "xl" ? 32 : 18) * control.themeGlobalScale
             padding: 2 * control.themeGlobalScale
             anchors.verticalCenter: parent.verticalCenter
             onClicked: control.deleted()
@@ -111,7 +142,11 @@ Control {
             // Customizing internal MeoIcon for the delete button
             contentItem: MeoIcon {
                 icon: "close"
-                size: 18
+                size: {
+                    if (size === "xs" || size === "s") return 18;
+                    if (size === "xl") return 32;
+                    return 24;
+                }
                 color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
             }
             background: null

@@ -19,6 +19,38 @@ ScrollView {
             color: MeoTheme.onSurface
         }
 
+        // --- Expressive Search Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive Search Bar Expansion"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            ColumnLayout {
+                spacing: 24 * MeoTheme.globalScale
+                Layout.fillWidth: true
+
+                MeoSearchBar {
+                    placeholder: "Click to expand..."
+                    onActiveChanged: if (active) text = "Expanded state active"
+                }
+
+                Text {
+                    text: "Search morphs from pill (28dp) to contained (16dp) or full-screen (0dp) based on container width."
+                    font.pixelSize: MeoTheme.bodySmall.size * MeoTheme.globalScale
+                    color: MeoTheme.onSurfaceVariant
+                    Layout.maximumWidth: 400 * MeoTheme.globalScale
+                    wrapMode: Text.WordWrap
+                }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
         // --- Expressive Buttons Section ---
         ColumnLayout {
             spacing: 16 * MeoTheme.globalScale
@@ -57,6 +89,47 @@ ScrollView {
             }
         }
 
+        // --- Expressive Lists Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive Segmented Lists"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            Column {
+                Layout.fillWidth: true
+                spacing: 8 * MeoTheme.globalScale
+
+                MeoListItem {
+                    headline: "Vibrant Selection"
+                    supportingText: "Uses primaryContainer roles"
+                    isSegmented: true
+                    selected: true
+                    vibrant: true
+                    leadingIcon: "auto_awesome"
+                }
+                MeoListItem {
+                    headline: "Standard Segmented"
+                    supportingText: "Uses secondaryContainer roles"
+                    isSegmented: true
+                    selected: true
+                    leadingIcon: "check_circle"
+                }
+                MeoListItem {
+                    headline: "Emphasized Typography"
+                    supportingText: "Bold headline and demibold support text"
+                    isEmphasized: true
+                    leadingIcon: "format_bold"
+                }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
         // --- Segmented Buttons Section ---
         ColumnLayout {
             spacing: 16 * MeoTheme.globalScale
@@ -78,10 +151,71 @@ ScrollView {
             }
         }
 
-                Column {
-                    spacing: 8 * MeoTheme.globalScale
-                    MeoRadioButton { label: "Radio Selected"; checked: true }
-                    MeoRadioButton { label: "Radio Unselected"; checked: false }
+        // --- Expressive Chips Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive Chips (XS to XL)"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: 12 * MeoTheme.globalScale
+                MeoChip { label: "XS Chip"; size: "xs"; icon: "tag" }
+                MeoChip { label: "S Chip"; size: "s"; selected: true }
+                MeoChip { label: "M Chip"; size: "m"; closable: true }
+                MeoChip { label: "L Chip"; size: "l"; icon: "face"; isEmphasized: true }
+                MeoChip { label: "XL Chip"; size: "xl"; icon: "rocket_launch"; isEmphasized: true }
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: 12 * MeoTheme.globalScale
+                MeoAssistChip { label: "XS Assist"; size: "xs"; icon: "share" }
+                MeoFilterChip { label: "S Filter"; size: "s"; selected: true }
+                MeoInputChip { label: "M Input"; size: "m" }
+                MeoSuggestionChip { label: "L Suggestion"; size: "l" }
+                MeoAssistChip { label: "XL Assist"; size: "xl"; icon: "star"; isEmphasized: true }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // --- Expressive Progress Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive Progress Indicators"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            ColumnLayout {
+                spacing: 24 * MeoTheme.globalScale
+                Layout.fillWidth: true
+
+                RowLayout {
+                    spacing: 24 * MeoTheme.globalScale
+                    ColumnLayout {
+                        Text { text: "Standard (4dp)"; font.weight: Font.Medium }
+                        MeoProgressBar { value: 0.6; width: 200 * MeoTheme.globalScale }
+                    }
+                    ColumnLayout {
+                        Text { text: "Thick (8dp)"; font.weight: Font.Medium }
+                        MeoProgressBar { value: 0.6; isThick: true; width: 200 * MeoTheme.globalScale }
+                    }
+                }
+
+                RowLayout {
+                    spacing: 48 * MeoTheme.globalScale
+                    MeoProgressBar { type: "circular"; indeterminate: true }
+                    MeoProgressBar { type: "circular"; indeterminate: true; isThick: true }
                 }
             }
         }
