@@ -20,11 +20,29 @@ Rectangle {
 
     implicitWidth: 360 * themeGlobalScale
     implicitHeight: 56 * themeGlobalScale
-    radius: active ? 0 : 28 * themeGlobalScale
+
+    // 📐 Expressive Expansion Logic
+    readonly property bool isWide: parent && parent.width > 600 * themeGlobalScale
+
+    // Use Layout.preferredWidth if inside a layout, otherwise set width
+    width: {
+        if (typeof Layout !== 'undefined' && typeof Layout.fillWidth !== 'undefined') return implicitWidth;
+        return active ? (parent ? parent.width : implicitWidth) : implicitWidth
+    }
+
+    // Handle Layout.fillWidth safely
+    Component.onCompleted: {
+        if (typeof Layout !== 'undefined' && typeof Layout.fillWidth !== 'undefined') {
+            // If in a layout, we might need a different strategy, but for standard usage:
+        }
+    }
+
+    radius: active ? (isWide ? 16 * themeGlobalScale : 0) : 28 * themeGlobalScale
     color: active ? themeSurface : themeSurfaceContainerHighest
 
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
 
+    Behavior on width { NumberAnimation { duration: 300; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
     Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
     Behavior on radius { NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
 
