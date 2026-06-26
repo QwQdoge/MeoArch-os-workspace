@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import MeoUI
 
 Control {
@@ -10,6 +11,7 @@ Control {
     property string icon: ""
     property string badgeText: ""
     property bool selected: false
+    property string shape: "rect" // 🌟 MD3 Expressive: "rect" | "squircle" | "hexagon" | ...
 
     signal clicked()
 
@@ -28,19 +30,34 @@ Control {
 
     background: Item {
         // 🌟 Pill-shaped Active Indicator
-        Rectangle {
-            id: indicator
+        MeoShape {
+            id: shapeBg
             anchors.centerIn: parent
             width: parent.width - 24 * control.themeGlobalScale
             height: parent.height - 8 * control.themeGlobalScale
+            type: control.shape
             radius: height / 2
             color: control.selected ? control.themeSecondaryContainer : "transparent"
 
             MeoStateLayer {
-                radius: parent.radius
+                anchors.fill: parent
                 pressed: mouseArea.pressed
                 hovered: mouseArea.containsMouse
                 color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurface
+
+                layer.enabled: control.shape !== "rect"
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: Item {
+                        width: shapeBg.width
+                        height: shapeBg.height
+                        MeoShape {
+                            anchors.fill: parent
+                            type: control.shape
+                            radius: shapeBg.radius
+                        }
+                    }
+                }
             }
 
             Behavior on color { ColorAnimation { duration: 150 } }

@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import MeoUI
 
 Control {
@@ -27,6 +28,7 @@ Control {
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool vibrant: false // 🌟 MD3 Expressive: Vibrant selection style
     property bool selected: false
+    property string shape: "rect" // 🌟 MD3 Expressive: "rect" | "squircle" | "hexagon" | ...
 
     signal clicked()
 
@@ -64,31 +66,50 @@ Control {
     padding: isSegmented ? 12 * themeGlobalScale : 16 * themeGlobalScale
     spacing: 16 * themeGlobalScale // Standardized MD3 spacing
 
-    background: Rectangle {
-        color: {
-            if (!isSegmented || !selected) return "transparent";
-            return vibrant ? themePrimaryContainer : themeSecondaryContainer;
-        }
-        radius: isSegmented ? (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale) : 0
-
+    background: Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.leftMargin: isSegmented ? 8 * themeGlobalScale : 0
         anchors.rightMargin: isSegmented ? 8 * themeGlobalScale : 0
 
-        Rectangle {
+        MeoShape {
+            id: shapeBg
             anchors.fill: parent
-            visible: control.interactive
-            radius: parent.radius
+            type: isSegmented ? control.shape : "rect"
+            radius: isSegmented ? (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale) : 0
             color: {
-                let overlayColor = (vibrant && selected) ? control.themeOnPrimaryContainer : control.themeOnSurface;
-                if (mouseArea.pressed) return Qt.rgba(overlayColor.r, overlayColor.g, overlayColor.b, 0.12)
-                if (mouseArea.containsMouse) return Qt.rgba(overlayColor.r, overlayColor.g, overlayColor.b, 0.08)
-                return "transparent"
+                if (!isSegmented || !selected) return "transparent";
+                return vibrant ? themePrimaryContainer : themeSecondaryContainer;
             }
-            Behavior on color { ColorAnimation { duration: 150 } }
+
+            MeoStateLayer {
+                anchors.fill: parent
+                visible: control.interactive
+                pressed: mouseArea.pressed
+                hovered: mouseArea.containsMouse
+                color: {
+                    if (vibrant && selected) return control.themeOnPrimaryContainer;
+                    if (selected) return control.themeOnSecondaryContainer;
+                    return control.themeOnSurface;
+                }
+
+                layer.enabled: isSegmented && control.shape !== "rect"
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: Item {
+                        width: shapeBg.width
+                        height: shapeBg.height
+                        MeoShape {
+                            anchors.fill: parent
+                            type: control.shape
+                            radius: shapeBg.radius
+                        }
+                    }
+                }
+            }
+
+            Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
         }
-        Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
     }
 
     MouseArea {
