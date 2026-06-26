@@ -9,6 +9,8 @@ Control {
     // 🌟 核心属性
     property string label: ""
     property string icon: ""
+    property string size: "m" // 🌟 MD3 Expressive: "xs" | "s" | "m" | "l" | "xl"
+    property bool isEmphasized: false
     property string avatarSource: "" // 🖼️ New: Profile avatar support
     property bool elevated: false
 
@@ -23,16 +25,41 @@ Control {
     readonly property color themeSurfaceContainerLow: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
-    readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
+    readonly property var fontToken: {
+        if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
+        let token;
+        if (size === "xs") token = MeoTheme.labelSmall;
+        else if (size === "s") token = MeoTheme.labelMedium;
+        else if (size === "l") token = MeoTheme.titleSmall;
+        else if (size === "xl") token = MeoTheme.titleMedium;
+        else token = MeoTheme.labelLarge;
 
-    implicitHeight: 32 * themeGlobalScale
+        if (isEmphasized) {
+            if (size === "xs") return MeoTheme.labelSmallEmphasized || token;
+            if (size === "s") return MeoTheme.labelMediumEmphasized || token;
+            if (size === "l") return MeoTheme.titleSmallEmphasized || token;
+            if (size === "xl") return MeoTheme.titleMediumEmphasized || token;
+            return MeoTheme.labelLargeEmphasized || token;
+        }
+        return token;
+    }
+
+    implicitHeight: {
+        if (size === "xs") return 24 * themeGlobalScale;
+        if (size === "s") return 28 * themeGlobalScale;
+        if (size === "m") return 32 * themeGlobalScale;
+        if (size === "l") return 40 * themeGlobalScale;
+        if (size === "xl") return 48 * themeGlobalScale;
+        return 32 * themeGlobalScale;
+    }
     implicitWidth: contentRow.implicitWidth + leftPadding + rightPadding
 
-    leftPadding: (icon !== "" || avatarSource !== "" ? 8 : 16) * themeGlobalScale
-    rightPadding: 16 * themeGlobalScale
+    padding: 0
+    leftPadding: (icon !== "" || avatarSource !== "" ? (size === "xl" ? 16 : 8) : (size === "xl" ? 24 : 16)) * themeGlobalScale
+    rightPadding: (size === "xl" ? 24 : 16) * themeGlobalScale
 
     background: Rectangle {
-        radius: 8 * themeGlobalScale
+        radius: (size === "xl" ? 16 : 8) * themeGlobalScale
         color: control.elevated ? control.themeSurfaceContainerLow : "transparent"
         border.color: control.elevated ? "transparent" : (control.enabled ? control.themeOutline : Qt.rgba(control.themeOutline.r, control.themeOutline.g, control.themeOutline.b, 0.12))
         border.width: control.elevated ? 0 : 1 * themeGlobalScale
@@ -65,13 +92,13 @@ Control {
 
     contentItem: Row {
         id: contentRow
-        spacing: 8 * control.themeGlobalScale
+        spacing: (size === "xs" ? 4 : 8) * control.themeGlobalScale
         anchors.verticalCenter: parent.verticalCenter
 
         // 🖼️ Avatar Support
         Rectangle {
-            width: 24 * control.themeGlobalScale
-            height: 24 * control.themeGlobalScale
+            width: (size === "xl" ? 40 : 24) * control.themeGlobalScale
+            height: (size === "xl" ? 40 : 24) * control.themeGlobalScale
             radius: width / 2
             clip: true
             visible: control.avatarSource !== ""
@@ -86,15 +113,20 @@ Control {
         MeoIcon {
             icon: control.icon
             visible: icon !== "" && control.avatarSource === ""
-            size: 18
+            size: {
+                if (size === "xs" || size === "s") return 18;
+                if (size === "xl") return 32;
+                return 24;
+            }
             color: control.themePrimary
             anchors.verticalCenter: parent.verticalCenter
         }
 
         Text {
             text: control.label
-            font.pixelSize: fontLabelLarge.size * control.themeGlobalScale
-            font.weight: fontLabelLarge.weight
+            font.pixelSize: fontToken.size * control.themeGlobalScale
+            font.weight: fontToken.weight
+            font.letterSpacing: (fontToken.letterSpacing || 0) * control.themeGlobalScale
             color: control.themeOnSurfaceVariant
             verticalAlignment: Text.AlignVCenter
             anchors.verticalCenter: parent.verticalCenter
