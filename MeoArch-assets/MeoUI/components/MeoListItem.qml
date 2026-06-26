@@ -25,6 +25,7 @@ Control {
     property bool interactive: true
     property bool isSegmented: false // MD3 Expressive: Segmented list style
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
+    property bool vibrant: false // 🌟 MD3 Expressive: Vibrant selection style
     property bool selected: false
 
     signal clicked()
@@ -35,6 +36,8 @@ Control {
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
     readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B"
+    readonly property color themePrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
+    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimaryContainer !== 'undefined') ? MeoTheme.onPrimaryContainer : "#21005D"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     readonly property var fontBodyLarge: {
@@ -62,7 +65,10 @@ Control {
     spacing: 16 * themeGlobalScale // Standardized MD3 spacing
 
     background: Rectangle {
-        color: isSegmented && selected ? themeSecondaryContainer : "transparent"
+        color: {
+            if (!isSegmented || !selected) return "transparent";
+            return vibrant ? themePrimaryContainer : themeSecondaryContainer;
+        }
         radius: isSegmented ? (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale) : 0
 
         anchors.left: parent.left
@@ -75,12 +81,14 @@ Control {
             visible: control.interactive
             radius: parent.radius
             color: {
-                if (mouseArea.pressed) return Qt.rgba(control.themeOnSurface.r, control.themeOnSurface.g, control.themeOnSurface.b, 0.12)
-                if (mouseArea.containsMouse) return Qt.rgba(control.themeOnSurface.r, control.themeOnSurface.g, control.themeOnSurface.b, 0.08)
+                let overlayColor = (vibrant && selected) ? control.themeOnPrimaryContainer : control.themeOnSurface;
+                if (mouseArea.pressed) return Qt.rgba(overlayColor.r, overlayColor.g, overlayColor.b, 0.12)
+                if (mouseArea.containsMouse) return Qt.rgba(overlayColor.r, overlayColor.g, overlayColor.b, 0.08)
                 return "transparent"
             }
             Behavior on color { ColorAnimation { duration: 150 } }
         }
+        Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
     }
 
     MouseArea {
@@ -159,8 +167,14 @@ Control {
                 font.weight: (control.selected && !isSegmented) ? Font.Bold : fontBodyLarge.weight
                 font.letterSpacing: (fontBodyLarge.letterSpacing || 0) * control.themeGlobalScale
                 lineHeight: (fontBodyLarge.lineHeight ? (fontBodyLarge.lineHeight / fontBodyLarge.size) : 1.2)
-                color: control.selected && isSegmented ? control.themeOnSecondaryContainer : control.themeOnSurface
+                color: {
+                    if (control.selected && isSegmented) {
+                        return vibrant ? control.themeOnPrimaryContainer : control.themeOnSecondaryContainer;
+                    }
+                    return control.themeOnSurface;
+                }
                 elide: Text.ElideRight
+                Behavior on color { ColorAnimation { duration: 150 } }
             }
 
             Text {

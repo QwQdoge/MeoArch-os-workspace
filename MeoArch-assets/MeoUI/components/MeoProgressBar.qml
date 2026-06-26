@@ -8,6 +8,7 @@ Control {
     property real value: 0.0 // 0.0 ~ 1.0
     property bool indeterminate: false
     property string type: "linear" // "linear" | "circular"
+    property bool isThick: false // 🌟 MD3 Expressive: Thicker track variant
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -16,7 +17,10 @@ Control {
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     implicitWidth: type === "linear" ? 240 * themeGlobalScale : 48 * themeGlobalScale
-    implicitHeight: type === "linear" ? 4 * themeGlobalScale : 48 * themeGlobalScale
+    implicitHeight: {
+        if (type === "linear") return (isThick ? 8 : 4) * themeGlobalScale;
+        return 48 * themeGlobalScale;
+    }
 
     // Linear Progress
     Rectangle {
@@ -62,7 +66,7 @@ Control {
 
             var centerX = width / 2;
             var centerY = height / 2;
-            var strokeWidth = 4 * control.themeGlobalScale;
+            var strokeWidth = (control.isThick ? 8 : 4) * control.themeGlobalScale;
             var radius = (width - strokeWidth) / 2;
 
             if (control.indeterminate) {
