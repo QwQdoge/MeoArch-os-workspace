@@ -36,6 +36,8 @@ Rectangle {
     color: isContextual ? themePrimaryContainer : themeSurface
     Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingSoul !== 'undefined') ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
 
+    Behavior on height { NumberAnimation { duration: 300; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingSoul !== 'undefined') ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
+
     Rectangle {
         id: stateLayer
         anchors.fill: parent
@@ -69,6 +71,7 @@ Rectangle {
             anchors.verticalCenter: control.type === "small" || control.type === "center" ? parent.verticalCenter : undefined
             anchors.bottom: control.type === "medium" || control.type === "large" ? parent.bottom : undefined
 
+            Behavior on font.pixelSize { NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
             Behavior on color { ColorAnimation { duration: 150 } }
         }
 

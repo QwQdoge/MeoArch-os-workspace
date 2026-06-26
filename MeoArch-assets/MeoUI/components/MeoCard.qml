@@ -10,6 +10,7 @@ Frame {
     property string type: "elevated"
     property int level: type === "elevated" ? 1 : 0
     property real radius: 12 * themeGlobalScale
+    property string shape: "rect" // 🌟 MD3 Expressive: "rect" | "squircle" | "hexagon" | "diamond" | ...
     property bool interactive: false // 🌟 MD3: Supports click interaction
 
     signal clicked()
@@ -30,49 +31,81 @@ Frame {
 
     padding: 16 * themeGlobalScale
 
-    background: Rectangle {
-        radius: control.radius
-        color: {
-            if (type === "filled") return control.themeSurfaceVariant
-            return control.themeSurface // elevated and outlined
-        }
-
-        // Surface Tint for Elevation
-        Rectangle {
+    background: Item {
+        MeoShape {
+            id: shapeBg
             anchors.fill: parent
-            radius: parent.radius
-            color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceTint !== 'undefined') ? MeoTheme.surfaceTint(control.level) : "transparent"
-            visible: type !== "filled"
+            type: control.shape
+            radius: control.radius
+            color: {
+                if (type === "filled") return control.themeSurfaceVariant
+                return control.themeSurface // elevated and outlined
+            }
+            strokeColor: control.type === "outlined" ? control.themeOutlineVariant : "transparent"
+            strokeWidth: control.type === "outlined" ? 1 * control.themeGlobalScale : 0
+
+            // Surface Tint for Elevation
+            Rectangle {
+                anchors.fill: parent
+                color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceTint !== 'undefined') ? MeoTheme.surfaceTint(control.level) : "transparent"
+                visible: type !== "filled"
+                Behavior on color { ColorAnimation { duration: 150 } }
+
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: Item {
+                        width: shapeBg.width
+                        height: shapeBg.height
+                        MeoShape {
+                            anchors.fill: parent
+                            type: control.shape
+                            radius: control.radius
+                        }
+                    }
+                }
+            }
+
+            // MD3 Elevation for 'elevated' type
+            layer.enabled: control.elevation > 0
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowBlur: 0.2
+                shadowVerticalOffset: control.elevation * control.themeGlobalScale
+                shadowColor: Qt.rgba(0,0,0,0.2)
+            }
+
+            MeoStateLayer {
+                anchors.fill: parent
+                visible: control.interactive
+                pressed: mouseArea.pressed
+                hovered: mouseArea.containsMouse
+                color: control.isDarkMode ? "#FFFFFF" : "#000000"
+
+                layer.enabled: true
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: Item {
+                        width: shapeBg.width
+                        height: shapeBg.height
+                        MeoShape {
+                            anchors.fill: parent
+                            type: control.shape
+                            radius: control.radius
+                        }
+                    }
+                }
+            }
+
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                enabled: control.interactive
+                onClicked: control.clicked()
+            }
+
             Behavior on color { ColorAnimation { duration: 150 } }
         }
 
-        border.color: control.type === "outlined" ? control.themeOutlineVariant : "transparent"
-        border.width: control.type === "outlined" ? 1 * control.themeGlobalScale : 0
-
-        // MD3 Elevation for 'elevated' type
-        layer.enabled: control.elevation > 0
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.2
-            shadowVerticalOffset: control.elevation * control.themeGlobalScale
-            shadowColor: Qt.rgba(0,0,0,0.2)
-        }
-
-        MeoStateLayer {
-            radius: parent.radius
-            visible: control.interactive
-            pressed: mouseArea.pressed
-            hovered: mouseArea.containsMouse
-            color: control.isDarkMode ? "#FFFFFF" : "#000000"
-        }
-
-        MouseArea {
-            id: mouseArea
-            anchors.fill: parent
-            enabled: control.interactive
-            onClicked: control.clicked()
-        }
-
-        Behavior on color { ColorAnimation { duration: 150 } }
     }
 }

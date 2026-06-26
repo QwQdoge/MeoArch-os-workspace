@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import MeoUI
 
 Popup {
@@ -8,6 +9,9 @@ Popup {
     // 🌟 核心对外属性
     property string title: ""
     property string text: ""
+    property string icon: "" // 🌟 New: Illustrative Icon
+    property string image: "" // 🌟 New: Illustrative Image
+    property string shape: "rect" // 🌟 MD3 Expressive Shape
     property var actions: [] // Array of { text: "", action: function }
 
     readonly property color themeSurfaceContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainer !== 'undefined') ? MeoTheme.surfaceContainer : "#F3EDF7"
@@ -18,19 +22,71 @@ Popup {
     padding: 0
     width: Math.min(320 * themeGlobalScale, (parent ? parent.width - 48 * themeGlobalScale : 320 * themeGlobalScale))
 
-    background: Rectangle {
+    background: MeoShape {
+        id: shapeBg
+        type: control.shape
         color: control.themeSurfaceContainer
         radius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * control.themeGlobalScale
         // MD3 Elevation 2
-        border.color: Qt.rgba(0,0,0,0.1)
-        border.width: 0.5 * themeGlobalScale
+
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 0.2
+            shadowVerticalOffset: 2 * control.themeGlobalScale
+            shadowColor: Qt.rgba(0,0,0,0.2)
+        }
     }
 
     contentItem: Column {
-        padding: 16 * control.themeGlobalScale
-        spacing: 12 * control.themeGlobalScale
+        padding: 0
+        spacing: 0
 
-        Text {
+        // Illustrative Image/Icon
+        Rectangle {
+            width: parent.width
+            height: 120 * control.themeGlobalScale
+            visible: control.image !== "" || control.icon !== ""
+            color: control.themeSurfaceContainer
+            radius: shapeBg.radius
+            clip: true
+
+            Image {
+                anchors.fill: parent
+                source: control.image
+                fillMode: Image.PreserveAspectCrop
+                visible: control.image !== ""
+            }
+
+            MeoIcon {
+                anchors.centerIn: parent
+                icon: control.icon
+                size: 48
+                color: control.themeOnSurfaceVariant
+                visible: control.icon !== "" && control.image === ""
+            }
+
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                maskEnabled: true
+                maskSource: Item {
+                    width: shapeBg.width
+                    height: shapeBg.height
+                    MeoShape {
+                        anchors.fill: parent
+                        type: control.shape
+                        radius: shapeBg.radius
+                    }
+                }
+            }
+        }
+
+        Column {
+            width: parent.width
+            padding: 16 * control.themeGlobalScale
+            spacing: 12 * control.themeGlobalScale
+
+            Text {
             text: control.title
             visible: text !== ""
             width: parent.width - 32 * control.themeGlobalScale

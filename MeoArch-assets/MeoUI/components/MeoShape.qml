@@ -8,12 +8,16 @@ Item {
     property string type: (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeSquircle : "squircle")
     property color color: "transparent"
     property real radius: 12 * themeGlobalScale
+    property color strokeColor: "transparent"
+    property real strokeWidth: 0
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     onRadiusChanged: canvas.requestPaint()
     onTypeChanged: canvas.requestPaint()
     onColorChanged: canvas.requestPaint()
+    onStrokeColorChanged: canvas.requestPaint()
+    onStrokeWidthChanged: canvas.requestPaint()
 
     Canvas {
         id: canvas
@@ -75,6 +79,12 @@ Item {
 
             ctx.closePath();
             ctx.fill();
+
+            if (control.strokeWidth > 0 && control.strokeColor !== "transparent") {
+                ctx.strokeStyle = control.strokeColor;
+                ctx.lineWidth = control.strokeWidth;
+                ctx.stroke();
+            }
         }
 
         onWidthChanged: requestPaint()
