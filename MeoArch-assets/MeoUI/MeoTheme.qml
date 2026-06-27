@@ -9,6 +9,8 @@ QtObject {
 
     // 🌟 主题模式开关
     property bool isDarkMode: false
+    property bool isExpressive: false
+    property bool isBouncy: true
 
     // 🎨 MeoArch MD3 fallback color schemes
     // Used role-by-role whenever a dynamic color scheme is unavailable or incomplete.
@@ -147,6 +149,10 @@ QtObject {
     readonly property var motionDurationLong2: 500
     readonly property var motionDurationLong3: 550
     readonly property var motionDurationLong4: 600
+    readonly property var motionDurationExtraLong1: 700
+    readonly property var motionDurationExtraLong2: 800
+    readonly property var motionDurationExtraLong3: 900
+    readonly property var motionDurationExtraLong4: 1000
 
     readonly property var motionEasingStandard: [0.2, 0, 0, 1]
     readonly property var motionEasingStandardAccelerate: [0.3, 0, 1, 1]
@@ -188,6 +194,7 @@ QtObject {
     readonly property real shapeLargeIncreased: 20 * globalScale
     readonly property real shapeExtraLarge: 28 * globalScale
     readonly property real shapeExtraLargeIncreased: 32 * globalScale
+    readonly property real expressiveShapeCornerRadius: 32 * globalScale
     readonly property real shapeExtraExtraLarge: 48 * globalScale
     readonly property real shapeFull: 1000 * globalScale // Large value for full rounding
 

@@ -12,6 +12,7 @@ Control {
     property real secondValue: 80.0
     property bool discrete: false
     property real stepSize: 1.0
+    property bool isThick: false // 🌟 MD3 Expressive: Thicker track variant
     property string size: "m" // "xs" | "s" | "m" | "l" | "xl"
 
     signal moved()
@@ -25,6 +26,7 @@ Control {
 
     // 📐 尺寸映射 (MD3 Expressive Slider)
     readonly property real trackHeight: {
+        if (isThick) return 16 * themeGlobalScale;
         if (size === "s") return (MeoTheme.sliderTrackHeightS || 16 * themeGlobalScale)
         if (size === "m") return (MeoTheme.sliderTrackHeightM || 28 * themeGlobalScale)
         if (size === "l") return (MeoTheme.sliderTrackHeightL || 36 * themeGlobalScale)

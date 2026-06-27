@@ -153,6 +153,34 @@ Flickable {
                     stepSize: 5
                     onMoved: (value) => { MeoTheme.globalScale = value / 100 }
                 }
+
+                MeoDivider { Layout.fillWidth: true }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 12 * page.themeGlobalScale
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 2 * page.themeGlobalScale
+                        Text {
+                            text: "Expressive Mode"
+                            color: MeoTheme.onSurface
+                            font.pixelSize: MeoTheme.titleMedium.size * page.themeGlobalScale
+                            font.weight: MeoTheme.titleMedium.weight
+                        }
+                        Text {
+                            text: MeoTheme.isExpressive ? "Enabled" : "Disabled"
+                            color: MeoTheme.onSurfaceVariant
+                            font.pixelSize: MeoTheme.bodyMedium.size * page.themeGlobalScale
+                        }
+                    }
+                    MeoSwitch {
+                        checked: MeoTheme.isExpressive
+                        icon: "auto_awesome"
+                        onToggled: (checked) => { MeoTheme.isExpressive = checked }
+                    }
+                }
             }
         }
 

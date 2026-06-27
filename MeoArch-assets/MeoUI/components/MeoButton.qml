@@ -184,10 +184,14 @@ Button {
                 if (size === "xs" || size === "s") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * MeoTheme.globalScale;
                 return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * MeoTheme.globalScale;
             }
+            if (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive) return MeoTheme.expressiveShapeCornerRadius;
             return height / 2;
         }
         
         color: control.bgColor
+
+        scale: (typeof MeoTheme !== 'undefined' && MeoTheme.isBouncy && control.pressed) ? 0.96 : 1.0
+        Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
 
         Behavior on radius {
             NumberAnimation { duration: 200; easing.bezierCurve: MeoTheme.motionEasingSoul }
@@ -216,14 +220,14 @@ Button {
             if (control.activeFocus) return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
             return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E";
         }
-        border.width: (control.type === "outlined" && (control.activeFocus || control.selected)) ? 2 : (control.type === "outlined" ? 1 : 0)
+        border.width: (control.type === "outlined" && (control.activeFocus || control.selected || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive))) ? 2 : (control.type === "outlined" ? 1 : 0)
 
         // Simplified Elevation Shadow
-        layer.enabled: control.elevation > 0
+        layer.enabled: control.elevation > 0 || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.type === "filled" && isEmphasized)
         layer.effect: MultiEffect {
             shadowEnabled: true
-            shadowBlur: 0.2
-            shadowVerticalOffset: control.elevation * MeoTheme.globalScale
+            shadowBlur: (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.type === "filled" && isEmphasized) ? 0.4 : 0.2
+            shadowVerticalOffset: (control.elevation > 0 ? control.elevation : (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.type === "filled" && isEmphasized ? 2 : 0)) * MeoTheme.globalScale
             shadowColor: Qt.rgba(0,0,0,0.2)
         }
 
