@@ -94,7 +94,7 @@ ScrollView {
             spacing: 16 * MeoTheme.globalScale
 
             Text {
-                text: "Expressive Segmented Lists"
+                text: "Expressive Segmented & Dense Lists"
                 font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
                 font.weight: Font.DemiBold
                 color: MeoTheme.primary
@@ -126,6 +126,12 @@ ScrollView {
                     supportingText: "Bold headline and demibold support text"
                     isEmphasized: true
                     leadingIcon: "format_bold"
+                }
+                MeoListItem {
+                    headline: "Dense List Item"
+                    supportingText: "Compact layout for high density"
+                    isDense: true
+                    leadingIcon: "compress"
                 }
             }
         }
@@ -211,6 +217,10 @@ ScrollView {
                     ColumnLayout {
                         Text { text: "Thick (8dp)"; font.weight: Font.Medium }
                         MeoProgressBar { value: 0.6; isThick: true; width: 200 * MeoTheme.globalScale }
+                    }
+                    ColumnLayout {
+                        Text { text: "Vibrant"; font.weight: Font.Medium }
+                        MeoProgressBar { value: 0.8; vibrant: true; width: 200 * MeoTheme.globalScale }
                     }
                 }
 
