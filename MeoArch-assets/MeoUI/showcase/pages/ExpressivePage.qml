@@ -111,6 +111,7 @@ ScrollView {
                     selected: true
                     vibrant: true
                     leadingIcon: "auto_awesome"
+                    shape: "squircle"
                 }
                 MeoListItem {
                     headline: "Standard Segmented"
@@ -118,6 +119,7 @@ ScrollView {
                     isSegmented: true
                     selected: true
                     leadingIcon: "check_circle"
+                    shape: "hexagon"
                 }
                 MeoListItem {
                     headline: "Emphasized Typography"
@@ -301,7 +303,7 @@ ScrollView {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            MeoListHeader { text: "Expressive Menus"; type: "emphasized" }
+            MeoListHeader { text: "Expressive Menus & Tooltips"; type: "emphasized" }
 
             Row {
                 spacing: 24 * MeoTheme.globalScale
@@ -326,19 +328,18 @@ ScrollView {
                 }
 
                 MeoButton {
-                    text: "Show Segmented Menu"
+                    text: "Show Illustrative Tooltip"
                     type: "tonal"
-                    onClicked: segmentedMenu.open()
+                    onClicked: illustrativeTooltip.open()
 
-                    MeoMenu {
-                        id: segmentedMenu
+                    MeoRichTooltip {
+                        id: illustrativeTooltip
                         y: parent.height + 8 * MeoTheme.globalScale
-                        itemSpacing: 8 * MeoTheme.globalScale
-                        model: [
-                            { label: "Option 1", icon: "filter_1" },
-                            { label: "Option 2", icon: "filter_2" },
-                            { label: "Option 3", icon: "filter_3" }
-                        ]
+                        title: "Expressive Tooltips"
+                        text: "Now supporting illustrative icons and expressive shapes."
+                        icon: "auto_awesome"
+                        shape: "squircle"
+                        actions: [{ text: "Awesome" }]
                     }
                 }
             }
@@ -418,7 +419,7 @@ ScrollView {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            MeoListHeader { text: "Expressive Shapes & Avatars"; type: "emphasized" }
+            MeoListHeader { text: "Expressive Shapes & Cards"; type: "emphasized" }
 
             Flow {
                 Layout.fillWidth: true
@@ -427,8 +428,38 @@ ScrollView {
                 MeoAvatar { size: 64; variant: "squircle"; initials: "SQ" }
                 MeoAvatar { size: 64; variant: "hexagon"; color: MeoTheme.secondaryContainer }
                 MeoAvatar { size: 64; variant: "octagon"; color: MeoTheme.tertiaryContainer; initials: "OC" }
-                MeoAvatar { size: 64; variant: "diamond"; color: MeoTheme.primaryContainer }
-                MeoAvatar { size: 64; variant: "pentagon"; initials: "PT" }
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: 24 * MeoTheme.globalScale
+
+                MeoCard {
+                    width: 160 * MeoTheme.globalScale
+                    height: 160 * MeoTheme.globalScale
+                    shape: "squircle"
+                    type: "filled"
+                    interactive: true
+                    Text { anchors.centerIn: parent; text: "Squircle Card"; color: MeoTheme.onSurfaceVariant }
+                }
+
+                MeoCard {
+                    width: 160 * MeoTheme.globalScale
+                    height: 160 * MeoTheme.globalScale
+                    shape: "hexagon"
+                    type: "elevated"
+                    interactive: true
+                    Text { anchors.centerIn: parent; text: "Hexagon Card"; color: MeoTheme.onSurface }
+                }
+
+                MeoCard {
+                    width: 160 * MeoTheme.globalScale
+                    height: 160 * MeoTheme.globalScale
+                    shape: "octagon"
+                    type: "outlined"
+                    interactive: true
+                    Text { anchors.centerIn: parent; text: "Octagon Card"; color: MeoTheme.onSurfaceVariant }
+                }
             }
         }
 
