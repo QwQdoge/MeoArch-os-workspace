@@ -1,0 +1,22 @@
+[Unit]
+Description=MeoArch graphical installer kiosk
+After=systemd-user-sessions.service systemd-logind.service network.target
+Wants=network.target
+Conflicts=getty@tty1.service
+
+[Service]
+Type=simple
+User=root
+TTYPath=/dev/tty1
+StandardInput=tty
+StandardOutput=journal
+StandardError=journal
+Environment=GDK_BACKEND=wayland
+Environment=XKB_DEFAULT_LAYOUT=us
+ExecStart=/usr/local/bin/meoarch-installer-kiosk
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+

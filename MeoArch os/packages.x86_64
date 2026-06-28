@@ -2,6 +2,8 @@ alsa-utils
 amd-ucode
 arch-install-scripts
 archinstall
+gtk4
+python-gobject
 b43-fwcutter
 base
 bcachefs-tools
@@ -141,9 +143,5 @@ xorg-xinit
 openbox
 xterm
 
-# 图形安装器，包名应小写，并确保 pacman.conf 能找到这个包
-calamares
-
-
-# 你的安装程序及其依赖
-calamares
+# 图形安装器运行时
+# Cage 提供全屏 Wayland kiosk，GTK/PyGObject 提供安装器 UI。
