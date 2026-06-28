@@ -123,6 +123,7 @@ Popup {
             }
         }
     }
+    }
 
     enter: Transition {
         NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 150 }
