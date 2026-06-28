@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
-project(MeoUI LANGUAGES CXX)
+project(MeoUI VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
+include(GNUInstallDirs)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+option(MEOUI_BUILD_SHOWCASE "Build the MeoUI showcase application" ON)
+
 find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Gui Qml)
 
 # Use Qt 6's standard :/qt/qml resource prefix for QML modules.
@@ -114,21 +121,44 @@ MeoTheme.qml
 # 确保链接到 QtQuick
 target_link_libraries(meoui_module PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2)
 
+install(TARGETS meoui_module
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
 # 新增 Demo 展示程序可执行目标
-qt_add_executable(MeoShowcaseDemo
-    main.cpp
-)
+if(MEOUI_BUILD_SHOWCASE)
+    qt_add_executable(MeoShowcaseDemo
+        main.cpp
+    )
 
-target_link_libraries(MeoShowcaseDemo PRIVATE
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Qml
-    Qt6::Quick
-    Qt6::QuickControls2
-    meoui_module
-)
+    target_link_libraries(MeoShowcaseDemo PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Qml
+        Qt6::Quick
+        Qt6::QuickControls2
+        meoui_module
+    )
 
-# 移除不支持的 qt_import_qml_modules，改用设置 target 属性
-set_target_properties(MeoShowcaseDemo PROPERTIES
-    QT_QML_IMPORT_PATH "${CMAKE_BINARY_DIR}"
-)
+    # 移除不支持的 qt_import_qml_modules，改用设置 target 属性
+    set_target_properties(MeoShowcaseDemo PROPERTIES
+        QT_QML_IMPORT_PATH "${CMAKE_BINARY_DIR}"
+        WIN32_EXECUTABLE TRUE
+    )
+
+    install(TARGETS MeoShowcaseDemo
+        BUNDLE DESTINATION .
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+
+    if(COMMAND qt_generate_deploy_qml_app_script)
+        qt_generate_deploy_qml_app_script(
+            TARGET MeoShowcaseDemo
+            OUTPUT_SCRIPT deploy_script
+            NO_UNSUPPORTED_PLATFORM_ERROR
+        )
+        install(SCRIPT ${deploy_script})
+    endif()
+endif()
