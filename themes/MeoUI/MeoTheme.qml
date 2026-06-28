@@ -135,28 +135,28 @@ QtObject {
     }
 
     // 🌟 Motion Tokens (MD3 Standard)
-    readonly property var motionDurationShort1: 50
-    readonly property var motionDurationShort2: 100
-    readonly property var motionDurationShort3: 150
-    readonly property var motionDurationShort4: 200
-    readonly property var motionDurationMedium1: 250
-    readonly property var motionDurationMedium2: 300
-    readonly property var motionDurationMedium3: 350
-    readonly property var motionDurationMedium4: 400
-    readonly property var motionDurationLong1: 450
-    readonly property var motionDurationLong2: 500
-    readonly property var motionDurationLong3: 550
-    readonly property var motionDurationLong4: 600
+    readonly property int motionDurationShort1: 50
+    readonly property int motionDurationShort2: 100
+    readonly property int motionDurationShort3: 150
+    readonly property int motionDurationShort4: 200
+    readonly property int motionDurationMedium1: 250
+    readonly property int motionDurationMedium2: 300
+    readonly property int motionDurationMedium3: 350
+    readonly property int motionDurationMedium4: 400
+    readonly property int motionDurationLong1: 450
+    readonly property int motionDurationLong2: 500
+    readonly property int motionDurationLong3: 550
+    readonly property int motionDurationLong4: 600
 
-    readonly property var motionEasingStandard: [0.2, 0, 0, 1]
-    readonly property var motionEasingStandardAccelerate: [0.3, 0, 1, 1]
-    readonly property var motionEasingStandardDecelerate: [0, 0, 0, 1]
-    readonly property var motionEasingEmphasized: [0.2, 0, 0, 1] // Simplified for Soul Curve compatibility
-    readonly property var motionEasingEmphasizedAccelerate: [0.3, 0, 0.8, 0.15]
-    readonly property var motionEasingEmphasizedDecelerate: [0.05, 0.7, 0.1, 1]
+    readonly property list<real> motionEasingStandard: [0.2, 0, 0, 1]
+    readonly property list<real> motionEasingStandardAccelerate: [0.3, 0, 1, 1]
+    readonly property list<real> motionEasingStandardDecelerate: [0, 0, 0, 1]
+    readonly property list<real> motionEasingEmphasized: [0.2, 0, 0, 1] // Simplified for Soul Curve compatibility
+    readonly property list<real> motionEasingEmphasizedAccelerate: [0.3, 0, 0.8, 0.15]
+    readonly property list<real> motionEasingEmphasizedDecelerate: [0.05, 0.7, 0.1, 1]
 
     // 🌟 Soul Curve (MD3 Expressive Standard)
-    readonly property var motionEasingSoul: [0.34, 0.8, 0.34, 1.0]
+    readonly property list<real> motionEasingSoul: [0.34, 0.8, 0.34, 1.0]
 
     property color outlineVariant: isDarkMode ? "#44474F" : "#C4C7C5"
 
@@ -209,11 +209,6 @@ QtObject {
     readonly property real sliderThumbGapExpressive: 6 * globalScale
 
     readonly property real shapeSquareRadius: 4 * globalScale
-
-    // 🌟 MD3 Expressive Slider Tokens
-    readonly property real sliderThumbWidthExpressive: 4 * globalScale
-    readonly property real sliderThumbHeightExpressive: 44 * globalScale
-    readonly property real sliderThumbGapExpressive: 6 * globalScale
 
     // 🌟 MD3 Expressive Shape Library (Conceptual Tokens)
     readonly property string shapeSquircle: "squircle"
