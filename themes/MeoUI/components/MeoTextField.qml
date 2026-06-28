@@ -224,6 +224,8 @@ TextField {
             scale: overlayLayer.isCollapsed ? (control.fontLabelSmall.size / control.fontBodyLarge.size) : 1.0
             transformOrigin: Item.Left
 
+            readonly property var currentFont: overlayLayer.isCollapsed ? (MeoTheme.labelSmallEmphasized || control.fontLabelSmall) : control.fontBodyLarge
+
             Behavior on y { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
             Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
 
@@ -240,7 +242,7 @@ TextField {
                 text: control.label
                 anchors.fill: parent
                 font.pixelSize: control.fontBodyLarge.size * control.themeGlobalScale
-                font.weight: overlayLayer.isCollapsed ? control.fontLabelSmall.weight : control.fontBodyLarge.weight
+                font.weight: labelContainer.currentFont.weight
                 color: {
                     if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
                     if (control.isError) return control.themeError;
