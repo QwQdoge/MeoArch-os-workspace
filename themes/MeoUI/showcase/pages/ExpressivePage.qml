@@ -24,7 +24,7 @@ ScrollView {
             spacing: 16 * MeoTheme.globalScale
 
             Text {
-                text: "Expressive Search Bar Expansion"
+                text: "Expressive Search App Bar"
                 font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
                 font.weight: Font.DemiBold
                 color: MeoTheme.primary
@@ -34,13 +34,13 @@ ScrollView {
                 spacing: 24 * MeoTheme.globalScale
                 Layout.fillWidth: true
 
-                MeoSearchBar {
-                    placeholder: "Click to expand..."
-                    onActiveChanged: if (active) text = "Expanded state active"
+                MeoSearchAppBar {
+                    placeholder: "Search components..."
+                    onActiveChanged: if (active) text = "Search mode active"
                 }
 
                 Text {
-                    text: "Search morphs from pill (28dp) to contained (16dp) or full-screen (0dp) based on container width."
+                    text: "Search App Bar morphs from a floating bar to a full-screen search view, following MD3 Expressive motion guidelines."
                     font.pixelSize: MeoTheme.bodySmall.size * MeoTheme.globalScale
                     color: MeoTheme.onSurfaceVariant
                     Layout.maximumWidth: 400 * MeoTheme.globalScale
@@ -56,7 +56,7 @@ ScrollView {
             spacing: 16 * MeoTheme.globalScale
 
             Text {
-                text: "Expressive Button Sizes & Shapes"
+                text: "Expressive Button Sizes & Shapes (Bouncy)"
                 font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
                 font.weight: Font.DemiBold
                 color: MeoTheme.primary
@@ -69,22 +69,22 @@ ScrollView {
                 Flow {
                     Layout.fillWidth: true
                     spacing: 12 * MeoTheme.globalScale
-                    MeoButton { text: "XS Round"; size: "xs"; type: "filled" }
-                    MeoButton { text: "S Round"; size: "s"; type: "tonal" }
-                    MeoButton { text: "M Round (Default)"; size: "m"; type: "outlined" }
-                    MeoButton { text: "L Round"; size: "l"; type: "elevated" }
-                    MeoButton { text: "XL Round"; size: "xl"; type: "filled"; isEmphasized: true }
+                    MeoButton { text: "XS Round"; size: "xs"; type: "filled"; bouncy: true }
+                    MeoButton { text: "S Round"; size: "s"; type: "tonal"; bouncy: true }
+                    MeoButton { text: "M Round"; size: "m"; type: "outlined"; bouncy: true }
+                    MeoButton { text: "L Round"; size: "l"; type: "elevated"; bouncy: true }
+                    MeoButton { text: "XL Round"; size: "xl"; type: "filled"; isEmphasized: true; bouncy: true }
                 }
 
                 // Square Sizes
                 Flow {
                     Layout.fillWidth: true
                     spacing: 12 * MeoTheme.globalScale
-                    MeoButton { text: "XS Square"; size: "xs"; shape: "square"; type: "filled" }
-                    MeoButton { text: "S Square"; size: "s"; shape: "square"; type: "tonal" }
-                    MeoButton { text: "M Square"; size: "m"; shape: "square"; type: "outlined" }
-                    MeoButton { text: "L Square"; size: "l"; shape: "square"; type: "elevated" }
-                    MeoButton { text: "XL Square"; size: "xl"; shape: "square"; type: "filled"; isEmphasized: true }
+                    MeoButton { text: "XS Square"; size: "xs"; shape: "square"; type: "filled"; bouncy: true }
+                    MeoButton { text: "S Square"; size: "s"; shape: "square"; type: "tonal"; bouncy: true }
+                    MeoButton { text: "M Square"; size: "m"; shape: "square"; type: "outlined"; bouncy: true }
+                    MeoButton { text: "L Square"; size: "l"; shape: "square"; type: "elevated"; bouncy: true }
+                    MeoButton { text: "XL Square"; size: "xl"; shape: "square"; type: "filled"; isEmphasized: true; bouncy: true }
                 }
             }
         }
@@ -182,6 +182,76 @@ ScrollView {
                 MeoInputChip { label: "M Input"; size: "m" }
                 MeoSuggestionChip { label: "L Suggestion"; size: "l" }
                 MeoAssistChip { label: "XL Assist"; size: "xl"; icon: "star"; isEmphasized: true }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // --- Flexible Top App Bar Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Flexible Top App Bar"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            ColumnLayout {
+                spacing: 24 * MeoTheme.globalScale
+                Layout.fillWidth: true
+
+                MeoTopAppBar {
+                    type: "large"
+                    title: "Flexible Header"
+                    flexible: true
+                    scrollProgress: slider.visualPosition
+                    Layout.fillWidth: true
+                }
+
+                MeoSlider {
+                    id: slider
+                    width: 300 * MeoTheme.globalScale
+                    from: 0; to: 1.0; value: 1.0
+                    label: "Scroll Progress"
+                }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // --- Expressive Toolbars Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive Page Toolbars"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            ColumnLayout {
+                spacing: 16 * MeoTheme.globalScale
+                Layout.fillWidth: true
+
+                MeoToolbar {
+                    title: "Standard Toolbar"
+                    actions: [
+                        Component { MeoIconButton { icon.name: "share" } },
+                        Component { MeoIconButton { icon.name: "edit" } },
+                        Component { MeoIconButton { icon.name: "delete" } }
+                    ]
+                }
+
+                MeoToolbar {
+                    title: "Compact Toolbar"
+                    isCompact: true
+                    actions: [
+                        Component { MeoIconButton { icon.name: "more_vert" } }
+                    ]
+                }
             }
         }
 
@@ -460,6 +530,27 @@ ScrollView {
                     interactive: true
                     Text { anchors.centerIn: parent; text: "Octagon Card"; color: MeoTheme.onSurfaceVariant }
                 }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // --- Expressive Selection Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive Selection (Soul Motion)"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            RowLayout {
+                spacing: 24 * MeoTheme.globalScale
+                MeoSwitch { label: "Expressive Switch"; isExpressive: true }
+                MeoCheckbox { label: "Soul Checkbox"; checked: true }
+                MeoRadioButton { label: "Soul Radio"; checked: true }
             }
         }
 
