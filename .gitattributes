@@ -1,0 +1,18 @@
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.py text eol=lf
+*.service text eol=lf
+*.target text eol=lf
+MeoArch\ os/profiledef.sh text eol=lf
+MeoArch\ os/packages.x86_64 text eol=lf
+MeoArch\ os/airootfs/usr/local/bin/* text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.kra binary
+*.ttf binary
+*.otf binary
+*.iso binary
+

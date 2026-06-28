@@ -11,6 +11,7 @@ if ! command -v mkarchiso >/dev/null 2>&1; then
   exit 1
 fi
 
+"${repo_root}/scripts/sync-installer-to-airootfs.sh"
+
 mkdir -p "${work_dir}" "${out_dir}"
 mkarchiso -v -w "${work_dir}" -o "${out_dir}" "${profile_dir}"
-
