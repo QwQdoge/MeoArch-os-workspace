@@ -221,7 +221,10 @@ TextField {
                : 16 * control.themeGlobalScale
             width: labelText.implicitWidth
             height: labelText.implicitHeight
-            scale: overlayLayer.isCollapsed ? (control.fontLabelSmall.size / control.fontBodyLarge.size) : 1.0
+            scale: {
+                let targetSize = overlayLayer.isCollapsed ? (MeoTheme.labelSmallEmphasized ? MeoTheme.labelSmallEmphasized.size : control.fontLabelSmall.size) : control.fontBodyLarge.size;
+                return targetSize / control.fontBodyLarge.size;
+            }
             transformOrigin: Item.Left
 
             readonly property var currentFont: overlayLayer.isCollapsed ? (MeoTheme.labelSmallEmphasized || control.fontLabelSmall) : control.fontBodyLarge

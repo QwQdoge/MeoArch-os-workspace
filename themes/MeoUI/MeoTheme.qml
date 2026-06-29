@@ -9,6 +9,8 @@ QtObject {
 
     // 🌟 主题模式开关
     property bool isDarkMode: false
+    property bool isExpressive: true
+    property bool isBouncy: true
 
     // 🎨 MeoArch MD3 fallback color schemes
     // Used role-by-role whenever a dynamic color scheme is unavailable or incomplete.

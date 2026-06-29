@@ -15,6 +15,7 @@ Button {
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool loading: false // 🌟 MD3: Loading state with progress indicator
     property bool selected: false // 🌟 MD3: Toggle state support
+    property bool bouncy: MeoTheme.isBouncy
 
     // Toggle Support
     checkable: false
@@ -120,6 +121,8 @@ Button {
     contentItem: Item {
         implicitWidth: loading ? (iconSize + 6) * MeoTheme.globalScale : contentRow.implicitWidth
         implicitHeight: loading ? (iconSize + 6) * MeoTheme.globalScale : contentRow.implicitHeight
+        scale: (control.bouncy && control.pressed) ? 0.96 : 1.0
+        Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
 
         Row {
             id: contentRow
