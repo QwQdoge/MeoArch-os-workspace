@@ -9,7 +9,7 @@ QtObject {
 
     // 🌟 主题模式开关
     property bool isDarkMode: false
-    property bool isExpressive: true
+    property bool isExpressive: false
     property bool isBouncy: true
 
     // 🎨 MeoArch MD3 fallback color schemes
@@ -137,18 +137,22 @@ QtObject {
     }
 
     // 🌟 Motion Tokens (MD3 Standard)
-    readonly property int motionDurationShort1: 50
-    readonly property int motionDurationShort2: 100
-    readonly property int motionDurationShort3: 150
-    readonly property int motionDurationShort4: 200
-    readonly property int motionDurationMedium1: 250
-    readonly property int motionDurationMedium2: 300
-    readonly property int motionDurationMedium3: 350
-    readonly property int motionDurationMedium4: 400
-    readonly property int motionDurationLong1: 450
-    readonly property int motionDurationLong2: 500
-    readonly property int motionDurationLong3: 550
-    readonly property int motionDurationLong4: 600
+    readonly property var motionDurationShort1: 50
+    readonly property var motionDurationShort2: 100
+    readonly property var motionDurationShort3: 150
+    readonly property var motionDurationShort4: 200
+    readonly property var motionDurationMedium1: 250
+    readonly property var motionDurationMedium2: 300
+    readonly property var motionDurationMedium3: 350
+    readonly property var motionDurationMedium4: 400
+    readonly property var motionDurationLong1: 450
+    readonly property var motionDurationLong2: 500
+    readonly property var motionDurationLong3: 550
+    readonly property var motionDurationLong4: 600
+    readonly property var motionDurationExtraLong1: 700
+    readonly property var motionDurationExtraLong2: 800
+    readonly property var motionDurationExtraLong3: 900
+    readonly property var motionDurationExtraLong4: 1000
 
     readonly property list<real> motionEasingStandard: [0.2, 0, 0, 1]
     readonly property list<real> motionEasingStandardAccelerate: [0.3, 0, 1, 1]
@@ -190,6 +194,7 @@ QtObject {
     readonly property real shapeLargeIncreased: 20 * globalScale
     readonly property real shapeExtraLarge: 28 * globalScale
     readonly property real shapeExtraLargeIncreased: 32 * globalScale
+    readonly property real expressiveShapeCornerRadius: 32 * globalScale
     readonly property real shapeExtraExtraLarge: 48 * globalScale
     readonly property real shapeFull: 1000 * globalScale // Large value for full rounding
 

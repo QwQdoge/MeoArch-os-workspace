@@ -42,8 +42,13 @@ Button {
                 if (size === "xs" || size === "s") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * themeGlobalScale;
                 return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * themeGlobalScale;
             }
+            if (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive) return MeoTheme.expressiveShapeCornerRadius;
             return height / 2;
         }
+
+        scale: (typeof MeoTheme !== 'undefined' && MeoTheme.isBouncy && control.pressed) ? 0.92 : 1.0
+        Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
+
         color: {
             if (!control.enabled) return (type === "filled" || type === "tonal") ? (isDarkMode ? Qt.rgba(1,1,1,0.12) : Qt.rgba(0,0,0,0.12)) : "transparent"
             if (type === "filled") return control.selected ? control.themePrimary : control.themeSurfaceVariant

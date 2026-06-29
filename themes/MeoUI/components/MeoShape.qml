@@ -72,6 +72,10 @@ Item {
                 ctx.lineTo(w * 0.81, h);
                 ctx.lineTo(w * 0.19, h);
                 ctx.lineTo(0, h * 0.38);
+            } else if (control.type === "pill") {
+                ctx.roundedRect(0, 0, w, h, h / 2, h / 2);
+            } else if (control.type === "circle") {
+                ctx.arc(w / 2, h / 2, Math.min(w, h) / 2, 0, 2 * Math.PI);
             } else {
                 // Fallback to rounded rect
                 ctx.roundedRect(0, 0, w, h, r, r);

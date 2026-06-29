@@ -25,6 +25,7 @@ Control {
 
     property bool interactive: true
     property bool isSegmented: false // MD3 Expressive: Segmented list style
+    property bool isDense: false // MD3 Expressive: Compact list style
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool vibrant: false // 🌟 MD3 Expressive: Vibrant selection style
     property bool selected: false
@@ -54,16 +55,19 @@ Control {
     implicitWidth: 360 * themeGlobalScale
     // MD3 Heights: 1-line (56/72), 2-line (72/88), 3-line (88)
     implicitHeight: {
-        let h = 56;
+        let h = isDense ? 48 : 56;
         if (supportingText !== "") {
-            h = (supportingTextLines > 1 || overline !== "") ? 88 : 72;
+            h = (supportingTextLines > 1 || overline !== "") ? (isDense ? 72 : 88) : (isDense ? 64 : 72);
         }
-        if (leadingImage !== "" && leadingImageSize > 40) h = Math.max(h, leadingImageSize + 16);
+        if (leadingImage !== "" && leadingImageSize > 40) h = Math.max(h, leadingImageSize + (isDense ? 8 : 16));
         if (isSegmented) h += 8;
         return Math.max(h * themeGlobalScale, contentRow.implicitHeight + padding * 2);
     }
 
-    padding: isSegmented ? 12 * themeGlobalScale : 16 * themeGlobalScale
+    padding: {
+        if (isDense) return 8 * themeGlobalScale;
+        return isSegmented ? 12 * themeGlobalScale : 16 * themeGlobalScale;
+    }
     spacing: 16 * themeGlobalScale // Standardized MD3 spacing
 
     background: Item {
@@ -76,9 +80,14 @@ Control {
             id: shapeBg
             anchors.fill: parent
             type: isSegmented ? control.shape : "rect"
-            radius: isSegmented ? (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale) : 0
+            radius: {
+                if (!isSegmented) return 0;
+                if (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && selected) return MeoTheme.shapeLargeIncreased;
+                return (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale);
+            }
             color: {
                 if (!isSegmented || !selected) return "transparent";
+                if (vibrant && typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive) return themePrimary;
                 return vibrant ? themePrimaryContainer : themeSecondaryContainer;
             }
 
@@ -144,14 +153,15 @@ Control {
             MeoIcon {
                 anchors.centerIn: parent
                 icon: control.leadingIcon
-                size: 24
+                size: isDense ? 20 : 24
                 color: control.themeOnSurfaceVariant
                 visible: control.leadingIcon !== "" && control.leadingComponent === null && control.leadingImage === ""
             }
 
-            Rectangle {
+            MeoShape {
                 anchors.fill: parent
-                radius: control.leadingImageVariant === "circle" ? width / 2 : 8 * control.themeGlobalScale
+                type: control.leadingImageVariant === "circle" ? "circle" : control.leadingImageVariant
+                radius: 8 * control.themeGlobalScale
                 clip: true
                 visible: control.leadingImage !== ""
                 color: control.themeSecondaryContainer
