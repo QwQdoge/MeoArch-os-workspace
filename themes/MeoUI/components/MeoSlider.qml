@@ -10,6 +10,7 @@ Control {
     property real value: 0.0
     property bool discrete: false
     property real stepSize: 1.0
+    property bool isThick: false // 🌟 MD3 Expressive: Thicker track variant
     property bool expressive: true // Legacy support
     property string size: expressive ? "m" : "xs" // "xs" | "s" | "m" | "l" | "xl"
 
@@ -79,6 +80,7 @@ Control {
                 anchors.centerIn: parent
                 width: parent.width
                 height: {
+                    if (control.isThick) return 16 * control.themeGlobalScale;
                     if (size === "xs") return MeoTheme.sliderTrackHeightXS || 4 * control.themeGlobalScale;
                     if (size === "s") return MeoTheme.sliderTrackHeightS || 16 * control.themeGlobalScale;
                     if (size === "m") return MeoTheme.sliderTrackHeightM || 28 * control.themeGlobalScale;

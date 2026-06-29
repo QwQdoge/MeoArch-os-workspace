@@ -65,11 +65,11 @@ Control {
             Rectangle {
                 id: thumb
                 width: {
-                    if (mouseArea.pressed) return (control.isExpressive ? 32 : 28) * control.themeGlobalScale
+                    if (mouseArea.pressed) return (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive ? 32 : 28) * control.themeGlobalScale
                     return (control.checked || control.icon !== "") ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
                 }
                 height: {
-                    if (mouseArea.pressed) return (control.isExpressive ? 32 : 28) * control.themeGlobalScale
+                    if (mouseArea.pressed) return (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive ? 32 : 28) * control.themeGlobalScale
                     return (control.checked || control.icon !== "") ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
                 }
                 radius: width / 2
