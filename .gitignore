@@ -48,6 +48,8 @@ ui_*.h
 work/
 MeoArch_os*.iso
 MeoArch-os*.iso
+# Generated installer payload synced into the archiso tree
+MeoArch\ os/airootfs/opt/meoarch-installer/
 
 # --- Python Cache & Virtual Environments ---
 __pycache__/

@@ -2,15 +2,22 @@
 
 *.sh text eol=lf
 *.py text eol=lf
+*.qml text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
 *.service text eol=lf
 *.target text eol=lf
-MeoArch\ os/profiledef.sh text eol=lf
-MeoArch\ os/packages.x86_64 text eol=lf
-MeoArch\ os/airootfs/usr/local/bin/* text eol=lf
+*.conf text eol=lf
+*.cfg text eol=lf
+**/profiledef.sh text eol=lf
+**/packages.x86_64 text eol=lf
+**/airootfs/usr/local/bin/* text eol=lf
 
 *.png binary
 *.jpg binary
 *.jpeg binary
+*.webp binary
 *.kra binary
 *.ttf binary
 *.otf binary

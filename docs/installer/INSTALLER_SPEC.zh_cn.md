@@ -35,7 +35,7 @@ MeoArch OS Installer 是为 MeoArch Live ISO 设计的全屏图形安装器。�
 - 基础发行版：Arch Linux
 - ISO 构建工具：archiso
 - Kiosk 合成器：Cage
-- 安装器界面：GTK 4 + PyGObject
+- 安装器界面：Qt Quick/QML
 - 未来后端：`archinstall`
 - 默认目标启动器：GRUB
 - 默认目标桌面：MeoArch 定制 KDE Plasma
@@ -54,7 +54,7 @@ Live ISO boot
   -> meoarch-installer-kiosk
   -> cage
   -> meoarch-installer
-  -> GTK installer UI
+  -> QML installer UI
 ```
 
 安装器当前只会写入一个预览文件：
@@ -473,4 +473,3 @@ UI 不能：
 - Secure Boot 支持
 - 离线安装行为
 - 失败恢复和回滚行为
-

@@ -1,0 +1,9 @@
+[
+  { "label": "Shanghai", "timezone": "Asia/Shanghai" },
+  { "label": "Singapore", "timezone": "Asia/Singapore" },
+  { "label": "Tokyo", "timezone": "Asia/Tokyo" },
+  { "label": "New York", "timezone": "America/New_York" },
+  { "label": "Los Angeles", "timezone": "America/Los_Angeles" },
+  { "label": "London", "timezone": "Europe/London" },
+  { "label": "UTC", "timezone": "UTC" }
+]

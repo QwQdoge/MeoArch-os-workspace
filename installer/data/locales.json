@@ -1,0 +1,29 @@
+[
+  {
+    "label": "English (United States)",
+    "archinstallLanguage": "English",
+    "locale": "en_US.UTF-8",
+    "sysLanguage": "en_US",
+    "sysEncoding": "UTF-8",
+    "timezone": "America/New_York",
+    "keyboard": "us"
+  },
+  {
+    "label": "Chinese (Simplified)",
+    "archinstallLanguage": "English",
+    "locale": "zh_CN.UTF-8",
+    "sysLanguage": "zh_CN",
+    "sysEncoding": "UTF-8",
+    "timezone": "Asia/Shanghai",
+    "keyboard": "us"
+  },
+  {
+    "label": "Japanese",
+    "archinstallLanguage": "English",
+    "locale": "ja_JP.UTF-8",
+    "sysLanguage": "ja_JP",
+    "sysEncoding": "UTF-8",
+    "timezone": "Asia/Tokyo",
+    "keyboard": "jp"
+  }
+]

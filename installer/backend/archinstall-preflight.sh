@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+state_dir="${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}"
+log_dir="${state_dir}/logs"
+reference_dir="${state_dir}/archinstall-reference"
+status_file="${state_dir}/preflight_status.json"
+log_file="${log_dir}/archinstall-dry-run.log"
+
+mkdir -p "${log_dir}" "${reference_dir}"
+
+json_escape() {
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
+write_status() {
+  local state="$1"
+  local message="$2"
+  local code="${3:-0}"
+  cat >"${status_file}" <<EOF
+{
+  "state": "$(json_escape "${state}")",
+  "message": "$(json_escape "${message}")",
+  "exitCode": ${code},
+  "log": "$(json_escape "${log_file}")",
+  "referenceDir": "$(json_escape "${reference_dir}")"
+}
+EOF
+}
+
+copy_reference_configs() {
+  local source_dir="/var/log/archinstall"
+  for name in user_configuration.json user_credentials.json user_disk_layouts.json user_disk_layout.json; do
+    if [ -f "${source_dir}/${name}" ]; then
+      cp -f "${source_dir}/${name}" "${reference_dir}/${name}"
+    fi
+  done
+}
+
+write_status "starting" "Preparing archinstall dry-run preflight." 0
+
+if ! command -v archinstall >/dev/null 2>&1; then
+  write_status "missing" "archinstall is not available in this environment." 127
+  exit 0
+fi
+
+archinstall --version >"${log_file}" 2>&1 || true
+write_status "running" "Running archinstall --dry-run in the background." 0
+
+set +e
+if command -v timeout >/dev/null 2>&1; then
+  timeout 120s archinstall --dry-run >>"${log_file}" 2>&1 </dev/null
+  rc=$?
+else
+  archinstall --dry-run >>"${log_file}" 2>&1 </dev/null
+  rc=$?
+fi
+set -e
+
+copy_reference_configs
+
+case "${rc}" in
+  0)
+    write_status "complete" "archinstall dry-run completed. Reference JSON files were copied when available." 0
+    ;;
+  124)
+    write_status "timeout" "archinstall dry-run timed out; use the saved log and run it manually for a full reference." 124
+    ;;
+  *)
+    write_status "failed" "archinstall dry-run exited early; this is acceptable before the real UI choices exist." "${rc}"
+    ;;
+esac
+
+exit 0

@@ -1,0 +1,28 @@
+{
+  "locale": {
+    "archinstallLanguage": "English",
+    "sys-language": "en_US",
+    "sys-encoding": "UTF-8",
+    "locale": "en_US.UTF-8",
+    "keyboard-layout": "us",
+    "timezone": "UTC"
+  },
+  "network": {
+    "mode": "networkmanager"
+  },
+  "privacy": {
+    "telemetry": false,
+    "firewall": true
+  },
+  "disk": {
+    "mode": "not_configured"
+  },
+  "user": {
+    "hostname": "meoarch",
+    "username": "meo"
+  },
+  "credentials": {
+    "rootPasswordHash": "",
+    "userPasswordHash": ""
+  }
+}

@@ -1,0 +1,8 @@
+[
+  { "label": "US", "keymap": "us" },
+  { "label": "Japanese", "keymap": "jp" },
+  { "label": "German", "keymap": "de" },
+  { "label": "French", "keymap": "fr" },
+  { "label": "Spanish", "keymap": "es" },
+  { "label": "United Kingdom", "keymap": "uk" }
+]

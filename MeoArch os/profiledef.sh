@@ -24,5 +24,4 @@ file_permissions=(
   ["/usr/local/bin/livecd-sound"]="0:0:755"
   ["/usr/local/bin/meoarch-installer"]="0:0:755"
   ["/usr/local/bin/meoarch-installer-kiosk"]="0:0:755"
-  ["/opt/meoarch-installer/meoarch_installer.py"]="0:0:755"
 )
