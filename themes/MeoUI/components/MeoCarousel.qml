@@ -19,6 +19,20 @@ Control {
     implicitHeight: itemHeight + (showPageIndicator ? 32 * themeGlobalScale : 0)
 
     property bool showPageIndicator: true
+    property bool autoScroll: false
+    property int interval: 5000
+
+    Timer {
+        interval: control.interval
+        running: control.autoScroll && control.visible
+        repeat: true
+        onTriggered: {
+            if (listView.count > 0) {
+                listView.currentIndex = (listView.currentIndex + 1) % listView.count
+                listView.positionViewAtIndex(listView.currentIndex, ListView.Center)
+            }
+        }
+    }
 
     ListView {
         id: listView
@@ -81,7 +95,7 @@ Control {
             }
         }
         snapMode: (control.type === "uncontained" || control.type === "full-screen") ? ListView.NoSnap : ListView.SnapToItem
-        highlightMoveDuration: 300
+        highlightMoveDuration: (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive) ? 600 : 300
         preferredHighlightBegin: (type === "hero" || type === "uncontained") ? 16 * control.themeGlobalScale : 0
         preferredHighlightEnd: (type === "hero" || type === "uncontained") ? width - 16 * control.themeGlobalScale : width
         highlightRangeMode: (control.type === "hero" || control.type === "uncontained") ? ListView.ApplyRange : ListView.NoHighlightRange

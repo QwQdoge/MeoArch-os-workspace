@@ -9,6 +9,7 @@ Control {
     property bool indeterminate: false
     property string type: "linear" // "linear" | "circular"
     property bool isThick: false // 🌟 MD3 Expressive: Thicker track variant
+    property bool vibrant: false // 🌟 MD3 Expressive: Gradient/Vibrant track
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -36,6 +37,24 @@ Control {
             width: control.indeterminate ? parent.width * 0.3 : parent.width * control.value
             radius: height / 2
             color: control.themePrimary
+
+            // Vibrant Gradient
+            layer.enabled: control.vibrant
+            layer.effect: MultiEffect {
+                colorBlur: 0.2
+                brightness: 0.2
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: parent.radius
+                visible: control.vibrant
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0; color: control.themePrimary }
+                    GradientStop { position: 1.0; color: (typeof MeoTheme !== 'undefined' ? MeoTheme.tertiary : "#7D5260") }
+                }
+            }
 
             // Indeterminate animation
             SequentialAnimation on x {
