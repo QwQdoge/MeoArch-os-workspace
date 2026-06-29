@@ -1,0 +1,3 @@
+import "../"
+
+PagePlaceholder { title: "Network" }

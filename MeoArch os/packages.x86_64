@@ -2,8 +2,10 @@ alsa-utils
 amd-ucode
 arch-install-scripts
 archinstall
-gtk4
-python-gobject
+qt6-base
+qt6-declarative
+qt6-svg
+qt6-wayland
 b43-fwcutter
 base
 bcachefs-tools
@@ -144,4 +146,4 @@ openbox
 xterm
 
 # 图形安装器运行时
-# Cage 提供全屏 Wayland kiosk，GTK/PyGObject 提供安装器 UI。
+# Cage 提供全屏 Wayland kiosk，Qt Quick/QML 提供安装器 UI。

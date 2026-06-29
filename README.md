@@ -11,7 +11,7 @@ final live image is assembled.
 ## Current Status
 
 - The existing archiso profile is kept at `MeoArch os/`.
-- A Cage-based graphical installer framework is present.
+- A Cage-based Qt Quick/QML graphical installer framework is present.
 - The installer is currently non-destructive and writes only a preview config.
 - `archinstall` is planned as the future installation backend.
 - Installer documentation is available in English and Simplified Chinese.
@@ -35,8 +35,10 @@ MeoArch_os-workspace/
 │   └── network/
 ├── themes/              # UI, GTK, Qt, GRUB, SDDM, and related themes
 │   └── MeoUI/
+├── installer/           # Standalone Cage installer source
+│   ├── bin/
+│   └── qml/
 ├── scripts/             # Build, installer, and sync entrypoints
-│   ├── installer/
 │   ├── build.sh
 │   ├── install.sh
 │   ├── firstboot.sh
@@ -82,12 +84,13 @@ systemd
   -> meoarch-installer-kiosk
   -> cage
   -> meoarch-installer
-  -> GTK installer UI
+  -> QML installer UI
 ```
 
 Runtime files are staged under:
 
 ```text
+installer/
 MeoArch os/airootfs/opt/meoarch-installer/
 MeoArch os/airootfs/usr/local/bin/
 MeoArch os/airootfs/etc/systemd/system/
@@ -118,7 +121,7 @@ calling `mkarchiso`.
 
 - Keep `MeoArch os/` as the archiso profile path. Do not rename it unless the
   project intentionally migrates the profile directory.
-- Edit installer source in `scripts/installer/`.
+- Edit installer source in `installer/`.
 - Use `scripts/sync-installer-to-airootfs.sh` to copy installer changes into the
   ISO profile without running a full build.
 - Keep generated files, build output, ISO images, and local IDE state out of git.
@@ -137,4 +140,3 @@ Likely future split candidates:
 - package definitions once they are reused outside this ISO
 
 The main workspace should stay focused on assembling the live ISO.
-

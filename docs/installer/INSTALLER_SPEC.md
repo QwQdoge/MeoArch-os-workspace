@@ -45,7 +45,7 @@ Current assumptions:
 - Base distribution: Arch Linux
 - ISO builder: archiso
 - Kiosk compositor: Cage
-- Installer UI: GTK 4 with PyGObject
+- Installer UI: Qt Quick/QML
 - Future backend: `archinstall`
 - Default bootloader target: GRUB
 - Default target desktop: MeoArch-customized KDE Plasma
@@ -66,7 +66,7 @@ Live ISO boot
   -> meoarch-installer-kiosk
   -> cage
   -> meoarch-installer
-  -> GTK installer UI
+  -> QML installer UI
 ```
 
 The installer currently writes only a preview file:
