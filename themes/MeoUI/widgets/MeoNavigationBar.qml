@@ -8,6 +8,7 @@ Rectangle {
     property var model: []
     property int currentIndex: 0
     property string labelType: "always" // "always" | "selected" | "none"
+    property string shape: "pill" // 🌟 MD3 Expressive Shape
     signal clicked(int index)
 
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -46,12 +47,13 @@ Rectangle {
                         height: 32 * control.themeGlobalScale
                         anchors.horizontalCenter: parent.horizontalCenter
 
-                        Rectangle {
+                        MeoShape {
                             id: selectionIndicator
                             width: isSelected ? 64 * control.themeGlobalScale : 0
                             height: 32 * control.themeGlobalScale
                             radius: 16 * control.themeGlobalScale
                             anchors.centerIn: parent
+                            type: control.shape
                             color: isSelected ? control.themeSecondaryContainer : "transparent"
                             opacity: isSelected ? 1.0 : 0.0
 

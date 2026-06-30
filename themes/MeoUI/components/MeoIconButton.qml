@@ -12,6 +12,8 @@ Button {
     property string shape: "round" // "round" | "square"
     property bool selected: false
     property string selectedIcon: ""
+    property string badgeText: ""
+    property bool badgeDot: false
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -74,23 +76,39 @@ Button {
         Behavior on radius { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
     }
 
-    contentItem: MeoIcon {
-        id: iconItem
-        icon: (control.selected && control.selectedIcon !== "") ? control.selectedIcon : (control.icon.name || control.icon.source.toString())
-        size: {
-            if (size === "xs" || size === "s") return 18
-            if (size === "xl") return 40
-            return 24
-        }
-        color: {
-            if (!control.enabled) return isDarkMode ? Qt.rgba(1,1,1,0.38) : Qt.rgba(0,0,0,0.38)
-            if (type === "filled") return control.selected ? control.themeOnPrimary : control.themePrimary
-            if (type === "tonal") return control.selected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
-            return control.selected ? control.themePrimary : control.themeOnSurfaceVariant
-        }
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
+    contentItem: Item {
+        implicitWidth: iconItem.implicitWidth
+        implicitHeight: iconItem.implicitHeight
 
-        Behavior on color { ColorAnimation { duration: 150 } }
+        MeoIcon {
+            id: iconItem
+            icon: (control.selected && control.selectedIcon !== "") ? control.selectedIcon : (control.icon.name || control.icon.source.toString())
+            size: {
+                if (size === "xs" || size === "s") return 18
+                if (size === "xl") return 40
+                return 24
+            }
+            color: {
+                if (!control.enabled) return isDarkMode ? Qt.rgba(1,1,1,0.38) : Qt.rgba(0,0,0,0.38)
+                if (type === "filled") return control.selected ? control.themeOnPrimary : control.themePrimary
+                if (type === "tonal") return control.selected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
+                return control.selected ? control.themePrimary : control.themeOnSurfaceVariant
+            }
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            anchors.centerIn: parent
+
+            Behavior on color { ColorAnimation { duration: 150 } }
+        }
+
+        MeoBadge {
+            text: control.badgeText
+            isDot: control.badgeDot
+            visible: text !== "" || isDot
+            anchors.top: iconItem.top
+            anchors.right: iconItem.right
+            anchors.topMargin: -4 * control.themeGlobalScale
+            anchors.rightMargin: -4 * control.themeGlobalScale
+        }
     }
 }
