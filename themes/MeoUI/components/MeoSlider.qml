@@ -140,9 +140,9 @@ Control {
                 anchors.bottom: parent.top
                 anchors.bottomMargin: 12 * control.themeGlobalScale
                 anchors.horizontalCenter: parent.horizontalCenter
-                width: Math.max(32 * control.themeGlobalScale, labelText.implicitWidth + 12 * control.themeGlobalScale)
+                width: Math.max(32 * control.themeGlobalScale, labelText.implicitWidth + 16 * control.themeGlobalScale)
                 height: 28 * control.themeGlobalScale
-                radius: 4 * control.themeGlobalScale
+                radius: height / 2
                 color: control.themePrimary
                 visible: internalSlider.pressed
 

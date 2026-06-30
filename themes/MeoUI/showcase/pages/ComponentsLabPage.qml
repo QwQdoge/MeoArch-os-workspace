@@ -167,6 +167,43 @@ Flickable {
         }
 
         LabSection {
+            title: "Interaction Patterns"
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 16 * MeoTheme.globalScale
+
+                Text { text: "MeoStepper (Horizontal)"; color: MeoTheme.onSurfaceVariant; font.pixelSize: 12 * MeoTheme.globalScale }
+                MeoStepper {
+                    Layout.fillWidth: true
+                    model: [{ label: "Plan" }, { label: "Design" }, { label: "Implement" }]
+                    currentIndex: 1
+                }
+
+                Text { text: "MeoSwipeToDismiss (Try dragging)"; color: MeoTheme.onSurfaceVariant; font.pixelSize: 12 * MeoTheme.globalScale }
+                MeoSwipeToDismiss {
+                    id: swipeItem
+                    Layout.fillWidth: true
+                    content: Component {
+                        MeoListItem {
+                            headline: "Swipe to delete or archive"
+                            supportingText: "Interact with me to reveal actions"
+                            leadingIcon: "email"
+                        }
+                    }
+                    leftAction: Component { MeoIcon { icon: "archive"; color: "white" } }
+                    rightAction: Component { MeoIcon { icon: "delete"; color: "white" } }
+                    onLeftActionTriggered: console.log("Archived")
+                    onRightActionTriggered: console.log("Deleted")
+                }
+                MeoButton {
+                    text: "Restore swipe item"
+                    visible: swipeItem.dismissed
+                    onClicked: swipeItem.dismissed = false
+                }
+            }
+        }
+
+        LabSection {
             title: "Overlays & tooltips"
             Flow {
                 Layout.fillWidth: true
@@ -178,8 +215,19 @@ Flickable {
                     MeoTooltip { visible: tooltipButton.hovered; text: "Plain MD3 tooltip" }
                 }
                 MeoButton { text: "Rich tooltip"; type: "outlined"; onClicked: richTooltip.open() }
+                MeoButton { text: "Action Sheet"; type: "outlined"; onClicked: actionSheet.open() }
             }
         }
+    }
+
+    MeoActionSheet {
+        id: actionSheet
+        title: "Share with"
+        model: [
+            { label: "Messages", icon: "chat", action: () => console.log("Share to Messages") },
+            { label: "Email", icon: "mail", action: () => console.log("Share to Email") },
+            { label: "Copy link", icon: "link", action: () => console.log("Link copied") }
+        ]
     }
 
     MeoDialog { id: dialog; title: "MeoDialog"; message: "Dialogs interrupt the current task with a focused decision."; icon: "info" }
