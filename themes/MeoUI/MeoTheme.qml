@@ -81,8 +81,19 @@ QtObject {
         dynamicColorScheme = ({})
     }
 
-    function colorForRole(role) {
-        const fallbackScheme = isDarkMode ? fallbackDarkColorScheme : fallbackLightColorScheme
+    function colorForRole(role, darkMode, dynamicAvailable, scheme) {
+        const fallbackScheme = darkMode ? fallbackDarkColorScheme : fallbackLightColorScheme
+        if (dynamicAvailable
+                && scheme
+                && typeof scheme[role] !== "undefined"
+                && scheme[role] !== null
+                && scheme[role] !== "") {
+            return scheme[role]
+        }
+        return fallbackScheme[role]
+    }
+
+    function dynamicOrFallback(role) {
         if (dynamicColorsAvailable
                 && dynamicColorScheme
                 && typeof dynamicColorScheme[role] !== "undefined"
@@ -90,37 +101,38 @@ QtObject {
                 && dynamicColorScheme[role] !== "") {
             return dynamicColorScheme[role]
         }
-        return fallbackScheme[role]
+        return isDarkMode ? fallbackDarkColorScheme[role] : fallbackLightColorScheme[role]
     }
 
-    // 🎨 Active MD3 roles; existing components continue using MeoTheme.primary, etc.
-    property color primary: colorForRole("primary")
-    property color onPrimary: colorForRole("onPrimary")
-    property color primaryContainer: colorForRole("primaryContainer")
-    property color onPrimaryContainer: colorForRole("onPrimaryContainer")
+    // 🎨 Active MD3 roles. Content roles use a non-`onXxx` public name because
+    // QML reserves that shape for signal handlers in several compiled paths.
+    property color primary: dynamicColorsAvailable && dynamicColorScheme.primary ? dynamicColorScheme.primary : (isDarkMode ? "#C0B1E6" : "#6750A4")
+    property color contentOnPrimary: dynamicColorsAvailable && dynamicColorScheme.onPrimary ? dynamicColorScheme.onPrimary : (isDarkMode ? "#30254C" : "#FFFFFF")
+    property color primaryContainer: dynamicColorsAvailable && dynamicColorScheme.primaryContainer ? dynamicColorScheme.primaryContainer : (isDarkMode ? "#403266" : "#CBC0E6")
+    property color contentOnPrimaryContainer: dynamicColorsAvailable && dynamicColorScheme.onPrimaryContainer ? dynamicColorScheme.onPrimaryContainer : (isDarkMode ? "#CBC0E6" : "#201933")
 
-    property color secondary: colorForRole("secondary")
-    property color onSecondary: colorForRole("onSecondary")
-    property color secondaryContainer: colorForRole("secondaryContainer")
-    property color onSecondaryContainer: colorForRole("onSecondaryContainer")
+    property color secondary: dynamicColorsAvailable && dynamicColorScheme.secondary ? dynamicColorScheme.secondary : (isDarkMode ? "#D8D2E6" : "#625B71")
+    property color contentOnSecondary: dynamicColorsAvailable && dynamicColorScheme.onSecondary ? dynamicColorScheme.onSecondary : (isDarkMode ? "#433E4C" : "#FFFFFF")
+    property color secondaryContainer: dynamicColorsAvailable && dynamicColorScheme.secondaryContainer ? dynamicColorScheme.secondaryContainer : (isDarkMode ? "#595366" : "#DCD8E6")
+    property color contentOnSecondaryContainer: dynamicColorsAvailable && dynamicColorScheme.onSecondaryContainer ? dynamicColorScheme.onSecondaryContainer : (isDarkMode ? "#DCD8E6" : "#2C2933")
 
-    property color tertiary: colorForRole("tertiary")
-    property color onTertiary: colorForRole("onTertiary")
-    property color tertiaryContainer: colorForRole("tertiaryContainer")
-    property color onTertiaryContainer: colorForRole("onTertiaryContainer")
+    property color tertiary: dynamicColorsAvailable && dynamicColorScheme.tertiary ? dynamicColorScheme.tertiary : (isDarkMode ? "#E6C3CE" : "#7D5260")
+    property color contentOnTertiary: dynamicColorsAvailable && dynamicColorScheme.onTertiary ? dynamicColorScheme.onTertiary : (isDarkMode ? "#4C323B" : "#FFFFFF")
+    property color tertiaryContainer: dynamicColorsAvailable && dynamicColorScheme.tertiaryContainer ? dynamicColorScheme.tertiaryContainer : (isDarkMode ? "#66434F" : "#E6CDD5")
+    property color contentOnTertiaryContainer: dynamicColorsAvailable && dynamicColorScheme.onTertiaryContainer ? dynamicColorScheme.onTertiaryContainer : (isDarkMode ? "#E6CDD5" : "#332227")
 
-    property color error: colorForRole("error")
-    property color onError: colorForRole("onError")
-    property color errorContainer: colorForRole("errorContainer")
-    property color onErrorContainer: colorForRole("onErrorContainer")
+    property color error: dynamicColorsAvailable && dynamicColorScheme.error ? dynamicColorScheme.error : (isDarkMode ? "#E69490" : "#B3261E")
+    property color contentOnError: dynamicColorsAvailable && dynamicColorScheme.onError ? dynamicColorScheme.onError : (isDarkMode ? "#4C100D" : "#FFFFFF")
+    property color errorContainer: dynamicColorsAvailable && dynamicColorScheme.errorContainer ? dynamicColorScheme.errorContainer : (isDarkMode ? "#661511" : "#E6ACA9")
+    property color contentOnErrorContainer: dynamicColorsAvailable && dynamicColorScheme.onErrorContainer ? dynamicColorScheme.onErrorContainer : (isDarkMode ? "#E6ACA9" : "#330B09")
 
-    property color background: colorForRole("background")
-    property color onBackground: colorForRole("onBackground")
-    property color surface: colorForRole("surface")
-    property color onSurface: colorForRole("onSurface")
-    property color surfaceVariant: colorForRole("surfaceVariant")
-    property color onSurfaceVariant: colorForRole("onSurfaceVariant")
-    property color outline: colorForRole("outline")
+    property color background: dynamicColorsAvailable && dynamicColorScheme.background ? dynamicColorScheme.background : (isDarkMode ? "#323233" : "#FCFCFC")
+    property color contentOnBackground: dynamicColorsAvailable && dynamicColorScheme.onBackground ? dynamicColorScheme.onBackground : (isDarkMode ? "#E4E4E6" : "#323233")
+    property color surface: dynamicColorsAvailable && dynamicColorScheme.surface ? dynamicColorScheme.surface : (isDarkMode ? "#323233" : "#FCFCFC")
+    property color contentOnSurface: dynamicColorsAvailable && dynamicColorScheme.onSurface ? dynamicColorScheme.onSurface : (isDarkMode ? "#E4E4E6" : "#323233")
+    property color surfaceVariant: dynamicColorsAvailable && dynamicColorScheme.surfaceVariant ? dynamicColorScheme.surfaceVariant : (isDarkMode ? "#5E5C66" : "#E0DEE6")
+    property color contentOnSurfaceVariant: dynamicColorsAvailable && dynamicColorScheme.onSurfaceVariant ? dynamicColorScheme.onSurfaceVariant : (isDarkMode ? "#DEDBE6" : "#5E5C66")
+    property color outline: dynamicColorsAvailable && dynamicColorScheme.outline ? dynamicColorScheme.outline : (isDarkMode ? "#AAA7B3" : "#8E8999")
     
     // M3 Surface Containers
     property color surfaceContainerLowest: isDarkMode ? "#0F0E11" : "#FFFFFF"
@@ -157,12 +169,12 @@ QtObject {
     readonly property list<real> motionEasingStandard: [0.2, 0, 0, 1]
     readonly property list<real> motionEasingStandardAccelerate: [0.3, 0, 1, 1]
     readonly property list<real> motionEasingStandardDecelerate: [0, 0, 0, 1]
-    readonly property list<real> motionEasingEmphasized: [0.2, 0, 0, 1] // Simplified for Soul Curve compatibility
+    readonly property list<real> motionEasingEmphasized: [0.05, 0.7, 0.1, 1]
     readonly property list<real> motionEasingEmphasizedAccelerate: [0.3, 0, 0.8, 0.15]
     readonly property list<real> motionEasingEmphasizedDecelerate: [0.05, 0.7, 0.1, 1]
 
-    // 🌟 Soul Curve (MD3 Expressive Standard)
-    readonly property list<real> motionEasingSoul: [0.34, 0.8, 0.34, 1.0]
+    // Compatibility alias used by existing expressive components.
+    readonly property list<real> motionEasingSoul: motionEasingEmphasized
 
     property color outlineVariant: isDarkMode ? "#44474F" : "#C4C7C5"
 
@@ -242,6 +254,8 @@ QtObject {
 
     // 🌟 Material Design 3 Typography (Type Scale)
     // Format: { size, weight, lineHeight, letterSpacing }
+    readonly property string typefacePlain: "Roboto"
+    readonly property string typefaceBrand: "Roboto"
 
     // Display
     readonly property var displayLarge: { "size": 57, "weight": Font.Normal, "lineHeight": 64, "letterSpacing": -0.25 }

@@ -17,12 +17,12 @@ Rectangle {
     // 🌟 作用域与主题安全防御
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
-    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
+    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B"
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
-    width: 80 * themeGlobalScale
+    width: 96 * themeGlobalScale
     height: parent ? parent.height : 600 * themeGlobalScale
     color: themeSurface
 
@@ -50,19 +50,19 @@ Rectangle {
         Repeater {
             model: control.model
             delegate: Item {
-                width: 80 * control.themeGlobalScale
-                height: 56 * control.themeGlobalScale
+                width: 96 * control.themeGlobalScale
+                height: 64 * control.themeGlobalScale
 
                 readonly property bool isSelected: control.currentIndex === index
 
                 Column {
                     anchors.centerIn: parent
-                    spacing: 4 * control.themeGlobalScale
+                    spacing: 3 * control.themeGlobalScale
 
                     // 使用 anchors.horizontalCenter 来代替 anchors.centerIn，防止在 Column 内抛出警告并破坏布局
                     Rectangle {
                         id: selectionIndicator
-                        width: isSelected ? 56 * control.themeGlobalScale : 28 * control.themeGlobalScale
+                        width: isSelected ? 56 * control.themeGlobalScale : 32 * control.themeGlobalScale
                         height: 32 * control.themeGlobalScale
                         radius: 16 * control.themeGlobalScale
                         // 背景色在未选中时透明，选中时显示主题色容器
@@ -76,8 +76,8 @@ Rectangle {
                             color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                         }
 
-                        Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on width { NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
+                        Behavior on color { ColorAnimation { duration: 200 } }
                     }
 
 
@@ -97,9 +97,12 @@ Rectangle {
 
                     Text {
                         text: modelData.label
+                        font.family: (typeof MeoTheme !== 'undefined' && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                         font.pixelSize: 12 * control.themeGlobalScale
-                        font.weight: isSelected ? Font.Bold : Font.Normal
-                        color: isSelected ? control.themePrimary : control.themeOnSurfaceVariant
+                        font.weight: Font.Medium
+                        lineHeight: 16 / 12
+                        font.letterSpacing: 0.5 * control.themeGlobalScale
+                        color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                         anchors.horizontalCenter: parent.horizontalCenter
                         visible: {
                             if (control.labelType === "always") return true

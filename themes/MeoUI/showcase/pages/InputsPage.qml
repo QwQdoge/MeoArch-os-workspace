@@ -11,14 +11,14 @@ Flickable {
         spacing: 24 * MeoTheme.globalScale
         width: parent.width
 
-        Text { text: "Text Fields"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+        Text { text: "Text Fields"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
         Row {
             spacing: 24 * MeoTheme.globalScale
             MeoTextField { placeholderText: "Filled text field"; type: "filled" }
             MeoTextField { placeholderText: "Outlined text field"; type: "outlined" }
         }
 
-        Text { text: "Text Area"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+        Text { text: "Text Area"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
         MeoTextArea {
             width: 400 * MeoTheme.globalScale
             height: 120 * MeoTheme.globalScale
@@ -26,7 +26,7 @@ Flickable {
             type: "outlined"
         }
 
-        Text { text: "Custom Icons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+        Text { text: "Custom Icons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
         Row {
             spacing: 24 * MeoTheme.globalScale
             MeoIcon { icon: "favorite"; fill: true; color: MeoTheme.primary }

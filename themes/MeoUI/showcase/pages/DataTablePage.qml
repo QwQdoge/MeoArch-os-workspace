@@ -24,7 +24,7 @@ Flickable {
                 Text {
                     text: rowData.calories > 300 ? "High" : "Normal"
                     font.pixelSize: 12 * MeoTheme.globalScale
-                    color: MeoTheme.onSurfaceVariant
+                    color: MeoTheme.contentOnSurfaceVariant
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
@@ -37,7 +37,7 @@ Flickable {
         spacing: 24 * MeoTheme.globalScale
         width: parent.width
 
-        Text { text: "MD3 Data Table"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+        Text { text: "MD3 Data Table"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
         MeoDataTable {
             width: parent.width - 48 * MeoTheme.globalScale
             selectable: true

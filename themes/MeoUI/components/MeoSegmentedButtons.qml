@@ -19,7 +19,7 @@ Frame {
     
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
     readonly property int themeSpace4: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.space4 !== 'undefined') ? MeoTheme.space4 : 4
 
@@ -54,59 +54,52 @@ Frame {
 
     background: Rectangle {
         color: "transparent"
-        border.color: control.themeOutline
-        border.width: 1
+        border.color: "transparent"
+        border.width: 0
         radius: (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeFull : 20 * control.themeGlobalScale)
     }
 
     Row {
         id: rowLayout
         anchors.fill: parent
+        spacing: 2 * control.themeGlobalScale
 
         Repeater {
             model: control.model
             
             delegate: Item {
                 id: delegateItem
-                width: control.width / control.model.length
+                width: (control.width - rowLayout.spacing * Math.max(0, control.model.length - 1)) / Math.max(1, control.model.length)
                 height: control.height
+                z: isSelected ? 2 : 1
 
                 readonly property var itemData: modelData
                 readonly property string itemLabel: typeof itemData === 'string' ? itemData : (itemData.label || "")
                 readonly property string itemIcon: typeof itemData === 'object' ? (itemData.icon || "") : ""
                 readonly property bool isSelected: control.multiSelect ? control.selectedIndices.includes(index) : control.currentIndex === index
 
-                readonly property color activeBgColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? 
-                    MeoTheme.secondaryContainer : Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.12)
+                readonly property color activeBgColor: control.themePrimary
                 
-                readonly property color activeTextColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? 
-                    MeoTheme.onSecondaryContainer : control.themePrimary
+                readonly property color inactiveBgColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ?
+                    MeoTheme.primaryContainer : Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.18)
 
-                readonly property color textColor: isSelected ? activeTextColor : control.themeOnSurfaceVariant
-                readonly property color baseColor: isSelected ? activeBgColor : Qt.rgba(textColor.r, textColor.g, textColor.b, 0)
+                readonly property color activeTextColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? 
+                    MeoTheme.contentOnPrimary : "#FFFFFF"
+
+                readonly property color inactiveTextColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ?
+                    MeoTheme.contentOnPrimaryContainer : control.themePrimary
+
+                readonly property color textColor: isSelected ? activeTextColor : inactiveTextColor
 
                 Item {
                     anchors.fill: parent
                     clip: true
 
                     Rectangle {
-                        id: bgRect
-                        width: (index === 0 || index === control.model.length - 1) ? parent.width + 28 * control.themeGlobalScale : parent.width
-                        height: parent.height
-                        x: index === control.model.length - 1 ? -28 * control.themeGlobalScale : 0
-                        radius: (index === 0 || index === control.model.length - 1) ? (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeFull : 20 * control.themeGlobalScale) : 0
-
-                        color: {
-                            let base = delegateItem.baseColor;
-                            let overlay = delegateItem.textColor;
-                            
-                            if (mouseArea.pressed)
-                                return Qt.tint(base, Qt.rgba(overlay.r, overlay.g, overlay.b, 0.12));
-                            if (mouseArea.containsMouse)
-                                return Qt.tint(base, Qt.rgba(overlay.r, overlay.g, overlay.b, 0.08));
-                                
-                            return base;
-                        }
+                        id: baseBg
+                        anchors.fill: parent
+                        radius: height / 2
+                        color: delegateItem.inactiveBgColor
 
                         Behavior on color { 
                             ColorAnimation { 
@@ -114,6 +107,42 @@ Frame {
                                 easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]
                             } 
                         }
+                    }
+
+                    Rectangle {
+                        id: selectedBg
+                        anchors.fill: parent
+                        radius: height / 2
+                        color: delegateItem.activeBgColor
+                        opacity: delegateItem.isSelected ? 1 : 0
+                        scale: mouseArea.pressed ? 0.98 : (delegateItem.isSelected ? 1 : 0.92)
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: delegateItem.isSelected ? 300 : 120
+                                easing.bezierCurve: delegateItem.isSelected
+                                                    ? ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1])
+                                                    : ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedAccelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15])
+                            }
+                        }
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: delegateItem.isSelected ? 360 : 140
+                                easing.bezierCurve: delegateItem.isSelected
+                                                    ? ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1])
+                                                    : ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedAccelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15])
+                            }
+                        }
+                    }
+
+                    MeoStateLayer {
+                        anchors.fill: parent
+                        radius: height / 2
+                        pressed: mouseArea.pressed
+                        hovered: mouseArea.containsMouse
+                        pressX: mouseArea.mouseX
+                        pressY: mouseArea.mouseY
+                        color: delegateItem.textColor
                     }
 
                     MouseArea {
@@ -185,7 +214,7 @@ Frame {
                     color: control.themeOutline
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    visible: index < control.model.length - 1 && !isSelected && (!control.multiSelect && control.currentIndex !== index + 1)
+                    visible: false
                 }
             }
         }

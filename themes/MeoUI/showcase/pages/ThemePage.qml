@@ -10,7 +10,9 @@ Flickable {
 
     readonly property bool isDarkMode: MeoTheme.isDarkMode
     readonly property real themeGlobalScale: MeoTheme.globalScale
-    readonly property var oceanScheme: ({
+    property string colorSource: "fallback"
+
+    readonly property var oceanLightScheme: ({
         "primary": "#006A6A", "onPrimary": "#FFFFFF",
         "primaryContainer": "#9CF1F0", "onPrimaryContainer": "#002020",
         "secondary": "#4A6363", "onSecondary": "#FFFFFF",
@@ -18,7 +20,15 @@ Flickable {
         "tertiary": "#4B607C", "onTertiary": "#FFFFFF",
         "tertiaryContainer": "#D3E4FF", "onTertiaryContainer": "#041C35"
     })
-    readonly property var sunsetScheme: ({
+    readonly property var oceanDarkScheme: ({
+        "primary": "#80D5D3", "onPrimary": "#003737",
+        "primaryContainer": "#004F4F", "onPrimaryContainer": "#9CF1F0",
+        "secondary": "#B1CCCB", "onSecondary": "#1C3535",
+        "secondaryContainer": "#334B4B", "onSecondaryContainer": "#CCE8E7",
+        "tertiary": "#B3C8E8", "onTertiary": "#1C314B",
+        "tertiaryContainer": "#344864", "onTertiaryContainer": "#D3E4FF"
+    })
+    readonly property var sunsetLightScheme: ({
         "primary": "#8C4A60", "onPrimary": "#FFFFFF",
         "primaryContainer": "#FFD9E2", "onPrimaryContainer": "#3A071D",
         "secondary": "#74565F", "onSecondary": "#FFFFFF",
@@ -26,6 +36,33 @@ Flickable {
         "tertiary": "#7C5635", "onTertiary": "#FFFFFF",
         "tertiaryContainer": "#FFDCC1", "onTertiaryContainer": "#2D1600"
     })
+    readonly property var sunsetDarkScheme: ({
+        "primary": "#FFB0C8", "onPrimary": "#541D32",
+        "primaryContainer": "#703348", "onPrimaryContainer": "#FFD9E2",
+        "secondary": "#E3BDC7", "onSecondary": "#422932",
+        "secondaryContainer": "#5A3F47", "onSecondaryContainer": "#FFD9E2",
+        "tertiary": "#EEBD91", "onTertiary": "#47290C",
+        "tertiaryContainer": "#613F20", "onTertiaryContainer": "#FFDCC1"
+    })
+
+    function schemeForSource(source) {
+        if (source === "ocean")
+            return isDarkMode ? oceanDarkScheme : oceanLightScheme
+        if (source === "sunset")
+            return isDarkMode ? sunsetDarkScheme : sunsetLightScheme
+        return null
+    }
+
+    function applyColorSource(source) {
+        colorSource = source
+        const scheme = schemeForSource(source)
+        if (scheme)
+            MeoTheme.applyDynamicColorScheme(scheme)
+        else
+            MeoTheme.clearDynamicColorScheme()
+    }
+
+    onIsDarkModeChanged: applyColorSource(colorSource)
 
     contentWidth: width
     contentHeight: contentColumn.implicitHeight + 48 * themeGlobalScale
@@ -48,14 +85,14 @@ Flickable {
 
             Text {
                 text: "MeoTheme"
-                color: MeoTheme.onSurface
+                color: MeoTheme.contentOnSurface
                 font.pixelSize: MeoTheme.headlineLargeEmphasized.size * page.themeGlobalScale
                 font.weight: MeoTheme.headlineLargeEmphasized.weight
             }
             Text {
                 Layout.fillWidth: true
                 text: "Live MD3 design tokens — color, type, shape, scale and motion in one place."
-                color: MeoTheme.onSurfaceVariant
+                color: MeoTheme.contentOnSurfaceVariant
                 font.pixelSize: MeoTheme.bodyLarge.size * page.themeGlobalScale
                 font.weight: MeoTheme.bodyLarge.weight
                 wrapMode: Text.WordWrap
@@ -88,13 +125,13 @@ Flickable {
                         spacing: 2 * page.themeGlobalScale
                         Text {
                             text: "Appearance"
-                            color: MeoTheme.onSurface
+                            color: MeoTheme.contentOnSurface
                             font.pixelSize: MeoTheme.titleMedium.size * page.themeGlobalScale
                             font.weight: MeoTheme.titleMedium.weight
                         }
                         Text {
                             text: page.isDarkMode ? "Dark theme" : "Light theme"
-                            color: MeoTheme.onSurfaceVariant
+                            color: MeoTheme.contentOnSurfaceVariant
                             font.pixelSize: MeoTheme.bodyMedium.size * page.themeGlobalScale
                         }
                     }
@@ -110,7 +147,7 @@ Flickable {
 
                 Text {
                     text: "Color source"
-                    color: MeoTheme.onSurface
+                    color: MeoTheme.contentOnSurface
                     font.pixelSize: MeoTheme.titleMedium.size * page.themeGlobalScale
                     font.weight: MeoTheme.titleMedium.weight
                 }
@@ -120,27 +157,27 @@ Flickable {
 
                     MeoButton {
                         text: "Meo fallback"
-                        type: MeoTheme.dynamicColorsAvailable ? "outlined" : "filled"
+                        type: page.colorSource === "fallback" ? "filled" : "outlined"
                         icon.name: "palette"
-                        onClicked: MeoTheme.clearDynamicColorScheme()
+                        onClicked: page.applyColorSource("fallback")
                     }
                     MeoButton {
                         text: "Ocean"
-                        type: MeoTheme.dynamicColorsAvailable && MeoTheme.primary.toString().toUpperCase() === "#006A6A" ? "filled" : "outlined"
+                        type: page.colorSource === "ocean" ? "filled" : "outlined"
                         icon.name: "water"
-                        onClicked: MeoTheme.applyDynamicColorScheme(page.oceanScheme)
+                        onClicked: page.applyColorSource("ocean")
                     }
                     MeoButton {
                         text: "Sunset"
-                        type: MeoTheme.dynamicColorsAvailable && MeoTheme.primary.toString().toUpperCase() === "#8C4A60" ? "filled" : "outlined"
+                        type: page.colorSource === "sunset" ? "filled" : "outlined"
                         icon.name: "wb_twilight"
-                        onClicked: MeoTheme.applyDynamicColorScheme(page.sunsetScheme)
+                        onClicked: page.applyColorSource("sunset")
                     }
                 }
 
                 Text {
                     text: "Interface scale  ·  " + Math.round(page.themeGlobalScale * 100) + "%"
-                    color: MeoTheme.onSurface
+                    color: MeoTheme.contentOnSurface
                     font.pixelSize: MeoTheme.titleMedium.size * page.themeGlobalScale
                     font.weight: MeoTheme.titleMedium.weight
                 }
@@ -165,13 +202,13 @@ Flickable {
                         spacing: 2 * page.themeGlobalScale
                         Text {
                             text: "Expressive Mode"
-                            color: MeoTheme.onSurface
+                            color: MeoTheme.contentOnSurface
                             font.pixelSize: MeoTheme.titleMedium.size * page.themeGlobalScale
                             font.weight: MeoTheme.titleMedium.weight
                         }
                         Text {
                             text: MeoTheme.isExpressive ? "Enabled" : "Disabled"
-                            color: MeoTheme.onSurfaceVariant
+                            color: MeoTheme.contentOnSurfaceVariant
                             font.pixelSize: MeoTheme.bodyMedium.size * page.themeGlobalScale
                         }
                     }
@@ -190,14 +227,14 @@ Flickable {
             Layout.fillWidth: true
             spacing: 12 * page.themeGlobalScale
 
-            ColorRole { roleName: "Primary"; containerColor: MeoTheme.primary; contentColor: MeoTheme.onPrimary }
-            ColorRole { roleName: "Primary container"; containerColor: MeoTheme.primaryContainer; contentColor: MeoTheme.onPrimaryContainer }
-            ColorRole { roleName: "Secondary"; containerColor: MeoTheme.secondary; contentColor: MeoTheme.onSecondary }
-            ColorRole { roleName: "Secondary container"; containerColor: MeoTheme.secondaryContainer; contentColor: MeoTheme.onSecondaryContainer }
-            ColorRole { roleName: "Tertiary"; containerColor: MeoTheme.tertiary; contentColor: MeoTheme.onTertiary }
-            ColorRole { roleName: "Tertiary container"; containerColor: MeoTheme.tertiaryContainer; contentColor: MeoTheme.onTertiaryContainer }
-            ColorRole { roleName: "Error"; containerColor: MeoTheme.error; contentColor: MeoTheme.onError }
-            ColorRole { roleName: "Error container"; containerColor: MeoTheme.errorContainer; contentColor: MeoTheme.onErrorContainer }
+            ColorRole { roleName: "Primary"; containerColor: MeoTheme.primary; contentColor: MeoTheme.contentOnPrimary }
+            ColorRole { roleName: "Primary container"; containerColor: MeoTheme.primaryContainer; contentColor: MeoTheme.contentOnPrimaryContainer }
+            ColorRole { roleName: "Secondary"; containerColor: MeoTheme.secondary; contentColor: MeoTheme.contentOnSecondary }
+            ColorRole { roleName: "Secondary container"; containerColor: MeoTheme.secondaryContainer; contentColor: MeoTheme.contentOnSecondaryContainer }
+            ColorRole { roleName: "Tertiary"; containerColor: MeoTheme.tertiary; contentColor: MeoTheme.contentOnTertiary }
+            ColorRole { roleName: "Tertiary container"; containerColor: MeoTheme.tertiaryContainer; contentColor: MeoTheme.contentOnTertiaryContainer }
+            ColorRole { roleName: "Error"; containerColor: MeoTheme.error; contentColor: MeoTheme.contentOnError }
+            ColorRole { roleName: "Error container"; containerColor: MeoTheme.errorContainer; contentColor: MeoTheme.contentOnErrorContainer }
         }
 
         // 🔤 MD3 type scale
@@ -246,7 +283,7 @@ Flickable {
                     Text {
                         anchors.centerIn: parent
                         text: shapeSample.modelData.name
-                        color: shapeMouse.pressed ? MeoTheme.onPrimary : MeoTheme.onSurface
+                        color: shapeMouse.pressed ? MeoTheme.contentOnPrimary : MeoTheme.contentOnSurface
                         font.pixelSize: MeoTheme.labelLarge.size * page.themeGlobalScale
                         font.weight: MeoTheme.labelLarge.weight
                         Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
@@ -273,7 +310,7 @@ Flickable {
         Text {
             Layout.fillWidth: true
             text: parent.subtitle
-            color: MeoTheme.onSurfaceVariant
+            color: MeoTheme.contentOnSurfaceVariant
             font.pixelSize: MeoTheme.bodyMedium.size * page.themeGlobalScale
             wrapMode: Text.WordWrap
         }
@@ -315,7 +352,7 @@ Flickable {
         property string sampleText: ""
         Layout.fillWidth: true
         text: sampleText
-        color: MeoTheme.onSurface
+        color: MeoTheme.contentOnSurface
         font.pixelSize: token.size * page.themeGlobalScale
         font.weight: token.weight
         font.letterSpacing: token.letterSpacing * page.themeGlobalScale

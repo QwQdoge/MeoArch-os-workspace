@@ -4,7 +4,6 @@ import MeoUI
 
 Item {
     id: control
-    anchors.fill: parent
 
     property Component listComponent: null
     property Component detailComponent: null

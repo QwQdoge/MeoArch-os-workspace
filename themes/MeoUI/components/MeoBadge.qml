@@ -12,7 +12,7 @@ Rectangle {
     // 🌟 作用域与主题安全防御
     property Item target: null
     readonly property color themeError: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.error !== 'undefined') ? MeoTheme.error : "#B3261E"
-    readonly property color themeOnError: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onError !== 'undefined') ? MeoTheme.onError : "#FFFFFF"
+    readonly property color themeOnError: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnError !== 'undefined') ? MeoTheme.contentOnError : "#FFFFFF"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     implicitWidth: isDot ? 6 * themeGlobalScale : Math.max(16 * themeGlobalScale, label.implicitWidth + 8 * themeGlobalScale)

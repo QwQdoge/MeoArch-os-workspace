@@ -112,7 +112,7 @@ Flickable {
                         required property string modelData
                         spacing: 4 * MeoTheme.globalScale
                         MeoShape { width: 72 * MeoTheme.globalScale; height: 72 * MeoTheme.globalScale; type: parent.modelData; color: MeoTheme.primaryContainer; radius: 18 * MeoTheme.globalScale }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.modelData; color: MeoTheme.onSurfaceVariant; font.pixelSize: 11 * MeoTheme.globalScale }
+                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.modelData; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 11 * MeoTheme.globalScale }
                     }
                 }
             }
@@ -132,8 +132,8 @@ Flickable {
                 implicitHeight: 72 * MeoTheme.globalScale
                 radius: MeoTheme.shapeLarge
                 color: MeoTheme.surfaceContainerHighest
-                Text { anchors.centerIn: parent; text: "Standalone MeoStateLayer — hover or press"; color: MeoTheme.onSurface; font.pixelSize: 14 * MeoTheme.globalScale }
-                MeoStateLayer { anchors.fill: parent; radius: parent.radius; hovered: stateMouse.containsMouse; pressed: stateMouse.pressed; color: MeoTheme.onSurface }
+                Text { anchors.centerIn: parent; text: "Standalone MeoStateLayer — hover or press"; color: MeoTheme.contentOnSurface; font.pixelSize: 14 * MeoTheme.globalScale }
+                MeoStateLayer { anchors.fill: parent; radius: parent.radius; hovered: stateMouse.containsMouse; pressed: stateMouse.pressed; color: MeoTheme.contentOnSurface }
                 MouseArea { id: stateMouse; anchors.fill: parent; hoverEnabled: true }
             }
         }
@@ -152,14 +152,14 @@ Flickable {
                 ]
                 delegate: Component {
                     Rectangle {
-                        required property var modelData
+                        property var modelData: ({ "title": "", "icon": "" })
                         radius: MeoTheme.shapeExtraLarge
                         color: MeoTheme.secondaryContainer
                         Column {
                             anchors.centerIn: parent
                             spacing: 8 * MeoTheme.globalScale
-                            MeoIcon { anchors.horizontalCenter: parent.horizontalCenter; icon: modelData.icon; size: 36; color: MeoTheme.onSecondaryContainer }
-                            Text { text: modelData.title; color: MeoTheme.onSecondaryContainer; font.pixelSize: 16 * MeoTheme.globalScale; font.weight: Font.DemiBold }
+                            MeoIcon { anchors.horizontalCenter: parent.horizontalCenter; icon: modelData.icon; size: 36; color: MeoTheme.contentOnSecondaryContainer }
+                            Text { text: modelData.title; color: MeoTheme.contentOnSecondaryContainer; font.pixelSize: 16 * MeoTheme.globalScale; font.weight: Font.DemiBold }
                         }
                     }
                 }
@@ -207,7 +207,7 @@ Flickable {
             Column {
                 spacing: 16 * MeoTheme.globalScale
                 padding: 24 * MeoTheme.globalScale
-                Text { text: "Focused editing surface"; color: MeoTheme.onSurface; font.pixelSize: 24 * MeoTheme.globalScale }
+                Text { text: "Focused editing surface"; color: MeoTheme.contentOnSurface; font.pixelSize: 24 * MeoTheme.globalScale }
                 MeoTextField { width: 420 * MeoTheme.globalScale; label: "Document title" }
                 MeoTextArea { width: 420 * MeoTheme.globalScale; height: 160 * MeoTheme.globalScale; placeholderText: "Write something…" }
             }
@@ -218,8 +218,8 @@ Flickable {
         property string title: ""
         property string subtitle: ""
         Layout.fillWidth: true
-        Text { text: parent.title; color: MeoTheme.onSurface; font.pixelSize: MeoTheme.headlineLargeEmphasized.size * MeoTheme.globalScale; font.weight: Font.Bold }
-        Text { Layout.fillWidth: true; text: parent.subtitle; color: MeoTheme.onSurfaceVariant; font.pixelSize: MeoTheme.bodyLarge.size * MeoTheme.globalScale; wrapMode: Text.WordWrap }
+        Text { text: parent.title; color: MeoTheme.contentOnSurface; font.pixelSize: MeoTheme.headlineLargeEmphasized.size * MeoTheme.globalScale; font.weight: Font.Bold }
+        Text { Layout.fillWidth: true; text: parent.subtitle; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: MeoTheme.bodyLarge.size * MeoTheme.globalScale; wrapMode: Text.WordWrap }
     }
     component LabSection: ColumnLayout {
         default property alias contents: sectionContent.data

@@ -7,6 +7,64 @@ ScrollView {
     id: root
     contentWidth: availableWidth
 
+    component ExpressiveHighlightCard: Rectangle {
+        id: card
+
+        property string title: ""
+        property string body: ""
+        property bool large: false
+        default property alias previewContent: previewHost.data
+
+        Layout.fillWidth: true
+        Layout.preferredHeight: large ? 344 * MeoTheme.globalScale : 268 * MeoTheme.globalScale
+        radius: 28 * MeoTheme.globalScale
+        color: MeoTheme.surfaceContainerHigh
+        clip: true
+
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 0
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.preferredHeight: large ? 210 * MeoTheme.globalScale : 150 * MeoTheme.globalScale
+                color: MeoTheme.primaryContainer
+                radius: card.radius
+
+                Item {
+                    id: previewHost
+                    anchors.fill: parent
+                    anchors.margins: 18 * MeoTheme.globalScale
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.margins: 22 * MeoTheme.globalScale
+                spacing: 8 * MeoTheme.globalScale
+
+                Text {
+                    Layout.fillWidth: true
+                    text: card.title
+                    color: MeoTheme.contentOnSurface
+                    font.pixelSize: MeoTheme.headlineSmall.size * MeoTheme.globalScale
+                    font.weight: Font.Bold
+                    wrapMode: Text.WordWrap
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: card.body
+                    color: MeoTheme.contentOnSurfaceVariant
+                    font.pixelSize: MeoTheme.bodyLarge.size * MeoTheme.globalScale
+                    lineHeight: 1.16
+                    wrapMode: Text.WordWrap
+                }
+            }
+        }
+    }
+
     ColumnLayout {
         width: parent.width
         spacing: 32 * MeoTheme.globalScale
@@ -16,8 +74,139 @@ ScrollView {
             text: "MD3 Expressive Components"
             font.pixelSize: MeoTheme.headlineMedium.size * MeoTheme.globalScale
             font.weight: Font.Bold
-            color: MeoTheme.onSurface
+            color: MeoTheme.contentOnSurface
         }
+
+        GridLayout {
+            Layout.fillWidth: true
+            columns: root.width > 1120 * MeoTheme.globalScale ? 2 : 1
+            columnSpacing: 12 * MeoTheme.globalScale
+            rowSpacing: 12 * MeoTheme.globalScale
+
+            ExpressiveHighlightCard {
+                large: true
+                title: "New: Toolbars"
+                body: "Flexible component to display frequently used actions. Toolbars hold controls like buttons and can pair with a FAB."
+
+                MeoFloatingToolbar {
+                    anchors.centerIn: parent
+                    isVibrant: true
+                    actions: [
+                        Component { MeoIconButton { icon.name: "format_bold"; type: "tonal"; selected: true } },
+                        Component { MeoIconButton { icon.name: "format_italic"; type: "standard" } },
+                        Component { MeoIconButton { icon.name: "format_underlined"; type: "standard" } },
+                        Component { MeoIconButton { icon.name: "format_color_text"; type: "standard" } },
+                        Component { MeoIconButton { icon.name: "format_color_fill"; type: "standard" } }
+                    ]
+                }
+            }
+
+            ExpressiveHighlightCard {
+                large: true
+                title: "New: Split button"
+                body: "Pair a button with related actions in a connected menu. Split buttons leverage expressive shape and motion strategies."
+
+                MeoSplitButton {
+                    anchors.centerIn: parent
+                    size: "l"
+                    type: "tonal"
+                    text: "Share"
+                    icon: "person_add"
+                    menuModel: [
+                        { label: "Copy link", icon: "link" },
+                        { label: "Send invite", icon: "send" }
+                    ]
+                }
+            }
+
+            ExpressiveHighlightCard {
+                title: "Updated: Progress indicators"
+                body: "An eye-catching way to show status in real time. Customize waveform and thickness to show progress with style."
+
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 26 * MeoTheme.globalScale
+
+                    MeoProgressBar {
+                        width: 170 * MeoTheme.globalScale
+                        height: 36 * MeoTheme.globalScale
+                        value: 0.58
+                        wavy: true
+                        isThick: true
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    MeoProgressBar {
+                        type: "circular"
+                        indeterminate: true
+                        isThick: true
+                        width: 56 * MeoTheme.globalScale
+                        height: 56 * MeoTheme.globalScale
+                    }
+                }
+            }
+
+            ExpressiveHighlightCard {
+                title: "New: Button groups"
+                body: "A new way to organize related buttons with shape-shifting buttons that react to each other."
+
+                MeoSegmentedButtons {
+                    anchors.centerIn: parent
+                    size: "l"
+                    model: ["Day", "Week", "Month"]
+                    currentIndex: 0
+                }
+            }
+
+            ExpressiveHighlightCard {
+                title: "See all expressive components"
+                body: "Check out all new and updated M3 Expressive components in the sections below."
+
+                Item {
+                    anchors.fill: parent
+
+                    Column {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 20 * MeoTheme.globalScale
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 6 * MeoTheme.globalScale
+
+                        MeoAssistChip { label: "Select"; icon: "check_circle"; size: "xs"; isEmphasized: true }
+                        MeoAssistChip { label: "Add photos"; icon: "add_a_photo"; size: "xs" }
+                        MeoAssistChip { label: "Share album"; icon: "share"; size: "xs" }
+                        MeoAssistChip { label: "Search"; icon: "search"; size: "xs" }
+                    }
+
+                    MeoFAB {
+                        anchors.centerIn: parent
+                        icon.name: "close"
+                        type: "small"
+                    }
+
+                    Row {
+                        anchors.right: parent.right
+                        anchors.rightMargin: 20 * MeoTheme.globalScale
+                        anchors.top: parent.top
+                        anchors.topMargin: 22 * MeoTheme.globalScale
+                        spacing: 8 * MeoTheme.globalScale
+
+                        MeoButton { text: "Going"; type: "filled"; size: "xs"; icon.name: "check_circle" }
+                        MeoButton { text: "Not Going"; type: "tonal"; size: "xs"; icon.name: "block" }
+                    }
+
+                    MeoSlider {
+                        width: 170 * MeoTheme.globalScale
+                        anchors.right: parent.right
+                        anchors.rightMargin: 26 * MeoTheme.globalScale
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 24 * MeoTheme.globalScale
+                        value: 42
+                    }
+                }
+            }
+        }
+
+        MeoDivider { topInset: 4; bottomInset: 4 }
 
         // --- Expressive Search Section ---
         ColumnLayout {
@@ -42,7 +231,7 @@ ScrollView {
                 Text {
                     text: "Search App Bar morphs from a floating bar to a full-screen search view, following MD3 Expressive motion guidelines."
                     font.pixelSize: MeoTheme.bodySmall.size * MeoTheme.globalScale
-                    color: MeoTheme.onSurfaceVariant
+                    color: MeoTheme.contentOnSurfaceVariant
                     Layout.maximumWidth: 400 * MeoTheme.globalScale
                     wrapMode: Text.WordWrap
                 }
@@ -220,7 +409,6 @@ ScrollView {
                     id: slider
                     width: 300 * MeoTheme.globalScale
                     from: 0; to: 1.0; value: 1.0
-                    label: "Scroll Progress"
                 }
             }
         }
@@ -242,8 +430,9 @@ ScrollView {
                 spacing: 16 * MeoTheme.globalScale
                 Layout.fillWidth: true
 
-                MeoToolbar {
+                MeoTopAppBar {
                     title: "Standard Toolbar"
+                    type: "small"
                     actions: [
                         Component { MeoIconButton { icon.name: "share" } },
                         Component { MeoIconButton { icon.name: "edit" } },
@@ -251,9 +440,9 @@ ScrollView {
                     ]
                 }
 
-                MeoToolbar {
+                MeoTopAppBar {
                     title: "Compact Toolbar"
-                    isCompact: true
+                    type: "center"
                     actions: [
                         Component { MeoIconButton { icon.name: "more_vert" } }
                     ]
@@ -457,7 +646,7 @@ ScrollView {
                 width: parent.width
                 spacing: 24 * MeoTheme.globalScale
 
-                Text { text: "Multi-browse Strategy"; font.weight: Font.Medium; color: MeoTheme.onSurfaceVariant }
+                Text { text: "Multi-browse Strategy"; font.weight: Font.Medium; color: MeoTheme.contentOnSurfaceVariant }
                 MeoCarousel {
                     width: parent.width
                     height: 240 * MeoTheme.globalScale
@@ -465,16 +654,18 @@ ScrollView {
                     type: "multi-browse"
                     model: [1, 2, 3, 4, 5, 6, 7, 8]
                     delegate: Rectangle {
-                        color: index % 2 === 0 ? MeoTheme.primaryContainer : MeoTheme.secondaryContainer
+                        property int modelIndex: 0
+                        property var modelData: 0
+                        color: modelIndex % 2 === 0 ? MeoTheme.primaryContainer : MeoTheme.secondaryContainer
                         Text {
                             anchors.centerIn: parent
                             text: "Item " + modelData
-                            color: index % 2 === 0 ? MeoTheme.onPrimaryContainer : MeoTheme.onSecondaryContainer
+                            color: modelIndex % 2 === 0 ? MeoTheme.contentOnPrimaryContainer : MeoTheme.contentOnSecondaryContainer
                         }
                     }
                 }
 
-                Text { text: "Uncontained Strategy"; font.weight: Font.Medium; color: MeoTheme.onSurfaceVariant }
+                Text { text: "Uncontained Strategy"; font.weight: Font.Medium; color: MeoTheme.contentOnSurfaceVariant }
                 MeoCarousel {
                     width: parent.width
                     height: 240 * MeoTheme.globalScale
@@ -486,7 +677,7 @@ ScrollView {
                         Text {
                             anchors.centerIn: parent
                             text: "Uncontained " + modelData
-                            color: MeoTheme.onTertiaryContainer
+                            color: MeoTheme.contentOnTertiaryContainer
                         }
                     }
                 }
@@ -520,7 +711,7 @@ ScrollView {
                     shape: "squircle"
                     type: "filled"
                     interactive: true
-                    Text { anchors.centerIn: parent; text: "Squircle Card"; color: MeoTheme.onSurfaceVariant }
+                    Text { anchors.centerIn: parent; text: "Squircle Card"; color: MeoTheme.contentOnSurfaceVariant }
                 }
 
                 MeoCard {
@@ -529,7 +720,7 @@ ScrollView {
                     shape: "hexagon"
                     type: "elevated"
                     interactive: true
-                    Text { anchors.centerIn: parent; text: "Hexagon Card"; color: MeoTheme.onSurface }
+                    Text { anchors.centerIn: parent; text: "Hexagon Card"; color: MeoTheme.contentOnSurface }
                 }
 
                 MeoCard {
@@ -538,7 +729,7 @@ ScrollView {
                     shape: "octagon"
                     type: "outlined"
                     interactive: true
-                    Text { anchors.centerIn: parent; text: "Octagon Card"; color: MeoTheme.onSurfaceVariant }
+                    Text { anchors.centerIn: parent; text: "Octagon Card"; color: MeoTheme.contentOnSurfaceVariant }
                 }
             }
         }
@@ -590,7 +781,7 @@ ScrollView {
                     Text {
                         anchors.centerIn: parent
                         text: "Click FAB to see Menu"
-                        color: MeoTheme.onSurfaceVariant
+                        color: MeoTheme.contentOnSurfaceVariant
                         font.italic: true
                     }
 

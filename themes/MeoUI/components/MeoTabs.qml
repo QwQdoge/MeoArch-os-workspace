@@ -12,7 +12,8 @@ Control {
     signal clicked(int index)
 
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
+    readonly property color themeOutlineVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outlineVariant !== 'undefined') ? MeoTheme.outlineVariant : "#C4C7C5"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     readonly property var fontTitleSmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.titleSmall !== 'undefined') ? MeoTheme.titleSmall : { "size": 14, "weight": Font.Medium }
@@ -26,7 +27,8 @@ Control {
             anchors.bottom: parent.bottom
             width: parent.width
             height: 1 * control.themeGlobalScale
-            color: control.type === "secondary" ? Qt.rgba(0,0,0,0.1) : "transparent"
+            color: control.type === "secondary" ? control.themeOutlineVariant : "transparent"
+            opacity: control.type === "secondary" ? 0.72 : 1
         }
     }
 
@@ -62,11 +64,23 @@ Control {
                 }
 
                 MouseArea {
+                    id: mouseArea
                     anchors.fill: parent
+                    hoverEnabled: true
                     onClicked: {
                         control.currentIndex = index
                         control.clicked(index)
                     }
+                }
+
+                MeoStateLayer {
+                    anchors.fill: parent
+                    radius: 24 * control.themeGlobalScale
+                    pressed: mouseArea.pressed
+                    hovered: mouseArea.containsMouse
+                    pressX: mouseArea.mouseX
+                    pressY: mouseArea.mouseY
+                    color: isSelected ? control.themePrimary : control.themeOnSurfaceVariant
                 }
             }
         }

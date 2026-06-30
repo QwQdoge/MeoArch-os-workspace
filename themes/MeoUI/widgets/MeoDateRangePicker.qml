@@ -17,15 +17,24 @@ MeoCard {
 
     // 🌟 作用域与主题安全防御
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
-    readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimary !== 'undefined') ? MeoTheme.onPrimary : "#FFFFFF"
+    readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? MeoTheme.contentOnPrimary : "#FFFFFF"
     readonly property color themePrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
-    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimaryContainer !== 'undefined') ? MeoTheme.onPrimaryContainer : "#21005D"
-    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D"
+    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     implicitWidth: 328 * themeGlobalScale
-    implicitHeight: 520 * themeGlobalScale
+    implicitHeight: 600 * themeGlobalScale
+
+    onStartDateChanged: {
+        if (startInput)
+            startInput.text = control.hasStartDate ? formatIsoDate(control.startDate) : ""
+    }
+    onEndDateChanged: {
+        if (endInput)
+            endInput.text = control.hasEndDate ? formatIsoDate(control.endDate) : ""
+    }
 
     Column {
         anchors.fill: parent
@@ -35,8 +44,8 @@ MeoCard {
         // Header: Selection Summary
         Column {
             width: parent.width
-            height: 84 * control.themeGlobalScale
-            spacing: 4 * control.themeGlobalScale
+            height: 144 * control.themeGlobalScale
+            spacing: 8 * control.themeGlobalScale
             padding: 12 * control.themeGlobalScale
 
             Text {
@@ -66,12 +75,67 @@ MeoCard {
                     color: control.hasEndDate ? control.themeOnSurface : control.themeOnSurfaceVariant
                 }
             }
+
+            Row {
+                width: parent.width
+                spacing: 8 * control.themeGlobalScale
+
+                TextField {
+                    id: startInput
+                    width: (parent.width - parent.spacing) / 2
+                    height: 48 * control.themeGlobalScale
+                    text: control.hasStartDate ? formatIsoDate(control.startDate) : ""
+                    selectByMouse: true
+                    placeholderText: "YYYY-MM-DD"
+                    color: control.themeOnSurface
+                    placeholderTextColor: control.themeOnSurfaceVariant
+                    selectionColor: Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.32)
+                    selectedTextColor: control.themeOnPrimary
+                    font.pixelSize: 14 * control.themeGlobalScale
+                    leftPadding: 12 * control.themeGlobalScale
+                    rightPadding: 12 * control.themeGlobalScale
+                    verticalAlignment: TextInput.AlignVCenter
+                    background: Rectangle {
+                        radius: 12 * control.themeGlobalScale
+                        color: "transparent"
+                        border.width: 1 * control.themeGlobalScale
+                        border.color: startInput.activeFocus ? control.themePrimary : control.themeOnSurfaceVariant
+                    }
+                    onAccepted: commitRangeText()
+                    onEditingFinished: commitRangeText()
+                }
+
+                TextField {
+                    id: endInput
+                    width: (parent.width - parent.spacing) / 2
+                    height: 48 * control.themeGlobalScale
+                    text: control.hasEndDate ? formatIsoDate(control.endDate) : ""
+                    selectByMouse: true
+                    placeholderText: "YYYY-MM-DD"
+                    color: control.themeOnSurface
+                    placeholderTextColor: control.themeOnSurfaceVariant
+                    selectionColor: Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.32)
+                    selectedTextColor: control.themeOnPrimary
+                    font.pixelSize: 14 * control.themeGlobalScale
+                    leftPadding: 12 * control.themeGlobalScale
+                    rightPadding: 12 * control.themeGlobalScale
+                    verticalAlignment: TextInput.AlignVCenter
+                    background: Rectangle {
+                        radius: 12 * control.themeGlobalScale
+                        color: "transparent"
+                        border.width: 1 * control.themeGlobalScale
+                        border.color: endInput.activeFocus ? control.themePrimary : control.themeOnSurfaceVariant
+                    }
+                    onAccepted: commitRangeText()
+                    onEditingFinished: commitRangeText()
+                }
+            }
         }
 
         MeoDivider {}
 
         // Month Selection
-        Row {
+        Item {
             width: parent.width
             height: 48 * control.themeGlobalScale
 
@@ -240,5 +304,49 @@ MeoCard {
                 control.endDate = date
             }
         }
+    }
+
+    function commitRangeText() {
+        const start = startInput.text.trim() === "" ? null : parseIsoDate(startInput.text)
+        const end = endInput.text.trim() === "" ? null : parseIsoDate(endInput.text)
+        if ((startInput.text.trim() !== "" && !start) || (endInput.text.trim() !== "" && !end)) {
+            startInput.text = control.hasStartDate ? formatIsoDate(control.startDate) : ""
+            endInput.text = control.hasEndDate ? formatIsoDate(control.endDate) : ""
+            return
+        }
+
+        if (start && end && end.getTime() < start.getTime()) {
+            control.startDate = end
+            control.endDate = start
+            control.displayDate = end
+            return
+        }
+
+        control.startDate = start || new Date(0)
+        control.endDate = end || new Date(0)
+        if (start)
+            control.displayDate = start
+        else if (end)
+            control.displayDate = end
+    }
+
+    function formatIsoDate(date) {
+        const month = String(date.getMonth() + 1).padStart(2, "0")
+        const day = String(date.getDate()).padStart(2, "0")
+        return date.getFullYear() + "-" + month + "-" + day
+    }
+
+    function parseIsoDate(text) {
+        const match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(text.trim())
+        if (!match)
+            return null
+        const year = Number(match[1])
+        const month = Number(match[2])
+        const day = Number(match[3])
+        const parsed = new Date(year, month - 1, day)
+        if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day)
+            return null
+        parsed.setHours(0, 0, 0, 0)
+        return parsed
     }
 }

@@ -19,9 +19,9 @@ Control {
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
-    readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimary !== 'undefined') ? MeoTheme.onPrimary : "#FFFFFF"
+    readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? MeoTheme.contentOnPrimary : "#FFFFFF"
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     // 📐 尺寸映射 (MD3 Expressive Slider)
@@ -79,15 +79,7 @@ Control {
                 id: trackRect
                 anchors.centerIn: parent
                 width: parent.width
-                height: {
-                    if (control.isThick) return 16 * control.themeGlobalScale;
-                    if (size === "xs") return MeoTheme.sliderTrackHeightXS || 4 * control.themeGlobalScale;
-                    if (size === "s") return MeoTheme.sliderTrackHeightS || 16 * control.themeGlobalScale;
-                    if (size === "m") return MeoTheme.sliderTrackHeightM || 28 * control.themeGlobalScale;
-                    if (size === "l") return MeoTheme.sliderTrackHeightL || 36 * control.themeGlobalScale;
-                    if (size === "xl") return MeoTheme.sliderTrackHeightXL || 44 * control.themeGlobalScale;
-                    return 4 * control.themeGlobalScale;
-                }
+                height: control.isThick ? 16 * control.themeGlobalScale : control.trackHeight
                 radius: height / 2
                 color: Qt.rgba(control.themeOnSurfaceVariant.r, control.themeOnSurfaceVariant.g, control.themeOnSurfaceVariant.b, 0.12)
 

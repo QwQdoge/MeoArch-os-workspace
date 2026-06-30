@@ -15,12 +15,23 @@ MeoCard {
     // 🌟 作用域与主题安全防御
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themePrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
-    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimaryContainer !== 'undefined') ? MeoTheme.onPrimaryContainer : "#21005D"
+    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D"
+    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property color themeSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceVariant !== 'undefined') ? MeoTheme.surfaceVariant : "#E7E0EC"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     implicitWidth: 320 * themeGlobalScale
     implicitHeight: 450 * themeGlobalScale
+
+    onHoursChanged: {
+        if (hourInput && !hourInput.activeFocus)
+            hourInput.text = control.hours.toString().padStart(2, '0')
+    }
+    onMinutesChanged: {
+        if (minuteInput && !minuteInput.activeFocus)
+            minuteInput.text = control.minutes.toString().padStart(2, '0')
+    }
 
     Column {
         anchors.fill: parent
@@ -37,11 +48,27 @@ MeoCard {
                 height: 80 * control.themeGlobalScale
                 radius: 8 * control.themeGlobalScale
                 color: control.themePrimaryContainer
-                Text {
+                TextInput {
+                    id: hourInput
                     anchors.centerIn: parent
                     text: control.hours.toString().padStart(2, '0')
                     font.pixelSize: 45 * control.themeGlobalScale
                     color: control.themeOnPrimaryContainer
+                    horizontalAlignment: TextInput.AlignHCenter
+                    verticalAlignment: TextInput.AlignVCenter
+                    selectByMouse: true
+                    selectedTextColor: control.themeOnPrimaryContainer
+                    selectionColor: Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.28)
+                    validator: IntValidator { bottom: 1; top: 12 }
+                    Keys.onReturnPressed: commitHour()
+                    Keys.onEnterPressed: commitHour()
+                    onEditingFinished: commitHour()
+
+                    function commitHour() {
+                        const value = Math.max(1, Math.min(12, Number(text)))
+                        control.hours = isNaN(value) ? 12 : value
+                        text = control.hours.toString().padStart(2, '0')
+                    }
                 }
             }
 
@@ -58,11 +85,27 @@ MeoCard {
                 height: 80 * control.themeGlobalScale
                 radius: 8 * control.themeGlobalScale
                 color: control.themeSurfaceVariant
-                Text {
+                TextInput {
+                    id: minuteInput
                     anchors.centerIn: parent
                     text: control.minutes.toString().padStart(2, '0')
                     font.pixelSize: 45 * control.themeGlobalScale
                     color: control.themeOnPrimaryContainer
+                    horizontalAlignment: TextInput.AlignHCenter
+                    verticalAlignment: TextInput.AlignVCenter
+                    selectByMouse: true
+                    selectedTextColor: control.themeOnPrimaryContainer
+                    selectionColor: Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.28)
+                    validator: IntValidator { bottom: 0; top: 59 }
+                    Keys.onReturnPressed: commitMinute()
+                    Keys.onEnterPressed: commitMinute()
+                    onEditingFinished: commitMinute()
+
+                    function commitMinute() {
+                        const value = Math.max(0, Math.min(59, Number(text)))
+                        control.minutes = isNaN(value) ? 0 : value
+                        text = control.minutes.toString().padStart(2, '0')
+                    }
                 }
             }
 
@@ -78,7 +121,12 @@ MeoCard {
                     radius: 8 * control.themeGlobalScale
                     border.color: control.themeSurfaceVariant
                     color: !control.isPM ? control.themePrimaryContainer : "transparent"
-                    Text { anchors.centerIn: parent; text: "AM"; font.pixelSize: 14 * control.themeGlobalScale }
+                    Text {
+                        anchors.centerIn: parent
+                        text: "AM"
+                        font.pixelSize: 14 * control.themeGlobalScale
+                        color: !control.isPM ? control.themeOnPrimaryContainer : control.themeOnSurface
+                    }
                     MouseArea { anchors.fill: parent; onClicked: control.isPM = false }
                 }
                 Rectangle {
@@ -87,7 +135,12 @@ MeoCard {
                     radius: 8 * control.themeGlobalScale
                     border.color: control.themeSurfaceVariant
                     color: control.isPM ? control.themePrimaryContainer : "transparent"
-                    Text { anchors.centerIn: parent; text: "PM"; font.pixelSize: 14 * control.themeGlobalScale }
+                    Text {
+                        anchors.centerIn: parent
+                        text: "PM"
+                        font.pixelSize: 14 * control.themeGlobalScale
+                        color: control.isPM ? control.themeOnPrimaryContainer : control.themeOnSurface
+                    }
                     MouseArea { anchors.fill: parent; onClicked: control.isPM = true }
                 }
             }

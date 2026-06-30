@@ -13,9 +13,15 @@ Rectangle {
 
     signal clicked()
 
+    function activateSearch() {
+        isExpanded = true
+        textField.forceActiveFocus()
+        clicked()
+    }
+
     readonly property color themeSurfaceContainerHighest: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHighest !== 'undefined') ? MeoTheme.surfaceContainerHighest : "#E6E1E5"
-    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     implicitWidth: 360 * themeGlobalScale
@@ -55,6 +61,7 @@ Rectangle {
 
                 onTextChanged: control.text = text
                 onActiveFocusChanged: if (activeFocus) control.isExpanded = true
+                onAccepted: control.isExpanded = false
             }
 
             MeoIconButton {
@@ -74,5 +81,10 @@ Rectangle {
             sourceComponent: control.menuContent
             clip: true
         }
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+        onTapped: control.activateSearch()
     }
 }

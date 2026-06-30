@@ -31,7 +31,7 @@ Rectangle {
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent
-        anchors.topMargin: 24 * control.themeGlobalScale
+        anchors.topMargin: 12 * control.themeGlobalScale
         spacing: 0
 
         Loader {
@@ -47,7 +47,7 @@ Rectangle {
             padding: 16 * control.themeGlobalScale
             font.pixelSize: fontLabelLarge.size * control.themeGlobalScale
             font.weight: fontLabelLarge.weight
-            color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+            color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
         }
 
         ScrollView {

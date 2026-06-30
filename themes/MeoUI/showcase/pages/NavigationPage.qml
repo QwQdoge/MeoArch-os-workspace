@@ -19,7 +19,7 @@ Flickable {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Navigation Drawer (Scrollable + Footer)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Text { text: "Navigation Drawer (Scrollable + Footer)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
 
             MeoNavigationDrawer {
                 width: parent.width
@@ -52,7 +52,7 @@ Flickable {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Top App Bar Modes"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Text { text: "Top App Bar Modes"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
 
             MeoTopAppBar {
                 width: parent.width
@@ -79,7 +79,7 @@ Flickable {
 
         MeoDivider { topInset: 16; bottomInset: 16 }
 
-        Text { text: "Layout Components"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+        Text { text: "Layout Components"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
 
         Row {
             width: parent.width

@@ -15,7 +15,7 @@ Popup {
     // Morphing is handled by parallel animations on opacity and container size if triggered from a bar
 
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     width: parent ? parent.width : 360 * themeGlobalScale
@@ -24,6 +24,8 @@ Popup {
     modal: true
     focus: true
     closePolicy: Popup.CloseOnEscape
+
+    onOpened: searchBar.forceSearchFocus()
 
     background: Rectangle {
         color: control.themeSurface
@@ -42,8 +44,7 @@ Popup {
             placeholder: control.placeholder
             onTextChanged: control.text = text
 
-            // Forward back button to close
-            // (MeoSearchBar already handles active state toggle)
+            onActivated: control.forceActiveFocus()
             onActiveChanged: if (!active) control.close()
         }
 
@@ -98,16 +99,16 @@ Popup {
     // 🌟 MD3 Expressive Expanding Animation
     enter: Transition {
         ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingSoul !== 'undefined') ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] }
-            NumberAnimation { property: "scale"; from: 0.95; to: 1.0; duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingSoul !== 'undefined') ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] }
+            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasized !== 'undefined') ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
+            NumberAnimation { property: "scale"; from: 0.96; to: 1.0; duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasized !== 'undefined') ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
             NumberAnimation { target: mainColumn; property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
         }
     }
 
     exit: Transition {
         ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 200 }
-            NumberAnimation { property: "scale"; from: 1.0; to: 0.95; duration: 200 }
+            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 200; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasizedAccelerate !== 'undefined') ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15] }
+            NumberAnimation { property: "scale"; from: 1.0; to: 0.96; duration: 200; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasizedAccelerate !== 'undefined') ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15] }
         }
     }
 }

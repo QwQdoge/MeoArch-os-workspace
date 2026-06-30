@@ -12,10 +12,13 @@ Rectangle {
     property string trailingIcon: "person"
     property bool active: false // 🌟 MD3 Expressive: Active state for transition
 
+    signal activated()
+    signal accepted(string text)
+
     // 🌟 作用域与主题安全防御
     readonly property color themeSurfaceContainerHighest: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHighest !== 'undefined') ? MeoTheme.surfaceContainerHighest : "#E6E1E5"
-    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     implicitWidth: 360 * themeGlobalScale
@@ -24,17 +27,16 @@ Rectangle {
     // 📐 Expressive Expansion Logic
     readonly property bool isWide: parent && parent.width > 600 * themeGlobalScale
 
-    // Use Layout.preferredWidth if inside a layout, otherwise set width
-    width: {
-        if (typeof Layout !== 'undefined' && typeof Layout.fillWidth !== 'undefined') return implicitWidth;
-        return active ? (parent ? parent.width : implicitWidth) : implicitWidth
+    function activateSearch() {
+        if (!active) {
+            active = true
+            activated()
+        }
+        textField.forceActiveFocus()
     }
 
-    // Handle Layout.fillWidth safely
-    Component.onCompleted: {
-        if (typeof Layout !== 'undefined' && typeof Layout.fillWidth !== 'undefined') {
-            // If in a layout, we might need a different strategy, but for standard usage:
-        }
+    function forceSearchFocus() {
+        textField.forceActiveFocus()
     }
 
     radius: active ? (isWide ? 16 * themeGlobalScale : 0) : 28 * themeGlobalScale
@@ -57,30 +59,51 @@ Rectangle {
             type: "standard"
             anchors.verticalCenter: parent.verticalCenter
             onClicked: {
-                if (control.active) control.active = false
+                if (control.active) {
+                    control.active = false
+                    textField.focus = false
+                } else {
+                    control.activateSearch()
+                }
             }
         }
 
         TextField {
             id: textField
-            width: parent.width - (control.leadingIcon !== "" ? 24 : 0) - (control.trailingIcon !== "" ? 24 : 0) - (parent.spacing * 2)
+            width: parent.width - 48 * control.themeGlobalScale - (trailingButton.visible ? 48 * control.themeGlobalScale : 0) - parent.spacing * 2
             height: parent.height
             background: null
             placeholderText: control.placeholder
             text: control.text
             font.pixelSize: 16 * control.themeGlobalScale
             color: control.themeOnSurface
+            placeholderTextColor: control.themeOnSurfaceVariant
             anchors.verticalCenter: parent.verticalCenter
+            selectByMouse: true
 
             onTextChanged: control.text = text
+            onActiveFocusChanged: if (activeFocus) control.activateSearch()
+            onAccepted: control.accepted(text)
         }
 
-        MeoIcon {
-            icon: control.trailingIcon
-            size: 24
+        MeoIconButton {
+            id: trailingButton
+            icon.name: control.active && control.text !== "" ? "close" : control.trailingIcon
+            type: "standard"
             anchors.verticalCenter: parent.verticalCenter
-            color: control.themeOnSurfaceVariant
-            visible: control.trailingIcon !== ""
+            visible: icon.name !== ""
+            onClicked: {
+                if (control.active && control.text !== "") {
+                    control.text = ""
+                    textField.text = ""
+                    textField.forceActiveFocus()
+                }
+            }
         }
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+        onTapped: control.activateSearch()
     }
 }

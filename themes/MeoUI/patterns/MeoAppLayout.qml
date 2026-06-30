@@ -76,8 +76,8 @@ Item {
                 // Add top padding for notch
                 Item { height: control.safeAreaTop; width: parent.width }
 
-                // Add a leading icon for the hamburger menu
-                leadingIcon: MeoIconButton {
+                // Add a navigation icon for the hamburger menu
+                navigationIcon: MeoIconButton {
                     icon.name: "menu"
                     onClicked: modalDrawer.open()
                 }

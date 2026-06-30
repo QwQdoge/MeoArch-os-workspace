@@ -15,7 +15,7 @@ Button {
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themePrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
-    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimaryContainer !== 'undefined') ? MeoTheme.onPrimaryContainer : "#21005D"
+    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
@@ -51,16 +51,13 @@ Button {
             shadowColor: Qt.rgba(0,0,0,0.2)
         }
 
-        // 🌟 状态层
-        Rectangle {
+        // MD3 state layer with circular ripple from press origin.
+        MeoStateLayer {
             anchors.fill: parent
             radius: parent.radius
-            color: {
-                if (control.pressed) return Qt.rgba(control.themeOnPrimaryContainer.r, control.themeOnPrimaryContainer.g, control.themeOnPrimaryContainer.b, 0.12)
-                if (control.hovered) return Qt.rgba(control.themeOnPrimaryContainer.r, control.themeOnPrimaryContainer.g, control.themeOnPrimaryContainer.b, 0.08)
-                return "transparent"
-            }
-            Behavior on color { ColorAnimation { duration: 150 } }
+            pressed: control.pressed
+            hovered: control.hovered
+            color: control.themeOnPrimaryContainer
         }
 
         Behavior on color { ColorAnimation { duration: 150 } }

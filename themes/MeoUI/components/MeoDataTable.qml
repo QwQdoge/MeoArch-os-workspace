@@ -18,8 +18,8 @@ Control {
     // 🌟 作用域防御与主题适配
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
-    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property color themeOutlineVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outlineVariant !== 'undefined') ? MeoTheme.outlineVariant : "#C4C7C5"
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
@@ -97,7 +97,7 @@ Control {
                             MeoIcon {
                                 icon: control.sortAscending ? "arrow_upward" : "arrow_downward"
                                 size: 16
-                                visible: modelData.sortable && control.sortProperty === modelData.property
+                                visible: !!modelData.sortable && control.sortProperty === modelData.property
                                 color: control.themePrimary
                                 anchors.verticalCenter: parent.verticalCenter
                             }
@@ -105,7 +105,7 @@ Control {
 
                         MouseArea {
                             anchors.fill: parent
-                            enabled: modelData.sortable
+                            enabled: !!modelData.sortable
                             onClicked: {
                                 if (control.sortProperty === modelData.property) {
                                     control.sortAscending = !control.sortAscending;

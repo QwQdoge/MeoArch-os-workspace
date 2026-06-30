@@ -27,7 +27,7 @@ Column {
         trailingComponent: MeoCheckbox {
             checked: isAllSelected()
             indeterminate: !isAllSelected() && isAnySelected()
-            onClicked: {
+            onToggled: {
                 let target = !isAllSelected()
                 let newModel = [...control.model]
                 for (let i = 0; i < newModel.length; i++) {
@@ -68,7 +68,7 @@ Column {
                 id: checkComp
                 MeoCheckbox {
                     checked: isChecked
-                    onClicked: {
+                    onToggled: {
                         let newModel = [...control.model]
                         newModel[index].checked = !newModel[index].checked
                         control.model = newModel
@@ -81,7 +81,7 @@ Column {
                 id: radioComp
                 MeoRadioButton {
                     checked: isChecked
-                    onClicked: {
+                    onToggled: {
                         let newModel = [...control.model]
                         for (let i = 0; i < newModel.length; i++) {
                             newModel[i].checked = (i === index)

@@ -21,7 +21,7 @@ Control {
     property color badgeColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.error !== 'undefined') ? MeoTheme.error : "#B3261E"
     property Component leadingComponent: null
     property Component trailingComponent: null
-    property var actions: [] // 🌟 New: Multiple trailing actions support (Array of Components)
+    property list<Component> actions
 
     property bool interactive: true
     property bool isSegmented: false // MD3 Expressive: Segmented list style
@@ -35,12 +35,12 @@ Control {
 
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
-    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
-    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B"
+    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B"
     readonly property color themePrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
-    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimaryContainer !== 'undefined') ? MeoTheme.onPrimaryContainer : "#21005D"
+    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     readonly property var fontBodyLarge: {
@@ -71,10 +71,9 @@ Control {
     spacing: 16 * themeGlobalScale // Standardized MD3 spacing
 
     background: Item {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.leftMargin: isSegmented ? 8 * themeGlobalScale : 0
-        anchors.rightMargin: isSegmented ? 8 * themeGlobalScale : 0
+        width: control.width - (control.isSegmented ? 16 * control.themeGlobalScale : 0)
+        height: control.height
+        x: control.isSegmented ? 8 * control.themeGlobalScale : 0
 
         MeoShape {
             id: shapeBg
@@ -96,6 +95,8 @@ Control {
                 visible: control.interactive
                 pressed: mouseArea.pressed
                 hovered: mouseArea.containsMouse
+                pressX: mouseArea.mouseX
+                pressY: mouseArea.mouseY
                 color: {
                     if (vibrant && selected) return control.themeOnPrimaryContainer;
                     if (selected) return control.themeOnSecondaryContainer;
@@ -131,7 +132,8 @@ Control {
     contentItem: Row {
         id: contentRow
         spacing: control.spacing
-        width: parent.width
+        width: control.availableWidth
+        height: control.availableHeight
 
         // 🖼️ Leading Visuals Area
         Item {

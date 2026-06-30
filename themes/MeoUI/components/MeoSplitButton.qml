@@ -9,7 +9,7 @@ Control {
     // 🌟 核心属性
     property string text: ""
     property string icon: ""
-    property string type: "filled" // "filled" | "tonal" | "outlined" | "elevated" | "text"
+    property string type: "tonal" // "filled" | "tonal" | "outlined" | "elevated" | "text"
     property bool isEmphasized: false
     property var menuModel: []
 
@@ -21,11 +21,12 @@ Control {
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
+    readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
 
     readonly property color textColor: {
         if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
-        if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimary !== 'undefined') ? MeoTheme.onPrimary : "#FFFFFF";
-        if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B";
+        if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? MeoTheme.contentOnPrimary : "#FFFFFF";
+        if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D";
         return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
     }
 
@@ -35,7 +36,7 @@ Control {
             return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
         }
         if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
-        if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8";
+        if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF";
         if (type === "elevated") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA";
         return "transparent";
     }
@@ -59,11 +60,11 @@ Control {
         return MeoTheme.buttonHeightM || 48 * themeGlobalScale;
     }
 
-    implicitWidth: mainAction.implicitWidth + menuAction.implicitWidth + 1 * themeGlobalScale
+    implicitWidth: mainAction.implicitWidth + menuAction.implicitWidth + 4 * themeGlobalScale
 
     background: Rectangle {
         radius: control.height / 2
-        color: control.bgColor
+        color: "transparent"
         border.color: {
             if (control.type !== "outlined") return "transparent";
             if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
@@ -84,13 +85,32 @@ Control {
     }
 
     contentItem: Row {
-        spacing: 0
+        spacing: 2 * control.themeGlobalScale
 
         // Main Action Area
         Item {
             id: mainAction
             height: control.height
             implicitWidth: contentRow.implicitWidth + (size === "xs" ? 16 : 24) * control.themeGlobalScale
+
+            Rectangle {
+                anchors.fill: parent
+                radius: parent.height / 2
+                color: control.bgColor
+                border.color: control.type === "outlined" ? control.themeOutline : "transparent"
+                border.width: control.type === "outlined" ? 1 * control.themeGlobalScale : 0
+
+                Rectangle {
+                    anchors.right: parent.right
+                    width: parent.radius
+                    height: parent.height
+                    color: parent.color
+                    border.color: parent.border.color
+                    border.width: parent.border.width
+                }
+
+                Behavior on color { ColorAnimation { duration: 150 } }
+            }
 
             Rectangle {
                 id: mainState
@@ -122,7 +142,7 @@ Control {
                 MeoIcon {
                     icon: control.icon
                     visible: icon !== ""
-                    size: (size === "xs" ? 16 : (size === "xl" ? 24 : 18))
+                    size: (control.size === "xs" ? 16 : (control.size === "xl" ? 24 : 18))
                     color: control.textColor
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -145,12 +165,10 @@ Control {
 
         // Vertical Divider
         Rectangle {
-            width: 1 * control.themeGlobalScale
-            height: control.height * 0.6
+            width: 0
+            height: control.height
             anchors.verticalCenter: parent.verticalCenter
-            color: control.textColor
-            opacity: 0.2
-            visible: control.type !== "text"
+            visible: false
         }
 
         // Menu Action Area
@@ -158,6 +176,25 @@ Control {
             id: menuAction
             height: control.height
             implicitWidth: (size === "xs" ? 32 : (size === "xl" ? 48 : 40)) * control.themeGlobalScale
+
+            Rectangle {
+                anchors.fill: parent
+                radius: parent.height / 2
+                color: control.bgColor
+                border.color: control.type === "outlined" ? control.themeOutline : "transparent"
+                border.width: control.type === "outlined" ? 1 * control.themeGlobalScale : 0
+
+                Rectangle {
+                    anchors.left: parent.left
+                    width: parent.radius
+                    height: parent.height
+                    color: parent.color
+                    border.color: parent.border.color
+                    border.width: parent.border.width
+                }
+
+                Behavior on color { ColorAnimation { duration: 150 } }
+            }
 
             Rectangle {
                 id: menuState

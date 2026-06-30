@@ -15,7 +15,7 @@ Button {
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool loading: false // 🌟 MD3: Loading state with progress indicator
     property bool selected: false // 🌟 MD3: Toggle state support
-    property bool bouncy: MeoTheme.isBouncy
+    property bool bouncy: MeoTheme.isExpressive && MeoTheme.isBouncy
 
     // Toggle Support
     checkable: false
@@ -80,11 +80,11 @@ Button {
             return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
         }
         if (control.checked) {
-             if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimaryContainer !== 'undefined') ? MeoTheme.onPrimaryContainer : "#21005D";
-             if (type === "outlined") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B";
+             if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D";
+             if (type === "outlined") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B";
         }
-        if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimary !== 'undefined') ? MeoTheme.onPrimary : "#FFFFFF";
-        if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B";
+        if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? MeoTheme.contentOnPrimary : "#FFFFFF";
+        if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B";
         return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
     }
 
@@ -119,10 +119,10 @@ Button {
     }
 
     contentItem: Item {
-        implicitWidth: loading ? (iconSize + 6) * MeoTheme.globalScale : contentRow.implicitWidth
-        implicitHeight: loading ? (iconSize + 6) * MeoTheme.globalScale : contentRow.implicitHeight
-        scale: (control.bouncy && control.pressed) ? 0.96 : 1.0
-        Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutQuad } }
+        implicitWidth: Math.max(contentRow.implicitWidth, (iconSize + 6) * MeoTheme.globalScale)
+        implicitHeight: Math.max(contentRow.implicitHeight, (iconSize + 6) * MeoTheme.globalScale)
+        scale: (control.bouncy && control.pressed) ? 0.98 : 1.0
+        Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
 
         Row {
             id: contentRow
@@ -175,7 +175,9 @@ Button {
             height: (control.iconSize + 6) * MeoTheme.globalScale
             visible: control.loading
             opacity: control.loading ? 1.0 : 0.0
-            Behavior on opacity { NumberAnimation { duration: 150 } }
+            scale: control.loading ? 1.0 : 0.82
+            Behavior on opacity { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+            Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
         }
     }
 
@@ -193,12 +195,8 @@ Button {
         
         color: control.bgColor
 
-        scale: (typeof MeoTheme !== 'undefined' && MeoTheme.isBouncy && control.pressed) ? 0.96 : 1.0
+        scale: (control.bouncy && control.pressed) ? 0.98 : 1.0
         Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
-
-        Behavior on radius {
-            NumberAnimation { duration: 200; easing.bezierCurve: MeoTheme.motionEasingSoul }
-        }
 
         // Surface Tint for Elevation
         Rectangle {
@@ -234,9 +232,9 @@ Button {
             shadowColor: Qt.rgba(0,0,0,0.2)
         }
 
-        Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
-        Behavior on border.color { ColorAnimation { duration: 150 } }
-        Behavior on border.width { NumberAnimation { duration: 150 } }
-        Behavior on radius { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
+        Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+        Behavior on border.color { ColorAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+        Behavior on border.width { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+        Behavior on radius { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
     }
 }

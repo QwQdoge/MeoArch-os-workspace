@@ -10,6 +10,7 @@ Control {
     property string type: "linear" // "linear" | "circular"
     property bool isThick: false // 🌟 MD3 Expressive: Thicker track variant
     property bool vibrant: false // 🌟 MD3 Expressive: Gradient/Vibrant track
+    property bool wavy: false // MD3 Expressive waveform linear indicator
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -19,14 +20,16 @@ Control {
 
     implicitWidth: type === "linear" ? 240 * themeGlobalScale : 48 * themeGlobalScale
     implicitHeight: {
-        if (type === "linear") return (isThick ? 8 : 4) * themeGlobalScale;
+        if (type === "linear") return wavy ? 24 * themeGlobalScale : (isThick ? 8 : 4) * themeGlobalScale;
         return 48 * themeGlobalScale;
     }
 
     // Linear Progress
     Rectangle {
-        visible: control.type === "linear"
-        anchors.fill: parent
+        visible: control.type === "linear" && !control.wavy
+        anchors.verticalCenter: parent.verticalCenter
+        width: parent.width
+        height: control.isThick ? 8 * control.themeGlobalScale : 4 * control.themeGlobalScale
         color: control.themeSurfaceContainerHighest
         radius: height / 2
         clip: true
@@ -37,13 +40,6 @@ Control {
             width: control.indeterminate ? parent.width * 0.3 : parent.width * control.value
             radius: height / 2
             color: control.themePrimary
-
-            // Vibrant Gradient
-            layer.enabled: control.vibrant
-            layer.effect: MultiEffect {
-                colorBlur: 0.2
-                brightness: 0.2
-            }
 
             Rectangle {
                 anchors.fill: parent
@@ -60,13 +56,75 @@ Control {
             SequentialAnimation on x {
                 running: control.indeterminate && control.visible && control.type === "linear"
                 loops: Animation.Infinite
-                NumberAnimation { from: -indicator.width; to: control.width; duration: 1000; easing.type: Easing.InOutSine }
+                NumberAnimation { from: -indicator.width; to: control.width; duration: 1100; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
             }
 
             Behavior on width {
                 enabled: !control.indeterminate
-                NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] }
+                NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] }
             }
+        }
+    }
+
+    Canvas {
+        id: wavyCanvas
+        visible: control.type === "linear" && control.wavy
+        anchors.fill: parent
+
+        property real phase: 0
+
+        onPaint: {
+            var ctx = getContext("2d");
+            ctx.reset();
+
+            var strokeWidth = (control.isThick ? 10 : 8) * control.themeGlobalScale;
+            var mid = height / 2;
+            var progressWidth = Math.max(0, Math.min(width, width * control.value));
+            var amp = 4 * control.themeGlobalScale;
+            var wavelength = 26 * control.themeGlobalScale;
+
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.lineWidth = strokeWidth;
+
+            ctx.strokeStyle = control.themeSurfaceContainerHighest;
+            ctx.beginPath();
+            ctx.moveTo(0, mid);
+            ctx.lineTo(width, mid);
+            ctx.stroke();
+
+            ctx.strokeStyle = control.themePrimary;
+            ctx.beginPath();
+            for (var x = 0; x <= progressWidth; x += 3 * control.themeGlobalScale) {
+                var y = mid + Math.sin((x + phase) / wavelength * Math.PI * 2) * amp;
+                if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            if (progressWidth < width) {
+                ctx.fillStyle = control.themePrimary;
+                ctx.beginPath();
+                ctx.arc(width, mid, 2 * control.themeGlobalScale, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        onWidthChanged: requestPaint()
+        onHeightChanged: requestPaint()
+        onPhaseChanged: requestPaint()
+        Connections {
+            target: control
+            function onValueChanged() { wavyCanvas.requestPaint() }
+            function onIsThickChanged() { wavyCanvas.requestPaint() }
+        }
+
+        NumberAnimation on phase {
+            running: control.visible && control.wavy && control.type === "linear"
+            from: 0
+            to: 52 * control.themeGlobalScale
+            duration: 900
+            loops: Animation.Infinite
+            easing.type: Easing.Linear
         }
     }
 
@@ -117,6 +175,7 @@ Control {
 
         onStartAngleChanged: requestPaint()
         onEndAngleChanged: requestPaint()
+        onRotationChanged: requestPaint()
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
 
@@ -126,13 +185,13 @@ Control {
             loops: Animation.Infinite
 
             ParallelAnimation {
-                NumberAnimation { target: canvas; property: "startAngle"; from: 0; to: 0.75; duration: 666; easing.type: Easing.InOutSine }
-                NumberAnimation { target: canvas; property: "endAngle"; from: 0.2; to: 0.95; duration: 666; easing.type: Easing.InOutSine }
+                NumberAnimation { target: canvas; property: "startAngle"; from: 0; to: 0.75; duration: 650; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
+                NumberAnimation { target: canvas; property: "endAngle"; from: 0.2; to: 0.95; duration: 650; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
                 NumberAnimation { target: canvas; property: "rotation"; from: 0; to: 180; duration: 666; easing.type: Easing.Linear }
             }
             ParallelAnimation {
-                NumberAnimation { target: canvas; property: "startAngle"; from: 0.75; to: 1.5; duration: 666; easing.type: Easing.InOutSine }
-                NumberAnimation { target: canvas; property: "endAngle"; from: 0.95; to: 1.7; duration: 666; easing.type: Easing.InOutSine }
+                NumberAnimation { target: canvas; property: "startAngle"; from: 0.75; to: 1.5; duration: 650; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
+                NumberAnimation { target: canvas; property: "endAngle"; from: 0.95; to: 1.7; duration: 650; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
                 NumberAnimation { target: canvas; property: "rotation"; from: 180; to: 360; duration: 666; easing.type: Easing.Linear }
             }
 

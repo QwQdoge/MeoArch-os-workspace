@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import MeoUI
 
 Control {
@@ -73,6 +74,7 @@ Control {
                 anchors.fill: parent
                 sourceComponent: control.delegate
                 property var modelData: model.modelData
+                property int modelIndex: index
 
                 // 🌟 MD3 Corner Radius for Carousel Items
                 Rectangle {

@@ -25,7 +25,7 @@ Flickable {
             text: control.title
             font.pixelSize: fontTitleLarge.size * control.themeGlobalScale
             font.weight: fontTitleLarge.weight
-            color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
+            color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
             bottomPadding: 16 * control.themeGlobalScale
         }
 
@@ -52,16 +52,21 @@ Flickable {
                         trailingComponent: modelData.type === "switch" ? switchComp : (modelData.type === "chevron" ? chevronComp : null)
 
                         Component { id: switchComp; MeoSwitch { checked: modelData.checked; onToggled: modelData.checked = checked } }
-                        Component { id: chevronComp; MeoIcon { icon: "chevron_right"; size: 24; color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F" } }
+                        Component { id: chevronComp; MeoIcon { icon: "chevron_right"; size: 24; color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F" } }
 
                         onClicked: if (modelData.action) modelData.action()
                     }
                 }
 
-                MeoDivider {
+                Item {
+                    width: parent.width
+                    height: 17 * control.themeGlobalScale
                     visible: index < repeater.count - 1
-                    topPadding: 8 * control.themeGlobalScale
-                    bottomPadding: 8 * control.themeGlobalScale
+
+                    MeoDivider {
+                        width: parent.width
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
                 }
             }
         }
