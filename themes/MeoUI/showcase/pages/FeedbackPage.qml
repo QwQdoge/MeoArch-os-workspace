@@ -11,7 +11,7 @@ Flickable {
         spacing: 24 * MeoTheme.globalScale
         width: parent.width
 
-        Text { text: "Feedback"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+        Text { text: "Feedback"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
 
         MeoBanner {
             text: "This is an updated MD3 Expressive Banner with a leading icon and refined layout."
@@ -35,7 +35,6 @@ Flickable {
             id: snackbar
             message: "This is an expressive snackbar with a 4dp radius."
             actionText: "UNDO"
-            parent: ApplicationWindow.window ? ApplicationWindow.window.contentItem : undefined
         }
 
         MeoExpressiveDialog {

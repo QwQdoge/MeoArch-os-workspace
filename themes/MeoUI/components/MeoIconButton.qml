@@ -8,7 +8,7 @@ Button {
     // 🌟 核心属性
     // type: "standard" | "filled" | "tonal" | "outlined"
     property string type: "standard"
-    property string size: "s" // "xs" | "s" | "m" | "l" | "xl"
+    property string size: "m" // "xs" | "s" | "m" | "l" | "xl"
     property string shape: "round" // "round" | "square"
     property bool selected: false
     property string selectedIcon: ""
@@ -16,12 +16,13 @@ Button {
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
-    readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimary !== 'undefined') ? MeoTheme.onPrimary : "#FFFFFF"
+    readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? MeoTheme.contentOnPrimary : "#FFFFFF"
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
-    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B"
+    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B"
     readonly property color themeSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceVariant !== 'undefined') ? MeoTheme.surfaceVariant : "#E7E0EC"
-    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeSurfaceContainerHighest: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHighest !== 'undefined') ? MeoTheme.surfaceContainerHighest : "#E6E1E5"
+    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
@@ -46,13 +47,13 @@ Button {
             return height / 2;
         }
 
-        scale: (typeof MeoTheme !== 'undefined' && MeoTheme.isBouncy && control.pressed) ? 0.92 : 1.0
+        scale: (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && MeoTheme.isBouncy && control.pressed) ? 0.96 : 1.0
         Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
 
         color: {
             if (!control.enabled) return (type === "filled" || type === "tonal") ? (isDarkMode ? Qt.rgba(1,1,1,0.12) : Qt.rgba(0,0,0,0.12)) : "transparent"
-            if (type === "filled") return control.selected ? control.themePrimary : control.themeSurfaceVariant
-            if (type === "tonal") return control.selected ? control.themeSecondaryContainer : control.themeSurfaceVariant
+            if (type === "filled") return control.selected ? control.themePrimary : control.themeSurfaceContainerHighest
+            if (type === "tonal") return control.selected ? control.themeSecondaryContainer : control.themeSurfaceContainerHighest
             return "transparent"
         }
         border.color: (type === "outlined") ? control.themeOutline : "transparent"

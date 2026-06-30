@@ -90,7 +90,7 @@ ScrollView {
                     Text {
                         anchors.centerIn: parent
                         text: "Main Content Area"
-                        color: MeoTheme.onSurfaceVariant
+                        color: MeoTheme.contentOnSurfaceVariant
                     }
                 }
 
@@ -100,8 +100,8 @@ ScrollView {
                     content: Column {
                         padding: 16 * MeoTheme.globalScale
                         spacing: 12 * MeoTheme.globalScale
-                        Text { text: "Metadata"; font: MeoTheme.titleSmall; color: MeoTheme.onSurface }
-                        Text { text: "File: report.pdf\nSize: 2.4 MB\nModified: Jan 12"; color: MeoTheme.onSurfaceVariant }
+                        Text { text: "Metadata"; font: MeoTheme.titleSmall; color: MeoTheme.contentOnSurface }
+                        Text { text: "File: report.pdf\nSize: 2.4 MB\nModified: Jan 12"; color: MeoTheme.contentOnSurfaceVariant }
                     }
                 }
             }

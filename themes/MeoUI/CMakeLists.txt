@@ -96,6 +96,7 @@ MeoTheme.qml
         widgets/MeoBottomSheet.qml
         widgets/MeoAccountHeader.qml
         widgets/MeoSearchBar.qml
+        widgets/MeoSearchAppBar.qml
         widgets/MeoDockedSearchBar.qml
         widgets/MeoBottomAppBar.qml
         widgets/MeoSearchView.qml
@@ -116,6 +117,8 @@ MeoTheme.qml
         patterns/MeoExpressiveDialog.qml
         components/MeoShape.qml
         showcase/MeoShowcase.qml
+    RESOURCES
+        assets/fonts/MaterialSymbolsRounded.ttf
 )
 
 # 确保链接到 QtQuick

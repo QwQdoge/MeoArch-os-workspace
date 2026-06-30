@@ -7,12 +7,12 @@ Rectangle {
 
     // 🌟 核心属性
     property string title: ""
-    property var actions: [] // List of Components (e.g., MeoIconButton)
+    property list<Component> actions
     property bool isCompact: false
 
     // 🌟 样式与主题
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
-    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
+    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
     readonly property var fontTitleMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.titleMedium !== 'undefined') ? MeoTheme.titleMedium : { "size": 16, "weight": Font.Medium }
 

@@ -20,7 +20,7 @@ Flickable {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Common Buttons (Standard & Emphasized)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Text { text: "Common Buttons (Standard & Emphasized)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
             Flow {
                 width: parent.width
                 spacing: 12 * MeoTheme.globalScale
@@ -43,7 +43,7 @@ Flickable {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Segmented Buttons (Icons + Text)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Text { text: "Segmented Buttons (Icons + Text)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
 
             MeoSegmentedButtons {
                 width: 400 * MeoTheme.globalScale
@@ -69,7 +69,7 @@ Flickable {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Floating Action Buttons (Scroll to Collapse)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Text { text: "Floating Action Buttons (Scroll to Collapse)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
             Row {
                 spacing: 16 * MeoTheme.globalScale
                 MeoFAB { type: "small"; icon.name: "edit" }
@@ -93,7 +93,7 @@ Flickable {
         Column {
             width: parent.width
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Icon Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.onSurface }
+            Text { text: "Icon Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
             Row {
                 spacing: 16 * MeoTheme.globalScale
                 MeoIconButton { type: "standard"; icon.name: "settings" }

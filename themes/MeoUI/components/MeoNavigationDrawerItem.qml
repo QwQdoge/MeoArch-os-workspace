@@ -10,6 +10,7 @@ Control {
     property string label: ""
     property string icon: ""
     property string badgeText: ""
+    property bool badgeDot: false
     property bool selected: false
     property string shape: "rect" // 🌟 MD3 Expressive: "rect" | "squircle" | "hexagon" | ...
 
@@ -17,10 +18,10 @@ Control {
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
-    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
-    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSecondaryContainer !== 'undefined') ? MeoTheme.onSecondaryContainer : "#1D192B"
+    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
@@ -33,16 +34,18 @@ Control {
         MeoShape {
             id: shapeBg
             anchors.centerIn: parent
-            width: parent.width - 24 * control.themeGlobalScale
-            height: parent.height - 8 * control.themeGlobalScale
-            type: control.shape
-            radius: height / 2
+            width: parent.width
+            height: 56 * control.themeGlobalScale
+            type: "rect"
+            radius: 28 * control.themeGlobalScale
             color: control.selected ? control.themeSecondaryContainer : "transparent"
 
             MeoStateLayer {
                 anchors.fill: parent
                 pressed: mouseArea.pressed
                 hovered: mouseArea.containsMouse
+                pressX: mouseArea.mouseX
+                pressY: mouseArea.mouseY
                 color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurface
 
                 layer.enabled: control.shape !== "rect"
@@ -60,7 +63,7 @@ Control {
                 }
             }
 
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && MeoTheme.motionEasingEmphasized) ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
         }
     }
 
@@ -87,8 +90,11 @@ Control {
 
         Text {
             text: control.label
+            font.family: (typeof MeoTheme !== 'undefined' && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
             font.pixelSize: fontLabelLarge.size * control.themeGlobalScale
             font.weight: fontLabelLarge.weight
+            lineHeight: 20 / 14
+            font.letterSpacing: 0.1 * control.themeGlobalScale
             color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
             verticalAlignment: Text.AlignVCenter
             anchors.verticalCenter: parent.verticalCenter
@@ -101,7 +107,8 @@ Control {
         MeoBadge {
             id: badge
             text: control.badgeText
-            visible: text !== ""
+            isDot: control.badgeDot
+            visible: text !== "" || isDot
             anchors.verticalCenter: parent.verticalCenter
         }
     }

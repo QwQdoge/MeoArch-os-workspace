@@ -13,21 +13,63 @@ MeoCard {
 
     // 🌟 作用域与主题安全防御
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
-    readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimary !== 'undefined') ? MeoTheme.onPrimary : "#FFFFFF"
-    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurface !== 'undefined') ? MeoTheme.onSurface : "#1C1B1F"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onSurfaceVariant !== 'undefined') ? MeoTheme.onSurfaceVariant : "#49454F"
+    readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? MeoTheme.contentOnPrimary : "#FFFFFF"
+    readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
+    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     implicitWidth: 328 * themeGlobalScale
-    implicitHeight: 460 * themeGlobalScale
+    implicitHeight: 520 * themeGlobalScale
+
+    onSelectedDateChanged: {
+        if (dateInput)
+            dateInput.text = formatIsoDate(control.selectedDate)
+    }
 
     Column {
         anchors.fill: parent
         anchors.margins: 12 * control.themeGlobalScale
         spacing: 12 * control.themeGlobalScale
 
+        // Desktop-friendly direct entry. Material 3 date pickers should support
+        // context-appropriate input instead of requiring only calendar tapping.
+        TextField {
+            id: dateInput
+            width: parent.width
+            height: 56 * control.themeGlobalScale
+            text: formatIsoDate(control.selectedDate)
+            selectByMouse: true
+            placeholderText: "YYYY-MM-DD"
+            color: control.themeOnSurface
+            placeholderTextColor: control.themeOnSurfaceVariant
+            selectionColor: Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.32)
+            selectedTextColor: control.themeOnPrimary
+            font.pixelSize: 16 * control.themeGlobalScale
+            leftPadding: 16 * control.themeGlobalScale
+            rightPadding: 16 * control.themeGlobalScale
+            verticalAlignment: TextInput.AlignVCenter
+            background: Rectangle {
+                radius: 12 * control.themeGlobalScale
+                color: "transparent"
+                border.width: 1 * control.themeGlobalScale
+                border.color: dateInput.activeFocus ? control.themePrimary : control.themeOnSurfaceVariant
+            }
+            onAccepted: commitDateText()
+            onEditingFinished: commitDateText()
+
+            function commitDateText() {
+                const parsed = parseIsoDate(text)
+                if (!parsed) {
+                    text = formatIsoDate(control.selectedDate)
+                    return
+                }
+                control.selectedDate = parsed
+                control.displayDate = parsed
+            }
+        }
+
         // Header: Month Selection
-        Row {
+        Item {
             width: parent.width
             height: 48 * control.themeGlobalScale
 
@@ -140,5 +182,24 @@ MeoCard {
         return d1.getFullYear() === d2.getFullYear() &&
                d1.getMonth() === d2.getMonth() &&
                d1.getDate() === d2.getDate()
+    }
+
+    function formatIsoDate(date) {
+        const month = String(date.getMonth() + 1).padStart(2, "0")
+        const day = String(date.getDate()).padStart(2, "0")
+        return date.getFullYear() + "-" + month + "-" + day
+    }
+
+    function parseIsoDate(text) {
+        const match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(text.trim())
+        if (!match)
+            return null
+        const year = Number(match[1])
+        const month = Number(match[2])
+        const day = Number(match[3])
+        const parsed = new Date(year, month - 1, day)
+        if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day)
+            return null
+        return parsed
     }
 }

@@ -24,8 +24,8 @@ Flickable {
         y: 24 * MeoTheme.globalScale
         spacing: 24 * MeoTheme.globalScale
 
-        Text { text: "Widgets lab"; color: MeoTheme.onSurface; font.pixelSize: MeoTheme.headlineLargeEmphasized.size * MeoTheme.globalScale; font.weight: Font.Bold }
-        Text { Layout.fillWidth: true; text: "Large, composed controls with real interaction and representative data."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 16 * MeoTheme.globalScale; wrapMode: Text.WordWrap }
+        Text { text: "Widgets lab"; color: MeoTheme.contentOnSurface; font.pixelSize: MeoTheme.headlineLargeEmphasized.size * MeoTheme.globalScale; font.weight: Font.Bold }
+        Text { Layout.fillWidth: true; text: "Large, composed controls with real interaction and representative data."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 16 * MeoTheme.globalScale; wrapMode: Text.WordWrap }
 
         SectionTitle { text: "Identity & search" }
         MeoAccountHeader { Layout.fillWidth: true; name: "Meo User"; email: "hello@meoarch.dev" }
@@ -56,7 +56,7 @@ Flickable {
                 Column {
                     anchors.centerIn: parent
                     spacing: 12 * MeoTheme.globalScale
-                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Modal navigation drawer"; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Modal navigation drawer"; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
                     MeoButton { anchors.horizontalCenter: parent.horizontalCenter; text: "Open drawer"; onClicked: modalDrawer.open() }
                 }
             }
@@ -93,7 +93,7 @@ Flickable {
             radius: MeoTheme.shapeLarge
             color: MeoTheme.surfaceContainer
             clip: true
-            Text { anchors.centerIn: parent; text: "Standard bottom sheet host"; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+            Text { anchors.centerIn: parent; text: "Standard bottom sheet host"; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
             MeoStandardBottomSheet {
                 id: standardSheet
                 anchors.fill: parent
@@ -104,7 +104,7 @@ Flickable {
                     Column {
                         padding: 20 * MeoTheme.globalScale
                         spacing: 12 * MeoTheme.globalScale
-                        Text { text: "Standard bottom sheet"; color: MeoTheme.onSurface; font.pixelSize: 20 * MeoTheme.globalScale; font.weight: Font.DemiBold }
+                        Text { text: "Standard bottom sheet"; color: MeoTheme.contentOnSurface; font.pixelSize: 20 * MeoTheme.globalScale; font.weight: Font.DemiBold }
                         MeoButton { text: standardSheet.isOpen ? "Collapse" : "Expand"; onClicked: standardSheet.isOpen = !standardSheet.isOpen }
                     }
                 }
@@ -119,8 +119,8 @@ Flickable {
             Column {
                 padding: 24 * MeoTheme.globalScale
                 spacing: 12 * MeoTheme.globalScale
-                Text { text: "Modal bottom sheet"; color: MeoTheme.onSurface; font.pixelSize: 22 * MeoTheme.globalScale }
-                Text { text: "Use it for a focused, temporary task."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                Text { text: "Modal bottom sheet"; color: MeoTheme.contentOnSurface; font.pixelSize: 22 * MeoTheme.globalScale }
+                Text { text: "Use it for a focused, temporary task."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
             }
         }
     }
@@ -131,7 +131,7 @@ Flickable {
             Column {
                 padding: 24 * MeoTheme.globalScale
                 spacing: 12 * MeoTheme.globalScale
-                Text { text: "Modal side sheet content"; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                Text { text: "Modal side sheet content"; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
                 MeoSwitch { label: "Enable option"; checked: true }
             }
         }

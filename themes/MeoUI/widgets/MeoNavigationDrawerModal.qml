@@ -60,11 +60,15 @@ Popup {
             visible: control.header !== null
         }
 
-        MeoDivider {
+        Item {
             width: parent.width
+            height: 17 * control.themeGlobalScale
             visible: control.header !== null
-            topPadding: 8 * control.themeGlobalScale
-            bottomPadding: 8 * control.themeGlobalScale
+
+            MeoDivider {
+                width: parent.width
+                anchors.verticalCenter: parent.verticalCenter
+            }
         }
 
         Repeater {
@@ -75,7 +79,7 @@ Popup {
                 label: modelData.label
                 badgeText: modelData.badgeText || (modelData.badgeCount !== undefined ? modelData.badgeCount.toString() : "")
                 badgeDot: modelData.badgeDot || false
-                isSelected: control.currentIndex === index
+                selected: control.currentIndex === index
                 onClicked: {
                     control.clicked(index)
                 }

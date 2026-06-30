@@ -27,6 +27,7 @@ Frame {
     readonly property color themeSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceVariant !== 'undefined') ? MeoTheme.surfaceVariant : "#E7E0EC"
     readonly property color themeOutlineVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outlineVariant !== 'undefined') ? MeoTheme.outlineVariant : "#C4C7C5"
     readonly property color themeSurfaceContainerLow: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA"
+    readonly property color themeSurfaceContainerHighest: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHighest !== 'undefined') ? MeoTheme.surfaceContainerHighest : "#E6E1E5"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     padding: 16 * themeGlobalScale
@@ -38,8 +39,9 @@ Frame {
             type: control.shape
             radius: control.radius
             color: {
-                if (type === "filled") return control.themeSurfaceVariant
-                return control.themeSurface // elevated and outlined
+                if (control.type === "filled") return control.themeSurfaceContainerHighest
+                if (control.type === "elevated") return control.themeSurfaceContainerLow
+                return control.themeSurface
             }
             strokeColor: control.type === "outlined" ? control.themeOutlineVariant : "transparent"
             strokeWidth: control.type === "outlined" ? 1 * control.themeGlobalScale : 0
@@ -80,6 +82,8 @@ Frame {
                 visible: control.interactive
                 pressed: mouseArea.pressed
                 hovered: mouseArea.containsMouse
+                pressX: mouseArea.mouseX
+                pressY: mouseArea.mouseY
                 color: control.isDarkMode ? "#FFFFFF" : "#000000"
 
                 layer.enabled: true

@@ -12,7 +12,7 @@ Item {
     property string icon: "add"
     property string activeIcon: "close"
     property color color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
-    property color onColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.onPrimaryContainer !== 'undefined') ? MeoTheme.onPrimaryContainer : "#21005D"
+    property color onColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D"
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
@@ -56,7 +56,7 @@ Item {
 
             // Placeholder for the main FAB position at bottom right
             Item {
-                Layout.fillHeight: true
+                height: 0
                 width: 1
             }
 
@@ -74,8 +74,8 @@ Item {
                         radius: 24 * control.themeGlobalScale
                         MeoStateLayer {
                             radius: parent.radius
-                            pressed: mouseArea.pressed
-                            hovered: mouseArea.containsMouse
+                            pressed: false
+                            hovered: false
                             color: control.onColor
                         }
                     }

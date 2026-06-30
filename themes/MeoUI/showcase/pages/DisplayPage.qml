@@ -18,13 +18,13 @@ Flickable {
             text: "MD3 Cards Showcase (20+ Examples)"
             font.pixelSize: 24 * MeoTheme.globalScale
             font.bold: true
-            color: MeoTheme.onSurface
+            color: MeoTheme.contentOnSurface
         }
 
         Text {
             text: "Adaptive layout using Flow for dynamic resizing."
             font.pixelSize: 14 * MeoTheme.globalScale
-            color: MeoTheme.onSurfaceVariant
+            color: MeoTheme.contentOnSurfaceVariant
         }
 
         Text {
@@ -42,19 +42,19 @@ Flickable {
                 text: "Display Large Emphasized"
                 font.pixelSize: MeoTheme.displayLargeEmphasized.size * MeoTheme.globalScale
                 font.weight: MeoTheme.displayLargeEmphasized.weight
-                color: MeoTheme.onSurface
+                color: MeoTheme.contentOnSurface
             }
             Text {
                 text: "Headline Medium Emphasized"
                 font.pixelSize: MeoTheme.headlineMediumEmphasized.size * MeoTheme.globalScale
                 font.weight: MeoTheme.headlineMediumEmphasized.weight
-                color: MeoTheme.onSurface
+                color: MeoTheme.contentOnSurface
             }
             Text {
                 text: "Body Large Emphasized (Prominent)"
                 font.pixelSize: MeoTheme.bodyLargeEmphasized.size * MeoTheme.globalScale
                 font.weight: MeoTheme.bodyLargeEmphasized.weight
-                color: MeoTheme.onSurface
+                color: MeoTheme.contentOnSurface
             }
         }
 
@@ -69,7 +69,7 @@ Flickable {
             Layout.fillWidth: true
             spacing: 16 * MeoTheme.globalScale
 
-            Text { text: "Docked Toolbar (Full Width)"; font.pixelSize: 14 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+            Text { text: "Docked Toolbar (Full Width)"; font.pixelSize: 14 * MeoTheme.globalScale; color: MeoTheme.contentOnSurfaceVariant }
             MeoDockedToolbar {
                 Layout.fillWidth: true
                 actions: [
@@ -80,7 +80,7 @@ Flickable {
                 ]
             }
 
-            Text { text: "Floating Toolbar (Horizontal)"; font.pixelSize: 14 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
+            Text { text: "Floating Toolbar (Horizontal)"; font.pixelSize: 14 * MeoTheme.globalScale; color: MeoTheme.contentOnSurfaceVariant }
             MeoFloatingToolbar {
                 Layout.alignment: Qt.AlignHCenter
                 actions: [
@@ -108,8 +108,8 @@ Flickable {
                 width: 300 * MeoTheme.globalScale; height: 120 * MeoTheme.globalScale
                 ColumnLayout {
                     anchors.fill: parent
-                    Text { text: "1. Basic Elevated"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                    Text { text: "Standard elevated card."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                    Text { text: "1. Basic Elevated"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "Standard elevated card."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
                 }
             }
 
@@ -119,8 +119,8 @@ Flickable {
                 width: 300 * MeoTheme.globalScale; height: 120 * MeoTheme.globalScale
                 ColumnLayout {
                     anchors.fill: parent
-                    Text { text: "2. Basic Filled"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                    Text { text: "Standard filled card."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                    Text { text: "2. Basic Filled"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "Standard filled card."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
                 }
             }
 
@@ -130,8 +130,8 @@ Flickable {
                 width: 300 * MeoTheme.globalScale; height: 120 * MeoTheme.globalScale
                 ColumnLayout {
                     anchors.fill: parent
-                    Text { text: "3. Basic Outlined"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                    Text { text: "Standard outlined card."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                    Text { text: "3. Basic Outlined"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "Standard outlined card."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
                 }
             }
 
@@ -142,8 +142,8 @@ Flickable {
                 ColumnLayout {
                     id: contentCol4
                     anchors.fill: parent
-                    Text { text: "4. Action Card"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                    Text { text: "Card with primary and secondary actions."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                    Text { text: "4. Action Card"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "Card with primary and secondary actions."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                     RowLayout {
                         Layout.alignment: Qt.AlignRight
                         MeoButton { text: "Cancel"; type: "text" }
@@ -159,8 +159,8 @@ Flickable {
                 ColumnLayout {
                     id: contentCol5
                     anchors.fill: parent
-                    Text { text: "5. Outlined Action"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                    Text { text: "Actions inside outlined card."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale; Layout.fillWidth: true; wrapMode: Text.WordWrap }
+                    Text { text: "5. Outlined Action"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "Actions inside outlined card."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale; Layout.fillWidth: true; wrapMode: Text.WordWrap }
                     RowLayout {
                         Layout.alignment: Qt.AlignRight
                         MeoButton { text: "Decline"; type: "outlined" }
@@ -187,8 +187,8 @@ Flickable {
                     }
                     ColumnLayout {
                         Layout.margins: 16 * MeoTheme.globalScale
-                        Text { text: "6. Media Card"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                        Text { text: "Card with full-width media."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                        Text { text: "6. Media Card"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                        Text { text: "Card with full-width media."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
                     }
                 }
             }
@@ -202,8 +202,8 @@ Flickable {
                     anchors.fill: parent
                     ColumnLayout {
                         Layout.fillWidth: true
-                        Text { text: "7. Notifications"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                        Text { text: "Allow push notifications"; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                        Text { text: "7. Notifications"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                        Text { text: "Allow push notifications"; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
                     }
                     MeoSwitch { checked: true }
                 }
@@ -216,10 +216,10 @@ Flickable {
                 ColumnLayout {
                     id: contentCol8
                     anchors.fill: parent
-                    Text { text: "8. Select Options"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                    MeoCheckbox { text: "Option A"; checked: true }
-                    MeoCheckbox { text: "Option B" }
-                    MeoCheckbox { text: "Option C" }
+                    Text { text: "8. Select Options"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    MeoCheckbox { label: "Option A"; checked: true }
+                    MeoCheckbox { label: "Option B" }
+                    MeoCheckbox { label: "Option C" }
                 }
             }
 
@@ -230,10 +230,10 @@ Flickable {
                 ColumnLayout {
                     id: contentCol9
                     anchors.fill: parent
-                    Text { text: "9. Power Mode"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                    MeoRadioButton { text: "Performance"; checked: true }
-                    MeoRadioButton { text: "Balanced" }
-                    MeoRadioButton { text: "Power Saver" }
+                    Text { text: "9. Power Mode"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    MeoRadioButton { label: "Performance"; checked: true }
+                    MeoRadioButton { label: "Balanced" }
+                    MeoRadioButton { label: "Power Saver" }
                 }
             }
 
@@ -244,7 +244,7 @@ Flickable {
                 ColumnLayout {
                     id: contentCol10
                     anchors.fill: parent
-                    Text { text: "10. Brightness"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "10. Brightness"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
                     MeoSlider { Layout.fillWidth: true; value: 0.7 }
                 }
             }
@@ -256,7 +256,7 @@ Flickable {
                 ColumnLayout {
                     id: contentCol11
                     anchors.fill: parent
-                    Text { text: "11. User Info"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "11. User Info"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
                     MeoTextField { Layout.fillWidth: true; placeholderText: "Username" }
                     MeoTextField { Layout.fillWidth: true; placeholderText: "Email" }
                 }
@@ -271,9 +271,9 @@ Flickable {
                     id: contentCol12
                     anchors.fill: parent
                     spacing: 0
-                    MeoListItem { text: "12. List Item 1"; secondaryText: "Details here" }
+                    MeoListItem { headline: "12. List Item 1"; supportingText: "Details here" }
                     MeoDivider { Layout.fillWidth: true }
-                    MeoListItem { text: "List Item 2"; secondaryText: "More details" }
+                    MeoListItem { headline: "List Item 2"; supportingText: "More details" }
                 }
             }
 
@@ -284,13 +284,13 @@ Flickable {
                 ColumnLayout {
                     id: contentCol13
                     anchors.fill: parent
-                    Text { text: "13. Categories"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "13. Categories"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
                     Flow {
                         Layout.fillWidth: true
                         spacing: 8 * MeoTheme.globalScale
-                        MeoFilterChip { text: "Design"; selected: true }
-                        MeoFilterChip { text: "Code" }
-                        MeoFilterChip { text: "Music" }
+                        MeoFilterChip { label: "Design"; selected: true }
+                        MeoFilterChip { label: "Code" }
+                        MeoFilterChip { label: "Music" }
                     }
                 }
             }
@@ -303,10 +303,10 @@ Flickable {
                     anchors.fill: parent
                     ColumnLayout {
                         Layout.fillWidth: true
-                        Text { text: "14. Media Control"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                        Text { text: "Now playing..."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                        Text { text: "14. Media Control"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                        Text { text: "Now playing..."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
                     }
-                    MeoIconButton { icon: "play_arrow"; type: "filled" }
+                    MeoIconButton { icon.name: "play_arrow"; type: "filled" }
                 }
             }
 
@@ -317,7 +317,7 @@ Flickable {
                 ColumnLayout {
                     id: contentCol15
                     anchors.fill: parent
-                    Text { text: "15. Feedback"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "15. Feedback"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
                     MeoTextArea { Layout.fillWidth: true; placeholderText: "Enter your thoughts..."; height: 80 * MeoTheme.globalScale }
                     MeoButton { Layout.alignment: Qt.AlignRight; text: "Submit" }
                 }
@@ -330,7 +330,7 @@ Flickable {
                 ColumnLayout {
                     anchors.fill: parent
                     MeoIcon { icon: "analytics"; color: MeoTheme.primary; size: 32 * MeoTheme.globalScale }
-                    Text { text: "16. Stats"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "16. Stats"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
                     Text { text: "+12.5%"; color: MeoTheme.primary; font.pixelSize: 14 * MeoTheme.globalScale }
                 }
             }
@@ -348,8 +348,8 @@ Flickable {
                     }
                     ColumnLayout {
                         Layout.fillWidth: true
-                        Text { text: "17. Album Art"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                        Text { text: "Artist Name"; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                        Text { text: "17. Album Art"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                        Text { text: "Artist Name"; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
                     }
                 }
             }
@@ -363,13 +363,13 @@ Flickable {
                     anchors.fill: parent
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "18. Complex"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale; Layout.fillWidth: true }
-                        MeoIconButton { icon: "more_vert" }
+                        Text { text: "18. Complex"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale; Layout.fillWidth: true }
+                        MeoIconButton { icon.name: "more_vert" }
                     }
                     MeoDivider { Layout.fillWidth: true }
-                    Text { text: "Content goes here. It can span multiple lines."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                    Text { text: "Content goes here. It can span multiple lines."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale; wrapMode: Text.WordWrap; Layout.fillWidth: true }
                     RowLayout {
-                        MeoFilterChip { text: "Tag" }
+                        MeoFilterChip { label: "Tag" }
                         Item { Layout.fillWidth: true }
                         MeoButton { text: "Action"; type: "tonal" }
                     }
@@ -383,9 +383,9 @@ Flickable {
                 ColumnLayout {
                     id: contentCol19
                     anchors.fill: parent
-                    Text { text: "19. Downloading..."; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                    Text { text: "19. Downloading..."; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
                     MeoProgressBar { Layout.fillWidth: true; value: 0.4 }
-                    Text { text: "40% Complete"; color: MeoTheme.onSurfaceVariant; font.pixelSize: 12 * MeoTheme.globalScale; Layout.alignment: Qt.AlignRight }
+                    Text { text: "40% Complete"; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 12 * MeoTheme.globalScale; Layout.alignment: Qt.AlignRight }
                 }
             }
 
@@ -397,13 +397,13 @@ Flickable {
                     anchors.fill: parent
                     ColumnLayout {
                         Layout.fillWidth: true
-                        Text { text: "20. Messages"; font.bold: true; color: MeoTheme.onSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                        Text { text: "You have unread items."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                        Text { text: "20. Messages"; font.bold: true; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                        Text { text: "You have unread items."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
                     }
                     Item {
                         width: 48 * MeoTheme.globalScale; height: 48 * MeoTheme.globalScale
-                        MeoIcon { anchors.centerIn: parent; icon: "mail"; size: 24 * MeoTheme.globalScale; color: MeoTheme.onSurfaceVariant }
-                        MeoBadge { count: 3 }
+                        MeoIcon { anchors.centerIn: parent; icon: "mail"; size: 24 * MeoTheme.globalScale; color: MeoTheme.contentOnSurfaceVariant }
+                        MeoBadge { text: "3" }
                     }
                 }
             }

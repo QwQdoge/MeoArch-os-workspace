@@ -28,7 +28,22 @@ Rectangle {
 
             Repeater {
                 model: control.navigationIcons
-                delegate: Loader { sourceComponent: modelData }
+                delegate: Item {
+                    width: 48 * control.themeGlobalScale
+                    height: 48 * control.themeGlobalScale
+
+                    Loader {
+                        anchors.centerIn: parent
+                        sourceComponent: typeof modelData === "string" ? null : modelData
+                    }
+
+                    MeoIconButton {
+                        anchors.centerIn: parent
+                        visible: typeof modelData === "string"
+                        icon.name: visible ? modelData : ""
+                        type: "standard"
+                    }
+                }
             }
         }
 

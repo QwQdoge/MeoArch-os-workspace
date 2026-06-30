@@ -13,8 +13,8 @@ ScrollView {
         y: 24 * MeoTheme.globalScale
         spacing: 24 * MeoTheme.globalScale
 
-        Text { text: "Layouts lab"; color: MeoTheme.onSurface; font.pixelSize: MeoTheme.headlineLargeEmphasized.size * MeoTheme.globalScale; font.weight: Font.Bold }
-        Text { Layout.fillWidth: true; text: "Responsive pattern previews. Resize the window to exercise their breakpoints."; color: MeoTheme.onSurfaceVariant; font.pixelSize: 16 * MeoTheme.globalScale; wrapMode: Text.WordWrap }
+        Text { text: "Layouts lab"; color: MeoTheme.contentOnSurface; font.pixelSize: MeoTheme.headlineLargeEmphasized.size * MeoTheme.globalScale; font.weight: Font.Bold }
+        Text { Layout.fillWidth: true; text: "Responsive pattern previews. Resize the window to exercise their breakpoints."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 16 * MeoTheme.globalScale; wrapMode: Text.WordWrap }
 
         SectionTitle { text: "Dashboard layout" }
         MeoDashboardLayout {
@@ -27,13 +27,13 @@ ScrollView {
             ]
             delegate: Component {
                 MeoCard {
-                    required property var modelData
+                    property var modelData: ({ "title": "", "value": "" })
                     Layout.fillWidth: true
                     implicitHeight: 120 * MeoTheme.globalScale
                     type: "filled"
                     Column { anchors.fill: parent; spacing: 8 * MeoTheme.globalScale
-                        Text { text: modelData.title; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
-                        Text { text: modelData.value; color: MeoTheme.onSurface; font.pixelSize: 28 * MeoTheme.globalScale; font.weight: Font.Bold }
+                        Text { text: modelData.title; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                        Text { text: modelData.value; color: MeoTheme.contentOnSurface; font.pixelSize: 28 * MeoTheme.globalScale; font.weight: Font.Bold }
                     }
                 }
             }
@@ -51,12 +51,12 @@ ScrollView {
             ]
             delegate: Component {
                 MeoCard {
-                    required property var modelData
+                    property var modelData: ({ "title": "", "body": "", "height": 120 })
                     width: parent ? parent.width : 240 * MeoTheme.globalScale
                     implicitHeight: modelData.height * MeoTheme.globalScale
                     Column { anchors.fill: parent; spacing: 8 * MeoTheme.globalScale
-                        Text { text: modelData.title; color: MeoTheme.onSurface; font.pixelSize: 18 * MeoTheme.globalScale; font.weight: Font.DemiBold }
-                        Text { width: parent.width; text: modelData.body; color: MeoTheme.onSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale; wrapMode: Text.WordWrap }
+                        Text { text: modelData.title; color: MeoTheme.contentOnSurface; font.pixelSize: 18 * MeoTheme.globalScale; font.weight: Font.DemiBold }
+                        Text { width: parent.width; text: modelData.body; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale; wrapMode: Text.WordWrap }
                     }
                 }
             }
@@ -85,7 +85,7 @@ ScrollView {
                         anchors.centerIn: parent
                         spacing: 12 * MeoTheme.globalScale
                         MeoIcon { anchors.horizontalCenter: parent.horizontalCenter; icon: "view_sidebar"; size: 48; color: MeoTheme.primary }
-                        Text { text: "Detail pane"; color: MeoTheme.onSurface; font.pixelSize: 24 * MeoTheme.globalScale }
+                        Text { text: "Detail pane"; color: MeoTheme.contentOnSurface; font.pixelSize: 24 * MeoTheme.globalScale }
                     }
                 }
             }

@@ -6,7 +6,7 @@ Rectangle {
     id: control
 
     // 🌟 核心属性
-    property var actions: [] // List of Components for the actions
+    property list<Component> actions
     property bool isVibrant: false // Use primary color scheme for higher emphasis
 
     // 🌟 作用域与主题安全防御
