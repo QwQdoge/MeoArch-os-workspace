@@ -208,6 +208,86 @@ ScrollView {
 
         MeoDivider { topInset: 4; bottomInset: 4 }
 
+        // --- Expressive Tabs Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive Tabs (Primary & Secondary)"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            ColumnLayout {
+                spacing: 24 * MeoTheme.globalScale
+                Layout.fillWidth: true
+
+                MeoTabs {
+                    Layout.fillWidth: true
+                    model: [
+                        { label: "Home", icon: "home", badgeText: "3" },
+                        { label: "Search", icon: "search" },
+                        { label: "Settings", icon: "settings" }
+                    ]
+                }
+
+                MeoTabs {
+                    Layout.fillWidth: true
+                    type: "secondary"
+                    model: ["All", "Unread", "Archived", "Deleted"]
+                }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // --- Expressive Icons & Badges Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive Icons & Badges"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            RowLayout {
+                spacing: 24 * MeoTheme.globalScale
+                MeoIconButton { icon.name: "notifications"; badgeText: "99+" }
+                MeoIconButton { icon.name: "mail"; badgeDot: true; type: "tonal" }
+                MeoIconButton { icon.name: "shopping_cart"; badgeText: "3"; type: "outlined" }
+                MeoIconButton { icon.name: "person"; size: "l"; type: "filled" }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // --- Expressive Shapes Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "New Expressive Shapes"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: 24 * MeoTheme.globalScale
+
+                MeoShape { width: 64 * MeoTheme.globalScale; height: 64 * MeoTheme.globalScale; type: "clover"; color: MeoTheme.primaryContainer }
+                MeoShape { width: 64 * MeoTheme.globalScale; height: 64 * MeoTheme.globalScale; type: "star"; color: MeoTheme.secondaryContainer }
+                MeoShape { width: 64 * MeoTheme.globalScale; height: 64 * MeoTheme.globalScale; type: "hexagon"; color: MeoTheme.tertiaryContainer }
+                MeoShape { width: 64 * MeoTheme.globalScale; height: 64 * MeoTheme.globalScale; type: "squircle"; color: MeoTheme.errorContainer }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
         // --- Expressive Search Section ---
         ColumnLayout {
             spacing: 16 * MeoTheme.globalScale
@@ -725,7 +805,7 @@ ScrollView {
 
                 MeoCard {
                     width: 160 * MeoTheme.globalScale
-                    height: 160 * MeoTheme.globalScale
+                    height: 160 * MeoTheme.globalScale;
                     shape: "octagon"
                     type: "outlined"
                     interactive: true
