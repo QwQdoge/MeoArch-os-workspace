@@ -14,7 +14,6 @@ Item {
 
     signal leftActionTriggered()
     signal rightActionTriggered()
-    signal dismissedChanged()
 
     implicitWidth: 360 * themeGlobalScale
     implicitHeight: contentLoader.implicitHeight

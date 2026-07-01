@@ -29,11 +29,11 @@ MeoCard {
 
     onStartDateChanged: {
         if (startInput)
-            startInput.text = control.hasStartDate ? formatIsoDate(control.startDate) : ""
+            startInput.value = control.hasStartDate ? control.startDate : new Date(0)
     }
     onEndDateChanged: {
         if (endInput)
-            endInput.text = control.hasEndDate ? formatIsoDate(control.endDate) : ""
+            endInput.value = control.hasEndDate ? control.endDate : new Date(0)
     }
 
     Column {
@@ -80,54 +80,28 @@ MeoCard {
                 width: parent.width
                 spacing: 8 * control.themeGlobalScale
 
-                TextField {
+                MeoDateInput {
                     id: startInput
                     width: (parent.width - parent.spacing) / 2
                     height: 48 * control.themeGlobalScale
-                    text: control.hasStartDate ? formatIsoDate(control.startDate) : ""
-                    selectByMouse: true
-                    placeholderText: "YYYY-MM-DD"
-                    color: control.themeOnSurface
-                    placeholderTextColor: control.themeOnSurfaceVariant
-                    selectionColor: Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.32)
-                    selectedTextColor: control.themeOnPrimary
-                    font.pixelSize: 14 * control.themeGlobalScale
-                    leftPadding: 12 * control.themeGlobalScale
-                    rightPadding: 12 * control.themeGlobalScale
-                    verticalAlignment: TextInput.AlignVCenter
-                    background: Rectangle {
-                        radius: 12 * control.themeGlobalScale
-                        color: "transparent"
-                        border.width: 1 * control.themeGlobalScale
-                        border.color: startInput.activeFocus ? control.themePrimary : control.themeOnSurfaceVariant
-                    }
-                    onAccepted: commitRangeText()
-                    onEditingFinished: commitRangeText()
+                    label: "Start"
+                    format: "yyyy-MM-dd"
+                    allowEmpty: true
+                    value: control.hasStartDate ? control.startDate : new Date(0)
+                    onDateAccepted: function(date) { setRangeDate(true, date) }
+                    onCleared: control.startDate = new Date(0)
                 }
 
-                TextField {
+                MeoDateInput {
                     id: endInput
                     width: (parent.width - parent.spacing) / 2
                     height: 48 * control.themeGlobalScale
-                    text: control.hasEndDate ? formatIsoDate(control.endDate) : ""
-                    selectByMouse: true
-                    placeholderText: "YYYY-MM-DD"
-                    color: control.themeOnSurface
-                    placeholderTextColor: control.themeOnSurfaceVariant
-                    selectionColor: Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.32)
-                    selectedTextColor: control.themeOnPrimary
-                    font.pixelSize: 14 * control.themeGlobalScale
-                    leftPadding: 12 * control.themeGlobalScale
-                    rightPadding: 12 * control.themeGlobalScale
-                    verticalAlignment: TextInput.AlignVCenter
-                    background: Rectangle {
-                        radius: 12 * control.themeGlobalScale
-                        color: "transparent"
-                        border.width: 1 * control.themeGlobalScale
-                        border.color: endInput.activeFocus ? control.themePrimary : control.themeOnSurfaceVariant
-                    }
-                    onAccepted: commitRangeText()
-                    onEditingFinished: commitRangeText()
+                    label: "End"
+                    format: "yyyy-MM-dd"
+                    allowEmpty: true
+                    value: control.hasEndDate ? control.endDate : new Date(0)
+                    onDateAccepted: function(date) { setRangeDate(false, date) }
+                    onCleared: control.endDate = new Date(0)
                 }
             }
         }
@@ -306,47 +280,22 @@ MeoCard {
         }
     }
 
-    function commitRangeText() {
-        const start = startInput.text.trim() === "" ? null : parseIsoDate(startInput.text)
-        const end = endInput.text.trim() === "" ? null : parseIsoDate(endInput.text)
-        if ((startInput.text.trim() !== "" && !start) || (endInput.text.trim() !== "" && !end)) {
-            startInput.text = control.hasStartDate ? formatIsoDate(control.startDate) : ""
-            endInput.text = control.hasEndDate ? formatIsoDate(control.endDate) : ""
-            return
+    function setRangeDate(isStart, date) {
+        if (isStart) {
+            if (control.hasEndDate && control.endDate.getTime() < date.getTime()) {
+                control.startDate = control.endDate
+                control.endDate = date
+            } else {
+                control.startDate = date
+            }
+        } else {
+            if (control.hasStartDate && date.getTime() < control.startDate.getTime()) {
+                control.endDate = control.startDate
+                control.startDate = date
+            } else {
+                control.endDate = date
+            }
         }
-
-        if (start && end && end.getTime() < start.getTime()) {
-            control.startDate = end
-            control.endDate = start
-            control.displayDate = end
-            return
-        }
-
-        control.startDate = start || new Date(0)
-        control.endDate = end || new Date(0)
-        if (start)
-            control.displayDate = start
-        else if (end)
-            control.displayDate = end
-    }
-
-    function formatIsoDate(date) {
-        const month = String(date.getMonth() + 1).padStart(2, "0")
-        const day = String(date.getDate()).padStart(2, "0")
-        return date.getFullYear() + "-" + month + "-" + day
-    }
-
-    function parseIsoDate(text) {
-        const match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(text.trim())
-        if (!match)
-            return null
-        const year = Number(match[1])
-        const month = Number(match[2])
-        const day = Number(match[3])
-        const parsed = new Date(year, month - 1, day)
-        if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day)
-            return null
-        parsed.setHours(0, 0, 0, 0)
-        return parsed
+        control.displayDate = isStart ? control.startDate : control.endDate
     }
 }

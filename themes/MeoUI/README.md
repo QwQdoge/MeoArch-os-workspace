@@ -38,6 +38,23 @@ If Qt is installed in a custom prefix:
 ./tools/build-showcase.sh --qt-prefix "$HOME/Qt/6.7.3/gcc_64" --config Release --run
 ```
 
+## Runtime Install
+
+The release runtime package includes `install-runtime.sh`. On Linux it installs
+the QML module to `/opt/meo-ui/qml/Meo/UI/`, installs bundled fonts under
+`/usr/local/share/fonts/meo-ui`, writes `/opt/meo-ui/VERSION`, and creates the
+compatibility import path `/opt/meo-ui/qml/MeoUI` for existing `import MeoUI`
+applications.
+
+```bash
+tar -xzf meo-ui-runtime-0.1.0.tar.gz
+cd meo-ui-runtime-0.1.0
+./install-runtime.sh
+```
+
+The installer checks the platform and any existing installed version before it
+overwrites, upgrades, or downgrades.
+
 ## Manual CMake
 
 ```bash

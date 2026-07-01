@@ -47,6 +47,8 @@ MeoTheme.qml
         components/MeoFABMenu.qml
         components/MeoDockedToolbar.qml
         components/MeoFloatingToolbar.qml
+        components/MeoStepper.qml
+        components/MeoSwipeToDismiss.qml
         components/MeoSegmentedButtons.qml
         components/MeoTextField.qml
         components/MeoTextArea.qml
@@ -94,6 +96,8 @@ MeoTheme.qml
         widgets/MeoNavigationRail.qml
         widgets/MeoNavigationDrawer.qml
         widgets/MeoBottomSheet.qml
+        widgets/MeoActionSheet.qml
+        widgets/MeoToolbar.qml
         widgets/MeoAccountHeader.qml
         widgets/MeoSearchBar.qml
         widgets/MeoSearchAppBar.qml
