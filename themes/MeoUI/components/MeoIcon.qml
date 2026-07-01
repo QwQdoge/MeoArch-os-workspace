@@ -16,7 +16,7 @@ Text {
 
     FontLoader {
         id: materialSymbols
-        source: "qrc:/qt/qml/MeoUI/assets/fonts/MaterialSymbolsRounded.ttf"
+        source: Qt.resolvedUrl("../assets/fonts/MaterialSymbolsRounded.ttf")
     }
 
     text: icon
