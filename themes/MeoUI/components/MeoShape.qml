@@ -34,7 +34,6 @@ Item {
 
             if (control.type === "squircle" || control.type === "MeoTheme.shapeSquircle") {
                 // 🌟 MD3 Expressive Squircle (Superellipse approximation)
-                // Using a more accurate squircle approximation for brand-expressive shapes
                 var n = 4; // Power for superellipse (n=4 is a common squircle)
                 var step = Math.PI / 100;
                 for (var angle = 0; angle < 2 * Math.PI; angle += step) {
@@ -51,7 +50,6 @@ Item {
                 ctx.lineTo(0, h * 0.75);
                 ctx.lineTo(0, h * 0.25);
             } else if (control.type === "octagon") {
-                // 🌟 MD3 Expressive Octagon
                 var s = 0.3; // Proportion of the side
                 ctx.moveTo(w * s, 0);
                 ctx.lineTo(w * (1-s), 0);
@@ -76,8 +74,35 @@ Item {
                 ctx.roundedRect(0, 0, w, h, h / 2, h / 2);
             } else if (control.type === "circle") {
                 ctx.arc(w / 2, h / 2, Math.min(w, h) / 2, 0, 2 * Math.PI);
+            } else if (control.type === "clover") {
+                // 🌟 MD3 Expressive Clover (4-leaf)
+                var centerX = w / 2;
+                var centerY = h / 2;
+                var leafRadius = Math.min(w, h) / 4;
+                ctx.arc(centerX, centerY - leafRadius, leafRadius, 0, 2 * Math.PI);
+                ctx.moveTo(centerX + leafRadius * 2, centerY);
+                ctx.arc(centerX + leafRadius, centerY, leafRadius, 0, 2 * Math.PI);
+                ctx.moveTo(centerX, centerY + leafRadius * 2);
+                ctx.arc(centerX, centerY + leafRadius, leafRadius, 0, 2 * Math.PI);
+                ctx.moveTo(centerX - leafRadius * 2, centerY);
+                ctx.arc(centerX - leafRadius, centerY, leafRadius, 0, 2 * Math.PI);
+            } else if (control.type === "star") {
+                // 🌟 MD3 Expressive 5-point Star
+                var centerX = w / 2;
+                var centerY = h / 2;
+                var outerRadius = Math.min(w, h) / 2;
+                var innerRadius = outerRadius * 0.4;
+                var points = 5;
+                var step = Math.PI / points;
+                for (var i = 0; i < 2 * points; i++) {
+                    var r = (i % 2 === 0) ? outerRadius : innerRadius;
+                    var angle = i * step - Math.PI / 2;
+                    var x = centerX + r * Math.cos(angle);
+                    var y = centerY + r * Math.sin(angle);
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
             } else {
-                // Fallback to rounded rect
                 ctx.roundedRect(0, 0, w, h, r, r);
             }
 
