@@ -36,7 +36,7 @@ Control {
             anchors.centerIn: parent
             width: parent.width
             height: 56 * control.themeGlobalScale
-            type: "rect"
+            type: control.shape // 🌟 Respect the shape property
             radius: 28 * control.themeGlobalScale
             color: control.selected ? control.themeSecondaryContainer : "transparent"
 

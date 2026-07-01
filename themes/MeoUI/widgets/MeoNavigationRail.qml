@@ -11,6 +11,7 @@ Rectangle {
     property Component header: null
     property Component footer: null
     property string labelType: "always" // "always" | "selected" | "none"
+    property string shape: "pill" // 🌟 MD3 Expressive Shape
 
     signal clicked(int index)
 
@@ -59,13 +60,12 @@ Rectangle {
                     anchors.centerIn: parent
                     spacing: 3 * control.themeGlobalScale
 
-                    // 使用 anchors.horizontalCenter 来代替 anchors.centerIn，防止在 Column 内抛出警告并破坏布局
-                    Rectangle {
+                    MeoShape {
                         id: selectionIndicator
                         width: isSelected ? 56 * control.themeGlobalScale : 32 * control.themeGlobalScale
                         height: 32 * control.themeGlobalScale
                         radius: 16 * control.themeGlobalScale
-                        // 背景色在未选中时透明，选中时显示主题色容器
+                        type: control.shape
                         color: isSelected ? control.themeSecondaryContainer : "transparent"
                         anchors.horizontalCenter: parent.horizontalCenter
 
@@ -79,10 +79,6 @@ Rectangle {
                         Behavior on width { NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
                         Behavior on color { ColorAnimation { duration: 200 } }
                     }
-
-
-                    // 移除这里的独立 MeoIcon，因为它在 Column 里尝试 anchors.centerIn: selectionIndicator 会触发非法定位
-
 
                     // 🏷️ Badge (Notification)
                     MeoBadge {

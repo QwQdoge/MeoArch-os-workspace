@@ -34,8 +34,20 @@ Control {
         return (MeoTheme.sliderTrackHeightXS || 4 * themeGlobalScale) // default "xs"
     }
 
+    readonly property real thumbWidth: {
+        if (size === "xs") return 20 * themeGlobalScale
+        return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderThumbWidthExpressive !== 'undefined') ? MeoTheme.sliderThumbWidthExpressive : 4 * themeGlobalScale
+    }
+
+    readonly property real thumbHeight: {
+        if (size === "xs") return 20 * themeGlobalScale
+        return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderThumbHeightExpressive !== 'undefined') ? MeoTheme.sliderThumbHeightExpressive : 44 * themeGlobalScale
+    }
+
+    readonly property real thumbGap: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderThumbGapExpressive !== 'undefined') ? MeoTheme.sliderThumbGapExpressive : 6 * themeGlobalScale
+
     implicitWidth: 200 * themeGlobalScale
-    implicitHeight: Math.max(44, trackHeight + 20) * themeGlobalScale
+    implicitHeight: Math.max(thumbHeight + 8 * themeGlobalScale, 44 * themeGlobalScale)
 
     RangeSlider {
         id: internalSlider
@@ -104,15 +116,12 @@ Control {
         first.handle: Item {
             x: internalSlider.leftPadding + internalSlider.first.visualPosition * (internalSlider.availableWidth - width)
             y: internalSlider.topPadding + (internalSlider.availableHeight - height) / 2
-            width: (control.size !== "xs" ? 4 : 20) * control.themeGlobalScale
-            height: (control.size === "xs" ? 20 : trackRect.height + 4) * control.themeGlobalScale
+            width: control.thumbWidth
+            height: control.thumbHeight
 
             Rectangle {
                 anchors.centerIn: parent
-                width: {
-                    if (control.size !== "xs") return (internalSlider.first.pressed ? 2 : 4) * control.themeGlobalScale
-                    return (internalSlider.first.pressed ? 2 : 20) * control.themeGlobalScale
-                }
+                width: internalSlider.first.pressed ? 2 * control.themeGlobalScale : control.thumbWidth
                 height: parent.height
                 radius: width / 2
                 color: control.size !== "xs" ? control.themeOnPrimary : control.themePrimary
@@ -173,15 +182,12 @@ Control {
         second.handle: Item {
             x: internalSlider.leftPadding + internalSlider.second.visualPosition * (internalSlider.availableWidth - width)
             y: internalSlider.topPadding + (internalSlider.availableHeight - height) / 2
-            width: (control.size !== "xs" ? 4 : 20) * control.themeGlobalScale
-            height: (control.size === "xs" ? 20 : trackRect.height + 4) * control.themeGlobalScale
+            width: control.thumbWidth
+            height: control.thumbHeight
 
             Rectangle {
                 anchors.centerIn: parent
-                width: {
-                    if (control.size !== "xs") return (internalSlider.second.pressed ? 2 : 4) * control.themeGlobalScale
-                    return (internalSlider.second.pressed ? 2 : 20) * control.themeGlobalScale
-                }
+                width: internalSlider.second.pressed ? 2 * control.themeGlobalScale : control.thumbWidth
                 height: parent.height
                 radius: width / 2
                 color: control.size !== "xs" ? control.themeOnPrimary : control.themePrimary
