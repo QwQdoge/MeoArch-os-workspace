@@ -23,7 +23,7 @@ MeoCard {
 
     onSelectedDateChanged: {
         if (dateInput)
-            dateInput.text = formatIsoDate(control.selectedDate)
+            dateInput.value = control.selectedDate
     }
 
     Column {
@@ -31,40 +31,16 @@ MeoCard {
         anchors.margins: 12 * control.themeGlobalScale
         spacing: 12 * control.themeGlobalScale
 
-        // Desktop-friendly direct entry. Material 3 date pickers should support
-        // context-appropriate input instead of requiring only calendar tapping.
-        TextField {
+        MeoDateInput {
             id: dateInput
             width: parent.width
             height: 56 * control.themeGlobalScale
-            text: formatIsoDate(control.selectedDate)
-            selectByMouse: true
-            placeholderText: "YYYY-MM-DD"
-            color: control.themeOnSurface
-            placeholderTextColor: control.themeOnSurfaceVariant
-            selectionColor: Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.32)
-            selectedTextColor: control.themeOnPrimary
-            font.pixelSize: 16 * control.themeGlobalScale
-            leftPadding: 16 * control.themeGlobalScale
-            rightPadding: 16 * control.themeGlobalScale
-            verticalAlignment: TextInput.AlignVCenter
-            background: Rectangle {
-                radius: 12 * control.themeGlobalScale
-                color: "transparent"
-                border.width: 1 * control.themeGlobalScale
-                border.color: dateInput.activeFocus ? control.themePrimary : control.themeOnSurfaceVariant
-            }
-            onAccepted: commitDateText()
-            onEditingFinished: commitDateText()
-
-            function commitDateText() {
-                const parsed = parseIsoDate(text)
-                if (!parsed) {
-                    text = formatIsoDate(control.selectedDate)
-                    return
-                }
-                control.selectedDate = parsed
-                control.displayDate = parsed
+            label: "Date"
+            format: "yyyy-MM-dd"
+            value: control.selectedDate
+            onDateAccepted: function(date) {
+                control.selectedDate = date
+                control.displayDate = date
             }
         }
 
@@ -184,22 +160,4 @@ MeoCard {
                d1.getDate() === d2.getDate()
     }
 
-    function formatIsoDate(date) {
-        const month = String(date.getMonth() + 1).padStart(2, "0")
-        const day = String(date.getDate()).padStart(2, "0")
-        return date.getFullYear() + "-" + month + "-" + day
-    }
-
-    function parseIsoDate(text) {
-        const match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(text.trim())
-        if (!match)
-            return null
-        const year = Number(match[1])
-        const month = Number(match[2])
-        const day = Number(match[3])
-        const parsed = new Date(year, month - 1, day)
-        if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day)
-            return null
-        return parsed
-    }
 }

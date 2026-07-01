@@ -172,14 +172,14 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 16 * MeoTheme.globalScale
 
-                Text { text: "MeoStepper (Horizontal)"; color: MeoTheme.onSurfaceVariant; font.pixelSize: 12 * MeoTheme.globalScale }
+                Text { text: "MeoStepper (Horizontal)"; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 12 * MeoTheme.globalScale }
                 MeoStepper {
                     Layout.fillWidth: true
                     model: [{ label: "Plan" }, { label: "Design" }, { label: "Implement" }]
                     currentIndex: 1
                 }
 
-                Text { text: "MeoSwipeToDismiss (Try dragging)"; color: MeoTheme.onSurfaceVariant; font.pixelSize: 12 * MeoTheme.globalScale }
+                Text { text: "MeoSwipeToDismiss (Try dragging)"; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 12 * MeoTheme.globalScale }
                 MeoSwipeToDismiss {
                     id: swipeItem
                     Layout.fillWidth: true
