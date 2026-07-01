@@ -38,6 +38,21 @@ If Qt is installed in a custom prefix:
 ./tools/build-showcase.sh --qt-prefix "$HOME/Qt/6.7.3/gcc_64" --config Release --run
 ```
 
+The Linux showcase release source package also includes `run-showcase-linux.sh`
+at the package root:
+
+```bash
+tar -xzf meo-ui-showcase-linux-x64-source-0.1.0.tar.gz
+cd meo-ui-showcase-linux-x64-source-0.1.0
+./run-showcase-linux.sh
+```
+
+For a custom Qt install, set `MEO_UI_QT_PREFIX`:
+
+```bash
+MEO_UI_QT_PREFIX="$HOME/Qt/6.7.3/gcc_64" ./run-showcase-linux.sh
+```
+
 ## Runtime Install
 
 The release runtime package includes `install-runtime.sh`. On Linux it installs
