@@ -7,6 +7,7 @@ TextField {
 
     // 🌟 核心对外属性
     property string type: "filled" // "filled" (默认) | "outlined"
+    property string size: "m" // "xs" | "s" | "m" | "l" | "xl"
     property string label: "" // 悬浮标签文本
     property string helperText: "" // 底部辅助文本
     property bool isError: false // 错误状态开关
@@ -37,15 +38,23 @@ TextField {
 
     // Typography
     readonly property var fontBodyLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyLarge !== 'undefined') ? MeoTheme.bodyLarge : { "size": 16, "weight": Font.Normal }
+    readonly property var fontBodyMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyMedium !== 'undefined') ? MeoTheme.bodyMedium : { "size": 14, "weight": Font.Normal }
     readonly property var fontBodySmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodySmall !== 'undefined') ? MeoTheme.bodySmall : { "size": 12, "weight": Font.Normal }
     readonly property var fontLabelSmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelSmall !== 'undefined') ? MeoTheme.labelSmall : { "size": 11, "weight": Font.Medium }
 
     // 🌟 尺寸定义
-    readonly property real containerHeight: 56 * themeGlobalScale
+    readonly property real containerHeight: {
+        if (size === "xs") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.buttonHeightXS !== 'undefined') ? MeoTheme.buttonHeightXS : 32 * themeGlobalScale;
+        if (size === "s") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.buttonHeightS !== 'undefined') ? MeoTheme.buttonHeightS : 40 * themeGlobalScale;
+        if (size === "m") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.buttonHeightM !== 'undefined') ? MeoTheme.buttonHeightM : 48 * themeGlobalScale;
+        if (size === "l") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.buttonHeightL !== 'undefined') ? MeoTheme.buttonHeightL : 56 * themeGlobalScale;
+        if (size === "xl") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.buttonHeightXL !== 'undefined') ? MeoTheme.buttonHeightXL : 72 * themeGlobalScale;
+        return 56 * themeGlobalScale;
+    }
     readonly property real helperSpace: (helperText !== "" || (isError && errorText !== "") || showCounter) ? 20 * themeGlobalScale : 0
 
     padding: 0
-    implicitHeight: containerHeight + helperSpace
+    implicitHeight: containerHeight + (size === "xs" ? 0 : helperSpace)
     implicitWidth: 280 * themeGlobalScale
 
     color: {
@@ -54,8 +63,15 @@ TextField {
     }
     selectionColor: Qt.rgba(themePrimary.r, themePrimary.g, themePrimary.b, 0.3)
     selectedTextColor: themeOnSurface
-    font.pixelSize: fontBodyLarge.size * themeGlobalScale
-    font.weight: fontBodyLarge.weight
+
+    readonly property var currentFont: {
+        if (size === "xs") return fontBodySmall;
+        if (size === "s") return fontBodyMedium;
+        return fontBodyLarge;
+    }
+
+    font.pixelSize: currentFont.size * themeGlobalScale
+    font.weight: currentFont.weight
     selectByMouse: true
     
     placeholderText: (label === "" || overlayLayer.isCollapsed) ? placeholder : ""
@@ -65,14 +81,20 @@ TextField {
     }
 
     // 🌟 内边距自适应优化 (Corrected to account for icon width and internal spacing)
-    leftPadding: (leadingIcon !== "" ? (12 + 24 + 16) : 16) * themeGlobalScale + (prefixText !== "" ? prefixLabel.implicitWidth + 4 * themeGlobalScale : 0)
-    rightPadding: ((trailingIcon !== "" || (showClearButton && text !== "")) ? (12 + 24 + 16) : 16) * themeGlobalScale + (suffixText !== "" ? suffixLabel.implicitWidth + 4 * themeGlobalScale : 0)
+    readonly property real sidePadding: {
+        if (size === "xs") return 8 * themeGlobalScale;
+        if (size === "s") return 12 * themeGlobalScale;
+        return 16 * themeGlobalScale;
+    }
+
+    leftPadding: (leadingIcon !== "" ? (sidePadding + 24 * themeGlobalScale + sidePadding) : sidePadding) + (prefixText !== "" ? prefixLabel.implicitWidth + 4 * themeGlobalScale : 0)
+    rightPadding: ((trailingIcon !== "" || (showClearButton && text !== "")) ? (sidePadding + 24 * themeGlobalScale + sidePadding) : sidePadding) + (suffixText !== "" ? suffixLabel.implicitWidth + 4 * themeGlobalScale : 0)
     topPadding: type === "filled" 
-                ? (label !== "" ? 24 * themeGlobalScale : 16 * themeGlobalScale) 
-                : 16 * themeGlobalScale
+                ? (label !== "" ? (size === "xs" ? 16 : 24) * themeGlobalScale : (size === "xs" ? 8 : 16) * themeGlobalScale)
+                : (size === "xs" ? 8 : 16) * themeGlobalScale
     bottomPadding: (type === "filled" 
-                    ? (label !== "" ? 8 * themeGlobalScale : 16 * themeGlobalScale) 
-                    : 16 * themeGlobalScale) + helperSpace
+                    ? (label !== "" ? (size === "xs" ? 4 : 8) * themeGlobalScale : (size === "xs" ? 8 : 16) * themeGlobalScale)
+                    : (size === "xs" ? 8 : 16) * themeGlobalScale) + (size === "xs" ? 0 : helperSpace)
 
     readonly property color transparentBg: Qt.rgba(themePrimary.r, themePrimary.g, themePrimary.b, 0)
 
@@ -209,26 +231,26 @@ TextField {
         id: overlayLayer
         width: parent.width
         height: control.containerHeight
-        visible: control.label !== ""
+        visible: control.label !== "" && control.size !== "xs"
         enabled: false
         
         readonly property bool isCollapsed: control.activeFocus || control.text !== "" || control.prefixText !== ""
 
         Item {
             id: labelContainer
-            x: (control.leadingIcon !== "" ? (12 + 24 + 16) : 16) * control.themeGlobalScale
+            x: control.leftPadding - (control.prefixText !== "" ? control.prefixLabel.implicitWidth + 4 * control.themeGlobalScale : 0)
             y: overlayLayer.isCollapsed 
                ? (control.type === "filled" ? 8 * control.themeGlobalScale : -12 * control.themeGlobalScale)
-               : 16 * control.themeGlobalScale
+               : (control.containerHeight - labelText.implicitHeight) / 2
             width: labelText.implicitWidth
             height: labelText.implicitHeight
             scale: {
-                let targetSize = overlayLayer.isCollapsed ? (MeoTheme.labelSmallEmphasized ? MeoTheme.labelSmallEmphasized.size : control.fontLabelSmall.size) : control.fontBodyLarge.size;
-                return targetSize / control.fontBodyLarge.size;
+                let targetSize = overlayLayer.isCollapsed ? (MeoTheme.labelSmallEmphasized ? MeoTheme.labelSmallEmphasized.size : control.fontLabelSmall.size) : control.currentFont.size;
+                return targetSize / control.currentFont.size;
             }
             transformOrigin: Item.Left
 
-            readonly property var currentFont: overlayLayer.isCollapsed ? (MeoTheme.labelSmallEmphasized || control.fontLabelSmall) : control.fontBodyLarge
+            readonly property var labelFont: overlayLayer.isCollapsed ? (MeoTheme.labelSmallEmphasized || control.fontLabelSmall) : control.currentFont
 
             Behavior on y { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
             Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
@@ -245,8 +267,8 @@ TextField {
                 id: labelText
                 text: control.label
                 anchors.fill: parent
-                font.pixelSize: control.fontBodyLarge.size * control.themeGlobalScale
-                font.weight: labelContainer.currentFont.weight
+                font.pixelSize: control.currentFont.size * control.themeGlobalScale
+                font.weight: labelContainer.labelFont.weight
                 color: {
                     if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
                     if (control.isError) return control.themeError;
@@ -268,7 +290,7 @@ TextField {
         anchors.right: parent.right
         anchors.rightMargin: 16 * control.themeGlobalScale
         height: 16 * control.themeGlobalScale
-        visible: helperLabel.text !== "" || counterLabel.visible
+        visible: (helperLabel.text !== "" || counterLabel.visible) && control.size !== "xs"
 
         Text {
             id: helperLabel
