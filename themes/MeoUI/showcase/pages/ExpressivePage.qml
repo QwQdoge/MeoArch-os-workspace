@@ -816,6 +816,85 @@ ScrollView {
 
         MeoDivider { topInset: 16; bottomInset: 16 }
 
+        // --- Expressive TextField Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive TextField Sizes (XS to XL)"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: 16 * MeoTheme.globalScale
+
+                MeoTextField { size: "xs"; placeholder: "XS TextField"; leadingIcon: "search"; width: 200 * MeoTheme.globalScale }
+                MeoTextField { size: "s"; placeholder: "S TextField"; label: "Small"; width: 200 * MeoTheme.globalScale }
+                MeoTextField { size: "m"; placeholder: "M TextField"; label: "Medium"; width: 200 * MeoTheme.globalScale }
+                MeoTextField { size: "l"; placeholder: "L TextField"; label: "Large"; width: 200 * MeoTheme.globalScale }
+                MeoTextField { size: "xl"; placeholder: "XL TextField"; label: "Extra Large"; width: 200 * MeoTheme.globalScale }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
+        // --- Expressive Navigation Rail Section ---
+        ColumnLayout {
+            spacing: 16 * MeoTheme.globalScale
+
+            Text {
+                text: "Expressive Expanding Navigation Rail"
+                font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
+                font.weight: Font.DemiBold
+                color: MeoTheme.primary
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                height: 400 * MeoTheme.globalScale
+                spacing: 24 * MeoTheme.globalScale
+
+                MeoNavigationRail {
+                    id: expRail
+                    isExpanded: expandToggle.checked
+                    model: [
+                        { label: "Home", icon: "home" },
+                        { label: "Search", icon: "search", badgeText: "3" },
+                        { label: "Settings", icon: "settings" }
+                    ]
+                    Layout.fillHeight: true
+
+                    header: MeoIconButton {
+                        icon.name: "menu"
+                        onClicked: expRail.isExpanded = !expRail.isExpanded
+                    }
+                }
+
+                ColumnLayout {
+                    Layout.alignment: Qt.AlignTop
+                    spacing: 12 * MeoTheme.globalScale
+
+                    MeoSwitch {
+                        id: expandToggle
+                        label: "Expand Rail"
+                    }
+
+                    Text {
+                        text: "The Navigation Rail can expand into a side drawer-like state with horizontal layouts for expressive adaptive interfaces."
+                        font.pixelSize: MeoTheme.bodyMedium.size * MeoTheme.globalScale
+                        color: MeoTheme.contentOnSurfaceVariant
+                        Layout.maximumWidth: 300 * MeoTheme.globalScale
+                        wrapMode: Text.WordWrap
+                    }
+                }
+            }
+        }
+
+        MeoDivider { topInset: 16; bottomInset: 16 }
+
         // --- Expressive Selection Section ---
         ColumnLayout {
             spacing: 16 * MeoTheme.globalScale
@@ -829,7 +908,7 @@ ScrollView {
 
             RowLayout {
                 spacing: 24 * MeoTheme.globalScale
-                MeoSwitch { label: "Expressive Switch"; isExpressive: true }
+                MeoSwitch { label: "Expressive Switch"; isExpressive: true; icon: "check"; uncheckedIcon: "close" }
                 MeoCheckbox { label: "Soul Checkbox"; checked: true }
                 MeoRadioButton { label: "Soul Radio"; checked: true }
             }
