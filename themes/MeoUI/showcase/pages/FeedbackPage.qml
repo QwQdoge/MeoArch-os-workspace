@@ -31,6 +31,17 @@ Flickable {
             onClicked: expressiveDialog.open()
         }
 
+        Text { text: "Loading Indicators (Expressive)"; font.pixelSize: 16 * MeoTheme.globalScale; color: MeoTheme.contentOnSurfaceVariant }
+
+        Row {
+            spacing: 24 * MeoTheme.globalScale
+            MeoLoadingIndicator { size: "xs"; indeterminate: true }
+            MeoLoadingIndicator { size: "s"; indeterminate: true; color: MeoTheme.secondary }
+            MeoLoadingIndicator { size: "m"; indeterminate: true; vibrant: true }
+            MeoLoadingIndicator { size: "l"; indeterminate: true; color: MeoTheme.tertiary }
+            MeoLoadingIndicator { size: "xl"; indeterminate: true }
+        }
+
         MeoSnackbar {
             id: snackbar
             message: "This is an expressive snackbar with a 4dp radius."
