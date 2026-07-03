@@ -85,6 +85,30 @@ ScrollView {
 
             ExpressiveHighlightCard {
                 large: true
+                title: "New: Wavy strategy"
+                body: "Expressive sliders and progress indicators now support wavy strategy for media playback and active states."
+
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    spacing: 24 * MeoTheme.globalScale
+                    width: parent.width * 0.8
+
+                    MeoSlider {
+                        Layout.fillWidth: true
+                        wavy: true
+                        value: 45
+                    }
+
+                    MeoProgressBar {
+                        Layout.fillWidth: true
+                        wavy: true
+                        value: 0.7
+                    }
+                }
+            }
+
+            ExpressiveHighlightCard {
+                large: true
                 title: "New: Toolbars"
                 body: "Flexible component to display frequently used actions. Toolbars hold controls like buttons and can pair with a FAB."
 
@@ -328,7 +352,7 @@ ScrollView {
             spacing: 16 * MeoTheme.globalScale
 
             Text {
-                text: "Expressive Button Sizes & Shapes (Bouncy)"
+                text: "Expressive Button Sizes & Shapes (Bouncy & Vibrant)"
                 font.pixelSize: MeoTheme.titleLarge.size * MeoTheme.globalScale
                 font.weight: Font.DemiBold
                 color: MeoTheme.primary
@@ -343,9 +367,9 @@ ScrollView {
                     spacing: 12 * MeoTheme.globalScale
                     MeoButton { text: "XS Round"; size: "xs"; type: "filled"; bouncy: true }
                     MeoButton { text: "S Round"; size: "s"; type: "tonal"; bouncy: true }
-                    MeoButton { text: "M Round"; size: "m"; type: "outlined"; bouncy: true }
+                    MeoButton { text: "Vibrant M"; size: "m"; type: "filled"; vibrant: true; bouncy: true }
                     MeoButton { text: "L Round"; size: "l"; type: "elevated"; bouncy: true }
-                    MeoButton { text: "XL Round"; size: "xl"; type: "filled"; isEmphasized: true; bouncy: true }
+                    MeoButton { text: "Vibrant XL"; size: "xl"; type: "filled"; vibrant: true; isEmphasized: true; bouncy: true }
                 }
 
                 // Square Sizes
@@ -353,9 +377,9 @@ ScrollView {
                     Layout.fillWidth: true
                     spacing: 12 * MeoTheme.globalScale
                     MeoButton { text: "XS Square"; size: "xs"; shape: "square"; type: "filled"; bouncy: true }
-                    MeoButton { text: "S Square"; size: "s"; shape: "square"; type: "tonal"; bouncy: true }
+                    MeoButton { text: "Vibrant S"; size: "s"; shape: "square"; type: "filled"; vibrant: true; bouncy: true }
                     MeoButton { text: "M Square"; size: "m"; shape: "square"; type: "outlined"; bouncy: true }
-                    MeoButton { text: "L Square"; size: "l"; shape: "square"; type: "elevated"; bouncy: true }
+                    MeoButton { text: "Vibrant L"; size: "l"; shape: "square"; type: "filled"; vibrant: true; bouncy: true }
                     MeoButton { text: "XL Square"; size: "xl"; shape: "square"; type: "filled"; isEmphasized: true; bouncy: true }
                 }
             }
