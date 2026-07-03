@@ -11,7 +11,7 @@ Flickable {
         spacing: 24 * MeoTheme.globalScale
         width: parent.width
 
-        Text { text: "Feedback"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
+        MeoText { text: "Feedback"; typeRole: "title"; typeSize: "medium"; color: MeoTheme.contentOnSurface }
 
         MeoBanner {
             text: "This is an updated MD3 Expressive Banner with a leading icon and refined layout."

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MeoUI Design Specification</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#top">
+      <span class="brand-mark">M</span>
+      <span>
+        <strong>MeoUI</strong>
+        <small>Design Spec</small>
+      </span>
+    </a>
+    <nav>
+      <a href="#principles">原则</a>
+      <a href="#tokens">Tokens</a>
+      <a href="#components">组件</a>
+      <a href="#usage">如何使用</a>
+      <a href="#rules">遵守规则</a>
+      <a href="#checklist">验收清单</a>
+    </nav>
+  </aside>
+
+  <main id="top">
+    <section class="hero">
+      <p class="eyebrow">Material Design 3 / Meo semantic tokens</p>
+      <h1>MeoUI 设计规范</h1>
+      <p class="lead">所有页面、组件、动效和图片替换入口集中在这里。页面代码必须表达设计意图，例如 <code>title.big</code>、<code>motion.fast</code>、<code>state.hover</code>，而不是散落的数字。</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#components">查看全部组件</a>
+        <a class="button" href="assets/components/MeoButton.png">示例图片文件</a>
+      </div>
+    </section>
+
+    <section id="principles" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Core rule</p>
+        <h2>核心原则</h2>
+      </div>
+      <div class="rules-grid">
+        <article>
+          <h3>语义优先</h3>
+          <p>页面里用 <code>MeoText</code>、<code>MeoButton</code>、<code>MeoPageLayout</code>，不要直接写字号、动画时长和颜色。</p>
+        </article>
+        <article>
+          <h3>状态统一</h3>
+          <p>hover、focus、press、drag 都走 <code>MeoStateLayer</code>，点击反馈使用圆形 ripple。</p>
+        </article>
+        <article>
+          <h3>组件先行</h3>
+          <p>新界面先查组件库；只有缺少组件时才新增组件，新增时必须补文档和图片占位。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="tokens" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Parameters</p>
+        <h2>所有核心参数</h2>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Token sections">
+        <button class="tab active" data-token-tab="typography">Typography</button>
+        <button class="tab" data-token-tab="motion">Motion</button>
+        <button class="tab" data-token-tab="state">State</button>
+        <button class="tab" data-token-tab="shape">Shape</button>
+        <button class="tab" data-token-tab="spacing">Spacing</button>
+        <button class="tab" data-token-tab="color">Color</button>
+      </div>
+      <div id="token-table" class="table-card"></div>
+    </section>
+
+    <section id="components" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Component catalog</p>
+        <h2>全部组件和图片文件</h2>
+        <p>每个组件都有一个占位图片。截图替换时保持同名文件即可，例如 <code>assets/components/MeoButton.png</code>。</p>
+      </div>
+      <div class="toolbar">
+        <input id="component-search" type="search" placeholder="搜索组件、用途或文件名">
+        <select id="category-filter" aria-label="组件分类"></select>
+      </div>
+      <div id="component-grid" class="component-grid"></div>
+    </section>
+
+    <section id="usage" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Usage</p>
+        <h2>如何使用</h2>
+      </div>
+      <div class="code-grid">
+        <article>
+          <h3>页面标题</h3>
+          <pre><code>MeoText {
+    text: "Settings"
+    typeRole: "title"
+    typeSize: "big"
+    emphasized: true
+}</code></pre>
+        </article>
+        <article>
+          <h3>按钮</h3>
+          <pre><code>MeoButton {
+    text: "Continue"
+    icon.name: "arrow_forward"
+    type: "filled"
+    size: "m"
+}</code></pre>
+        </article>
+        <article>
+          <h3>页面布局</h3>
+          <pre><code>MeoPageLayout {
+    title: "Library"
+    subtitle: "Manage installed packages."
+
+    MeoCard {
+        type: "filled"
+    }
+}</code></pre>
+        </article>
+      </div>
+    </section>
+
+    <section id="rules" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Compliance</p>
+        <h2>必须遵守</h2>
+      </div>
+      <ul class="rule-list">
+        <li>页面文字必须优先使用 <code>MeoText</code>，禁止在页面里写 <code>font.pixelSize: 54</code> 这类裸数值。</li>
+        <li>动画时长必须使用 <code>motionDurationFast</code>、<code>motionDurationMedium</code> 等 token。</li>
+        <li>按钮 hover、press、focus 必须走 <code>MeoStateLayer</code>，点击使用圆形 ripple。</li>
+        <li>颜色必须使用角色色，例如 <code>primary</code> 搭配 <code>contentOnPrimary</code>。</li>
+        <li>新增组件必须在本网页组件列表中增加条目，并创建同名图片占位。</li>
+      </ul>
+    </section>
+
+    <section id="checklist" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">Review</p>
+        <h2>验收清单</h2>
+      </div>
+      <div class="checklist">
+        <label><input type="checkbox"> 扫描 touched QML，没有裸 <code>font.pixelSize</code>。</label>
+        <label><input type="checkbox"> 扫描 touched QML，没有裸 <code>duration</code>。</label>
+        <label><input type="checkbox"> 页面标题用 <code>MeoText</code> 或 <code>MeoPageLayout</code>。</label>
+        <label><input type="checkbox"> 自定义交互面使用 <code>MeoStateLayer</code>。</label>
+        <label><input type="checkbox"> 新增组件注册到 CMake，并补图片占位。</label>
+      </div>
+    </section>
+  </main>
+
+  <script src="spec-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

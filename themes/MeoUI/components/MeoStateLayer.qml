@@ -18,10 +18,13 @@ Item {
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     // 🌟 状态层透明度定义 (MD3 规范)
-    readonly property real hoverOpacity: 0.08
-    readonly property real focusOpacity: 0.10
-    readonly property real pressedOpacity: 0.12
-    readonly property real draggedOpacity: 0.16
+    readonly property real hoverOpacity: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.stateOpacityHover !== 'undefined') ? MeoTheme.stateOpacityHover : 0.08
+    readonly property real focusOpacity: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.stateOpacityFocus !== 'undefined') ? MeoTheme.stateOpacityFocus : 0.10
+    readonly property real pressedOpacity: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.stateOpacityPressed !== 'undefined') ? MeoTheme.stateOpacityPressed : 0.10
+    readonly property real draggedOpacity: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.stateOpacityDragged !== 'undefined') ? MeoTheme.stateOpacityDragged : 0.16
+    readonly property int hoverDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationFast !== 'undefined') ? MeoTheme.motionDurationFast : 150
+    readonly property int rippleExpandDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationRippleExpand !== 'undefined') ? MeoTheme.motionDurationRippleExpand : 400
+    readonly property int rippleFadeDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationRippleFade !== 'undefined') ? MeoTheme.motionDurationRippleFade : 300
 
     anchors.fill: parent
     width: parent ? parent.width : 0
@@ -77,7 +80,7 @@ Item {
 
             Behavior on opacity {
                 NumberAnimation {
-                    duration: 150
+                    duration: control.hoverDuration
                     easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingStandard !== 'undefined') ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1]
                 }
             }
@@ -107,16 +110,16 @@ Item {
             property: "radiusValue"
             from: 0
             to: rippleLayer.targetRadius
-            duration: 420
+            duration: control.rippleExpandDuration
             easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasizedDecelerate !== 'undefined') ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1]
         }
         SequentialAnimation {
-            PauseAnimation { duration: 120 }
+            PauseAnimation { duration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationShort2 !== 'undefined') ? MeoTheme.motionDurationShort2 : 100 }
             NumberAnimation {
                 target: rippleLayer
                 property: "opacity"
                 to: 0
-                duration: 300
+                duration: control.rippleFadeDuration
                 easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingStandard !== 'undefined') ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1]
             }
         }
@@ -127,7 +130,7 @@ Item {
         target: rippleLayer
         property: "opacity"
         to: 0
-        duration: 160
+        duration: control.hoverDuration
         easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingStandard !== 'undefined') ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1]
     }
 

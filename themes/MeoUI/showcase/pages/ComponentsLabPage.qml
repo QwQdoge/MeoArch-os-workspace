@@ -22,30 +22,42 @@ Flickable {
 
         LabSection {
             title: "Chips & grouped actions"
-            Flow {
-                Layout.fillWidth: true
-                spacing: 8 * MeoTheme.globalScale
+            ChipGroup {
+                title: "Assist chips"
                 MeoAssistChip { label: "Directions"; icon: "directions" }
                 MeoAssistChip { label: "Elevated"; icon: "star"; elevated: true }
-                MeoChip { label: "Generic chip"; icon: "bolt"; closable: true }
+            }
+            ChipGroup {
+                title: "Filter chips"
+                MeoFilterGroup {
+                    width: parent.width
+                    model: [
+                        { "label": "All", "icon": "apps" },
+                        { "label": "Design", "icon": "palette" },
+                        { "label": "Code", "icon": "code" }
+                    ]
+                    currentIndex: 0
+                }
+            }
+            ChipGroup {
+                title: "Input chips"
                 MeoInputChip { label: "Input chip"; leadingIcon: "person"; selected: true }
+                MeoChip { label: "Closable chip"; icon: "bolt"; closable: true }
+            }
+            ChipGroup {
+                title: "Suggestion chips"
                 MeoSuggestionChip { label: "Suggestion" }
+                MeoSuggestionChip { label: "Material" }
             }
-            MeoFilterGroup {
-                Layout.fillWidth: true
-                model: [
-                    { "label": "All", "icon": "apps" },
-                    { "label": "Design", "icon": "palette" },
-                    { "label": "Code", "icon": "code" }
-                ]
-                currentIndex: 0
-            }
-            MeoButtonGroup {
-                model: [
-                    { "label": "Cut", "icon": "content_cut" },
-                    { "label": "Copy", "icon": "content_copy" },
-                    { "label": "Paste", "icon": "content_paste" }
-                ]
+            ChipGroup {
+                title: "Action chips"
+                MeoButtonGroup {
+                    model: [
+                        { "label": "Cut", "icon": "content_cut" },
+                        { "label": "Copy", "icon": "content_copy" },
+                        { "label": "Paste", "icon": "content_paste" }
+                    ]
+                }
             }
         }
 
@@ -75,6 +87,7 @@ Flickable {
                 model: ["Overview", "Tokens", "Usage"]
                 currentIndex: 0
             }
+            MeoText { text: "Carousel / Page indicator"; typeRole: "label"; typeSize: "big"; color: MeoTheme.contentOnSurfaceVariant }
             RowLayout {
                 MeoIconButton { icon.name: "chevron_left"; onClicked: pageIndicator.currentIndex = Math.max(0, pageIndicator.currentIndex - 1) }
                 MeoPageIndicator { id: pageIndicator; count: 5; currentIndex: 2 }
@@ -83,7 +96,8 @@ Flickable {
         }
 
         LabSection {
-            title: "Visual primitives"
+            title: "Expressive shapes"
+            MeoText { Layout.fillWidth: true; text: "Shape tokens used by expressive surfaces, avatars, and buttons."; typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 16 * MeoTheme.globalScale
@@ -112,7 +126,7 @@ Flickable {
                         required property string modelData
                         spacing: 4 * MeoTheme.globalScale
                         MeoShape { width: 72 * MeoTheme.globalScale; height: 72 * MeoTheme.globalScale; type: parent.modelData; color: MeoTheme.primaryContainer; radius: 18 * MeoTheme.globalScale }
-                        Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.modelData; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 11 * MeoTheme.globalScale }
+                        MeoText { anchors.horizontalCenter: parent.horizontalCenter; text: parent.modelData; typeRole: "label"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant }
                     }
                 }
             }
@@ -132,7 +146,7 @@ Flickable {
                 implicitHeight: 72 * MeoTheme.globalScale
                 radius: MeoTheme.shapeLarge
                 color: MeoTheme.surfaceContainerHighest
-                Text { anchors.centerIn: parent; text: "Standalone MeoStateLayer — hover or press"; color: MeoTheme.contentOnSurface; font.pixelSize: 14 * MeoTheme.globalScale }
+                MeoText { anchors.centerIn: parent; text: "Standalone MeoStateLayer — hover or press"; typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurface }
                 MeoStateLayer { anchors.fill: parent; radius: parent.radius; hovered: stateMouse.containsMouse; pressed: stateMouse.pressed; color: MeoTheme.contentOnSurface }
                 MouseArea { id: stateMouse; anchors.fill: parent; hoverEnabled: true }
             }
@@ -159,7 +173,7 @@ Flickable {
                             anchors.centerIn: parent
                             spacing: 8 * MeoTheme.globalScale
                             MeoIcon { anchors.horizontalCenter: parent.horizontalCenter; icon: modelData.icon; size: 36; color: MeoTheme.contentOnSecondaryContainer }
-                            Text { text: modelData.title; color: MeoTheme.contentOnSecondaryContainer; font.pixelSize: 16 * MeoTheme.globalScale; font.weight: Font.DemiBold }
+                            MeoText { text: modelData.title; typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSecondaryContainer }
                         }
                     }
                 }
@@ -172,14 +186,14 @@ Flickable {
                 Layout.fillWidth: true
                 spacing: 16 * MeoTheme.globalScale
 
-                Text { text: "MeoStepper (Horizontal)"; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 12 * MeoTheme.globalScale }
+                MeoText { text: "MeoStepper (Horizontal)"; typeRole: "label"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant }
                 MeoStepper {
                     Layout.fillWidth: true
                     model: [{ label: "Plan" }, { label: "Design" }, { label: "Implement" }]
                     currentIndex: 1
                 }
 
-                Text { text: "MeoSwipeToDismiss (Try dragging)"; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 12 * MeoTheme.globalScale }
+                MeoText { text: "MeoSwipeToDismiss (Try dragging)"; typeRole: "label"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant }
                 MeoSwipeToDismiss {
                     id: swipeItem
                     Layout.fillWidth: true
@@ -255,7 +269,7 @@ Flickable {
             Column {
                 spacing: 16 * MeoTheme.globalScale
                 padding: 24 * MeoTheme.globalScale
-                Text { text: "Focused editing surface"; color: MeoTheme.contentOnSurface; font.pixelSize: 24 * MeoTheme.globalScale }
+                MeoText { text: "Focused editing surface"; typeRole: "title"; typeSize: "medium"; color: MeoTheme.contentOnSurface }
                 MeoTextField { width: 420 * MeoTheme.globalScale; label: "Document title" }
                 MeoTextArea { width: 420 * MeoTheme.globalScale; height: 160 * MeoTheme.globalScale; placeholderText: "Write something…" }
             }
@@ -266,15 +280,23 @@ Flickable {
         property string title: ""
         property string subtitle: ""
         Layout.fillWidth: true
-        Text { text: parent.title; color: MeoTheme.contentOnSurface; font.pixelSize: MeoTheme.headlineLargeEmphasized.size * MeoTheme.globalScale; font.weight: Font.Bold }
-        Text { Layout.fillWidth: true; text: parent.subtitle; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: MeoTheme.bodyLarge.size * MeoTheme.globalScale; wrapMode: Text.WordWrap }
+        MeoText { text: parent.title; typeRole: "title"; typeSize: "big"; emphasized: true; color: MeoTheme.contentOnSurface }
+        MeoText { Layout.fillWidth: true; text: parent.subtitle; typeRole: "body"; typeSize: "big"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
     }
     component LabSection: ColumnLayout {
         default property alias contents: sectionContent.data
         property string title: ""
         Layout.fillWidth: true
         spacing: 12 * MeoTheme.globalScale
-        Text { text: parent.title; color: MeoTheme.primary; font.pixelSize: 20 * MeoTheme.globalScale; font.weight: Font.DemiBold }
+        MeoText { text: parent.title; typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.primary }
         ColumnLayout { id: sectionContent; Layout.fillWidth: true; spacing: 12 * MeoTheme.globalScale }
+    }
+    component ChipGroup: ColumnLayout {
+        default property alias chips: chipFlow.data
+        property string title: ""
+        Layout.fillWidth: true
+        spacing: 6 * MeoTheme.globalScale
+        MeoText { text: parent.title; typeRole: "label"; typeSize: "big"; color: MeoTheme.contentOnSurfaceVariant }
+        Flow { id: chipFlow; Layout.fillWidth: true; spacing: 8 * MeoTheme.globalScale }
     }
 }
