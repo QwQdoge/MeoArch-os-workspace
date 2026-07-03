@@ -45,6 +45,7 @@ MeoTheme.qml
         components/MeoText.qml
         components/MeoSplitButton.qml
         components/MeoButtonGroup.qml
+        components/MeoLoadingIndicator.qml
         components/MeoFABMenu.qml
         components/MeoDockedToolbar.qml
         components/MeoFloatingToolbar.qml
