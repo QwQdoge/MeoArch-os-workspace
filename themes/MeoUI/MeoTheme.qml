@@ -166,6 +166,14 @@ QtObject {
     readonly property var motionDurationExtraLong3: 900
     readonly property var motionDurationExtraLong4: 1000
 
+    // Semantic motion aliases for component code.
+    readonly property var motionDurationInstant: motionDurationShort1
+    readonly property var motionDurationFast: motionDurationShort3
+    readonly property var motionDurationMedium: motionDurationMedium2
+    readonly property var motionDurationSlow: motionDurationLong1
+    readonly property var motionDurationRippleExpand: motionDurationMedium4
+    readonly property var motionDurationRippleFade: motionDurationMedium2
+
     readonly property list<real> motionEasingStandard: [0.2, 0, 0, 1]
     readonly property list<real> motionEasingStandardAccelerate: [0.3, 0, 1, 1]
     readonly property list<real> motionEasingStandardDecelerate: [0, 0, 0, 1]
@@ -175,6 +183,12 @@ QtObject {
 
     // Compatibility alias used by existing expressive components.
     readonly property list<real> motionEasingSoul: motionEasingEmphasized
+
+    // MD3 state-layer opacity tokens.
+    readonly property real stateOpacityHover: 0.08
+    readonly property real stateOpacityFocus: 0.10
+    readonly property real stateOpacityPressed: 0.10
+    readonly property real stateOpacityDragged: 0.16
 
     property color outlineVariant: isDarkMode ? "#44474F" : "#C4C7C5"
 
@@ -255,7 +269,8 @@ QtObject {
     // 🌟 Material Design 3 Typography (Type Scale)
     // Format: { size, weight, lineHeight, letterSpacing }
     readonly property string typefacePlain: "Roboto"
-    readonly property string typefaceBrand: "Roboto"
+    readonly property string typefaceBrand: "Comfortaa"
+    readonly property string typefaceChineseFallback: "Noto Sans SC, Microsoft YaHei, Source Han Sans SC"
 
     // Display
     readonly property var displayLarge: { "size": 57, "weight": Font.Normal, "lineHeight": 64, "letterSpacing": -0.25 }
@@ -307,4 +322,51 @@ QtObject {
     readonly property var labelLargeEmphasized: { "size": 14, "weight": Font.DemiBold, "lineHeight": 20, "letterSpacing": 0.1 }
     readonly property var labelMediumEmphasized: { "size": 12, "weight": Font.DemiBold, "lineHeight": 16, "letterSpacing": 0.5 }
     readonly property var labelSmallEmphasized: { "size": 11, "weight": Font.DemiBold, "lineHeight": 16, "letterSpacing": 0.5 }
+
+    // 🌟 Meo semantic typography tokens.
+    // Use these in pages/components instead of raw pixel sizes.
+    readonly property var titleBig: { "size": 40, "weight": Font.Bold, "lineHeight": 48, "letterSpacing": 0, "family": typefaceBrand }
+    readonly property var titleMediumUi: { "size": 26, "weight": Font.Bold, "lineHeight": 34, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var titleSmallUi: { "size": 16, "weight": Font.Bold, "lineHeight": 24, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var bodyBig: { "size": 18, "weight": Font.Normal, "lineHeight": 28, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var bodyMediumUi: { "size": 15, "weight": Font.Normal, "lineHeight": 22, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var bodySmallUi: { "size": 14, "weight": Font.Normal, "lineHeight": 20, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var labelBig: { "size": 15, "weight": Font.Medium, "lineHeight": 20, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var labelMediumUi: { "size": 14, "weight": Font.Medium, "lineHeight": 20, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var labelSmallUi: { "size": 12, "weight": Font.Medium, "lineHeight": 16, "letterSpacing": 0, "family": typefacePlain }
+
+    readonly property var titleBigEmphasized: titleBig
+    readonly property var titleMediumUiEmphasized: titleMediumUi
+    readonly property var titleSmallUiEmphasized: titleSmallUi
+    readonly property var bodyBigEmphasized: { "size": 18, "weight": Font.Bold, "lineHeight": 28, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var bodyMediumUiEmphasized: { "size": 15, "weight": Font.Bold, "lineHeight": 22, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var bodySmallUiEmphasized: { "size": 14, "weight": Font.Bold, "lineHeight": 20, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var labelBigEmphasized: { "size": 15, "weight": Font.Bold, "lineHeight": 20, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var labelMediumUiEmphasized: { "size": 14, "weight": Font.Bold, "lineHeight": 20, "letterSpacing": 0, "family": typefacePlain }
+    readonly property var labelSmallUiEmphasized: { "size": 12, "weight": Font.Bold, "lineHeight": 16, "letterSpacing": 0, "family": typefacePlain }
+
+    function typeToken(role, size, emphasized) {
+        const normalizedRole = role || "body"
+        const normalizedSize = size || "medium"
+
+        if (normalizedRole === "title") {
+            if (normalizedSize === "big" || normalizedSize === "large") return emphasized ? titleBigEmphasized : titleBig
+            if (normalizedSize === "small") return emphasized ? titleSmallUiEmphasized : titleSmallUi
+            return emphasized ? titleMediumUiEmphasized : titleMediumUi
+        }
+
+        if (normalizedRole === "body") {
+            if (normalizedSize === "big" || normalizedSize === "large") return emphasized ? bodyBigEmphasized : bodyBig
+            if (normalizedSize === "small") return emphasized ? bodySmallUiEmphasized : bodySmallUi
+            return emphasized ? bodyMediumUiEmphasized : bodyMediumUi
+        }
+
+        if (normalizedRole === "label") {
+            if (normalizedSize === "big" || normalizedSize === "large") return emphasized ? labelBigEmphasized : labelBig
+            if (normalizedSize === "small") return emphasized ? labelSmallUiEmphasized : labelSmallUi
+            return emphasized ? labelMediumUiEmphasized : labelMediumUi
+        }
+
+        return bodyMediumUi
+    }
 }

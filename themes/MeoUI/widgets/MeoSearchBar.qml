@@ -16,12 +16,14 @@ Rectangle {
     signal accepted(string text)
 
     // 🌟 作用域与主题安全防御
+    readonly property color themeSurfaceContainerHigh: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHigh !== 'undefined') ? MeoTheme.surfaceContainerHigh : "#ECE6F0"
     readonly property color themeSurfaceContainerHighest: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHighest !== 'undefined') ? MeoTheme.surfaceContainerHighest : "#E6E1E5"
     readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property var fontBodyLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyLarge !== 'undefined') ? MeoTheme.bodyLarge : { "size": 16, "weight": Font.Normal, "lineHeight": 24, "letterSpacing": 0.5 }
 
-    implicitWidth: 360 * themeGlobalScale
+    implicitWidth: Math.min(720 * themeGlobalScale, parent ? parent.width : 720 * themeGlobalScale)
     implicitHeight: 56 * themeGlobalScale
 
     // 📐 Expressive Expansion Logic
@@ -40,7 +42,7 @@ Rectangle {
     }
 
     radius: active ? (isWide ? 16 * themeGlobalScale : 0) : 28 * themeGlobalScale
-    color: active ? themeSurface : themeSurfaceContainerHighest
+    color: active ? themeSurface : themeSurfaceContainerHigh
 
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
 
@@ -50,9 +52,9 @@ Rectangle {
 
     Row {
         anchors.fill: parent
-        anchors.leftMargin: 16 * control.themeGlobalScale
-        anchors.rightMargin: 16 * control.themeGlobalScale
-        spacing: 12 * control.themeGlobalScale
+        anchors.leftMargin: 4 * control.themeGlobalScale
+        anchors.rightMargin: 4 * control.themeGlobalScale
+        spacing: 4 * control.themeGlobalScale
 
         MeoIconButton {
             icon.name: control.active ? "arrow_back" : control.leadingIcon
@@ -75,7 +77,9 @@ Rectangle {
             background: null
             placeholderText: control.placeholder
             text: control.text
-            font.pixelSize: 16 * control.themeGlobalScale
+            font.pixelSize: fontBodyLarge.size * control.themeGlobalScale
+            font.weight: fontBodyLarge.weight
+            font.letterSpacing: (fontBodyLarge.letterSpacing || 0) * control.themeGlobalScale
             color: control.themeOnSurface
             placeholderTextColor: control.themeOnSurfaceVariant
             anchors.verticalCenter: parent.verticalCenter

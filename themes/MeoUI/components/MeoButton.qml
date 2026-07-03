@@ -22,6 +22,8 @@ Button {
     checked: false
 
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
+    readonly property int motionFast: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationFast !== "undefined") ? MeoTheme.motionDurationFast : 150
+    readonly property int motionMedium: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationMedium !== "undefined") ? MeoTheme.motionDurationMedium : 300
 
     readonly property var fontToken: {
         if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
@@ -122,7 +124,7 @@ Button {
         implicitWidth: Math.max(contentRow.implicitWidth, (iconSize + 6) * MeoTheme.globalScale)
         implicitHeight: Math.max(contentRow.implicitHeight, (iconSize + 6) * MeoTheme.globalScale)
         scale: (control.bouncy && control.pressed) ? 0.98 : 1.0
-        Behavior on scale { NumberAnimation { duration: 100; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+        Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
 
         Row {
             id: contentRow
@@ -130,7 +132,7 @@ Button {
             anchors.centerIn: parent
             opacity: control.loading ? 0.0 : 1.0
             visible: opacity > 0
-            Behavior on opacity { NumberAnimation { duration: 150 } }
+            Behavior on opacity { NumberAnimation { duration: control.motionFast } }
 
             MeoIcon {
                 icon: control.checked ? "check" : (control.icon.name || control.icon.source.toString())
@@ -142,20 +144,21 @@ Button {
                 }
                 color: control.textColor
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: control.motionFast } }
 
                 Behavior on icon {
                     enabled: control.checkable
                     SequentialAnimation {
-                        NumberAnimation { target: parent; property: "scale"; to: 0; duration: 100 }
+                        NumberAnimation { target: parent; property: "scale"; to: 0; duration: control.motionFast }
                         PropertyAction { target: parent; property: "icon" }
-                        NumberAnimation { target: parent; property: "scale"; to: 1; duration: 100 }
+                        NumberAnimation { target: parent; property: "scale"; to: 1; duration: control.motionFast }
                     }
                 }
             }
 
             Text {
                 text: control.text
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: fontToken.size * MeoTheme.globalScale
                 font.weight: fontToken.weight
                 font.letterSpacing: (fontToken.letterSpacing || 0) * MeoTheme.globalScale
@@ -163,7 +166,7 @@ Button {
                 color: control.textColor
                 verticalAlignment: Text.AlignVCenter
                 anchors.verticalCenter: parent.verticalCenter
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: control.motionFast } }
             }
         }
 
@@ -176,8 +179,8 @@ Button {
             visible: control.loading
             opacity: control.loading ? 1.0 : 0.0
             scale: control.loading ? 1.0 : 0.82
-            Behavior on opacity { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-            Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
+            Behavior on opacity { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+            Behavior on scale { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
         }
     }
 
@@ -196,7 +199,7 @@ Button {
         color: control.bgColor
 
         scale: (control.bouncy && control.pressed) ? 0.98 : 1.0
-        Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
+        Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
 
         // Surface Tint for Elevation
         Rectangle {
@@ -204,7 +207,7 @@ Button {
             radius: parent.radius
             color: (control.type === "elevated" && typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceTint !== 'undefined') ? MeoTheme.surfaceTint(control.elevation) : "transparent"
             visible: control.type === "elevated"
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: control.motionFast } }
         }
 
         MeoStateLayer {
@@ -232,9 +235,9 @@ Button {
             shadowColor: Qt.rgba(0,0,0,0.2)
         }
 
-        Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-        Behavior on border.color { ColorAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-        Behavior on border.width { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-        Behavior on radius { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
+        Behavior on color { ColorAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+        Behavior on border.color { ColorAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+        Behavior on border.width { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+        Behavior on radius { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
     }
 }

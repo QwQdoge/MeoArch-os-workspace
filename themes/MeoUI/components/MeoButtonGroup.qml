@@ -18,6 +18,11 @@ Control {
     readonly property color themePrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
     readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D"
     readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B"
+    readonly property int motionFast: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationFast !== "undefined") ? MeoTheme.motionDurationFast : 150
+    readonly property int motionMedium: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationMedium !== "undefined") ? MeoTheme.motionDurationMedium : 300
+    readonly property int motionExit: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationShort2 !== "undefined") ? MeoTheme.motionDurationShort2 : 100
+    readonly property var fontLabelBig: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelBig !== 'undefined') ? MeoTheme.labelBig : { "size": 14, "weight": Font.Medium }
+    readonly property var fontLabelMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelMediumUi !== 'undefined') ? MeoTheme.labelMediumUi : { "size": 12, "weight": Font.Medium }
 
     implicitHeight: (sizeVariant === "small" ? 32 : (sizeVariant === "large" ? 48 : 40)) * themeGlobalScale
     implicitWidth: contentRow.implicitWidth
@@ -59,7 +64,7 @@ Control {
                         }
                         border.width: control.type === "outlined" ? 1 * themeGlobalScale : 0
 
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: control.motionFast } }
                     }
 
                     Rectangle {
@@ -71,7 +76,7 @@ Control {
 
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: btn.selected ? 300 : 120
+                                duration: btn.selected ? control.motionMedium : control.motionExit
                                 easing.bezierCurve: btn.selected
                                                     ? ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1])
                                                     : ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedAccelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15])
@@ -79,7 +84,7 @@ Control {
                         }
                         Behavior on scale {
                             NumberAnimation {
-                                duration: btn.selected ? 360 : 140
+                                duration: btn.selected ? control.motionMedium : control.motionFast
                                 easing.bezierCurve: btn.selected
                                                     ? ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1])
                                                     : ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedAccelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15])
@@ -117,8 +122,8 @@ Control {
                     Text {
                         text: btn.itemData.label || ""
                         visible: text !== ""
-                        font.pixelSize: (sizeVariant === "small" ? 12 : 14) * control.themeGlobalScale
-                        font.weight: Font.Medium
+                        font.pixelSize: (sizeVariant === "small" ? control.fontLabelMedium.size : control.fontLabelBig.size) * control.themeGlobalScale
+                        font.weight: (sizeVariant === "small" ? control.fontLabelMedium.weight : control.fontLabelBig.weight)
                         color: {
                             if (type === "filled") return control.themeOnPrimary;
                             if (type === "tonal") return btn.selected ? control.themeOnPrimary : control.themeOnPrimaryContainer;

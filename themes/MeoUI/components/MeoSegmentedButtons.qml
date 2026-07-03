@@ -22,6 +22,9 @@ Frame {
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
     readonly property int themeSpace4: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.space4 !== 'undefined') ? MeoTheme.space4 : 4
+    readonly property int motionFast: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationFast !== "undefined") ? MeoTheme.motionDurationFast : 150
+    readonly property int motionMedium: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationMedium !== "undefined") ? MeoTheme.motionDurationMedium : 300
+    readonly property int motionExit: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationShort2 !== "undefined") ? MeoTheme.motionDurationShort2 : 100
 
     readonly property var fontToken: {
         if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
@@ -103,7 +106,7 @@ Frame {
 
                         Behavior on color { 
                             ColorAnimation { 
-                                duration: 150; 
+                                duration: control.motionFast;
                                 easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]
                             } 
                         }
@@ -119,7 +122,7 @@ Frame {
 
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: delegateItem.isSelected ? 300 : 120
+                                duration: delegateItem.isSelected ? control.motionMedium : control.motionExit
                                 easing.bezierCurve: delegateItem.isSelected
                                                     ? ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1])
                                                     : ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedAccelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15])
@@ -127,7 +130,7 @@ Frame {
                         }
                         Behavior on scale {
                             NumberAnimation {
-                                duration: delegateItem.isSelected ? 360 : 140
+                                duration: delegateItem.isSelected ? control.motionMedium : control.motionFast
                                 easing.bezierCurve: delegateItem.isSelected
                                                     ? ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1])
                                                     : ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedAccelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15])
@@ -184,13 +187,13 @@ Frame {
                             opacity: (isSelected || itemIcon !== "") ? 1.0 : 0.0
                             scale: (isSelected || itemIcon !== "") ? 1.0 : 0.5
 
-                            Behavior on opacity { NumberAnimation { duration: 150 } }
-                            Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
+                            Behavior on opacity { NumberAnimation { duration: control.motionFast } }
+                            Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
                         }
 
                         Behavior on width {
                             NumberAnimation {
-                                duration: 150
+                                duration: control.motionFast
                                 easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]
                             }
                         }
@@ -204,7 +207,7 @@ Frame {
                         anchors.verticalCenter: parent.verticalCenter
                         visible: text !== ""
                         
-                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on color { ColorAnimation { duration: control.motionFast } }
                     }
                 }
 

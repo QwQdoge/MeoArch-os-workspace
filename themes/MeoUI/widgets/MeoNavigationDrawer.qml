@@ -23,7 +23,8 @@ Rectangle {
 
     readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
 
-    width: 360 * themeGlobalScale
+    implicitWidth: 280 * themeGlobalScale
+    width: implicitWidth
     height: parent ? parent.height : 600 * themeGlobalScale
     color: themeSurfaceContainerLow
 
@@ -31,7 +32,10 @@ Rectangle {
     ColumnLayout {
         id: mainLayout
         anchors.fill: parent
-        anchors.topMargin: 12 * control.themeGlobalScale
+        anchors.topMargin: 16 * control.themeGlobalScale
+        anchors.leftMargin: 0
+        anchors.rightMargin: 0
+        anchors.bottomMargin: 16 * control.themeGlobalScale
         spacing: 0
 
         Loader {
@@ -44,7 +48,10 @@ Rectangle {
             text: control.title
             visible: text !== ""
             Layout.fillWidth: true
-            padding: 16 * control.themeGlobalScale
+            leftPadding: 28 * control.themeGlobalScale
+            rightPadding: 28 * control.themeGlobalScale
+            topPadding: 12 * control.themeGlobalScale
+            bottomPadding: 12 * control.themeGlobalScale
             font.pixelSize: fontLabelLarge.size * control.themeGlobalScale
             font.weight: fontLabelLarge.weight
             color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
@@ -57,7 +64,7 @@ Rectangle {
 
             Column {
                 width: parent.width
-                spacing: 4 * control.themeGlobalScale
+                spacing: 0
 
                 Repeater {
                     model: control.model

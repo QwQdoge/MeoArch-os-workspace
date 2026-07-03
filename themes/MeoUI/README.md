@@ -2,6 +2,8 @@
 
 MeoUI is the Material Design 3 / MD3 Expressive QML component library used by the MeoArch workspace. The `MeoShowcaseDemo` target launches a finished showcase with token, component, widget, pattern, and layout pages.
 
+Design, token, component, and review rules live in [`DESIGN_SPEC.md`](DESIGN_SPEC.md).
+
 ## Requirements
 
 - Qt 6 with `Core`, `Gui`, `Qml`, `Quick`, and `QuickControls2`
@@ -42,8 +44,8 @@ The Linux showcase release source package also includes `run-showcase-linux.sh`
 at the package root:
 
 ```bash
-tar -xzf meo-ui-showcase-linux-x64-source-0.1.0.tar.gz
-cd meo-ui-showcase-linux-x64-source-0.1.0
+tar -xzf meo-ui-showcase-linux-x64-source-0.2.0.tar.gz
+cd meo-ui-showcase-linux-x64-source-0.2.0
 ./run-showcase-linux.sh
 ```
 
@@ -62,8 +64,8 @@ compatibility import path `/opt/meo-ui/qml/MeoUI` for existing `import MeoUI`
 applications.
 
 ```bash
-tar -xzf meo-ui-runtime-0.1.0.tar.gz
-cd meo-ui-runtime-0.1.0
+tar -xzf meo-ui-runtime-0.2.0.tar.gz
+cd meo-ui-runtime-0.2.0
 ./install-runtime.sh
 ```
 

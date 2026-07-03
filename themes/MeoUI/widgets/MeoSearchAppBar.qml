@@ -31,7 +31,7 @@ Rectangle {
     MeoSearchBar {
         id: searchBar
         anchors.centerIn: parent
-        width: control.active ? parent.width : parent.width - 32 * control.themeGlobalScale
+        width: control.active ? parent.width : Math.min(720 * control.themeGlobalScale, parent.width - 32 * control.themeGlobalScale)
         height: control.active ? parent.height : 56 * control.themeGlobalScale
         active: control.active
         placeholder: control.placeholder
@@ -52,7 +52,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.rightMargin: 16 * control.themeGlobalScale
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 12 * control.themeGlobalScale
+        spacing: 4 * control.themeGlobalScale
         visible: !control.active && control.actions.length > 0
 
         Repeater {

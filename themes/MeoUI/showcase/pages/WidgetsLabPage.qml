@@ -24,12 +24,14 @@ Flickable {
         y: 24 * MeoTheme.globalScale
         spacing: 24 * MeoTheme.globalScale
 
-        Text { text: "Widgets lab"; color: MeoTheme.contentOnSurface; font.pixelSize: MeoTheme.headlineLargeEmphasized.size * MeoTheme.globalScale; font.weight: Font.Bold }
-        Text { Layout.fillWidth: true; text: "Large, composed controls with real interaction and representative data."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 16 * MeoTheme.globalScale; wrapMode: Text.WordWrap }
+        MeoText { text: "Widgets lab"; typeRole: "title"; typeSize: "big"; emphasized: true; color: MeoTheme.contentOnSurface }
+        MeoText { Layout.fillWidth: true; text: "Large, composed controls with real interaction and representative data."; typeRole: "body"; typeSize: "big"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
 
         SectionTitle { text: "Identity & search" }
         MeoAccountHeader { Layout.fillWidth: true; name: "Meo User"; email: "hello@meoarch.dev" }
-        MeoSearchBar { Layout.fillWidth: true; placeholder: "Search components" }
+        MeoText { text: "Search bar"; typeRole: "label"; typeSize: "big"; color: MeoTheme.contentOnSurfaceVariant }
+        MeoSearchBar { Layout.preferredWidth: Math.min(560 * MeoTheme.globalScale, parent.width); placeholder: "Search components" }
+        MeoText { text: "Docked search bar"; typeRole: "label"; typeSize: "big"; color: MeoTheme.contentOnSurfaceVariant }
         MeoDockedSearchBar { Layout.fillWidth: true; placeholder: "Docked search" }
         MeoSearchSuggestions {
             Layout.fillWidth: true
@@ -42,22 +44,55 @@ Flickable {
         }
 
         SectionTitle { text: "Adaptive navigation" }
-        MeoNavigationBar { Layout.fillWidth: true; model: page.navigationItems; currentIndex: 0 }
         RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: 320 * MeoTheme.globalScale
+            Layout.preferredHeight: 360 * MeoTheme.globalScale
             spacing: 16 * MeoTheme.globalScale
-            MeoNavigationRail { Layout.preferredWidth: 96 * MeoTheme.globalScale; Layout.fillHeight: true; model: page.navigationItems; currentIndex: 1 }
+
             Rectangle {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 radius: MeoTheme.shapeLarge
                 color: MeoTheme.surfaceContainerLow
                 Column {
-                    anchors.centerIn: parent
+                    anchors.fill: parent
+                    anchors.margins: 16 * MeoTheme.globalScale
                     spacing: 12 * MeoTheme.globalScale
-                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Modal navigation drawer"; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
-                    MeoButton { anchors.horizontalCenter: parent.horizontalCenter; text: "Open drawer"; onClicked: modalDrawer.open() }
+                    MeoText { text: "Mobile preview"; typeRole: "label"; typeSize: "big"; color: MeoTheme.contentOnSurfaceVariant }
+                    Rectangle {
+                        width: parent.width
+                        height: parent.height - 32 * MeoTheme.globalScale
+                        radius: MeoTheme.shapeLarge
+                        color: MeoTheme.surface
+                        clip: true
+                        MeoText { anchors.centerIn: parent; text: "Bottom navigation"; typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant }
+                        MeoNavigationBar { anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom; model: page.navigationItems; currentIndex: 0 }
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                radius: MeoTheme.shapeLarge
+                color: MeoTheme.surfaceContainerLow
+                Row {
+                    anchors.fill: parent
+                    anchors.margins: 16 * MeoTheme.globalScale
+                    spacing: 16 * MeoTheme.globalScale
+                    MeoNavigationRail { width: 96 * MeoTheme.globalScale; height: parent.height; model: page.navigationItems; currentIndex: 1 }
+                    Rectangle {
+                        width: parent.width - 112 * MeoTheme.globalScale
+                        height: parent.height
+                        radius: MeoTheme.shapeLarge
+                        color: MeoTheme.surface
+                        Column {
+                            anchors.centerIn: parent
+                            spacing: 12 * MeoTheme.globalScale
+                            MeoText { anchors.horizontalCenter: parent.horizontalCenter; text: "Desktop preview"; typeRole: "label"; typeSize: "big"; color: MeoTheme.contentOnSurfaceVariant }
+                            MeoButton { anchors.horizontalCenter: parent.horizontalCenter; text: "Open drawer"; onClicked: modalDrawer.open() }
+                        }
+                    }
                 }
             }
         }
@@ -93,7 +128,7 @@ Flickable {
             radius: MeoTheme.shapeLarge
             color: MeoTheme.surfaceContainer
             clip: true
-            Text { anchors.centerIn: parent; text: "Standard bottom sheet host"; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+            MeoText { anchors.centerIn: parent; text: "Standard bottom sheet host"; typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant }
             MeoStandardBottomSheet {
                 id: standardSheet
                 anchors.fill: parent
@@ -104,7 +139,7 @@ Flickable {
                     Column {
                         padding: 20 * MeoTheme.globalScale
                         spacing: 12 * MeoTheme.globalScale
-                        Text { text: "Standard bottom sheet"; color: MeoTheme.contentOnSurface; font.pixelSize: 20 * MeoTheme.globalScale; font.weight: Font.DemiBold }
+                        MeoText { text: "Standard bottom sheet"; typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
                         MeoButton { text: standardSheet.isOpen ? "Collapse" : "Expand"; onClicked: standardSheet.isOpen = !standardSheet.isOpen }
                     }
                 }
@@ -119,8 +154,8 @@ Flickable {
             Column {
                 padding: 24 * MeoTheme.globalScale
                 spacing: 12 * MeoTheme.globalScale
-                Text { text: "Modal bottom sheet"; color: MeoTheme.contentOnSurface; font.pixelSize: 22 * MeoTheme.globalScale }
-                Text { text: "Use it for a focused, temporary task."; color: MeoTheme.contentOnSurfaceVariant; font.pixelSize: 14 * MeoTheme.globalScale }
+                MeoText { text: "Modal bottom sheet"; typeRole: "title"; typeSize: "medium"; color: MeoTheme.contentOnSurface }
+                MeoText { text: "Use it for a focused, temporary task."; typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant }
             }
         }
     }
@@ -131,16 +166,17 @@ Flickable {
             Column {
                 padding: 24 * MeoTheme.globalScale
                 spacing: 12 * MeoTheme.globalScale
-                Text { text: "Modal side sheet content"; color: MeoTheme.contentOnSurface; font.pixelSize: 16 * MeoTheme.globalScale }
+                MeoText { text: "Modal side sheet content"; typeRole: "body"; typeSize: "big"; color: MeoTheme.contentOnSurface }
                 MeoSwitch { label: "Enable option"; checked: true }
             }
         }
     }
 
-    component SectionTitle: Text {
+    component SectionTitle: MeoText {
         Layout.fillWidth: true
+        typeRole: "title"
+        typeSize: "medium"
+        emphasized: true
         color: MeoTheme.primary
-        font.pixelSize: 20 * MeoTheme.globalScale
-        font.weight: Font.DemiBold
     }
 }

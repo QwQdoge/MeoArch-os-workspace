@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${MEO_UI_VERSION:-0.1.0}"
+VERSION="${MEO_UI_VERSION:-0.2.0}"
 INSTALL_ROOT="${MEO_UI_PREFIX:-/opt/meo-ui}"
 QML_TARGET="${INSTALL_ROOT}/qml/Meo/UI"
 QML_COMPAT_TARGET="${INSTALL_ROOT}/qml/MeoUI"

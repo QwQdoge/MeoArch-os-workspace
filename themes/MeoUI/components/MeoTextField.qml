@@ -25,6 +25,8 @@ TextField {
 
     // 🌟 作用域防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
+    readonly property int motionFast: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationFast !== "undefined") ? MeoTheme.motionDurationFast : 150
+    readonly property int motionMedium: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationMedium !== "undefined") ? MeoTheme.motionDurationMedium : 300
     
     // 安全的主题属性转发
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
@@ -71,6 +73,7 @@ TextField {
     }
 
     font.pixelSize: currentFont.size * themeGlobalScale
+    font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
     font.weight: currentFont.weight
     selectByMouse: true
     
@@ -137,12 +140,12 @@ TextField {
                 visible: control.type === "filled"
             }
 
-            Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
+            Behavior on color { ColorAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
 
             border.color: control.type === "outlined" ? control.indicatorColor : "transparent"
             border.width: control.type === "outlined" ? (control.activeFocus ? 2 : 1) : 0
             
-            Behavior on border.color { ColorAnimation { duration: 150 } }
+            Behavior on border.color { ColorAnimation { duration: control.motionFast } }
 
             Rectangle {
                 id: activeIndicator
@@ -153,8 +156,8 @@ TextField {
                 color: control.indicatorColor
                 visible: control.type === "filled"
 
-                Behavior on width { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on width { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+                Behavior on color { ColorAnimation { duration: control.motionFast } }
             }
         }
     }
@@ -252,8 +255,8 @@ TextField {
 
             readonly property var labelFont: overlayLayer.isCollapsed ? (MeoTheme.labelSmallEmphasized || control.fontLabelSmall) : control.currentFont
 
-            Behavior on y { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-            Behavior on scale { NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+            Behavior on y { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+            Behavior on scale { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
 
             Rectangle {
                 anchors.fill: parent
@@ -276,7 +279,7 @@ TextField {
                     return control.themeOnSurfaceVariant;
                 }
 
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: control.motionFast } }
             }
         }
     }
@@ -304,7 +307,7 @@ TextField {
                 return control.isError ? control.themeError : control.themeOnSurfaceVariant;
             }
             elide: Text.ElideRight
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: control.motionFast } }
         }
 
         Text {

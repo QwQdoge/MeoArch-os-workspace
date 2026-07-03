@@ -28,6 +28,7 @@ Item {
     readonly property bool isExpanded: width >= 840 * themeGlobalScale
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property real expandedDrawerWidth: 248 * themeGlobalScale
 
     // Main Layout
     Row {
@@ -52,6 +53,7 @@ Item {
         // 2. Navigation Drawer (Expanded)
         MeoNavigationDrawer {
             id: navDrawer
+            width: control.expandedDrawerWidth
             height: parent.height
             model: control.navigationModel
             currentIndex: control.currentIndex

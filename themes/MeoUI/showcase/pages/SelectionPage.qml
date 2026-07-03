@@ -14,7 +14,7 @@ Flickable {
         // Checkboxes
         Column {
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Checkboxes"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
+            MeoText { text: "Checkboxes"; typeRole: "title"; typeSize: "medium"; color: MeoTheme.contentOnSurface }
             Row {
                 spacing: 12 * MeoTheme.globalScale
                 MeoCheckbox { checked: true; label: "Checked" }
@@ -26,7 +26,7 @@ Flickable {
         // Switches
         Column {
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Switches"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
+            MeoText { text: "Switches"; typeRole: "title"; typeSize: "medium"; color: MeoTheme.contentOnSurface }
             Row {
                 spacing: 12 * MeoTheme.globalScale
                 MeoSwitch { checked: true; label: "On" }
@@ -38,7 +38,7 @@ Flickable {
         // Radio Buttons
         Column {
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Radio Buttons"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
+            MeoText { text: "Radio Buttons"; typeRole: "title"; typeSize: "medium"; color: MeoTheme.contentOnSurface }
             Row {
                 spacing: 12 * MeoTheme.globalScale
                 MeoRadioButton { checked: true; label: "Option A" }
@@ -49,7 +49,7 @@ Flickable {
         // Sliders
         Column {
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Sliders"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
+            MeoText { text: "Sliders"; typeRole: "title"; typeSize: "medium"; color: MeoTheme.contentOnSurface }
             Column {
                 spacing: 24 * MeoTheme.globalScale
                 MeoSlider {
@@ -73,7 +73,7 @@ Flickable {
         // Selection Groups
         Column {
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "Selection Groups (Lists)"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
+            MeoText { text: "Selection Groups (Lists)"; typeRole: "title"; typeSize: "medium"; color: MeoTheme.contentOnSurface }
 
             MeoSelectionGroup {
                 width: 360 * MeoTheme.globalScale
@@ -90,7 +90,7 @@ Flickable {
         // List with Multiple Actions (New)
         Column {
             spacing: 16 * MeoTheme.globalScale
-            Text { text: "List Item with Multiple Actions"; font.pixelSize: 20 * MeoTheme.globalScale; color: MeoTheme.contentOnSurface }
+            MeoText { text: "List Item with Multiple Actions"; typeRole: "title"; typeSize: "medium"; color: MeoTheme.contentOnSurface }
 
             MeoListItem {
                 width: 400 * MeoTheme.globalScale

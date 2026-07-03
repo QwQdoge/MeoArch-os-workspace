@@ -53,7 +53,7 @@ Control {
 
                 // Selection Header
                 Item {
-                    width: 48 * control.themeGlobalScale
+                    width: 56 * control.themeGlobalScale
                     height: parent.height
                     visible: control.selectable
                     MeoCheckbox {
@@ -78,7 +78,7 @@ Control {
                 Repeater {
                     model: control.columns
                     delegate: Item {
-                        width: modelData.width ? modelData.width * control.themeGlobalScale : (headerRow.width - (control.selectable ? 48 : 0) - 32) / control.columns.length
+                        width: modelData.width ? modelData.width * control.themeGlobalScale : (headerRow.width - (control.selectable ? 56 : 0) - 32) / control.columns.length
                         height: parent.height
 
                         Row {
@@ -162,7 +162,7 @@ Control {
 
                     // Selection Cell
                     Item {
-                        width: 48 * control.themeGlobalScale
+                            width: 56 * control.themeGlobalScale
                         height: parent.height
                         visible: control.selectable
                         MeoCheckbox {
@@ -196,6 +196,7 @@ Control {
                                 id: defaultTextDelegate
                                 Text {
                                     text: columnData.property ? columnData.property.split('.').reduce((obj, i) => obj[i], rowData) : ""
+                                    font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                                     font.pixelSize: control.fontBodyMedium.size * control.themeGlobalScale
                                     color: control.themeOnSurfaceVariant
                                     verticalAlignment: Text.AlignVCenter

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(MeoUI VERSION 1.0.0 LANGUAGES CXX)
+project(MeoUI VERSION 0.2.0 LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
 include(GNUInstallDirs)
 
@@ -42,6 +42,7 @@ qt_add_qml_module(meoui_module
         showcase/pages/LayoutsLabPage.qml
 MeoTheme.qml
         components/MeoButton.qml
+        components/MeoText.qml
         components/MeoSplitButton.qml
         components/MeoButtonGroup.qml
         components/MeoFABMenu.qml
@@ -118,11 +119,19 @@ MeoTheme.qml
         patterns/MeoListDetailLayout.qml
         patterns/MeoSettingsLayout.qml
         patterns/MeoSearchFilterBar.qml
+        patterns/MeoPageLayout.qml
+        patterns/MeoGroupedList.qml
+        patterns/MeoNavigationSuite.qml
+        patterns/MeoSearchHeader.qml
         patterns/MeoExpressiveDialog.qml
         components/MeoShape.qml
         showcase/MeoShowcase.qml
     RESOURCES
         assets/fonts/MaterialSymbolsRounded.ttf
+        assets/fonts/Comfortaa-Bold.ttf
+        assets/fonts/Roboto-Regular.ttf
+        assets/fonts/Roboto-Medium.ttf
+        assets/fonts/Roboto-Bold.ttf
 )
 
 # 确保链接到 QtQuick
