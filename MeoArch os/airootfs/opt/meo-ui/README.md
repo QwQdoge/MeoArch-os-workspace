@@ -57,44 +57,20 @@ MEO_UI_QT_PREFIX="$HOME/Qt/6.7.3/gcc_64" ./run-showcase-linux.sh
 
 ## Runtime Install
 
-The release runtime package includes installer scripts for Linux and Windows.
-They support `install`, `update`, `upgrade`, `verify`, and `uninstall`.
-
-On Linux the default install root is `/opt/meo-ui`; bundled fonts are installed
-under `/usr/local/share/fonts/meo-ui`. The script creates the compatibility
-import path `/opt/meo-ui/qml/MeoUI` for existing `import MeoUI` applications.
+The release runtime package includes `install-runtime.sh`. On Linux it installs
+the QML module to `/opt/meo-ui/qml/Meo/UI/`, installs bundled fonts under
+`/usr/local/share/fonts/meo-ui`, writes `/opt/meo-ui/VERSION`, and creates the
+compatibility import path `/opt/meo-ui/qml/MeoUI` for existing `import MeoUI`
+applications.
 
 ```bash
 tar -xzf meo-ui-runtime-0.2.0.tar.gz
 cd meo-ui-runtime-0.2.0
-./install-runtime.sh install
-./install-runtime.sh verify
-./install-runtime.sh update --yes
-./install-runtime.sh upgrade --version 0.2.1
-./install-runtime.sh uninstall
+./install-runtime.sh
 ```
 
-On Windows the default install root is `%LOCALAPPDATA%\MeoUI`, so a user-level
-install does not require administrator privileges:
-
-```powershell
-.\tools\install-runtime.ps1 -Action install
-.\tools\install-runtime.ps1 -Action verify
-.\tools\install-runtime.ps1 -Action update -Yes
-.\tools\install-runtime.ps1 -Action upgrade -Version 0.2.1
-.\tools\install-runtime.ps1 -Action uninstall
-```
-
-Both scripts accept custom install locations. Use the reported `qml` directory
-as the Qt import path.
-
-```bash
-./install-runtime.sh install --prefix "$HOME/.local/share/meo-ui" --font-dir "$HOME/.local/share/fonts/meo-ui"
-```
-
-```powershell
-.\tools\install-runtime.ps1 -Action install -Prefix "$env:LOCALAPPDATA\MeoUI" -FontDir "$env:LOCALAPPDATA\MeoUI\fonts"
-```
+The installer checks the platform and any existing installed version before it
+overwrites, upgrades, or downgrades.
 
 ## Manual CMake
 

@@ -1,138 +1,241 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${MEO_UI_VERSION:-0.2.0}"
-INSTALL_ROOT="${MEO_UI_PREFIX:-/opt/meo-ui}"
-QML_TARGET="${INSTALL_ROOT}/qml/Meo/UI"
-QML_COMPAT_TARGET="${INSTALL_ROOT}/qml/MeoUI"
-FONT_TARGET="${MEO_UI_FONT_DIR:-/usr/local/share/fonts/meo-ui}"
-VERSION_FILE="${INSTALL_ROOT}/VERSION"
+version="${MEO_UI_VERSION:-0.2.0}"
+action="install"
+install_root="${MEO_UI_PREFIX:-/opt/meo-ui}"
+font_target="${MEO_UI_FONT_DIR:-/usr/local/share/fonts/meo-ui}"
+qml_source="${MEO_UI_QML_SOURCE:-}"
+font_source="${MEO_UI_FONT_SOURCE:-}"
+yes=0
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -d "${SCRIPT_DIR}/qml/Meo/UI" || -d "${SCRIPT_DIR}/out/build/showcase/MeoUI" ]]; then
-    PACKAGE_ROOT="${SCRIPT_DIR}"
-else
-    PACKAGE_ROOT="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-fi
+usage() {
+  cat <<'EOF'
+Usage: install-runtime.sh [install|update|upgrade|verify|uninstall] [options]
 
-die() {
-    echo "error: $*" >&2
-    exit 1
+Options:
+  --prefix DIR      Install root. Default: /opt/meo-ui
+  --font-dir DIR    Font install dir. Default: /usr/local/share/fonts/meo-ui
+  --qml-source DIR  QML module source directory.
+  --font-source DIR Font source directory.
+  --version VALUE   Version marker. Default: 0.2.0
+  -y, --yes         Non-interactive approval.
+  -h, --help        Show this help.
+EOF
 }
 
-need_cmd() {
-    command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
+die() {
+  echo "error: $*" >&2
+  exit 1
 }
 
 confirm() {
-    local prompt="$1"
-    local answer
-    read -r -p "${prompt} [y/N] " answer
-    case "${answer}" in
-        y|Y|yes|YES) return 0 ;;
-        *) return 1 ;;
-    esac
-}
-
-version_cmp() {
-    local a="$1"
-    local b="$2"
-    if [[ "${a}" == "${b}" ]]; then
-        echo 0
-        return
-    fi
-    local first
-    first="$(printf '%s\n%s\n' "${a}" "${b}" | sort -V | head -n1)"
-    if [[ "${first}" == "${a}" ]]; then
-        echo -1
-    else
-        echo 1
-    fi
+  if [[ "$yes" -eq 1 ]]; then
+    return 0
+  fi
+  local answer
+  read -r -p "$1 [y/N] " answer
+  case "$answer" in y|Y|yes|YES) return 0 ;; *) return 1 ;; esac
 }
 
 copy_dir() {
-    local src="$1"
-    local dst="$2"
-    mkdir -p "${dst}"
-    if command -v rsync >/dev/null 2>&1; then
-        rsync -a --delete "${src}/" "${dst}/"
-    else
-        find "${dst}" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-        cp -a "${src}/." "${dst}/"
-    fi
+  local src="$1"
+  local dst="$2"
+  mkdir -p "$dst"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete "$src/" "$dst/"
+  else
+    find "$dst" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+    cp -a "$src/." "$dst/"
+  fi
 }
 
-if [[ "$(uname -s)" != "Linux" ]]; then
-    die "this installer only supports Linux"
+remove_path() {
+  local path="$1"
+  if [[ -L "$path" || -e "$path" ]]; then
+    rm -rf "$path"
+  fi
+}
+
+version_cmp() {
+  local a="$1"
+  local b="$2"
+  if [[ "$a" == "$b" ]]; then echo 0; return; fi
+  local first
+  first="$(printf '%s\n%s\n' "$a" "$b" | sort -V | head -n1)"
+  [[ "$first" == "$a" ]] && echo -1 || echo 1
+}
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+if [[ -d "$script_dir/qml/Meo/UI" || -d "$script_dir/components" ]]; then
+  package_root="$script_dir"
+else
+  package_root="$(cd -- "$script_dir/.." && pwd)"
 fi
 
-need_cmd cp
-need_cmd find
-need_cmd sort
-need_cmd awk
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    install|update|upgrade|verify|uninstall) action="$1"; shift ;;
+    --prefix) install_root="$2"; shift 2 ;;
+    --font-dir) font_target="$2"; shift 2 ;;
+    --qml-source) qml_source="$2"; shift 2 ;;
+    --font-source) font_source="$2"; shift 2 ;;
+    --version) version="$2"; shift 2 ;;
+    -y|--yes) yes=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) die "unknown option or action: $1" ;;
+  esac
+done
 
-QML_SOURCE="${MEO_UI_QML_SOURCE:-${PACKAGE_ROOT}/qml/Meo/UI}"
-FONT_SOURCE="${MEO_UI_FONT_SOURCE:-${PACKAGE_ROOT}/fonts}"
+[[ "$(uname -s)" == "Linux" ]] || die "use tools/install-runtime.ps1 on Windows"
 
-if [[ ! -d "${QML_SOURCE}" && -d "${PACKAGE_ROOT}/out/build/showcase/MeoUI" ]]; then
-    QML_SOURCE="${PACKAGE_ROOT}/out/build/showcase/MeoUI"
-fi
+qml_target="$install_root/qml/Meo/UI"
+qml_compat_target="$install_root/qml/MeoUI"
+version_file="$install_root/VERSION"
+manifest_file="$install_root/install-manifest.txt"
 
-if [[ ! -d "${FONT_SOURCE}" && -d "${QML_SOURCE}/assets/fonts" ]]; then
-    FONT_SOURCE="${QML_SOURCE}/assets/fonts"
-fi
-
-[[ -d "${QML_SOURCE}" ]] || die "QML source directory not found: ${QML_SOURCE}"
-[[ -f "${QML_SOURCE}/qmldir" ]] || die "QML source is missing qmldir: ${QML_SOURCE}/qmldir"
-[[ -d "${FONT_SOURCE}" ]] || die "font source directory not found: ${FONT_SOURCE}"
-
-if [[ -f "${VERSION_FILE}" ]]; then
-    INSTALLED_VERSION="$(tr -d '[:space:]' < "${VERSION_FILE}")"
-    CMP="$(version_cmp "${VERSION}" "${INSTALLED_VERSION}")"
-    if [[ "${CMP}" == "0" ]]; then
-        confirm "Meo UI runtime ${VERSION} is already installed. Overwrite it?" || exit 0
-    elif [[ "${CMP}" == "-1" ]]; then
-        confirm "Installed version is ${INSTALLED_VERSION}; requested ${VERSION} is older. Downgrade?" || exit 0
-    else
-        confirm "Upgrade Meo UI runtime from ${INSTALLED_VERSION} to ${VERSION}?" || exit 0
+resolve_sources() {
+  if [[ -z "$qml_source" ]]; then
+    if [[ -d "$package_root/qml/Meo/UI" ]]; then
+      qml_source="$package_root/qml/Meo/UI"
+    elif [[ -d "$package_root/out/build/showcase/MeoUI" ]]; then
+      qml_source="$package_root/out/build/showcase/MeoUI"
+    elif [[ -f "$package_root/MeoTheme.qml" && -d "$package_root/components" ]]; then
+      qml_source="$package_root"
     fi
-elif [[ -d "${QML_TARGET}" || -L "${QML_COMPAT_TARGET}" || -d "${FONT_TARGET}" ]]; then
-    confirm "Existing Meo UI files were found without a version marker. Overwrite them?" || exit 0
-fi
-
-if [[ "${EUID}" -ne 0 ]]; then
-    if command -v sudo >/dev/null 2>&1; then
-        exec sudo MEO_UI_VERSION="${VERSION}" MEO_UI_PREFIX="${INSTALL_ROOT}" MEO_UI_FONT_DIR="${FONT_TARGET}" MEO_UI_QML_SOURCE="${QML_SOURCE}" MEO_UI_FONT_SOURCE="${FONT_SOURCE}" bash "$0"
+  fi
+  if [[ -z "$font_source" ]]; then
+    if [[ -d "$package_root/fonts" ]]; then
+      font_source="$package_root/fonts"
+    elif [[ -d "$qml_source/assets/fonts" ]]; then
+      font_source="$qml_source/assets/fonts"
+    elif [[ -d "$package_root/assets/fonts" ]]; then
+      font_source="$package_root/assets/fonts"
     fi
-    die "root privileges are required to install to ${INSTALL_ROOT} and ${FONT_TARGET}"
-fi
+  fi
+}
 
-mkdir -p "${INSTALL_ROOT}/qml/Meo" "${FONT_TARGET}"
-copy_dir "${QML_SOURCE}" "${QML_TARGET}"
-copy_dir "${FONT_SOURCE}" "${FONT_TARGET}"
+needs_root() {
+  local target="$1"
+  [[ "$EUID" -ne 0 && "$target" == /* && "$target" != "$HOME"/* ]]
+}
 
-rm -f "${QML_TARGET}/libmeoui_moduleplugin.a" "${QML_TARGET}/meoui_module_qml_module_dir_map.qrc"
+reexec_with_sudo_if_needed() {
+  if needs_root "$install_root" || needs_root "$font_target"; then
+    command -v sudo >/dev/null 2>&1 || die "root privileges are required; choose user-writable --prefix/--font-dir or install sudo"
+    local args=("$action" --prefix "$install_root" --font-dir "$font_target" --qml-source "$qml_source" --font-source "$font_source" --version "$version")
+    [[ "$yes" -eq 1 ]] && args+=(--yes)
+    exec sudo bash "$0" "${args[@]}"
+  fi
+}
 
-if [[ -f "${QML_TARGET}/qmldir" ]]; then
-    awk '!/^(linktarget|optional plugin|classname|prefer)[[:space:]]/' "${QML_TARGET}/qmldir" > "${QML_TARGET}/qmldir.tmp"
-    mv "${QML_TARGET}/qmldir.tmp" "${QML_TARGET}/qmldir"
-fi
+sanitize_qmldir() {
+  awk '!/^(linktarget|optional plugin|classname|prefer)[[:space:]]/' "$1" > "$1.tmp"
+  mv "$1.tmp" "$1"
+}
 
-rm -rf "${QML_COMPAT_TARGET}"
-ln -s "${QML_TARGET}" "${QML_COMPAT_TARGET}"
+generate_qmldir() {
+  local root="$1"
+  {
+    echo "module MeoUI"
+    echo "singleton MeoTheme 1.0 MeoTheme.qml"
+    for subdir in components widgets patterns showcase; do
+      [[ -d "$root/$subdir" ]] || continue
+      find "$root/$subdir" -type f -name "*.qml" | sort | while read -r qml_file; do
+        relative_path="${qml_file#"$root"/}"
+        type_name="$(basename "$qml_file" .qml)"
+        echo "$type_name 1.0 $relative_path"
+      done
+    done
+    echo "depends QtQuick"
+  } > "$root/qmldir"
+}
 
-printf '%s\n' "${VERSION}" > "${VERSION_FILE}"
+verify_runtime() {
+  local failed=0
+  for path in "$version_file" "$qml_target/MeoTheme.qml" "$qml_target/qmldir" "$qml_compat_target"; do
+    [[ -e "$path" || -L "$path" ]] || { echo "missing: $path" >&2; failed=1; }
+  done
+  for font in MaterialSymbolsRounded.ttf Roboto-Regular.ttf Roboto-Medium.ttf Roboto-Bold.ttf Comfortaa-Bold.ttf; do
+    [[ -f "$font_target/$font" ]] || { echo "missing: $font_target/$font" >&2; failed=1; }
+  done
+  if [[ "$failed" -eq 0 ]]; then
+    echo "MeoUI runtime verified."
+    echo "Version: $(tr -d '[:space:]' < "$version_file")"
+    echo "QML import path: $install_root/qml"
+    echo "Fonts: $font_target"
+  fi
+  return "$failed"
+}
 
-if command -v fc-cache >/dev/null 2>&1; then
-    fc-cache -f "${FONT_TARGET}" >/dev/null
-fi
+install_runtime() {
+  resolve_sources
+  [[ -d "$qml_source" ]] || die "QML source directory not found"
+  [[ -d "$font_source" ]] || die "font source directory not found"
+  reexec_with_sudo_if_needed
 
-cat <<EOF
-Meo UI runtime ${VERSION} installed.
-QML:   ${QML_TARGET}
-Fonts: ${FONT_TARGET}
-Compat import path: ${QML_COMPAT_TARGET}
+  if [[ -f "$version_file" ]]; then
+    installed_version="$(tr -d '[:space:]' < "$version_file")"
+    cmp="$(version_cmp "$version" "$installed_version")"
+    case "$action" in
+      install)
+        if [[ "$cmp" == "-1" ]]; then
+          confirm "Installed version is $installed_version; requested $version is older. Downgrade?" || exit 0
+        elif [[ "$cmp" == "0" ]]; then
+          confirm "MeoUI runtime $version is already installed. Reinstall it?" || exit 0
+        else
+          confirm "Upgrade MeoUI runtime from $installed_version to $version?" || exit 0
+        fi
+        ;;
+      update)
+        confirm "Update MeoUI runtime at $install_root to $version?" || exit 0
+        ;;
+      upgrade)
+        [[ "$cmp" == "1" ]] || die "upgrade requires a newer version than installed $installed_version"
+        confirm "Upgrade MeoUI runtime from $installed_version to $version?" || exit 0
+        ;;
+    esac
+  elif [[ -d "$qml_target" || -L "$qml_compat_target" || -d "$font_target" ]]; then
+    confirm "Existing MeoUI files were found without a version marker. Overwrite them?" || exit 0
+  fi
 
-For Qt apps, add this import path:
-  ${INSTALL_ROOT}/qml
-EOF
+  mkdir -p "$install_root/qml/Meo" "$font_target"
+  copy_dir "$qml_source" "$qml_target"
+  copy_dir "$font_source" "$font_target"
+  remove_path "$qml_target/libmeoui_moduleplugin.a"
+  remove_path "$qml_target/meoui_module_qml_module_dir_map.qrc"
+  if [[ -f "$qml_target/qmldir" ]]; then
+    sanitize_qmldir "$qml_target/qmldir"
+  else
+    generate_qmldir "$qml_target"
+  fi
+  remove_path "$qml_compat_target"
+  ln -s "$qml_target" "$qml_compat_target"
+  printf '%s\n' "$version" > "$version_file"
+  printf '%s\n' "$version_file" "$qml_target" "$qml_compat_target" "$font_target" > "$manifest_file"
+  command -v fc-cache >/dev/null 2>&1 && fc-cache -f "$font_target" >/dev/null || true
+  verify_runtime
+}
+
+uninstall_runtime() {
+  reexec_with_sudo_if_needed
+  [[ -e "$install_root" || -e "$font_target" ]] || { echo "MeoUI runtime is not installed."; return 0; }
+  confirm "Remove MeoUI runtime from $install_root and fonts from $font_target?" || exit 0
+  remove_path "$qml_compat_target"
+  remove_path "$qml_target"
+  remove_path "$install_root/qml/Meo"
+  remove_path "$install_root/qml"
+  remove_path "$version_file"
+  remove_path "$manifest_file"
+  remove_path "$font_target"
+  rmdir "$install_root" 2>/dev/null || true
+  command -v fc-cache >/dev/null 2>&1 && fc-cache -f >/dev/null || true
+  echo "MeoUI runtime uninstalled."
+}
+
+case "$action" in
+  install|update|upgrade) install_runtime ;;
+  verify) verify_runtime ;;
+  uninstall) uninstall_runtime ;;
+  *) die "unknown action: $action" ;;
+esac
