@@ -120,41 +120,44 @@ ScrollView {
             }
 
             ExpressiveHighlightCard {
-                title: "Updated: Progress indicators"
-                body: "An eye-catching way to show status in real time. Customize waveform and thickness to show progress with style."
+                title: "New: Loading indicators"
+                body: "A new expressive way to show status with morphing shapes. Best for short loading tasks under 5 seconds."
 
                 Row {
                     anchors.centerIn: parent
-                    spacing: 26 * MeoTheme.globalScale
+                    spacing: 32 * MeoTheme.globalScale
 
-                    MeoProgressBar {
-                        width: 170 * MeoTheme.globalScale
-                        height: 36 * MeoTheme.globalScale
-                        value: 0.58
-                        wavy: true
-                        isThick: true
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    MeoProgressBar {
-                        type: "circular"
-                        indeterminate: true
-                        isThick: true
-                        width: 56 * MeoTheme.globalScale
-                        height: 56 * MeoTheme.globalScale
-                    }
+                    MeoLoadingIndicator { size: "l"; indeterminate: true }
+                    MeoLoadingIndicator { size: "l"; indeterminate: true; vibrant: true }
+                    MeoLoadingIndicator { size: "l"; value: 0.7; indeterminate: false }
                 }
             }
 
             ExpressiveHighlightCard {
                 title: "New: Button groups"
-                body: "A new way to organize related buttons with shape-shifting buttons that react to each other."
+                body: "Connected pill-shaped buttons with motion-driven transitions and expressive size variants."
 
-                MeoSegmentedButtons {
+                ColumnLayout {
                     anchors.centerIn: parent
-                    size: "l"
-                    model: ["Day", "Week", "Month"]
-                    currentIndex: 0
+                    spacing: 16 * MeoTheme.globalScale
+                    MeoButtonGroup {
+                        size: "m"
+                        type: "tonal"
+                        model: [
+                            { label: "Action 1", icon: "add" },
+                            { label: "Action 2", icon: "edit" },
+                            { label: "Action 3", icon: "delete" }
+                        ]
+                    }
+                    MeoButtonGroup {
+                        size: "s"
+                        type: "outlined"
+                        model: [
+                            { label: "Left", icon: "align_horizontal_left" },
+                            { label: "Center", icon: "align_horizontal_center" },
+                            { label: "Right", icon: "align_horizontal_right" }
+                        ]
+                    }
                 }
             }
 
