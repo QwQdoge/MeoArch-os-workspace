@@ -8,6 +8,12 @@ Text {
     property string typeSize: "medium" // "big" | "medium" | "small"
     property bool emphasized: false
     property string fontFamilyOverride: ""
+    property int weightValue: {
+        if (typeToken.weight === Font.Bold) return 700;
+        if (typeToken.weight === Font.DemiBold) return 600;
+        if (typeToken.weight === Font.Medium) return 500;
+        return 400;
+    }
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== "undefined" && typeof MeoTheme.globalScale !== "undefined") ? MeoTheme.globalScale : 1.0
     readonly property var typeToken: (typeof MeoTheme !== "undefined" && typeof MeoTheme.typeToken !== "undefined")
@@ -20,6 +26,7 @@ Text {
                  : (usesBrandTypeface && typeof MeoTheme !== "undefined" ? MeoTheme.typefaceBrand : MeoTheme.typefacePlain))
     font.pixelSize: typeToken.size * themeGlobalScale
     font.weight: typeToken.weight
+    font.variableAxes: ({ "wght": weightValue })
     font.letterSpacing: (typeToken.letterSpacing || 0) * themeGlobalScale
     lineHeight: typeToken.lineHeight ? typeToken.lineHeight / typeToken.size : 1.2
 }

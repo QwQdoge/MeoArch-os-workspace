@@ -12,6 +12,7 @@ Button {
     property string shape: "round" // "round" | "square"
     property bool selected: false
     property string selectedIcon: ""
+    property bool vibrant: false // 🌟 MD3 Expressive: Vibrant gradient background
     property string badgeText: ""
     property bool badgeDot: false
 
@@ -26,6 +27,7 @@ Button {
     readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
+    readonly property color themeTertiary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.tertiary !== 'undefined') ? MeoTheme.tertiary : "#7D5260"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
 
     implicitWidth: {
@@ -53,10 +55,22 @@ Button {
         Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
 
         color: {
+            if (control.vibrant && type === "filled") return "transparent";
             if (!control.enabled) return (type === "filled" || type === "tonal") ? (isDarkMode ? Qt.rgba(1,1,1,0.12) : Qt.rgba(0,0,0,0.12)) : "transparent"
             if (type === "filled") return control.selected ? control.themePrimary : control.themeSurfaceContainerHighest
             if (type === "tonal") return control.selected ? control.themeSecondaryContainer : control.themeSurfaceContainerHighest
             return "transparent"
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            radius: parent.radius
+            visible: control.vibrant && control.type === "filled" && control.enabled
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: control.selected ? control.themePrimary : control.themeSurfaceContainerHighest }
+                GradientStop { position: 1.0; color: control.themeTertiary }
+            }
         }
         border.color: (type === "outlined") ? control.themeOutline : "transparent"
         border.width: (type === "outlined") ? 1 * themeGlobalScale : 0
