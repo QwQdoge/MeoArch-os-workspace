@@ -71,102 +71,65 @@ Column {
         Repeater {
             model: control.model
 
-            delegate: Item {
+            delegate: MeoListItem {
                 id: rowItem
 
-                readonly property bool isSelected: control.selectedIndex === index
-                readonly property bool hasSupporting: (modelData.supportingText || modelData.subtitle || "") !== ""
                 readonly property bool isFirst: index === 0
                 readonly property bool isLast: index === control.model.length - 1
-                readonly property string secondaryText: modelData.supportingText || modelData.subtitle || ""
 
                 width: control.width
-                height: (hasSupporting ? 72 : 56) * control.themeGlobalScale
+                headline: modelData.label || modelData.title || ""
+                supportingText: modelData.supportingText || modelData.subtitle || ""
+                leadingIcon: modelData.icon || ""
+                selected: control.selectedIndex === index
+                isSegmented: true
+                roundingStrategy: isFirst && isLast ? "all" : (isFirst ? "top" : (isLast ? "bottom" : "none"))
 
-                Rectangle {
-                    id: groupSurface
-                    anchors.fill: parent
-                    color: control.themeSurfaceContainerLowest
-                    radius: control.containerRadius
+                // Use default background radius logic from MeoListItem which now supports roundingStrategy
+                // But we want the GroupedList surface to be unified
 
-                    Rectangle { visible: !rowItem.isFirst; anchors.top: parent.top; anchors.left: parent.left; anchors.right: parent.right; height: parent.radius; color: parent.color }
-                    Rectangle { visible: !rowItem.isLast; anchors.bottom: parent.bottom; anchors.left: parent.left; anchors.right: parent.right; height: parent.radius; color: parent.color }
-                }
+                background: Item {
+                    width: rowItem.width
+                    height: rowItem.height
 
-                Rectangle {
-                    id: selectedLayer
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.leftMargin: 8 * control.themeGlobalScale
-                    anchors.rightMargin: 8 * control.themeGlobalScale
-                    height: 48 * control.themeGlobalScale
-                    radius: height / 2
-                    color: rowItem.isSelected ? control.themeSecondaryContainer : "transparent"
-                    clip: true
+                    Rectangle {
+                        id: groupSurface
+                        anchors.fill: parent
+                        color: control.themeSurfaceContainerLowest
+                        radius: control.containerRadius
 
-                    MeoStateLayer {
-                        radius: selectedLayer.radius
-                        hovered: hitArea.containsMouse
-                        pressed: hitArea.pressed
-                        pressX: hitArea.mouseX - selectedLayer.x
-                        pressY: hitArea.mouseY - selectedLayer.y
-                        color: rowItem.isSelected ? control.themeOnSecondaryContainer : control.themeOnSurface
+                        topLeftRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "top") ? radius : 0
+                        topRightRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "top") ? radius : 0
+                        bottomLeftRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "bottom") ? radius : 0
+                        bottomRightRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "bottom") ? radius : 0
                     }
 
-                    Behavior on color { ColorAnimation { duration: control.animationDuration; easing.bezierCurve: control.emphasizedCurve } }
-                }
+                    Rectangle {
+                        id: selectedLayer
+                        anchors.fill: parent
+                        anchors.margins: 4 * control.themeGlobalScale
+                        radius: groupSurface.radius - 4 * control.themeGlobalScale
+                        color: rowItem.selected ? control.themeSecondaryContainer : "transparent"
 
-                Row {
-                    anchors.fill: parent
-                    anchors.leftMargin: 24 * control.themeGlobalScale
-                    anchors.rightMargin: 16 * control.themeGlobalScale
-                    spacing: 24 * control.themeGlobalScale
+                        topLeftRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "top") ? radius : 0
+                        topRightRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "top") ? radius : 0
+                        bottomLeftRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "bottom") ? radius : 0
+                        bottomRightRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "bottom") ? radius : 0
 
-                    MeoIcon {
-                        icon: modelData.icon || ""
-                        size: 24
-                        color: rowItem.isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: icon !== ""
-                    }
-
-                    Column {
-                        width: parent.width
-                               - (modelData.icon ? 48 * control.themeGlobalScale : 0)
-                               - (trailingRow.visible ? trailingRow.width + parent.spacing : 0)
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 0
-
-                        Text {
-                            width: parent.width
-                            text: modelData.label || modelData.title || ""
-                            font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
-                            font.pixelSize: control.fontBodyLarge.size * control.themeGlobalScale
-                            font.weight: control.fontBodyLarge.weight
-                            font.letterSpacing: (control.fontBodyLarge.letterSpacing || 0) * control.themeGlobalScale
-                            lineHeight: control.fontBodyLarge.lineHeight / control.fontBodyLarge.size
-                            color: rowItem.isSelected ? control.themeOnSecondaryContainer : control.themeOnSurface
-                            elide: Text.ElideRight
+                        MeoStateLayer {
+                            anchors.fill: parent
+                            radius: parent.radius
+                            hovered: rowItem.hovered
+                            pressed: rowItem.pressed
+                            color: rowItem.selected ? control.themeOnSecondaryContainer : control.themeOnSurface
                         }
 
-                        Text {
-                            width: parent.width
-                            text: rowItem.secondaryText
-                            visible: text !== ""
-                            font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
-                            font.pixelSize: control.fontBodyMedium.size * control.themeGlobalScale
-                            font.weight: control.fontBodyMedium.weight
-                            font.letterSpacing: (control.fontBodyMedium.letterSpacing || 0) * control.themeGlobalScale
-                            lineHeight: control.fontBodyMedium.lineHeight / control.fontBodyMedium.size
-                            color: control.themeOnSurfaceVariant
-                            elide: Text.ElideRight
-                        }
+                        Behavior on color { ColorAnimation { duration: control.animationDuration; easing.bezierCurve: control.emphasizedCurve } }
                     }
+                }
 
+                trailingComponent: Component {
                     Row {
-                        id: trailingRow
-                        anchors.verticalCenter: parent.verticalCenter
                         spacing: 8 * control.themeGlobalScale
                         visible: (modelData.badgeText || modelData.trailingText || "") !== "" || control.showChevron
 
@@ -179,8 +142,8 @@ Column {
                         Text {
                             text: modelData.trailingText || ""
                             visible: text !== ""
-                            font.pixelSize: control.fontBodyMedium.size * control.themeGlobalScale
-                            font.weight: control.fontBodyMedium.weight
+                            font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
+                            font.pixelSize: (typeof MeoTheme !== "undefined" && typeof MeoTheme.bodyMedium !== "undefined" ? MeoTheme.bodyMedium.size : 14) * control.themeGlobalScale
                             color: control.themeOnSurfaceVariant
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -195,6 +158,12 @@ Column {
                     }
                 }
 
+                onClicked: {
+                    control.selectedIndex = index
+                    control.clicked(index)
+                }
+
+                // Divider implementation within delegate
                 Rectangle {
                     visible: control.showDividers && !rowItem.isLast
                     anchors.left: parent.left
@@ -203,16 +172,6 @@ Column {
                     anchors.leftMargin: control.dividerInset
                     height: Math.max(1, 1 * control.themeGlobalScale)
                     color: control.themeOutlineVariant
-                }
-
-                MouseArea {
-                    id: hitArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: {
-                        control.selectedIndex = index
-                        control.clicked(index)
-                    }
                 }
             }
         }
