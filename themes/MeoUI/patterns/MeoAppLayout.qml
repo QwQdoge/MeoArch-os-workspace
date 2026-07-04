@@ -11,6 +11,7 @@ Item {
     property var navigationModel: []
     property list<Component> pages
     property int currentIndex: 0
+    property int compactNavigationLimit: 5
 
     // 🌟 Safe Area Insets (Edge-to-Edge support)
     property real safeAreaTop: 0
@@ -29,6 +30,7 @@ Item {
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
     readonly property real expandedDrawerWidth: 248 * themeGlobalScale
+    readonly property var compactNavigationModel: navigationModel.slice(0, Math.min(compactNavigationLimit, navigationModel.length))
 
     // Main Layout
     Row {
@@ -125,7 +127,7 @@ Item {
             MeoNavigationBar {
                 id: bottomNavBar
                 width: parent.width
-                model: control.navigationModel
+                model: control.compactNavigationModel
                 currentIndex: control.currentIndex
                 visible: control.isCompact
                 onClicked: (index) => { control.currentIndex = index }

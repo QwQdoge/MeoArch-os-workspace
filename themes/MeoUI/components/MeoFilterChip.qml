@@ -26,6 +26,7 @@ Control {
     readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B"
     readonly property color themeSurfaceContainerLow: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionFast: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationFast !== "undefined") ? MeoTheme.motionDurationFast : 150
 
     readonly property var fontToken: {
         if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
@@ -85,7 +86,7 @@ Control {
             color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurface
         }
 
-        Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
+        Behavior on color { ColorAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
     }
 
     MouseArea {
@@ -116,7 +117,7 @@ Control {
                 source: control.avatarSource
                 fillMode: Image.PreserveAspectCrop
             }
-            Behavior on width { NumberAnimation { duration: 150 } }
+            Behavior on width { NumberAnimation { duration: control.motionFast } }
         }
 
         // 🌟 Checkmark Animation
@@ -164,6 +165,7 @@ Control {
 
         Text {
             text: control.label
+            font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
             font.pixelSize: fontToken.size * control.themeGlobalScale
             font.weight: fontToken.weight
             font.letterSpacing: (fontToken.letterSpacing || 0) * control.themeGlobalScale
@@ -171,7 +173,7 @@ Control {
             verticalAlignment: Text.AlignVCenter
             anchors.verticalCenter: parent.verticalCenter
 
-            Behavior on color { ColorAnimation { duration: 150 } }
+            Behavior on color { ColorAnimation { duration: control.motionFast } }
         }
     }
 }

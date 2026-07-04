@@ -14,9 +14,12 @@ Item {
     readonly property real pageMargin: frame.dp(frame.compact ? 20 : 32)
     readonly property real cardInset: frame.dp(frame.compact ? 22 : 40)
     readonly property real cardBottomControlHeight: frame.dp(72)
+    readonly property real mainCardWidth: Math.max(frame.compact ? 560 : 860,
+        Math.min(frame.width - frame.pageMargin * 2, frame.width * (frame.compact ? 0.86 : 0.60), frame.compact ? 760 : 1220))
+    readonly property real mainCardHeight: Math.max(frame.compact ? 400 : 560,
+        Math.min(frame.height - frame.pageMargin * 4, frame.height * (frame.compact ? 0.64 : 0.68), frame.compact ? 520 : 800))
 
     readonly property string typeface: roboto.name.length > 0 ? roboto.name : "Roboto"
-    readonly property string iconTypeface: materialSymbols.name.length > 0 ? materialSymbols.name : "Material Symbols Outlined"
     readonly property int displayLarge: Math.round(frame.dp(MeoTheme.displayLargeEmphasized.size))
     readonly property int displaySmall: Math.round(frame.dp(MeoTheme.displaySmallEmphasized.size))
     readonly property int titleMedium: Math.round(frame.dp(MeoTheme.titleMediumEmphasized.size))
@@ -24,6 +27,8 @@ Item {
     readonly property int labelSmall: Math.round(frame.dp(MeoTheme.labelSmall.size))
     readonly property int bodyLarge: Math.round(frame.dp(MeoTheme.bodyLarge.size))
     property bool powerMenuOpen: false
+    property bool systemActionsEnabled: false
+    property string statusMessage: ""
 
     property string pageTitle: ""
     property int pageIndex: 0
@@ -38,6 +43,7 @@ Item {
     signal nextRequested()
     signal previousRequested()
     signal exitRequested()
+    signal systemActionRequested(string action)
 
     function dp(value) {
         return Math.round(value * scaleFactor)
@@ -52,15 +58,25 @@ Item {
             assetsRoot = fallbackAssetsRoot
     }
 
-    FontLoader {
-        id: roboto
-        source: frame.asset("fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf")
-        onStatusChanged: if (status === FontLoader.Error) frame.useFallbackAssets()
+    function requestSystemAction(action, label, noOp) {
+        powerMenuOpen = false
+        if (noOp) {
+            statusMessage = label + " selected. No system action was executed."
+            return
+        }
+
+        if (!systemActionsEnabled) {
+            statusMessage = label + " is disabled. Start with --enable-system-actions to test the action bridge."
+            return
+        }
+
+        statusMessage = label + " requested. Native bridge is not connected yet."
+        systemActionRequested(action)
     }
 
     FontLoader {
-        id: materialSymbols
-        source: frame.asset("fonts/Material_Symbols_Outlined,Material_Symbols_Rounded,Material_Symbols_Sharp/Material_Symbols_Outlined/static/MaterialSymbolsOutlined_28pt-Regular.ttf")
+        id: roboto
+        source: frame.asset("fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf")
         onStatusChanged: if (status === FontLoader.Error) frame.useFallbackAssets()
     }
 
@@ -78,11 +94,11 @@ Item {
         y: frame.pageMargin
         width: Math.min(frame.dp(278), parent.width - frame.pageMargin * 2 - topActions.width - frame.dp(20))
         height: frame.dp(48)
-        radius: frame.dp(16)
+        radius: frame.dp(18)
         color: MeoTheme.surfaceContainerLow
-        opacity: 0.94
+        opacity: 0.78
         border.color: MeoTheme.outlineVariant
-        border.width: 1
+        border.width: 0
 
         Image {
             id: brandLogo
@@ -102,7 +118,7 @@ Item {
             anchors.rightMargin: frame.dp(16)
             anchors.verticalCenter: parent.verticalCenter
             text: "MeoArch Installer"
-            color: MeoTheme.onSurfaceVariant
+            color: MeoTheme.contentOnSurfaceVariant
             elide: Text.ElideRight
             font.family: frame.typeface
             font.weight: MeoTheme.titleMediumEmphasized.weight
@@ -120,9 +136,9 @@ Item {
 
         Repeater {
             model: [
-                { icon: "help", label: "Help" },
-                { icon: "language", label: "Language" },
-                { icon: "power_settings_new", label: "Power" }
+                { icon: "?", label: "Help" },
+                { icon: "◎", label: "Language" },
+                { icon: "⏻", label: "Power" }
             ]
 
             Rectangle {
@@ -131,22 +147,24 @@ Item {
 
                 width: frame.dp(48)
                 height: frame.dp(48)
-                radius: frame.dp(16)
+                radius: frame.dp(18)
                 color: MeoTheme.surfaceContainerLow
-                opacity: 0.94
+                opacity: 0.78
 
                 Text {
                     anchors.centerIn: parent
                     text: topActionButton.modelData.icon
-                    color: MeoTheme.onSurfaceVariant
-                    font.family: frame.iconTypeface
-                    font.pixelSize: frame.dp(24)
+                    color: MeoTheme.contentOnSurfaceVariant
+                    font.family: frame.typeface
+                    font.letterSpacing: 0
+                    font.weight: Font.DemiBold
+                    font.pixelSize: frame.dp(topActionButton.modelData.label === "Power" ? 25 : 24)
                 }
 
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        if (topActionButton.modelData.icon === "power_settings_new")
+                        if (topActionButton.modelData.label === "Power")
                             frame.powerMenuOpen = !frame.powerMenuOpen
                     }
                 }
@@ -161,11 +179,11 @@ Item {
         anchors.topMargin: frame.dp(16)
         anchors.rightMargin: frame.pageMargin - frame.dp(2)
         width: frame.dp(204)
-        height: frame.dp(168)
-        radius: frame.dp(20)
+        height: menuCard.height
+        radius: frame.dp(22)
         visible: frame.powerMenuOpen
         color: MeoTheme.outlineVariant
-        opacity: 0.28
+        opacity: 0.18
     }
 
     Rectangle {
@@ -175,12 +193,13 @@ Item {
         anchors.topMargin: frame.dp(12)
         anchors.rightMargin: frame.pageMargin
         width: menuShadow.width
-        height: menuShadow.height
+        height: frame.dp(216)
         radius: menuShadow.radius
         visible: frame.powerMenuOpen
         color: MeoTheme.surfaceContainerLow
         border.color: MeoTheme.outlineVariant
-        border.width: 1
+        border.width: 0
+        opacity: 0.92
 
         Column {
             anchors.fill: parent
@@ -189,9 +208,10 @@ Item {
 
             Repeater {
                 model: [
-                    { icon: "power_settings_new", label: "Power off" },
-                    { icon: "restart_alt", label: "Restart" },
-                    { icon: "bedtime", label: "Sleep" }
+                    { icon: "⏻", label: "Power off", action: "poweroff", noOp: false },
+                    { icon: "↻", label: "Restart", action: "reboot", noOp: false },
+                    { icon: "☾", label: "Sleep", action: "suspend", noOp: false },
+                    { icon: "•", label: "Test no-op", action: "noop", noOp: true }
                 ]
 
                 Row {
@@ -205,8 +225,10 @@ Item {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: powerMenuItem.modelData.icon
-                        color: MeoTheme.onSurfaceVariant
-                        font.family: frame.iconTypeface
+                        color: MeoTheme.contentOnSurfaceVariant
+                        font.family: frame.typeface
+                        font.letterSpacing: 0
+                        font.weight: Font.DemiBold
                         font.pixelSize: frame.dp(20)
                     }
 
@@ -214,10 +236,19 @@ Item {
                         anchors.verticalCenter: parent.verticalCenter
                         width: frame.dp(128)
                         text: powerMenuItem.modelData.label
-                        color: MeoTheme.onSurface
+                        color: MeoTheme.contentOnSurface
                         font.family: frame.typeface
                         font.weight: MeoTheme.labelLarge.weight
                         font.pixelSize: frame.labelLarge
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: frame.requestSystemAction(
+                            powerMenuItem.modelData.action,
+                            powerMenuItem.modelData.label,
+                            powerMenuItem.modelData.noOp
+                        )
                     }
                 }
             }
@@ -227,13 +258,13 @@ Item {
     Rectangle {
         id: mainCard
         anchors.centerIn: parent
-        width: Math.min(parent.width - frame.pageMargin * 2, frame.compact ? parent.width * 0.86 : parent.width * 0.62, frame.dp(1120))
-        height: Math.min(parent.height - frame.pageMargin * 6, frame.compact ? parent.height * 0.66 : parent.height * 0.64, frame.dp(700))
-        radius: frame.dp(32)
-        color: MeoTheme.surface
-        opacity: 0.88
-        border.color: MeoTheme.primary
-        border.width: Math.max(2, frame.dp(3))
+        width: frame.mainCardWidth
+        height: frame.mainCardHeight
+        radius: frame.dp(30)
+        color: MeoTheme.surfaceContainerLowest
+        opacity: 0.64
+        border.color: MeoTheme.outlineVariant
+        border.width: 0
 
         Item {
             id: pageContent
@@ -261,16 +292,18 @@ Item {
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "arrow_back"
-                    color: MeoTheme.onSurfaceVariant
-                    font.family: frame.iconTypeface
+                    text: "‹"
+                    color: MeoTheme.contentOnSurfaceVariant
+                    font.family: frame.typeface
+                    font.letterSpacing: 0
+                    font.weight: Font.DemiBold
                     font.pixelSize: frame.dp(18)
                 }
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Back"
-                    color: MeoTheme.onSurfaceVariant
+                    color: MeoTheme.contentOnSurfaceVariant
                     font.family: frame.typeface
                     font.weight: MeoTheme.labelSmall.weight
                     font.pixelSize: frame.labelSmall
@@ -299,16 +332,18 @@ Item {
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "logout"
-                    color: MeoTheme.onSurfaceVariant
-                    font.family: frame.iconTypeface
+                    text: "‹"
+                    color: MeoTheme.contentOnSurfaceVariant
+                    font.family: frame.typeface
+                    font.letterSpacing: 0
+                    font.weight: Font.DemiBold
                     font.pixelSize: frame.dp(18)
                 }
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     text: "Exit"
-                    color: MeoTheme.onSurfaceVariant
+                    color: MeoTheme.contentOnSurfaceVariant
                     font.family: frame.typeface
                     font.weight: MeoTheme.labelSmall.weight
                     font.pixelSize: frame.labelSmall
@@ -338,9 +373,11 @@ Item {
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "stars"
-                    color: MeoTheme.onPrimary
-                    font.family: frame.iconTypeface
+                    text: "✦"
+                    color: MeoTheme.contentOnPrimary
+                    font.family: frame.typeface
+                    font.letterSpacing: 0
+                    font.weight: Font.DemiBold
                     font.pixelSize: frame.dp(18)
                 }
 
@@ -348,7 +385,7 @@ Item {
                     id: primaryText
                     anchors.verticalCenter: parent.verticalCenter
                     text: frame.primaryLabel
-                    color: MeoTheme.onPrimary
+                    color: MeoTheme.contentOnPrimary
                     font.family: frame.typeface
                     font.weight: MeoTheme.labelLargeEmphasized.weight
                     font.pixelSize: frame.labelLarge
@@ -375,8 +412,11 @@ Item {
 
         Text {
             anchors.centerIn: parent
-            text: "No disk changes will be made until the final confirmation step."
-            color: MeoTheme.onSurfaceVariant
+            width: parent.width - frame.dp(24)
+            text: frame.statusMessage !== "" ? frame.statusMessage : "No disk changes will be made until the final confirmation step."
+            color: MeoTheme.contentOnSurfaceVariant
+            horizontalAlignment: Text.AlignHCenter
+            elide: Text.ElideRight
             font.family: frame.typeface
             font.weight: Font.Normal
             font.pixelSize: frame.labelSmall

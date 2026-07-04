@@ -13,6 +13,7 @@ Window {
     title: "MeoArch Installer"
 
     property int currentPage: 0
+    readonly property bool systemActionsEnabled: Qt.application.arguments.indexOf("--enable-system-actions") !== -1
     readonly property var pages: [
         { title: "WelcomePage", source: "pages/WelcomePage.qml" },
         { title: "Language & Region", source: "pages/LanguageRegionPage.qml" },
@@ -35,6 +36,7 @@ Window {
             item.pageTitle = root.pages[root.currentPage].title
             item.pageIndex = root.currentPage
             item.pageCount = root.pages.length
+            item.systemActionsEnabled = root.systemActionsEnabled
         }
     }
 
@@ -52,6 +54,10 @@ Window {
 
         function onExitRequested() {
             Qt.quit()
+        }
+
+        function onSystemActionRequested(action) {
+            console.log("System action requested:", action, "enabled:", root.systemActionsEnabled)
         }
     }
 

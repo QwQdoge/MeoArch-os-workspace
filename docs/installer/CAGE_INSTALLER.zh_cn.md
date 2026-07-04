@@ -42,7 +42,26 @@ qt6-declarative
 qt6-wayland
 ```
 
-`archinstall` 是为未来后端保留的。当前框架不会执行它。
+`archinstall` 是为未来后端保留的。启动器不会运行任何安装后端，除非显式传入测试参数。
+
+## 启动参数
+
+启动器默认进入非破坏模式：
+
+```sh
+meoarch-installer
+```
+
+可选参数必须显式传入，只用于测试：
+
+| 参数 | 作用 |
+| --- | --- |
+| `--enable-archinstall-preflight` | 在后台运行 `archinstall --dry-run` 预检查 helper。 |
+| `--enable-system-actions` | 允许 QML 电源菜单发出 system action 请求，用于测试 bridge。 |
+| `--` | 后面的所有参数原样转发给 QML 运行时。 |
+
+即使传入 `--enable-system-actions`，当前 QML 应用也只是发出或记录 action 请求。
+现在还没有连接原生关机、重启、睡眠或真实安装 bridge。
 
 ## 服务行为
 
@@ -88,26 +107,46 @@ QML 外壳当前包含 10 个页面：
 - 收集选项
 - 生成未来预览数据
 - 在 `/tmp` 下写入临时日志
+- 只有传入 `--enable-archinstall-preflight` 时运行 `archinstall --dry-run`
+- 只有传入 `--enable-system-actions` 时发出 QML system action 请求
 
 禁止：
 
 - 分区磁盘
 - 格式化文件系统
 - 挂载目标磁盘
-- 执行 `archinstall`
+- 执行真实 `archinstall` 安装
 - 执行 `pacstrap`
 - 执行 `grub-install`
 - 创建目标用户
 - 修改固件启动项
+- 默认执行关机、重启或睡眠
 
 ## 手动测试清单
 
-连接真实安装行为之前，需要验证：
+连接真实安装行为之前，先测试默认禁用模式：
 
 - Live ISO 能启动到安装器服务。
 - Cage 能成功启动。
 - QML 窗口能填满显示器。
 - 安装器可以在 10 个页面间导航。
+- 电源菜单可以打开。
+- Power off、Restart、Sleep 会显示 disabled 提示。
+- Test no-op 会显示 no-op 提示，并且永远不执行真实系统动作。
 - 关闭安装器后 Cage 能干净退出。
 - 服务失败会写入 journal。
 - 不发生任何磁盘状态更改。
+
+然后测试显式开启模式：
+
+```sh
+meoarch-installer --enable-system-actions
+meoarch-installer --enable-archinstall-preflight
+meoarch-installer --enable-system-actions --enable-archinstall-preflight
+```
+
+预期结果：
+
+- `--enable-system-actions` 只允许 QML shell 发出或记录 action 请求。
+- `--enable-archinstall-preflight` 只运行 dry-run 预检查 helper。
+- 不带这些参数启动，仍然是 ISO 的默认行为。

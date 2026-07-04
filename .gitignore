@@ -6,6 +6,9 @@
 build/
 out/
 bin/
+!installer/bin/
+!installer/bin/meoarch-installer
+!installer/bin/meoarch-installer-kiosk
 lib/
 CMakeCache.txt
 CMakeFiles/
