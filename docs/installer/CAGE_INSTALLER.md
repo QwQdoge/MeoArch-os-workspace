@@ -46,8 +46,28 @@ qt6-declarative
 qt6-wayland
 ```
 
-`archinstall` is present for the future backend. The current framework does not
-execute it.
+`archinstall` is present for the future backend. The launcher does not run any
+installer backend unless an explicit test flag is passed.
+
+## Startup Flags
+
+The launcher defaults to a non-destructive mode:
+
+```sh
+meoarch-installer
+```
+
+Optional flags are opt-in and intended for testing only:
+
+| Flag | Effect |
+| --- | --- |
+| `--enable-archinstall-preflight` | Runs the background `archinstall --dry-run` preflight helper. |
+| `--enable-system-actions` | Lets the QML power menu emit system-action requests for bridge testing. |
+| `--` | Forwards all following arguments directly to the QML runtime. |
+
+Even with `--enable-system-actions`, the current QML app only emits/logs action
+requests. No native shutdown, reboot, suspend, or installer bridge is connected
+yet.
 
 ## Service Behavior
 
@@ -95,26 +115,46 @@ Allowed:
 - Collect choices
 - Generate future preview data
 - Write temporary logs under `/tmp`
+- Run `archinstall --dry-run` only when `--enable-archinstall-preflight` is set
+- Emit QML system-action requests only when `--enable-system-actions` is set
 
 Forbidden:
 
 - Partition disks
 - Format filesystems
 - Mount target disks
-- Run `archinstall`
+- Run a real `archinstall` installation
 - Run `pacstrap`
 - Run `grub-install`
 - Create target users
 - Modify firmware boot entries
+- Execute shutdown, reboot, or suspend by default
 
 ## Manual Test Checklist
 
-Before connecting real installation behavior:
+Before connecting real installation behavior, test the default disabled mode:
 
 - The live ISO boots to the installer service.
 - Cage starts successfully.
 - The QML window fills the display.
 - The installer can navigate all ten pages.
+- The power menu opens.
+- Power off, Restart, and Sleep show a disabled message.
+- Test no-op shows a no-op message and never emits a real system action.
 - Closing the installer exits Cage cleanly.
 - A service failure is logged to the journal.
 - No disk state changes occur.
+
+Then test explicit opt-in modes:
+
+```sh
+meoarch-installer --enable-system-actions
+meoarch-installer --enable-archinstall-preflight
+meoarch-installer --enable-system-actions --enable-archinstall-preflight
+```
+
+Expected results:
+
+- `--enable-system-actions` allows the QML shell to emit/log action requests.
+- `--enable-archinstall-preflight` runs only the dry-run preflight helper.
+- Running without these flags remains the normal ISO behavior.

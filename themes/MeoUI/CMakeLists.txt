@@ -40,6 +40,15 @@ qt_add_qml_module(meoui_module
         showcase/pages/ComponentsLabPage.qml
         showcase/pages/WidgetsLabPage.qml
         showcase/pages/LayoutsLabPage.qml
+        showcase/ShowcaseApiTable.qml
+        showcase/ShowcaseCatalog.qml
+        showcase/ShowcaseCategoryPage.qml
+        showcase/ShowcaseComponentHeader.qml
+        showcase/ShowcaseSampleDelegate.qml
+        showcase/ShowcaseSection.qml
+        showcase/ShowcaseSnippet.qml
+        showcase/ShowcaseStateGrid.qml
+        showcase/ShowcaseVariantRow.qml
 MeoTheme.qml
         components/MeoButton.qml
         components/MeoText.qml

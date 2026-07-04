@@ -18,7 +18,7 @@ PageFrame {
             anchors.horizontalCenter: parent.horizontalCenter
             width: parent.width
             text: page.title
-            color: MeoTheme.onSurface
+            color: MeoTheme.contentOnSurface
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             font.family: page.typeface
@@ -30,7 +30,7 @@ PageFrame {
             anchors.horizontalCenter: parent.horizontalCenter
             width: parent.width
             text: page.subtitle
-            color: MeoTheme.onSurfaceVariant
+            color: MeoTheme.contentOnSurfaceVariant
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             lineHeight: 1.22

@@ -15,24 +15,25 @@ ApplicationWindow {
     color: MeoTheme.background
 
     readonly property var categories: [
-        { label: "Theme", icon: "palette" },
-        { label: "Buttons", icon: "smart_button" },
-        { label: "Inputs", icon: "edit" },
-        { label: "Navigation", icon: "explore" },
+        { label: "Foundations", icon: "palette" },
+        { label: "Actions", icon: "smart_button" },
+        { label: "Text Input", icon: "edit" },
         { label: "Selection", icon: "check_box" },
-        { label: "Display", icon: "layers" },
+        { label: "Navigation", icon: "explore" },
+        { label: "Data Display", icon: "table_chart" },
+        { label: "Surfaces", icon: "layers" },
         { label: "Feedback", icon: "info" },
-        { label: "Patterns", icon: "grid_view" },
-        { label: "Data Table", icon: "table_chart" },
-        { label: "Expressive", icon: "auto_awesome" },
-        { label: "Components Lab", icon: "extension" },
-        { label: "Widgets Lab", icon: "widgets" },
-        { label: "Layouts Lab", icon: "dashboard_customize" }
+        { label: "Search", icon: "search" },
+        { label: "Content & Media", icon: "perm_media" },
+        { label: "Chips", icon: "label" },
+        { label: "Layouts", icon: "dashboard_customize" },
+        { label: "Expressive", icon: "auto_awesome" }
     ]
 
     MeoAppLayout {
         anchors.fill: parent
         navigationModel: window.categories
+        compactNavigationLimit: 5
         safeAreaTop: 0
         safeAreaBottom: 0
 
@@ -40,16 +41,16 @@ ApplicationWindow {
             Component { ThemePage {} },
             Component { ButtonsPage {} },
             Component { InputsPage {} },
-            Component { NavigationPage {} },
             Component { SelectionPage {} },
+            Component { NavigationPage {} },
+            Component { DataTablePage {} },
             Component { DisplayPage {} },
             Component { FeedbackPage {} },
-            Component { PatternsPage {} },
-            Component { DataTablePage {} },
-            Component { ExpressivePage {} },
-            Component { ComponentsLabPage {} },
             Component { WidgetsLabPage {} },
-            Component { LayoutsLabPage {} }
+            Component { ComponentsLabPage {} },
+            Component { PatternsPage {} },
+            Component { LayoutsLabPage {} },
+            Component { ExpressivePage {} }
         ]
     }
 }

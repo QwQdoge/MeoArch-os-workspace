@@ -9,13 +9,17 @@ Control {
     // 🌟 核心属性
     property real value: 0.0 // 0.0 ~ 1.0 for determinate mode
     property bool indeterminate: true
+    property bool running: true
+    property bool withContainer: false
     property string size: "m" // "xs" | "s" | "m" | "l" | "xl"
     property bool vibrant: false
     property color color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
+    property color containerColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHighest !== 'undefined') ? MeoTheme.surfaceContainerHighest : "#E6E1E5"
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int loadingCycleDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationExtraLong4 !== 'undefined') ? MeoTheme.motionDurationExtraLong4 * 2 : 2000
 
     implicitWidth: {
         if (size === "xs") return 24 * themeGlobalScale
@@ -29,9 +33,18 @@ Control {
     contentItem: Item {
         id: container
 
+        Rectangle {
+            anchors.fill: parent
+            radius: width / 2
+            visible: control.withContainer
+            color: control.containerColor
+        }
+
         Canvas {
             id: canvas
-            anchors.fill: parent
+            anchors.centerIn: parent
+            width: control.withContainer ? parent.width * 0.56 : parent.width
+            height: control.withContainer ? parent.height * 0.56 : parent.height
 
             property real morphProgress: 0.0
             property real rotationAngle: 0.0
@@ -41,16 +54,16 @@ Control {
 
             // Indeterminate Animation: Continuous Morphing and Rotation
             SequentialAnimation {
-                running: control.indeterminate && control.visible
+                running: control.running && control.indeterminate && control.visible
                 loops: Animation.Infinite
 
                 ParallelAnimation {
-                    NumberAnimation { target: canvas; property: "morphProgress"; from: 0; to: 1; duration: 2000; easing.type: Easing.InOutSine }
-                    NumberAnimation { target: canvas; property: "rotationAngle"; from: 0; to: 360; duration: 2000; easing.type: Easing.Linear }
+                    NumberAnimation { target: canvas; property: "morphProgress"; from: 0; to: 1; duration: control.loadingCycleDuration; easing.type: Easing.InOutSine }
+                    NumberAnimation { target: canvas; property: "rotationAngle"; from: 0; to: 360; duration: control.loadingCycleDuration; easing.type: Easing.Linear }
                 }
                 ParallelAnimation {
-                    NumberAnimation { target: canvas; property: "morphProgress"; from: 1; to: 0; duration: 2000; easing.type: Easing.InOutSine }
-                    NumberAnimation { target: canvas; property: "rotationAngle"; from: 360; to: 720; duration: 2000; easing.type: Easing.Linear }
+                    NumberAnimation { target: canvas; property: "morphProgress"; from: 1; to: 0; duration: control.loadingCycleDuration; easing.type: Easing.InOutSine }
+                    NumberAnimation { target: canvas; property: "rotationAngle"; from: 360; to: 720; duration: control.loadingCycleDuration; easing.type: Easing.Linear }
                 }
             }
 

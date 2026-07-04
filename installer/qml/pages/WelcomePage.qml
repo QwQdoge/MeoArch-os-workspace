@@ -17,8 +17,8 @@ PageFrame {
 
         Image {
             anchors.horizontalCenter: parent.horizontalCenter
-            width: page.dp(260)
-            height: page.dp(116)
+            width: page.dp(232)
+            height: page.dp(104)
             source: page.asset("icons/Logo.png")
             fillMode: Image.PreserveAspectFit
             smooth: true
@@ -29,12 +29,14 @@ PageFrame {
             anchors.horizontalCenter: parent.horizontalCenter
             width: parent.width
             text: "Welcome to MeoArch OS"
-            color: MeoTheme.onSurface
+            color: MeoTheme.contentOnSurface
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
+            fontSizeMode: Text.Fit
+            minimumPixelSize: page.dp(28)
             font.family: page.typeface
-            font.weight: MeoTheme.displayLargeEmphasized.weight
-            font.pixelSize: page.displayLarge
+            font.weight: Font.Medium
+            font.pixelSize: Math.min(page.displayLarge, page.dp(42))
         }
     }
 }

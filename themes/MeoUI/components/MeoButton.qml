@@ -14,9 +14,11 @@ Button {
     property string shape: "round" // "round" | "square"
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool loading: false // 🌟 MD3: Loading state with progress indicator
+    property bool loadingWithContainer: false
     property bool selected: false // 🌟 MD3: Toggle state support
     property bool vibrant: false // 🌟 MD3 Expressive: Vibrant gradient background
     property bool bouncy: MeoTheme.isExpressive && MeoTheme.isBouncy
+    property real contentSpacing: (size === "xs" ? 4 : 8) * MeoTheme.globalScale
 
     // Toggle Support
     checkable: false
@@ -131,7 +133,7 @@ Button {
 
         Row {
             id: contentRow
-            spacing: (size === "xs" ? 4 : 8) * MeoTheme.globalScale
+            spacing: control.contentSpacing
             anchors.centerIn: parent
             opacity: control.loading ? 0.0 : 1.0
             visible: opacity > 0
@@ -173,9 +175,11 @@ Button {
             }
         }
 
-        MeoProgressBar {
-            type: "circular"
+        MeoLoadingIndicator {
             indeterminate: true
+            color: control.textColor
+            vibrant: control.vibrant
+            withContainer: control.loadingWithContainer
             anchors.centerIn: parent
             width: (control.iconSize + 6) * MeoTheme.globalScale
             height: (control.iconSize + 6) * MeoTheme.globalScale

@@ -96,30 +96,41 @@ QtObject {
     // 🎨 Active MD3 roles; existing components continue using MeoTheme.primary, etc.
     property color primary: colorForRole("primary")
     property color onPrimary: colorForRole("onPrimary")
+    property color contentOnPrimary: onPrimary
     property color primaryContainer: colorForRole("primaryContainer")
     property color onPrimaryContainer: colorForRole("onPrimaryContainer")
+    property color contentOnPrimaryContainer: onPrimaryContainer
 
     property color secondary: colorForRole("secondary")
     property color onSecondary: colorForRole("onSecondary")
+    property color contentOnSecondary: onSecondary
     property color secondaryContainer: colorForRole("secondaryContainer")
     property color onSecondaryContainer: colorForRole("onSecondaryContainer")
+    property color contentOnSecondaryContainer: onSecondaryContainer
 
     property color tertiary: colorForRole("tertiary")
     property color onTertiary: colorForRole("onTertiary")
+    property color contentOnTertiary: onTertiary
     property color tertiaryContainer: colorForRole("tertiaryContainer")
     property color onTertiaryContainer: colorForRole("onTertiaryContainer")
+    property color contentOnTertiaryContainer: onTertiaryContainer
 
     property color error: colorForRole("error")
     property color onError: colorForRole("onError")
+    property color contentOnError: onError
     property color errorContainer: colorForRole("errorContainer")
     property color onErrorContainer: colorForRole("onErrorContainer")
+    property color contentOnErrorContainer: onErrorContainer
 
     property color background: colorForRole("background")
     property color onBackground: colorForRole("onBackground")
+    property color contentOnBackground: onBackground
     property color surface: colorForRole("surface")
     property color onSurface: colorForRole("onSurface")
+    property color contentOnSurface: onSurface
     property color surfaceVariant: colorForRole("surfaceVariant")
     property color onSurfaceVariant: colorForRole("onSurfaceVariant")
+    property color contentOnSurfaceVariant: onSurfaceVariant
     property color outline: colorForRole("outline")
     
     // M3 Surface Containers
