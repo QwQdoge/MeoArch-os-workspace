@@ -30,6 +30,7 @@ Control {
     property bool vibrant: false // 🌟 MD3 Expressive: Vibrant selection style
     property bool selected: false
     property string shape: "rect" // 🌟 MD3 Expressive: "rect" | "squircle" | "hexagon" | ...
+    property string roundingStrategy: "all" // "all" | "top" | "bottom" | "none"
 
     signal clicked()
 
@@ -75,10 +76,9 @@ Control {
         height: control.height
         x: control.isSegmented ? 8 * control.themeGlobalScale : 0
 
-        MeoShape {
+        Rectangle {
             id: shapeBg
             anchors.fill: parent
-            type: isSegmented ? control.shape : "rect"
             radius: {
                 if (!isSegmented) return 0;
                 if (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && selected) return MeoTheme.shapeLargeIncreased;
@@ -89,6 +89,12 @@ Control {
                 if (vibrant && typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive) return themePrimary;
                 return vibrant ? themePrimaryContainer : themeSecondaryContainer;
             }
+
+            // MD3 Expressive: Rounding strategies for connected items in a group
+            topLeftRadius: (roundingStrategy === "all" || roundingStrategy === "top") ? radius : 0
+            topRightRadius: (roundingStrategy === "all" || roundingStrategy === "top") ? radius : 0
+            bottomLeftRadius: (roundingStrategy === "all" || roundingStrategy === "bottom") ? radius : 0
+            bottomRightRadius: (roundingStrategy === "all" || roundingStrategy === "bottom") ? radius : 0
 
             MeoStateLayer {
                 anchors.fill: parent
@@ -102,23 +108,20 @@ Control {
                     if (selected) return control.themeOnSecondaryContainer;
                     return control.themeOnSurface;
                 }
-
-                layer.enabled: isSegmented && control.shape !== "rect"
-                layer.effect: MultiEffect {
-                    maskEnabled: true
-                    maskSource: Item {
-                        width: shapeBg.width
-                        height: shapeBg.height
-                        MeoShape {
-                            anchors.fill: parent
-                            type: control.shape
-                            radius: shapeBg.radius
-                        }
-                    }
-                }
+                radius: parent.radius
             }
 
             Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
+        }
+
+        // Overlay for complex shapes if using MeoShape (Note: MeoShape doesn't support partial rounding as easily as Rectangle)
+        MeoShape {
+            anchors.fill: parent
+            visible: isSegmented && control.shape !== "rect"
+            type: control.shape
+            radius: shapeBg.radius
+            color: shapeBg.color
+            opacity: selected ? 1.0 : 0.0
         }
     }
 

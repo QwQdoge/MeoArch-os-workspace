@@ -99,16 +99,20 @@ Popup {
     // 🌟 MD3 Expressive Expanding Animation
     enter: Transition {
         ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasized !== 'undefined') ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-            NumberAnimation { property: "scale"; from: 0.96; to: 1.0; duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasized !== 'undefined') ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-            NumberAnimation { target: mainColumn; property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
+            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 400; easing.bezierCurve: MeoTheme.motionEasingSoul }
+            NumberAnimation { property: "scale"; from: 0.92; to: 1.0; duration: 450; easing.bezierCurve: MeoTheme.motionEasingSoul }
+            NumberAnimation { target: mainColumn; property: "opacity"; from: 0.0; to: 1.0; duration: 300; easing.type: Easing.OutCubic }
+
+            // Background morphing
+            ColorAnimation { target: control.background; property: "color"; from: "transparent"; to: control.themeSurface; duration: 300 }
         }
     }
 
     exit: Transition {
         ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 200; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasizedAccelerate !== 'undefined') ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15] }
-            NumberAnimation { property: "scale"; from: 1.0; to: 0.96; duration: 200; easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasizedAccelerate !== 'undefined') ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15] }
+            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 300; easing.bezierCurve: MeoTheme.motionEasingEmphasizedAccelerate }
+            NumberAnimation { property: "scale"; from: 1.0; to: 0.95; duration: 300; easing.bezierCurve: MeoTheme.motionEasingEmphasizedAccelerate }
+            NumberAnimation { target: mainColumn; property: "opacity"; from: 1.0; to: 0.0; duration: 200 }
         }
     }
 }
