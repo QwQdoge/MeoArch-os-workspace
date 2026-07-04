@@ -15,6 +15,7 @@ Button {
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool loading: false // 🌟 MD3: Loading state with progress indicator
     property bool selected: false // 🌟 MD3: Toggle state support
+    property bool vibrant: false // 🌟 MD3 Expressive: Vibrant gradient background
     property bool bouncy: MeoTheme.isExpressive && MeoTheme.isBouncy
 
     // Toggle Support
@@ -63,6 +64,8 @@ Button {
         }
         return base;
     }
+
+    readonly property color vibrantColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.tertiary !== 'undefined') ? MeoTheme.tertiary : "#7D5260"
 
     readonly property real elevation: {
         if (!control.enabled || type === "text" || type === "outlined") return 0;
@@ -196,7 +199,18 @@ Button {
             return height / 2;
         }
         
-        color: control.bgColor
+        color: control.vibrant && control.type === "filled" ? "transparent" : control.bgColor
+
+        Rectangle {
+            anchors.fill: parent
+            radius: parent.radius
+            visible: control.vibrant && control.type === "filled"
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: control.bgColor }
+                GradientStop { position: 1.0; color: control.vibrantColor }
+            }
+        }
 
         scale: (control.bouncy && control.pressed) ? 0.98 : 1.0
         Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }

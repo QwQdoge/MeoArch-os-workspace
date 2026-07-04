@@ -11,6 +11,7 @@ Control {
     property bool discrete: false
     property real stepSize: 1.0
     property bool isThick: false // 🌟 MD3 Expressive: Thicker track variant
+    property bool wavy: false // 🌟 MD3 Expressive: Wavy track variant
     property bool expressive: true // Legacy support
     property string size: expressive ? "m" : "xs" // "xs" | "s" | "m" | "l" | "xl"
 
@@ -49,7 +50,7 @@ Control {
     readonly property real thumbGap: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderThumbGapExpressive !== 'undefined') ? MeoTheme.sliderThumbGapExpressive : 6 * themeGlobalScale
 
     implicitWidth: 200 * themeGlobalScale
-    implicitHeight: Math.max(thumbHeight + 8 * themeGlobalScale, 44 * themeGlobalScale)
+    implicitHeight: wavy ? 44 * themeGlobalScale : Math.max(thumbHeight + 8 * themeGlobalScale, 44 * themeGlobalScale)
 
     // 内部逻辑：计算百分比
     readonly property real visualPosition: (value - from) / (to - from)
@@ -77,6 +78,7 @@ Control {
             // 轨道背景
             Rectangle {
                 id: trackRect
+                visible: !control.wavy
                 anchors.centerIn: parent
                 width: parent.width
                 height: control.isThick ? 16 * control.themeGlobalScale : control.trackHeight
@@ -102,6 +104,7 @@ Control {
 
             // 已填充部分
             Rectangle {
+                visible: !control.wavy
                 y: (parent.height - height) / 2
                 width: internalSlider.visualPosition * parent.width
                 height: trackRect.height
@@ -109,6 +112,65 @@ Control {
                 color: control.themePrimary
 
                 Behavior on height { NumberAnimation { duration: 200 } }
+            }
+
+            Canvas {
+                id: wavyCanvas
+                visible: control.wavy
+                anchors.fill: parent
+                property real phase: 0
+
+                onPaint: {
+                    var ctx = getContext("2d");
+                    ctx.reset();
+
+                    var strokeWidth = (control.isThick ? 10 : (control.size === "xs" ? 4 : 8)) * control.themeGlobalScale;
+                    var mid = height / 2;
+                    var progressWidth = Math.max(0, Math.min(width, width * internalSlider.visualPosition));
+                    var amp = 4 * control.themeGlobalScale;
+                    var wavelength = 26 * control.themeGlobalScale;
+
+                    ctx.lineCap = "round";
+                    ctx.lineJoin = "round";
+                    ctx.lineWidth = strokeWidth;
+
+                    // Inactive wavy track (standard straight line in MD3 if not active?)
+                    // MD3 Expressive Wavy Progress uses wave for active and line for inactive.
+                    ctx.strokeStyle = Qt.rgba(control.themeOnSurfaceVariant.r, control.themeOnSurfaceVariant.g, control.themeOnSurfaceVariant.b, 0.12);
+                    ctx.beginPath();
+                    ctx.moveTo(0, mid);
+                    ctx.lineTo(width, mid);
+                    ctx.stroke();
+
+                    // Active wavy track
+                    ctx.strokeStyle = control.themePrimary;
+                    ctx.beginPath();
+                    for (var x = 0; x <= progressWidth; x += 3 * control.themeGlobalScale) {
+                        var y = mid + Math.sin((x + phase) / wavelength * Math.PI * 2) * amp;
+                        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+
+                    // Active dot at the end of wavy part if needed? MeoProgressBar has it.
+                }
+
+                onWidthChanged: requestPaint()
+                onHeightChanged: requestPaint()
+                onPhaseChanged: requestPaint()
+
+                Connections {
+                    target: internalSlider
+                    function onVisualPositionChanged() { wavyCanvas.requestPaint() }
+                }
+
+                NumberAnimation on phase {
+                    running: control.visible && control.wavy
+                    from: 0
+                    to: 52 * control.themeGlobalScale
+                    duration: 900
+                    loops: Animation.Infinite
+                    easing.type: Easing.Linear
+                }
             }
         }
 
