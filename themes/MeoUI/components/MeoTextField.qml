@@ -83,21 +83,21 @@ TextField {
         return isError ? themeError : themeOnSurfaceVariant;
     }
 
-    // 🌟 内边距自适应优化 (Corrected to account for icon width and internal spacing)
+    // 🌟 内边距自适应优化
     readonly property real sidePadding: {
         if (size === "xs") return 8 * themeGlobalScale;
         if (size === "s") return 12 * themeGlobalScale;
         return 16 * themeGlobalScale;
     }
 
-    leftPadding: (leadingIcon !== "" ? (sidePadding + 24 * themeGlobalScale + sidePadding) : sidePadding) + (prefixText !== "" ? prefixLabel.implicitWidth + 4 * themeGlobalScale : 0)
-    rightPadding: ((trailingIcon !== "" || (showClearButton && text !== "")) ? (sidePadding + 24 * themeGlobalScale + sidePadding) : sidePadding) + (suffixText !== "" ? suffixLabel.implicitWidth + 4 * themeGlobalScale : 0)
+    leftPadding: (leadingIcon !== "" ? (sidePadding + 24 * themeGlobalScale + 8 * themeGlobalScale) : sidePadding) + (prefixText !== "" ? prefixLabel.implicitWidth + 4 * themeGlobalScale : 0)
+    rightPadding: ((trailingIcon !== "" || (showClearButton && text !== "")) ? (sidePadding + 24 * themeGlobalScale + 8 * themeGlobalScale) : sidePadding) + (suffixText !== "" ? suffixLabel.implicitWidth + 4 * themeGlobalScale : 0)
     topPadding: type === "filled" 
-                ? (label !== "" ? (size === "xs" ? 16 : 24) * themeGlobalScale : (size === "xs" ? 8 : 16) * themeGlobalScale)
-                : (size === "xs" ? 8 : 16) * themeGlobalScale
+                ? (label !== "" ? (size === "xs" ? 16 : 24) * themeGlobalScale : (size === "xs" ? 8 : (size === "xl" ? 24 : 16)) * themeGlobalScale)
+                : (size === "xs" ? 8 : (size === "xl" ? 24 : 16)) * themeGlobalScale
     bottomPadding: (type === "filled" 
-                    ? (label !== "" ? (size === "xs" ? 4 : 8) * themeGlobalScale : (size === "xs" ? 8 : 16) * themeGlobalScale)
-                    : (size === "xs" ? 8 : 16) * themeGlobalScale) + (size === "xs" ? 0 : helperSpace)
+                    ? (label !== "" ? (size === "xs" ? 4 : 8) * themeGlobalScale : (size === "xs" ? 8 : (size === "xl" ? 24 : 16)) * themeGlobalScale)
+                    : (size === "xs" ? 8 : (size === "xl" ? 24 : 16)) * themeGlobalScale) + (size === "xs" ? 0 : helperSpace)
 
     readonly property color transparentBg: Qt.rgba(themePrimary.r, themePrimary.g, themePrimary.b, 0)
 
@@ -120,7 +120,6 @@ TextField {
             width: parent.width
             height: control.containerHeight
             radius: control.type === "filled" ? 0 : 4 * control.themeGlobalScale
-            // MD3: Filled text fields have rounded top corners (4dp) but flat bottom
             topLeftRadius: 4 * control.themeGlobalScale
             topRightRadius: 4 * control.themeGlobalScale
             color: {
@@ -166,25 +165,27 @@ TextField {
     Row {
         id: leadingRow
         anchors.left: parent.left
-        anchors.leftMargin: 12 * control.themeGlobalScale
+        anchors.leftMargin: control.sidePadding
         height: control.containerHeight
-        spacing: 16 * control.themeGlobalScale
+        spacing: 8 * control.themeGlobalScale
         visible: control.leadingIcon !== "" || control.prefixText !== ""
 
         MeoIcon {
             icon: control.leadingIcon
             visible: control.leadingIcon !== ""
+            size: control.size === "xs" ? 18 : 24
             anchors.verticalCenter: parent.verticalCenter
             color: control.enabled ? control.themeOnSurfaceVariant : Qt.rgba(control.themeOnSurface.r, control.themeOnSurface.g, control.themeOnSurface.b, 0.38)
         }
 
-        Text {
+        MeoText {
             id: prefixLabel
             text: control.prefixText
             visible: control.prefixText !== ""
             anchors.verticalCenter: parent.verticalCenter
             anchors.verticalCenterOffset: (control.type === "filled" && control.label !== "") ? 8 * control.themeGlobalScale : 0
-            font.pixelSize: control.fontBodyLarge.size * control.themeGlobalScale
+            typeRole: "body"
+            typeSize: control.size === "xs" ? "small" : "large"
             color: control.themeOnSurfaceVariant
         }
     }
@@ -193,23 +194,25 @@ TextField {
     Row {
         id: trailingRow
         anchors.right: parent.right
-        anchors.rightMargin: 12 * control.themeGlobalScale
+        anchors.rightMargin: control.sidePadding
         height: control.containerHeight
-        spacing: 16 * control.themeGlobalScale
+        spacing: 8 * control.themeGlobalScale
 
-        Text {
+        MeoText {
             id: suffixLabel
             text: control.suffixText
             visible: control.suffixText !== ""
             anchors.verticalCenter: parent.verticalCenter
             anchors.verticalCenterOffset: (control.type === "filled" && control.label !== "") ? 8 * control.themeGlobalScale : 0
-            font.pixelSize: control.fontBodyLarge.size * control.themeGlobalScale
+            typeRole: "body"
+            typeSize: control.size === "xs" ? "small" : "large"
             color: control.themeOnSurfaceVariant
         }
 
         MeoIcon {
             icon: control.trailingIcon
             visible: control.trailingIcon !== ""
+            size: control.size === "xs" ? 18 : 24
             anchors.verticalCenter: parent.verticalCenter
             color: control.isError ? control.themeError : control.themeOnSurfaceVariant
         }
@@ -219,8 +222,9 @@ TextField {
             visible: control.showClearButton && control.text !== "" && control.enabled && control.trailingIcon === ""
             icon.name: "close"
             anchors.verticalCenter: parent.verticalCenter
-            width: 28 * control.themeGlobalScale
-            height: 28 * control.themeGlobalScale
+            width: (control.size === "xs" ? 24 : 28) * control.themeGlobalScale
+            height: width
+            size: control.size === "xs" ? "xs" : "s"
             padding: 4 * control.themeGlobalScale
             onClicked: {
                 control.text = "";
@@ -272,6 +276,7 @@ TextField {
                 anchors.fill: parent
                 font.pixelSize: control.currentFont.size * control.themeGlobalScale
                 font.weight: labelContainer.labelFont.weight
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 color: {
                     if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
                     if (control.isError) return control.themeError;
@@ -302,6 +307,7 @@ TextField {
             anchors.rightMargin: 16 * control.themeGlobalScale
             text: (control.isError && control.errorText !== "") ? control.errorText : control.helperText
             font.pixelSize: control.fontBodySmall.size * control.themeGlobalScale
+            font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
             color: {
                 if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
                 return control.isError ? control.themeError : control.themeOnSurfaceVariant;
@@ -316,6 +322,7 @@ TextField {
             visible: control.showCounter
             text: control.maxLength > 0 ? (control.text.length + " / " + control.maxLength) : control.text.length
             font.pixelSize: control.fontBodySmall.size * control.themeGlobalScale
+            font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
             color: control.themeOnSurfaceVariant
         }
     }
