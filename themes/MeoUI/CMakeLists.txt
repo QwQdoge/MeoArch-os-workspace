@@ -110,6 +110,7 @@ MeoTheme.qml
         widgets/MeoActionSheet.qml
         widgets/MeoToolbar.qml
         widgets/MeoAccountHeader.qml
+        widgets/MeoAccountSwitcher.qml
         widgets/MeoSearchBar.qml
         widgets/MeoSearchAppBar.qml
         widgets/MeoDockedSearchBar.qml

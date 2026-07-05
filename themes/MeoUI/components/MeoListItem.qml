@@ -25,6 +25,7 @@ Control {
 
     property bool interactive: true
     property bool isSegmented: false // MD3 Expressive: Segmented list style
+    property string roundingStrategy: "none" // "all" | "top" | "bottom" | "middle" | "none"
     property bool isDense: false // MD3 Expressive: Compact list style
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool vibrant: false // 🌟 MD3 Expressive: Vibrant selection style
@@ -75,19 +76,37 @@ Control {
         height: control.height
         x: control.isSegmented ? 8 * control.themeGlobalScale : 0
 
+        readonly property real baseRadius: {
+            if (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && selected) return MeoTheme.shapeLargeIncreased;
+            return (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale);
+        }
+
         MeoShape {
             id: shapeBg
             anchors.fill: parent
             type: isSegmented ? control.shape : "rect"
-            radius: {
-                if (!isSegmented) return 0;
-                if (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && selected) return MeoTheme.shapeLargeIncreased;
-                return (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale);
-            }
+            radius: isSegmented ? parent.baseRadius : 0
             color: {
                 if (!isSegmented || !selected) return "transparent";
                 if (vibrant && typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive) return themePrimary;
                 return vibrant ? themePrimaryContainer : themeSecondaryContainer;
+            }
+
+            // Rounding Strategy Overlays
+            // When strategy is top, bottom or middle, we might need to "square off" some corners
+            Rectangle {
+                visible: isSegmented && (control.roundingStrategy === "top" || control.roundingStrategy === "middle")
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: shapeBg.radius
+                color: shapeBg.color
+            }
+            Rectangle {
+                visible: isSegmented && (control.roundingStrategy === "bottom" || control.roundingStrategy === "middle")
+                anchors.top: parent.top
+                width: parent.width
+                height: shapeBg.radius
+                color: shapeBg.color
             }
 
             MeoStateLayer {
@@ -97,13 +116,14 @@ Control {
                 hovered: mouseArea.containsMouse
                 pressX: mouseArea.mouseX
                 pressY: mouseArea.mouseY
+                radius: (control.isSegmented && control.roundingStrategy === "all" && control.shape === "rect") ? shapeBg.radius : 0
                 color: {
                     if (vibrant && selected) return control.themeOnPrimaryContainer;
                     if (selected) return control.themeOnSecondaryContainer;
                     return control.themeOnSurface;
                 }
 
-                layer.enabled: isSegmented && control.shape !== "rect"
+                layer.enabled: isSegmented && (control.shape !== "rect" || control.roundingStrategy !== "all")
                 layer.effect: MultiEffect {
                     maskEnabled: true
                     maskSource: Item {
@@ -113,6 +133,22 @@ Control {
                             anchors.fill: parent
                             type: control.shape
                             radius: shapeBg.radius
+
+                            // Apply same rounding strategy to mask
+                            Rectangle {
+                                visible: isSegmented && (control.roundingStrategy === "top" || control.roundingStrategy === "middle")
+                                anchors.bottom: parent.bottom
+                                width: parent.width
+                                height: shapeBg.radius
+                                color: "black"
+                            }
+                            Rectangle {
+                                visible: isSegmented && (control.roundingStrategy === "bottom" || control.roundingStrategy === "middle")
+                                anchors.top: parent.top
+                                width: parent.width
+                                height: shapeBg.radius
+                                color: "black"
+                            }
                         }
                     }
                 }
@@ -126,6 +162,7 @@ Control {
         id: mouseArea
         anchors.fill: parent
         enabled: control.interactive
+        hoverEnabled: true
         onClicked: control.clicked()
     }
 
@@ -185,6 +222,7 @@ Control {
             Text {
                 text: control.overline
                 width: parent.width
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelSmall !== 'undefined' ? MeoTheme.labelSmall.size : 11) * control.themeGlobalScale
                 font.weight: Font.Normal
                 color: control.themeOnSurfaceVariant
@@ -196,6 +234,7 @@ Control {
             Text {
                 text: control.headline
                 width: parent.width
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: fontBodyLarge.size * control.themeGlobalScale
                 font.weight: (control.selected && !isSegmented) ? Font.Bold : fontBodyLarge.weight
                 font.letterSpacing: (fontBodyLarge.letterSpacing || 0) * control.themeGlobalScale
@@ -213,6 +252,7 @@ Control {
             Text {
                 text: control.supportingText
                 width: parent.width
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: fontBodyMedium.size * control.themeGlobalScale
                 font.weight: fontBodyMedium.weight
                 font.letterSpacing: (fontBodyMedium.letterSpacing || 0) * control.themeGlobalScale
