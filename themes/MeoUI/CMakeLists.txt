@@ -117,6 +117,7 @@ MeoTheme.qml
         widgets/MeoSearchView.qml
         widgets/MeoTopAppBar.qml
         widgets/MeoSearchSuggestions.qml
+        widgets/MeoAccountSwitcher.qml
         components/MeoAssistChip.qml
         components/MeoAvatar.qml
         components/MeoSuggestionChip.qml
@@ -134,6 +135,7 @@ MeoTheme.qml
         patterns/MeoNavigationSuite.qml
         patterns/MeoSearchHeader.qml
         patterns/MeoExpressiveDialog.qml
+        patterns/MeoSegmentedList.qml
         components/MeoShape.qml
         showcase/MeoShowcase.qml
     RESOURCES
