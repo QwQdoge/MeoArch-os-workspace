@@ -159,7 +159,7 @@ QtObject {
                 component("MeoDockedToolbar", "components/MeoDockedToolbar.qml", "Docked toolbar for grouped tools.", "docked tools, actions", "Default, action group", "actions", "Use for editor-like surfaces."),
                 component("MeoFloatingToolbar", "components/MeoFloatingToolbar.qml", "Floating toolbar for contextual tools.", "floating, actions", "Default, compact-ready", "actions", "Use near selected content."),
                 component("MeoAccountHeader", "widgets/MeoAccountHeader.qml", "Account identity header.", "avatar, name, email", "Default, with avatar", "name, email, avatarSource", "MeoAccountHeader { name: \"Meo User\"; email: \"hello@meo.dev\" }"),
-                component("MeoAccountSwitcher", "widgets/MeoAccountSwitcher.qml", "MD3 Expressive account selection interface.", "active identity, quick switch, management menu", "Initial, with other accounts", "currentAccount, otherAccounts, actions", "MeoAccountSwitcher { currentAccount: me; otherAccounts: [user2] }"),
+                component("MeoAccountSwitcher", "widgets/MeoAccountSwitcher.qml", "Expressive account switching widget.", "active account, quick switch, menu", "Active, alternative accounts, menu-open", "model, currentIndex", "MeoAccountSwitcher { model: accounts }"),
                 component("MeoSwipeToDismiss", "components/MeoSwipeToDismiss.qml", "Swipeable content row with left and right dismiss actions.", "left action, right action, threshold", "Idle, swiping, dismissed", "content, leftAction, rightAction, swipeThreshold, dismissed", "MeoSwipeToDismiss { content: listRow; leftAction: archiveAction; rightAction: deleteAction }")
             ]
         },
