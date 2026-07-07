@@ -241,7 +241,7 @@ TextField {
 
         Item {
             id: labelContainer
-            x: control.leftPadding - (control.prefixText !== "" ? control.prefixLabel.implicitWidth + 4 * control.themeGlobalScale : 0)
+            x: control.leftPadding - (control.prefixText !== "" ? prefixLabel.implicitWidth + 4 * control.themeGlobalScale : 0)
             y: overlayLayer.isCollapsed 
                ? (control.type === "filled" ? 8 * control.themeGlobalScale : -12 * control.themeGlobalScale)
                : (control.containerHeight - labelText.implicitHeight) / 2

@@ -21,6 +21,8 @@ Popup {
     readonly property color themeSecondary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondary !== 'undefined') ? MeoTheme.secondary : "#625B71"
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionEnter: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationShort4 !== 'undefined') ? MeoTheme.motionDurationShort4 : 200
+    readonly property int motionExit: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationShort3 !== 'undefined') ? MeoTheme.motionDurationShort3 : 150
 
     readonly property var fontHeadlineSmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.headlineSmall !== 'undefined') ? MeoTheme.headlineSmall : { "size": 24, "weight": Font.Normal }
     readonly property var fontBodyMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.bodyMedium !== 'undefined') ? MeoTheme.bodyMedium : { "size": 14, "weight": Font.Normal }
@@ -95,11 +97,11 @@ Popup {
     }
 
     enter: Transition {
-        NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 200 }
-        NumberAnimation { property: "scale"; from: 0.9; to: 1.0; duration: 200; easing.type: Easing.OutBack }
+        NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: control.motionEnter }
+        NumberAnimation { property: "scale"; from: 0.9; to: 1.0; duration: control.motionEnter; easing.type: Easing.OutBack }
     }
     exit: Transition {
-        NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 150 }
-        NumberAnimation { property: "scale"; from: 1.0; to: 0.9; duration: 150 }
+        NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: control.motionExit }
+        NumberAnimation { property: "scale"; from: 1.0; to: 0.9; duration: control.motionExit }
     }
 }

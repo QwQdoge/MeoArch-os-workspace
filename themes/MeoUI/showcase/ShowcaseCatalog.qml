@@ -79,7 +79,7 @@ QtObject {
                 component("MeoTabs", "components/MeoTabs.qml", "Primary and secondary tabs with icons and badges.", "primary, secondary, icons, badges", "Selected, unselected, scrollable-ready", "model, currentIndex, type, isScrollable", "MeoTabs { model: [\"Overview\", \"Usage\"] }"),
                 component("MeoTopAppBar", "widgets/MeoTopAppBar.qml", "Top app bar with small, center, medium, large, flexible, and contextual modes.", "small, center, medium, large, contextual", "Default, contextual, actions", "type, title, navigationIcon, actions, isContextual, selectionCount", "MeoTopAppBar { title: \"Inbox\"; type: \"small\" }"),
                 component("MeoBottomAppBar", "widgets/MeoBottomAppBar.qml", "Bottom app bar for actions and FAB placement.", "actions, fab slot", "Default, with actions", "actions, fab", "Use for mobile bottom actions."),
-                component("MeoMenu", "components/MeoMenu.qml", "Popup menu with icon rows, vibrant mode, and expressive item spacing.", "standard, vibrant, segmented spacing", "Closed, open-ready, item action", "model, vibrant, itemSpacing, open(), close()", "MeoMenu { model: [{ label: \"Copy\", icon: \"content_copy\" }] }")
+                component("MeoMenu", "components/MeoMenu.qml", "Popup menu with icon rows, separators, trailing metadata, disabled rows, submenu affordances, and expressive item spacing.", "standard, separator, trailing text, trailing icon, submenu-ready, vibrant", "Closed, open-ready, enabled, disabled, segmented", "model, vibrant, itemSpacing, menuPadding, open(), openAt(), close()", "MeoMenu { model: [{ label: \"Copy\", icon: \"content_copy\", trailingText: \"Ctrl+C\" }] }")
             ]
         },
         {

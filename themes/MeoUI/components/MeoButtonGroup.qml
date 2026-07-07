@@ -51,7 +51,7 @@ Control {
                 property bool selected: index === control.currentIndex
 
                 implicitHeight: control.height
-                implicitWidth: Math.max((size === "xs" ? 48 : 64) * themeGlobalScale, btnContent.implicitWidth + (size === "xs" ? 16 : 24) * control.themeGlobalScale)
+                implicitWidth: Math.max((control.size === "xs" ? 48 : 64) * control.themeGlobalScale, btnContent.implicitWidth + (control.size === "xs" ? 16 : 24) * control.themeGlobalScale)
                 z: selected ? 2 : 1
 
                 background: Item {
@@ -68,9 +68,9 @@ Control {
                         color: {
                             if (!control.enabled) return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined' && MeoTheme.isDarkMode) ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
                             if (btn.selected) return control.themePrimary;
-                            if (type === "filled") return control.themePrimaryContainer;
-                            if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8";
-                            if (type === "elevated") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA";
+                            if (control.type === "filled") return control.themePrimaryContainer;
+                            if (control.type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8";
+                            if (control.type === "elevated") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA";
                             return "transparent";
                         }
                         border.color: control.themeOutline
@@ -92,14 +92,14 @@ Control {
 
                 contentItem: Row {
                     id: btnContent
-                    spacing: (size === "xs" ? 4 : 8) * control.themeGlobalScale
+                    spacing: (control.size === "xs" ? 4 : 8) * control.themeGlobalScale
                     anchors.centerIn: parent
 
                     MeoIcon {
                         icon: btn.itemData.icon || ""
                         visible: icon !== ""
-                        size: (size === "xs" ? 16 : (size === "xl" ? 24 : 18))
-                        color: btn.selected ? control.themeOnPrimary : (type === "filled" ? control.themeOnPrimaryContainer : control.themePrimary)
+                        size: (control.size === "xs" ? 16 : (control.size === "xl" ? 24 : 18))
+                        color: btn.selected ? control.themeOnPrimary : (control.type === "filled" ? control.themeOnPrimaryContainer : control.themePrimary)
                         anchors.verticalCenter: parent.verticalCenter
                     }
 
@@ -108,7 +108,7 @@ Control {
                         visible: text !== ""
                         font.pixelSize: control.fontToken.size * control.themeGlobalScale
                         font.weight: btn.selected ? Font.Bold : control.fontToken.weight
-                        color: btn.selected ? control.themeOnPrimary : (type === "filled" ? control.themeOnPrimaryContainer : control.themePrimary)
+                        color: btn.selected ? control.themeOnPrimary : (control.type === "filled" ? control.themeOnPrimaryContainer : control.themePrimary)
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
