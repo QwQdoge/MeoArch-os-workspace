@@ -76,29 +76,37 @@ Control {
         height: control.height
         x: control.isSegmented ? 8 * control.themeGlobalScale : 0
 
-        Rectangle {
+        readonly property real baseRadius: {
+            if (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && selected) return MeoTheme.shapeLargeIncreased;
+            return (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale);
+        }
+
+        MeoShape {
             id: shapeBg
             anchors.fill: parent
-            radius: {
-                if (!isSegmented && roundingStrategy === "none") return 0;
-                let r = (typeof MeoTheme !== 'undefined' ? (selected ? MeoTheme.shapeLargeIncreased : MeoTheme.shapeLarge) : 16 * themeGlobalScale);
-                return r;
-            }
+            type: isSegmented ? control.shape : "rect"
+            radius: isSegmented ? parent.baseRadius : 0
             color: {
                 if (!isSegmented || !selected) return "transparent";
                 if (vibrant && typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive) return themePrimary;
                 return vibrant ? themePrimaryContainer : themeSecondaryContainer;
             }
 
-            // 📐 Individual corner "squaring off" for segmented lists
-            // We use overlapping rectangles to cover the rounded corners we don't want.
+            // Rounding Strategy Overlays
+            // When strategy is top, bottom or middle, we might need to "square off" some corners
             Rectangle {
-                visible: roundingStrategy === "bottom" || roundingStrategy === "middle"
-                width: parent.width; height: parent.radius; anchors.top: parent.top; color: parent.color
+                visible: isSegmented && (control.roundingStrategy === "top" || control.roundingStrategy === "middle")
+                anchors.bottom: parent.bottom
+                width: parent.width
+                height: shapeBg.radius
+                color: shapeBg.color
             }
             Rectangle {
-                visible: roundingStrategy === "top" || roundingStrategy === "middle"
-                width: parent.width; height: parent.radius; anchors.bottom: parent.bottom; color: parent.color
+                visible: isSegmented && (control.roundingStrategy === "bottom" || control.roundingStrategy === "middle")
+                anchors.top: parent.top
+                width: parent.width
+                height: shapeBg.radius
+                color: shapeBg.color
             }
 
             MeoStateLayer {
@@ -108,27 +116,39 @@ Control {
                 hovered: mouseArea.containsMouse
                 pressX: mouseArea.mouseX
                 pressY: mouseArea.mouseY
+                radius: (control.isSegmented && control.roundingStrategy === "all" && control.shape === "rect") ? shapeBg.radius : 0
                 color: {
                     if (vibrant && selected) return control.themeOnPrimaryContainer;
                     if (selected) return control.themeOnSecondaryContainer;
                     return control.themeOnSurface;
                 }
 
-                // Use a mask for the state layer if it's not a simple rect
-                layer.enabled: roundingStrategy !== "none"
+                layer.enabled: isSegmented && (control.shape !== "rect" || control.roundingStrategy !== "all")
                 layer.effect: MultiEffect {
                     maskEnabled: true
                     maskSource: Rectangle {
                         width: shapeBg.width
                         height: shapeBg.height
-                        radius: shapeBg.radius
-                        Rectangle {
-                            visible: roundingStrategy === "bottom" || roundingStrategy === "middle"
-                            width: parent.width; height: parent.radius; anchors.top: parent.top; color: "black"
-                        }
-                        Rectangle {
-                            visible: roundingStrategy === "top" || roundingStrategy === "middle"
-                            width: parent.width; height: parent.radius; anchors.bottom: parent.bottom; color: "black"
+                        MeoShape {
+                            anchors.fill: parent
+                            type: control.shape
+                            radius: shapeBg.radius
+
+                            // Apply same rounding strategy to mask
+                            Rectangle {
+                                visible: isSegmented && (control.roundingStrategy === "top" || control.roundingStrategy === "middle")
+                                anchors.bottom: parent.bottom
+                                width: parent.width
+                                height: shapeBg.radius
+                                color: "black"
+                            }
+                            Rectangle {
+                                visible: isSegmented && (control.roundingStrategy === "bottom" || control.roundingStrategy === "middle")
+                                anchors.top: parent.top
+                                width: parent.width
+                                height: shapeBg.radius
+                                color: "black"
+                            }
                         }
                     }
                 }
@@ -202,6 +222,7 @@ Control {
             Text {
                 text: control.overline
                 width: parent.width
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelSmall !== 'undefined' ? MeoTheme.labelSmall.size : 11) * control.themeGlobalScale
                 font.weight: Font.Normal
                 color: control.themeOnSurfaceVariant
@@ -213,6 +234,7 @@ Control {
             Text {
                 text: control.headline
                 width: parent.width
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: fontBodyLarge.size * control.themeGlobalScale
                 font.weight: (control.selected && !isSegmented) ? Font.Bold : fontBodyLarge.weight
                 font.letterSpacing: (fontBodyLarge.letterSpacing || 0) * control.themeGlobalScale
@@ -230,6 +252,7 @@ Control {
             Text {
                 text: control.supportingText
                 width: parent.width
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: fontBodyMedium.size * control.themeGlobalScale
                 font.weight: fontBodyMedium.weight
                 font.letterSpacing: (fontBodyMedium.letterSpacing || 0) * control.themeGlobalScale
