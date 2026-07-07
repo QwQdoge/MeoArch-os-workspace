@@ -58,25 +58,106 @@ Column {
             model: control.model
 
             delegate: MeoListItem {
+                id: rowItem
+
+                readonly property bool isFirst: index === 0
+                readonly property bool isLast: index === control.model.length - 1
+
                 width: control.width
                 headline: modelData.label || modelData.title || ""
                 supportingText: modelData.supportingText || modelData.subtitle || ""
                 leadingIcon: modelData.icon || ""
-                badgeText: modelData.badgeText || ""
-                trailingComponent: control.showChevron ? chevronComp : null
-
-                isSegmented: true
                 selected: control.selectedIndex === index
-                roundingStrategy: {
-                    if (control.model.length === 1) return "all";
-                    if (index === 0) return "top";
-                    if (index === control.model.length - 1) return "bottom";
-                    return "middle";
+                isSegmented: true
+                roundingStrategy: isFirst && isLast ? "all" : (isFirst ? "top" : (isLast ? "bottom" : "none"))
+
+                // Use default background radius logic from MeoListItem which now supports roundingStrategy
+                // But we want the GroupedList surface to be unified
+
+                background: Item {
+                    width: rowItem.width
+                    height: rowItem.height
+
+                    Rectangle {
+                        id: groupSurface
+                        anchors.fill: parent
+                        color: control.themeSurfaceContainerLowest
+                        radius: control.containerRadius
+
+                        topLeftRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "top") ? radius : 0
+                        topRightRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "top") ? radius : 0
+                        bottomLeftRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "bottom") ? radius : 0
+                        bottomRightRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "bottom") ? radius : 0
+                    }
+
+                    Rectangle {
+                        id: selectedLayer
+                        anchors.fill: parent
+                        anchors.margins: 4 * control.themeGlobalScale
+                        radius: groupSurface.radius - 4 * control.themeGlobalScale
+                        color: rowItem.selected ? control.themeSecondaryContainer : "transparent"
+
+                        topLeftRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "top") ? radius : 0
+                        topRightRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "top") ? radius : 0
+                        bottomLeftRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "bottom") ? radius : 0
+                        bottomRightRadius: (rowItem.roundingStrategy === "all" || rowItem.roundingStrategy === "bottom") ? radius : 0
+
+                        MeoStateLayer {
+                            anchors.fill: parent
+                            radius: parent.radius
+                            hovered: rowItem.hovered
+                            pressed: rowItem.pressed
+                            color: rowItem.selected ? control.themeOnSecondaryContainer : control.themeOnSurface
+                        }
+
+                        Behavior on color { ColorAnimation { duration: control.animationDuration; easing.bezierCurve: control.emphasizedCurve } }
+                    }
+                }
+
+                trailingComponent: Component {
+                    Row {
+                        spacing: 8 * control.themeGlobalScale
+                        visible: (modelData.badgeText || modelData.trailingText || "") !== "" || control.showChevron
+
+                        MeoBadge {
+                            text: modelData.badgeText || ""
+                            visible: text !== ""
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            text: modelData.trailingText || ""
+                            visible: text !== ""
+                            font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
+                            font.pixelSize: (typeof MeoTheme !== "undefined" && typeof MeoTheme.bodyMedium !== "undefined" ? MeoTheme.bodyMedium.size : 14) * control.themeGlobalScale
+                            color: control.themeOnSurfaceVariant
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        MeoIcon {
+                            icon: "chevron_right"
+                            size: 24
+                            color: control.themeOnSurfaceVariant
+                            visible: control.showChevron
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
                 }
 
                 onClicked: {
                     control.selectedIndex = index
                     control.clicked(index)
+                }
+
+                // Divider implementation within delegate
+                Rectangle {
+                    visible: control.showDividers && !rowItem.isLast
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    anchors.leftMargin: control.dividerInset
+                    height: Math.max(1, 1 * control.themeGlobalScale)
+                    color: control.themeOutlineVariant
                 }
             }
         }
