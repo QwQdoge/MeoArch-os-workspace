@@ -653,6 +653,7 @@ rg -n "duration:\\s*[0-9]" themes\\MeoUI
 - Confirm custom interactive surfaces use `MeoStateLayer`.
 - Confirm color pairs use `contentOn*` roles.
 - Confirm component additions are registered in `CMakeLists.txt`.
+- Confirm segmented lists use `roundingStrategy` for cohesive grouping.
 - Run `git diff --check`.
 - Build or lint with Qt tools when available.
 

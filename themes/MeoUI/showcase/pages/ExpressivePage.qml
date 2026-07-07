@@ -7,70 +7,45 @@ import ".."
 ShowcaseCategoryPage {
     categoryId: "expressive"
 
-    ColumnLayout {
+    // 🌟 Additional Expressive Samples
+    ShowcaseSection {
+        title: "Adaptive Segmented Groups"
+        subtitle: "Items with connected corner radii forming unified containers."
         width: parent.width
-        spacing: 32 * MeoTheme.globalScale
 
-        ShowcaseSection {
-            title: "Account Switcher"
-            subtitle: "MD3 Expressive account selection and management widget."
-            Layout.fillWidth: true
+        MeoGroupedList {
+            width: parent.width
+            title: "System Settings"
+            subtitle: "Grouped with adaptive corners"
+            model: [
+                { label: "Wi-Fi", icon: "wifi", trailingText: "Connected" },
+                { label: "Bluetooth", icon: "bluetooth", trailingText: "On" },
+                { label: "Mobile Network", icon: "signal_cellular_4_bar" }
+            ]
+        }
+    }
 
-            MeoAccountSwitcher {
-                currentAccount: ({ "name": "Jules Engineer", "email": "jules@meoarch.os", "avatar": "" })
-                otherAccounts: [
-                    { "name": "Meo Design", "email": "design@meoarch.os", "avatar": "" },
-                    { "name": "Guest User", "email": "guest@meoarch.os", "avatar": "" }
-                ]
-                actions: [
-                    { "label": "Manage Account", "icon": "manage_accounts" },
-                    { "label": "Settings", "icon": "settings" },
-                    { "label": "Sign Out", "icon": "logout" }
-                ]
-            }
+    ShowcaseSection {
+        title: "Expressive Search Morphing"
+        subtitle: "Fluid expansion from bar to full surface."
+        width: parent.width
+
+        MeoSearchBar {
+            id: demoSearchBar
+            width: parent.width
+            placeholder: "Click to see morphing..."
+            onActivated: searchView.open()
         }
 
-        ShowcaseSection {
-            title: "Segmented Lists"
-            subtitle: "Grouped list items with cohesive container shapes."
-            Layout.fillWidth: true
-
-            MeoSegmentedList {
-                title: "CONNECTED DEVICES"
-                model: [
-                    { "label": "Bluetooth", "icon": "bluetooth", "subtitle": "On" },
-                    { "label": "Wi-Fi", "icon": "wifi", "subtitle": "MeoGuest_5G" },
-                    { "label": "NFC", "icon": "nfc", "subtitle": "Off" }
-                ]
-                delegate: MeoListItem {
-                    headline: modelData.label
-                    leadingIcon: modelData.icon
-                    supportingText: modelData.subtitle
-                    interactive: true
-                    onClicked: selected = !selected
-                }
-            }
-        }
-
-        ShowcaseSection {
-            title: "Vibrant Selection & Rounding"
-            subtitle: "High-emphasis states in segmented groups."
-            Layout.fillWidth: true
-
-            MeoSegmentedList {
-                title: "SYSTEM ACTIONS"
-                model: [
-                    { "label": "Check for updates", "icon": "system_update", "vibrant": true },
-                    { "label": "Factory reset", "icon": "restart_alt", "vibrant": false }
-                ]
-                delegate: MeoListItem {
-                    headline: modelData.label
-                    leadingIcon: modelData.icon
-                    vibrant: modelData.vibrant
-                    interactive: true
-                    onClicked: selected = !selected
-                }
-            }
+        MeoSearchView {
+            id: searchView
+            width: parent.width
+            height: 400 * MeoTheme.globalScale
+            suggestions: [
+                { label: "Material Design 3", icon: "history" },
+                { label: "Expressive Motion", icon: "history" },
+                { label: "QML Components", icon: "search" }
+            ]
         }
     }
 }

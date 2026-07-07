@@ -57,6 +57,7 @@ Rectangle {
         spacing: 4 * control.themeGlobalScale
 
         MeoIconButton {
+            id: leadingButton
             icon.name: control.active ? "arrow_back" : control.leadingIcon
             type: "standard"
             anchors.verticalCenter: parent.verticalCenter
@@ -66,6 +67,22 @@ Rectangle {
                     textField.focus = false
                 } else {
                     control.activateSearch()
+                }
+            }
+
+            // 🌟 MD3 Expressive: Fluid icon rotation/swap
+            contentItem: MeoIcon {
+                icon: leadingButton.icon.name
+                size: 24
+                color: leadingButton.icon.color
+                rotation: control.active ? 0 : -90
+                Behavior on rotation { NumberAnimation { duration: 250; easing.bezierCurve: MeoTheme.motionEasingSoul } }
+                Behavior on icon {
+                    SequentialAnimation {
+                        NumberAnimation { target: parent; property: "opacity"; to: 0; duration: 100 }
+                        PropertyAction { property: "icon" }
+                        NumberAnimation { target: parent; property: "opacity"; to: 1; duration: 100 }
+                    }
                 }
             }
         }
@@ -96,11 +113,27 @@ Rectangle {
             type: "standard"
             anchors.verticalCenter: parent.verticalCenter
             visible: icon.name !== ""
+            opacity: visible ? 1.0 : 0.0
+            Behavior on opacity { NumberAnimation { duration: 200 } }
+
             onClicked: {
                 if (control.active && control.text !== "") {
                     control.text = ""
                     textField.text = ""
                     textField.forceActiveFocus()
+                }
+            }
+
+            contentItem: MeoIcon {
+                icon: trailingButton.icon.name
+                size: 24
+                color: trailingButton.icon.color
+                Behavior on icon {
+                    SequentialAnimation {
+                        NumberAnimation { target: parent; property: "scale"; to: 0.5; duration: 100 }
+                        PropertyAction { property: "icon" }
+                        NumberAnimation { target: parent; property: "scale"; to: 1.0; duration: 100 }
+                    }
                 }
             }
         }
