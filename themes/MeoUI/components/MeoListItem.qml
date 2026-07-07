@@ -25,6 +25,7 @@ Control {
 
     property bool interactive: true
     property bool isSegmented: false // MD3 Expressive: Segmented list style
+    property string roundingStrategy: "none" // "all" | "top" | "bottom" | "middle" | "none"
     property bool isDense: false // MD3 Expressive: Compact list style
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool vibrant: false // 🌟 MD3 Expressive: Vibrant selection style
@@ -75,19 +76,29 @@ Control {
         height: control.height
         x: control.isSegmented ? 8 * control.themeGlobalScale : 0
 
-        MeoShape {
+        Rectangle {
             id: shapeBg
             anchors.fill: parent
-            type: isSegmented ? control.shape : "rect"
             radius: {
-                if (!isSegmented) return 0;
-                if (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && selected) return MeoTheme.shapeLargeIncreased;
-                return (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale);
+                if (!isSegmented && roundingStrategy === "none") return 0;
+                let r = (typeof MeoTheme !== 'undefined' ? (selected ? MeoTheme.shapeLargeIncreased : MeoTheme.shapeLarge) : 16 * themeGlobalScale);
+                return r;
             }
             color: {
                 if (!isSegmented || !selected) return "transparent";
                 if (vibrant && typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive) return themePrimary;
                 return vibrant ? themePrimaryContainer : themeSecondaryContainer;
+            }
+
+            // 📐 Individual corner "squaring off" for segmented lists
+            // We use overlapping rectangles to cover the rounded corners we don't want.
+            Rectangle {
+                visible: roundingStrategy === "bottom" || roundingStrategy === "middle"
+                width: parent.width; height: parent.radius; anchors.top: parent.top; color: parent.color
+            }
+            Rectangle {
+                visible: roundingStrategy === "top" || roundingStrategy === "middle"
+                width: parent.width; height: parent.radius; anchors.bottom: parent.bottom; color: parent.color
             }
 
             MeoStateLayer {
@@ -103,16 +114,21 @@ Control {
                     return control.themeOnSurface;
                 }
 
-                layer.enabled: isSegmented && control.shape !== "rect"
+                // Use a mask for the state layer if it's not a simple rect
+                layer.enabled: roundingStrategy !== "none"
                 layer.effect: MultiEffect {
                     maskEnabled: true
-                    maskSource: Item {
+                    maskSource: Rectangle {
                         width: shapeBg.width
                         height: shapeBg.height
-                        MeoShape {
-                            anchors.fill: parent
-                            type: control.shape
-                            radius: shapeBg.radius
+                        radius: shapeBg.radius
+                        Rectangle {
+                            visible: roundingStrategy === "bottom" || roundingStrategy === "middle"
+                            width: parent.width; height: parent.radius; anchors.top: parent.top; color: "black"
+                        }
+                        Rectangle {
+                            visible: roundingStrategy === "top" || roundingStrategy === "middle"
+                            width: parent.width; height: parent.radius; anchors.bottom: parent.bottom; color: "black"
                         }
                     }
                 }
@@ -126,6 +142,7 @@ Control {
         id: mouseArea
         anchors.fill: parent
         enabled: control.interactive
+        hoverEnabled: true
         onClicked: control.clicked()
     }
 
