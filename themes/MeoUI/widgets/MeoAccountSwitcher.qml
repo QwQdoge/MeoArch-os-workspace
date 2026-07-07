@@ -7,178 +7,144 @@ Control {
     id: control
 
     // 🌟 核心属性
-    property var currentAccount: ({ "name": "Meo User", "email": "meo@example.com", "avatar": "" })
+    property var currentAccount: ({ name: "Meo User", email: "hello@meo.dev", avatar: "" })
     property var otherAccounts: [] // List of { name, email, avatar }
-    property var actions: [] // List of { label, icon, action (optional) }
+    property var actions: [] // List of { label, icon, action }
 
-    signal accountSwitched(int index, var account)
-    signal actionClicked(int index, var action)
+    signal accountSelected(var account)
+    signal actionClicked(var action)
 
-    // 🌟 作用域与主题安全防御
-    readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
+    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
     readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
-    readonly property color themeSurfaceContainerLow: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA"
-    readonly property color themeOutlineVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outlineVariant !== 'undefined') ? MeoTheme.outlineVariant : "#C4C7C5"
-    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
 
-    implicitWidth: 320 * themeGlobalScale
+    implicitWidth: 280 * themeGlobalScale
+    implicitHeight: mainLayout.implicitHeight + padding * 2
+
     padding: 16 * themeGlobalScale
 
     background: Rectangle {
-        radius: (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeLarge : 16 * themeGlobalScale)
-        color: control.themeSurfaceContainerLow
+        radius: 28 * control.themeGlobalScale
+        color: control.themeSurface
+        border.color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outlineVariant !== 'undefined') ? MeoTheme.outlineVariant : "#C4C7C5"
+        border.width: 1 * control.themeGlobalScale
     }
 
     contentItem: ColumnLayout {
-        spacing: 12 * control.themeGlobalScale
+        id: mainLayout
+        spacing: 16 * control.themeGlobalScale
 
-        // 👤 Active Account Identity
+        // 1. Current Account Identity
         RowLayout {
             Layout.fillWidth: true
             spacing: 16 * control.themeGlobalScale
 
             MeoAvatar {
-                size: 56
+                size: 48 * control.themeGlobalScale
                 source: control.currentAccount.avatar || ""
-                initials: control.currentAccount.name ? control.currentAccount.name.substring(0, 1) : ""
+                initials: control.currentAccount.name ? control.currentAccount.name.charAt(0) : "U"
                 variant: "squircle"
             }
 
-            ColumnLayout {
-                spacing: 0
+            Column {
                 Layout.fillWidth: true
+                spacing: 2 * control.themeGlobalScale
 
                 MeoText {
-                    text: control.currentAccount.name || ""
+                    width: parent.width
+                    text: control.currentAccount.name
                     typeRole: "title"
                     typeSize: "small"
                     emphasized: true
-                    color: control.themeOnSurface
-                    Layout.fillWidth: true
                     elide: Text.ElideRight
                 }
 
                 MeoText {
-                    text: control.currentAccount.email || ""
+                    width: parent.width
+                    text: control.currentAccount.email
                     typeRole: "body"
                     typeSize: "small"
                     color: control.themeOnSurfaceVariant
-                    Layout.fillWidth: true
                     elide: Text.ElideRight
                 }
             }
-
-            MeoIconButton {
-                icon.name: "expand_more"
-                type: "standard"
-            }
         }
 
-        // 🚀 Quick-switch Avatar Row
+        // 2. Quick Switch Avatars
         Row {
             Layout.fillWidth: true
-            spacing: 12 * control.themeGlobalScale
+            spacing: 8 * control.themeGlobalScale
             visible: control.otherAccounts.length > 0
 
             Repeater {
                 model: control.otherAccounts
-                delegate: Item {
+                delegate: MeoIconButton {
                     width: 40 * control.themeGlobalScale
                     height: 40 * control.themeGlobalScale
+                    icon.name: modelData.avatar ? "" : "person"
+                    onClicked: control.accountSelected(modelData)
 
+                    // Avatar overlay
                     MeoAvatar {
                         anchors.fill: parent
-                        size: 40
+                        size: 40 * control.themeGlobalScale
                         source: modelData.avatar || ""
-                        initials: modelData.name ? modelData.name.substring(0, 1) : ""
+                        initials: modelData.name ? modelData.name.charAt(0) : "U"
                         variant: "circle"
-                    }
-
-                    MouseArea {
-                        id: avatarMouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: control.accountSwitched(index, modelData)
-                    }
-
-                    // Hover state for avatar
-                    MeoStateLayer {
-                        anchors.fill: parent
-                        radius: width / 2
-                        color: control.themeOnSurface
-                        hovered: avatarMouseArea.containsMouse
-                        pressed: avatarMouseArea.pressed
+                        visible: modelData.avatar !== "" || !modelData.icon
                     }
                 }
             }
 
-            // Add Account Button
-            Item {
+            MeoIconButton {
                 width: 40 * control.themeGlobalScale
                 height: 40 * control.themeGlobalScale
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: width / 2
-                    color: "transparent"
-                    border.color: control.themeOutlineVariant
-                    border.width: 1 * control.themeGlobalScale
-
-                    MeoIcon {
-                        anchors.centerIn: parent
-                        icon: "add"
-                        size: 24
-                        color: control.themeOnSurfaceVariant
-                    }
-                }
-
-                MouseArea {
-                    id: addAccountMouseArea
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    onClicked: control.actionClicked(-1, { "label": "Add Account", "icon": "add" })
-                }
-
-                MeoStateLayer {
-                    anchors.fill: parent
-                    radius: width / 2
-                    color: control.themeOnSurface
-                    hovered: addAccountMouseArea.containsMouse
-                    pressed: addAccountMouseArea.pressed
-                }
+                icon.name: "person_add"
+                type: "outlined"
+                onClicked: control.actionClicked({ label: "Add account", icon: "person_add" })
             }
         }
 
-        // 🛠️ Management / Action Menu
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 2 * control.themeGlobalScale
-            visible: control.actions.length > 0
+        MeoDivider { Layout.fillWidth: true }
 
-            Rectangle {
-                Layout.fillWidth: true
-                height: 1 * control.themeGlobalScale
-                color: control.themeOutlineVariant
-                Layout.topMargin: 4 * control.themeGlobalScale
-                Layout.bottomMargin: 4 * control.themeGlobalScale
-            }
+        // 3. Actions / Management
+        Column {
+            Layout.fillWidth: true
+            spacing: 4 * control.themeGlobalScale
 
             Repeater {
                 model: control.actions
                 delegate: MeoListItem {
+                    width: parent.width
                     headline: modelData.label
-                    leadingIcon: modelData.icon || ""
-                    Layout.fillWidth: true
+                    leadingIcon: modelData.icon
                     isDense: true
                     interactive: true
                     onClicked: {
-                        if (modelData.action && typeof modelData.action === 'function') {
-                            modelData.action()
-                        }
-                        control.actionClicked(index, modelData)
+                        if (modelData.action) modelData.action()
+                        control.actionClicked(modelData)
                     }
                 }
+            }
+
+            MeoListItem {
+                width: parent.width
+                headline: "Manage accounts"
+                leadingIcon: "manage_accounts"
+                isDense: true
+                interactive: true
+                onClicked: control.actionClicked({ label: "Manage accounts", icon: "manage_accounts" })
+            }
+
+            MeoListItem {
+                width: parent.width
+                headline: "Sign out"
+                leadingIcon: "logout"
+                isDense: true
+                interactive: true
+                onClicked: control.actionClicked({ label: "Sign out", icon: "logout" })
             }
         }
     }
