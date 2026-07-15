@@ -21,9 +21,9 @@ PageFrame {
             color: MeoTheme.contentOnSurface
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
-            font.family: page.typeface
+            font.family: page.comfortaa
             font.weight: MeoTheme.displaySmallEmphasized.weight
-            font.pixelSize: page.displaySmall
+            font.pixelSize: page.dp(40)
         }
 
         Text {
@@ -34,9 +34,9 @@ PageFrame {
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             lineHeight: 1.22
-            font.family: page.typeface
+            font.family: page.roboto
             font.weight: MeoTheme.bodyLarge.weight
-            font.pixelSize: page.bodyLarge
+            font.pixelSize: page.dp(18)
         }
     }
 }

@@ -10,6 +10,17 @@ Item {
 
     implicitWidth: sampleLoader.implicitWidth
     implicitHeight: sampleLoader.implicitHeight
+    width: parent ? Math.min(implicitWidth, parent.width) : implicitWidth
+    clip: width < implicitWidth
+
+    WheelHandler {
+        enabled: control.width < control.implicitWidth
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        onWheel: event => {
+            const next = sampleLoader.x + event.angleDelta.y
+            sampleLoader.x = Math.max(control.width - sampleLoader.implicitWidth, Math.min(0, next))
+        }
+    }
 
     readonly property var navItems: [
         { "label": "Home", "icon": "home" },
@@ -42,10 +53,12 @@ Item {
     Loader {
         id: sampleLoader
         sourceComponent: sampleFor(control.componentData.name || "")
+        Behavior on x { NumberAnimation { duration: MeoTheme.motionDurationControlFast; easing.bezierCurve: MeoTheme.motionEasingEnter } }
     }
 
     function sampleFor(name) {
         if (name === "MeoTheme") return foundationsSample
+        if (name === "MeoWindowMetrics") return windowMetricsSample
         if (name === "MeoText") return textSample
         if (name === "MeoIcon") return iconSample
         if (name === "MeoStateLayer") return stateLayerSample
@@ -148,6 +161,7 @@ Item {
             TokenSwatch { label: "Error"; swatchColor: MeoTheme.error; contentColor: MeoTheme.contentOnError }
         }
     }
+    Component { id: windowMetricsSample; Row { spacing: MeoTheme.space8; Repeater { model: [{"label":"Small","width":640},{"label":"Medium","width":800},{"label":"Large","width":1200}]; delegate: MeoChip { required property var modelData; label: modelData.label + " · " + modelData.width; selected: modelData.width === 800 } } } }
     Component { id: textSample; Column { spacing: MeoTheme.space4; MeoText { text: "Display title"; typeRole: "title"; typeSize: "big"; emphasized: true; color: MeoTheme.contentOnSurface } MeoText { text: "Roboto body text with semantic type tokens."; typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant } } }
     Component { id: iconSample; Flow { spacing: MeoTheme.space12; Repeater { model: ["palette", "smart_button", "edit", "search", "auto_awesome"]; delegate: MeoIcon { required property string modelData; icon: modelData; color: MeoTheme.primary; size: 32 } } } }
     Component { id: stateLayerSample; Rectangle { width: 180 * MeoTheme.globalScale; height: MeoTheme.buttonHeightM; radius: MeoTheme.shapeMedium; color: MeoTheme.surfaceContainer; MeoStateLayer { anchors.fill: parent; radius: parent.radius; hovered: true; focused: true; color: MeoTheme.primary } MeoText { anchors.centerIn: parent; text: "Hover + focus"; typeRole: "label"; typeSize: "big"; color: MeoTheme.contentOnSurface } } }

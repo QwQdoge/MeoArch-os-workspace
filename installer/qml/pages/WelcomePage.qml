@@ -1,42 +1,15 @@
-pragma ComponentBehavior: Bound
-
 import QtQuick
-import "../"
 import ".."
 
 PageFrame {
     id: page
-
     primaryLabel: "Get Started"
-
+    showBackButton: false
     Column {
-        anchors.centerIn: parent
-        anchors.verticalCenterOffset: -page.dp(28)
-        width: Math.min(parent.width * 0.82, page.dp(760))
-        spacing: page.dp(32)
-
-        Image {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: page.dp(232)
-            height: page.dp(104)
-            source: page.asset("icons/Logo.png")
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-            opacity: 0.68
-        }
-
-        Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: parent.width
-            text: "Welcome to MeoArch OS"
-            color: MeoTheme.contentOnSurface
-            horizontalAlignment: Text.AlignHCenter
-            wrapMode: Text.WordWrap
-            fontSizeMode: Text.Fit
-            minimumPixelSize: page.dp(28)
-            font.family: page.typeface
-            font.weight: Font.Medium
-            font.pixelSize: Math.min(page.displayLarge, page.dp(42))
-        }
+        anchors.centerIn: parent; anchors.verticalCenterOffset: -page.dp(10)
+        width: Math.min(parent.width, page.dp(680)); spacing: page.dp(24)
+        Image { anchors.horizontalCenter: parent.horizontalCenter; width: page.dp(232); height: page.dp(104); source: page.asset("icons/Logo.png"); fillMode: Image.PreserveAspectFit }
+        Text { width: parent.width; text: "Welcome to MeoArch OS"; horizontalAlignment: Text.AlignHCenter; color: MeoTheme.onSurface; font.family: page.comfortaa; font.bold: true; font.pixelSize: page.dp(40); wrapMode: Text.WordWrap }
+        Text { width: parent.width; text: "A guided installation that keeps powerful Arch options close at hand."; horizontalAlignment: Text.AlignHCenter; color: MeoTheme.onSurfaceVariant; font.family: page.roboto; font.pixelSize: page.dp(18); wrapMode: Text.WordWrap }
     }
 }

@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 import MeoUI
 
 Rectangle {
@@ -83,8 +82,18 @@ Rectangle {
                         anchors.verticalCenter: control.isExpanded ? parent.verticalCenter : undefined
                         y: control.isExpanded ? (parent.height - height) / 2 : 0
 
-                        Behavior on width { NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
-                        Behavior on color { ColorAnimation { duration: 200 } }
+                        Behavior on width {
+                            NumberAnimation {
+                                duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlNormal
+                                easing.bezierCurve: MeoTheme.motionEasingEnter
+                            }
+                        }
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlFast
+                                easing.bezierCurve: isSelected ? MeoTheme.motionEasingEnter : MeoTheme.motionEasingExit
+                            }
+                        }
                     }
 
                     // Adaptive Layout: Column when collapsed, Row when expanded

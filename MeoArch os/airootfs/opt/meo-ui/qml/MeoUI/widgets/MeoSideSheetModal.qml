@@ -1,9 +1,8 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
 import MeoUI
 
-Popup {
+MeoMotionPopup {
     id: control
 
     // 🌟 核心属性
@@ -24,30 +23,12 @@ Popup {
     width: Math.min(parent ? parent.width : 400 * themeGlobalScale, 400 * themeGlobalScale)
     height: parent ? parent.height : 600 * themeGlobalScale
 
+    presentation: "sheet"
+    surfaceRadius: MeoTheme.shapeLarge
+    surfaceColor: control.themeSurfaceContainerLow
     modal: true
     focus: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-
-    Overlay.modal: Rectangle {
-        color: Qt.rgba(0, 0, 0, 0.4)
-        Behavior on opacity { NumberAnimation { duration: 250 } }
-    }
-
-    background: Rectangle {
-        color: control.themeSurfaceContainerLow
-        // MD3 Modal Side Sheet: 16dp radius (shapeLarge) on the side facing the main content
-        topLeftRadius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * control.themeGlobalScale
-        bottomLeftRadius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * control.themeGlobalScale
-
-        // Elevation Shadow (Standard MD3 Sheet Elevation)
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: 0.2
-            shadowHorizontalOffset: -2 * control.themeGlobalScale
-            shadowColor: Qt.rgba(0,0,0,0.2)
-        }
-    }
 
     contentItem: Column {
         anchors.fill: parent
@@ -92,10 +73,4 @@ Popup {
         }
     }
 
-    enter: Transition {
-        NumberAnimation { property: "x"; from: parent.width; to: parent.width - control.width; duration: 400; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1.0] }
-    }
-    exit: Transition {
-        NumberAnimation { property: "x"; from: parent.width - control.width; to: parent.width; duration: 300; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedAccelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15] }
-    }
 }

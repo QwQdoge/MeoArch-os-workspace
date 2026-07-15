@@ -11,12 +11,22 @@ Control {
     property bool isThick: false // 🌟 MD3 Expressive: Thicker track variant
     property bool vibrant: false // 🌟 MD3 Expressive: Gradient/Vibrant track
     property bool wavy: false // MD3 Expressive waveform linear indicator
+    property bool showTrack: true
+    property color activeColor: themePrimary
+    property color trackColor: themeSurfaceContainerHighest
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themeSurfaceContainerHighest: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHighest !== 'undefined') ? MeoTheme.surfaceContainerHighest : "#E6E1E5"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionProgressDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium1 !== 'undefined') ? MeoTheme.motionDurationMedium1 : 250
+    readonly property int motionWaveDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationExtraLong3 !== 'undefined') ? MeoTheme.motionDurationExtraLong3 : 900
+    readonly property int motionIndeterminateDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationExtraLong4 !== 'undefined') ? MeoTheme.motionDurationExtraLong4 + MeoTheme.motionDurationShort2 : 1100
+    readonly property int motionIndeterminateCycle: motionIndeterminateDuration * 2
+    readonly property int motionIndeterminateDelay: motionIndeterminateDuration
+    readonly property int motionCircularSweepDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationLong4 !== 'undefined') ? MeoTheme.motionDurationLong4 + MeoTheme.motionDurationShort1 : 650
+    readonly property int motionCircularRotationDuration: motionCircularSweepDuration
 
     implicitWidth: type === "linear" ? 240 * themeGlobalScale : 48 * themeGlobalScale
     implicitHeight: {
@@ -30,16 +40,18 @@ Control {
         anchors.verticalCenter: parent.verticalCenter
         width: parent.width
         height: control.isThick ? 8 * control.themeGlobalScale : 4 * control.themeGlobalScale
-        color: control.themeSurfaceContainerHighest
+        color: control.showTrack ? control.trackColor : "transparent"
         radius: height / 2
         clip: true
 
         Rectangle {
             id: indicator
+            visible: !control.indeterminate
             height: parent.height
-            width: control.indeterminate ? parent.width * 0.3 : parent.width * control.value
+            x: 0
+            width: parent.width * Math.max(0, Math.min(1, control.value))
             radius: height / 2
-            color: control.themePrimary
+            color: control.activeColor
 
             Rectangle {
                 anchors.fill: parent
@@ -47,21 +59,73 @@ Control {
                 visible: control.vibrant
                 gradient: Gradient {
                     orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: control.themePrimary }
+                    GradientStop { position: 0.0; color: control.activeColor }
                     GradientStop { position: 1.0; color: (typeof MeoTheme !== 'undefined' ? MeoTheme.tertiary : "#7D5260") }
                 }
             }
 
-            // Indeterminate animation
-            SequentialAnimation on x {
-                running: control.indeterminate && control.visible && control.type === "linear"
-                loops: Animation.Infinite
-                NumberAnimation { from: -indicator.width; to: control.width; duration: 1100; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-            }
-
             Behavior on width {
                 enabled: !control.indeterminate
-                NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] }
+                NumberAnimation { duration: control.motionProgressDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] }
+            }
+        }
+
+        Repeater {
+            model: 2
+            delegate: Rectangle {
+                id: indeterminateBar
+                visible: control.indeterminate
+                height: parent.height
+                radius: height / 2
+                color: control.activeColor
+                x: -width
+                width: 0
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: parent.radius
+                    visible: control.vibrant
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop { position: 0.0; color: control.activeColor }
+                        GradientStop { position: 1.0; color: (typeof MeoTheme !== 'undefined' ? MeoTheme.tertiary : "#7D5260") }
+                    }
+                }
+
+                SequentialAnimation {
+                    running: control.indeterminate && control.visible && control.type === "linear" && !control.wavy
+                    loops: Animation.Infinite
+                    PauseAnimation { duration: index === 0 ? 0 : control.motionIndeterminateDelay }
+                    ParallelAnimation {
+                        NumberAnimation {
+                            target: indeterminateBar
+                            property: "x"
+                            from: -parent.width * 0.45
+                            to: parent.width
+                            duration: control.motionIndeterminateCycle
+                            easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1]
+                        }
+                        SequentialAnimation {
+                            NumberAnimation {
+                                target: indeterminateBar
+                                property: "width"
+                                from: 0
+                                to: parent.width * 0.52
+                                duration: control.motionIndeterminateDuration
+                                easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1]
+                            }
+                            NumberAnimation {
+                                target: indeterminateBar
+                                property: "width"
+                                from: parent.width * 0.52
+                                to: 0
+                                duration: control.motionIndeterminateDuration
+                                easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandardAccelerate !== "undefined") ? MeoTheme.motionEasingStandardAccelerate : [0.3, 0, 1, 1]
+                            }
+                        }
+                    }
+                    PauseAnimation { duration: index === 0 ? control.motionIndeterminateDelay : 0 }
+                }
             }
         }
     }
@@ -87,22 +151,45 @@ Control {
             ctx.lineJoin = "round";
             ctx.lineWidth = strokeWidth;
 
-            ctx.strokeStyle = control.themeSurfaceContainerHighest;
-            ctx.beginPath();
-            ctx.moveTo(0, mid);
-            ctx.lineTo(width, mid);
-            ctx.stroke();
+            if (control.showTrack) {
+                ctx.strokeStyle = control.trackColor;
+                ctx.beginPath();
+                ctx.moveTo(0, mid);
+                ctx.lineTo(width, mid);
+                ctx.stroke();
+            }
 
-            ctx.strokeStyle = control.themePrimary;
+            ctx.strokeStyle = control.activeColor;
             ctx.beginPath();
-            for (var x = 0; x <= progressWidth; x += 3 * control.themeGlobalScale) {
-                var y = mid + Math.sin((x + phase) / wavelength * Math.PI * 2) * amp;
-                if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            if (control.indeterminate) {
+                var cycle = Math.max(1, 52 * control.themeGlobalScale);
+                var progress = (phase % cycle) / cycle;
+                var barWidth = width * 0.5;
+                var startX = (width + barWidth) * progress - barWidth;
+                var endX = startX + barWidth;
+                var hasStarted = false;
+
+                for (var ix = 0; ix <= width; ix += 3 * control.themeGlobalScale) {
+                    if (ix >= startX && ix <= endX) {
+                        var iy = mid + Math.sin((ix + phase) / wavelength * Math.PI * 2) * amp;
+                        if (!hasStarted) {
+                            ctx.moveTo(ix, iy);
+                            hasStarted = true;
+                        } else {
+                            ctx.lineTo(ix, iy);
+                        }
+                    }
+                }
+            } else {
+                for (var x = 0; x <= progressWidth; x += 3 * control.themeGlobalScale) {
+                    var y = mid + Math.sin((x + phase) / wavelength * Math.PI * 2) * amp;
+                    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
             }
             ctx.stroke();
 
-            if (progressWidth < width) {
-                ctx.fillStyle = control.themePrimary;
+            if (!control.indeterminate && progressWidth < width) {
+                ctx.fillStyle = control.activeColor;
                 ctx.beginPath();
                 ctx.arc(width, mid, 2 * control.themeGlobalScale, 0, Math.PI * 2);
                 ctx.fill();
@@ -119,10 +206,10 @@ Control {
         }
 
         NumberAnimation on phase {
-            running: control.visible && control.wavy && control.type === "linear"
+            running: control.visible && control.wavy && control.indeterminate && control.type === "linear"
             from: 0
             to: 52 * control.themeGlobalScale
-            duration: 900
+            duration: control.motionWaveDuration
             loops: Animation.Infinite
             easing.type: Easing.Linear
         }
@@ -148,23 +235,24 @@ Control {
 
             if (control.indeterminate) {
                 ctx.beginPath();
-                ctx.strokeStyle = control.themePrimary;
+                ctx.strokeStyle = control.activeColor;
                 ctx.lineWidth = strokeWidth;
                 ctx.lineCap = "round";
                 // MD3 circular indeterminate is a rotating arc that grows and shrinks
                 ctx.arc(centerX, centerY, radius, startAngle * 2 * Math.PI, endAngle * 2 * Math.PI);
                 ctx.stroke();
             } else {
-                // Background track
-                ctx.beginPath();
-                ctx.strokeStyle = control.themeSurfaceContainerHighest;
-                ctx.lineWidth = strokeWidth;
-                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                ctx.stroke();
+                if (control.showTrack) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = control.trackColor;
+                    ctx.lineWidth = strokeWidth;
+                    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
 
                 // Progress indicator
                 ctx.beginPath();
-                ctx.strokeStyle = control.themePrimary;
+                ctx.strokeStyle = control.activeColor;
                 ctx.lineWidth = strokeWidth;
                 ctx.lineCap = "round";
                 var eA = Math.max(0.01, control.value) * 2 * Math.PI;
@@ -185,14 +273,14 @@ Control {
             loops: Animation.Infinite
 
             ParallelAnimation {
-                NumberAnimation { target: canvas; property: "startAngle"; from: 0; to: 0.75; duration: 650; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-                NumberAnimation { target: canvas; property: "endAngle"; from: 0.2; to: 0.95; duration: 650; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-                NumberAnimation { target: canvas; property: "rotation"; from: 0; to: 180; duration: 666; easing.type: Easing.Linear }
+                NumberAnimation { target: canvas; property: "startAngle"; from: 0; to: 0.75; duration: control.motionCircularSweepDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
+                NumberAnimation { target: canvas; property: "endAngle"; from: 0.2; to: 0.95; duration: control.motionCircularSweepDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
+                NumberAnimation { target: canvas; property: "rotation"; from: 0; to: 180; duration: control.motionCircularRotationDuration; easing.type: Easing.Linear }
             }
             ParallelAnimation {
-                NumberAnimation { target: canvas; property: "startAngle"; from: 0.75; to: 1.5; duration: 650; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-                NumberAnimation { target: canvas; property: "endAngle"; from: 0.95; to: 1.7; duration: 650; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-                NumberAnimation { target: canvas; property: "rotation"; from: 180; to: 360; duration: 666; easing.type: Easing.Linear }
+                NumberAnimation { target: canvas; property: "startAngle"; from: 0.75; to: 1.5; duration: control.motionCircularSweepDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
+                NumberAnimation { target: canvas; property: "endAngle"; from: 0.95; to: 1.7; duration: control.motionCircularSweepDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
+                NumberAnimation { target: canvas; property: "rotation"; from: 180; to: 360; duration: control.motionCircularRotationDuration; easing.type: Easing.Linear }
             }
 
             // Reset angles to prevent overflow while maintaining rotation continuity

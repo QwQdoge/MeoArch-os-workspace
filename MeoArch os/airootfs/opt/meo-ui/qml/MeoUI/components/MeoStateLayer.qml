@@ -39,11 +39,15 @@ Item {
     }
 
     function trigger(x, y) {
+        rippleExpand.stop()
+        rippleFade.stop()
+        rippleFadeIn.stop()
         rippleLayer.originX = Math.max(0, Math.min(control.width, x))
         rippleLayer.originY = Math.max(0, Math.min(control.height, y))
         rippleLayer.radiusValue = 0
-        rippleLayer.opacity = pressedOpacity
-        rippleAnimation.restart()
+        rippleLayer.opacity = 0
+        rippleFadeIn.start()
+        rippleExpand.start()
     }
 
     onPressedChanged: {
@@ -73,6 +77,7 @@ Item {
             color: control.color
             opacity: {
                 if (control.dragged) return control.draggedOpacity
+                if (control.pressed) return control.pressedOpacity
                 if (control.hovered) return control.hoverOpacity
                 if (control.focused) return control.focusOpacity
                 return 0
@@ -103,26 +108,23 @@ Item {
         }
     }
 
-    ParallelAnimation {
-        id: rippleAnimation
-        NumberAnimation {
-            target: rippleLayer
-            property: "radiusValue"
-            from: 0
-            to: rippleLayer.targetRadius
-            duration: control.rippleExpandDuration
-            easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasizedDecelerate !== 'undefined') ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1]
-        }
-        SequentialAnimation {
-            PauseAnimation { duration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationShort2 !== 'undefined') ? MeoTheme.motionDurationShort2 : 100 }
-            NumberAnimation {
-                target: rippleLayer
-                property: "opacity"
-                to: 0
-                duration: control.rippleFadeDuration
-                easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingStandard !== 'undefined') ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1]
-            }
-        }
+    NumberAnimation {
+        id: rippleExpand
+        target: rippleLayer
+        property: "radiusValue"
+        from: 0
+        to: rippleLayer.targetRadius
+        duration: control.rippleExpandDuration
+        easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasizedDecelerate !== 'undefined') ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1]
+    }
+
+    NumberAnimation {
+        id: rippleFadeIn
+        target: rippleLayer
+        property: "opacity"
+        to: control.pressedOpacity
+        duration: control.hoverDuration
+        easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingStandard !== 'undefined') ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1]
     }
 
     NumberAnimation {

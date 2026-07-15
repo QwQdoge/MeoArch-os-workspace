@@ -10,7 +10,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$SourceDir = Split-Path -Parent $PSScriptRoot
+$SourceDir = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
 $BuildPath = if ([System.IO.Path]::IsPathRooted($BuildDir)) { $BuildDir } else { Join-Path $SourceDir $BuildDir }
 $InstallPath = if ([System.IO.Path]::IsPathRooted($InstallDir)) { $InstallDir } else { Join-Path $SourceDir $InstallDir }
 

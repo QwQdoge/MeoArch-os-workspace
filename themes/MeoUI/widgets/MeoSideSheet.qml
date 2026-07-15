@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
 import MeoUI
 
 Rectangle {
@@ -28,16 +27,10 @@ Rectangle {
     // MD3 Standard Side Sheet: 0dp radius or slightly rounded?
     // Usually Standard Side Sheets are not rounded on the edge they attach to.
 
-    // Elevation Shadow
-    layer.enabled: true
-    layer.effect: MultiEffect {
-        shadowEnabled: true
-        shadowBlur: 0.1
-        shadowHorizontalOffset: -1 * control.themeGlobalScale
-        shadowColor: Qt.rgba(0,0,0,0.1)
-    }
+    border.width: 1
+    border.color: Qt.rgba(MeoTheme.outline.r, MeoTheme.outline.g, MeoTheme.outline.b, 0.22)
 
-    Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+    Behavior on x { NumberAnimation { duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: control.isOpen ? MeoTheme.motionEasingEnter : MeoTheme.motionEasingExit } }
 
     Column {
         anchors.fill: parent

@@ -33,10 +33,10 @@ Control {
                 color: index === control.currentIndex ? control.themePrimary : control.themeOutlineVariant
 
                 Behavior on width {
-                    NumberAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] }
+                    NumberAnimation { duration: MeoTheme.motionDurationMedium1; easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate }
                 }
                 Behavior on color {
-                    ColorAnimation { duration: 200 }
+                    ColorAnimation { duration: MeoTheme.motionDurationShort4; easing.bezierCurve: MeoTheme.motionEasingStandard }
                 }
             }
         }

@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Window
-import "."
+import "." as Installer
 
 Window {
     id: root
@@ -13,61 +13,69 @@ Window {
     title: "MeoArch Installer"
 
     property int currentPage: 0
-    readonly property bool systemActionsEnabled: Qt.application.arguments.indexOf("--enable-system-actions") !== -1
+    property int navigationDirection: 1
+    property string screenshotPath: ""
+    readonly property var controller: typeof installerController !== "undefined" ? installerController : Installer.PreviewController
     readonly property var pages: [
-        { title: "WelcomePage", source: "pages/WelcomePage.qml" },
-        { title: "Language & Region", source: "pages/LanguageRegionPage.qml" },
-        { title: "Keyboard Layout", source: "pages/KeyboardLayoutPage.qml" },
-        { title: "Network", source: "pages/NetworkPage.qml" },
-        { title: "Privacy & Security", source: "pages/PrivacySecurityPage.qml" },
-        { title: "Disk Selection", source: "pages/DiskSelectionPage.qml" },
-        { title: "User Account", source: "pages/UserAccountPage.qml" },
-        { title: "Summary", source: "pages/SummaryPage.qml" },
-        { title: "Installing", source: "pages/InstallingPage.qml" },
-        { title: "Finish", source: "pages/FinishPage.qml" }
+        "pages/WelcomePage.qml", "pages/LanguageRegionPage.qml", "pages/KeyboardLayoutPage.qml",
+        "pages/NetworkPage.qml", "pages/PrivacySecurityPage.qml", "pages/DiskSelectionPage.qml",
+        "pages/UserAccountPage.qml", "pages/SummaryPage.qml", "pages/InstallingPage.qml", "pages/FinishPage.qml"
     ]
+
+    Component.onCompleted: {
+        for (let i = 0; i < Qt.application.arguments.length; ++i) {
+            const argument = Qt.application.arguments[i]
+            if (argument.indexOf("--page=") === 0)
+                currentPage = Math.max(0, Math.min(pages.length - 1, Number(argument.substring(7))))
+            if (argument.indexOf("--screenshot=") === 0)
+                screenshotPath = argument.substring(13)
+        }
+        if (screenshotPath.length)
+            failSafeTimer.start()
+        if (screenshotPath.length)
+            captureTimer.start()
+    }
+
+    Timer {
+        id: captureTimer
+        interval: 1000
+        repeat: false
+        onTriggered: root.contentItem.grabToImage(function(result) {
+            result.saveToFile(root.screenshotPath)
+            Qt.quit()
+        }, Qt.size(root.width, root.height))
+    }
+    Timer { id: failSafeTimer; interval: 3500; repeat: false; onTriggered: Qt.quit() }
 
     Loader {
         id: pageLoader
         anchors.fill: parent
-        source: root.pages[root.currentPage].source
-
+        source: root.pages[root.currentPage]
         onLoaded: {
-            item.pageTitle = root.pages[root.currentPage].title
             item.pageIndex = root.currentPage
             item.pageCount = root.pages.length
-            item.systemActionsEnabled = root.systemActionsEnabled
+            item.controller = root.controller
+            const entrance = item["playEntrance"]
+            if (typeof entrance === "function")
+                entrance.call(item, root.navigationDirection)
         }
     }
 
     Connections {
         target: pageLoader.item
         ignoreUnknownSignals: true
-
         function onNextRequested() {
-            root.nextPage()
+            if (root.currentPage < root.pages.length - 1) {
+                root.navigationDirection = 1
+                root.currentPage++
+            }
         }
-
         function onPreviousRequested() {
-            root.previousPage()
+            if (root.currentPage > 0) {
+                root.navigationDirection = -1
+                root.currentPage--
+            }
         }
-
-        function onExitRequested() {
-            Qt.quit()
-        }
-
-        function onSystemActionRequested(action) {
-            console.log("System action requested:", action, "enabled:", root.systemActionsEnabled)
-        }
-    }
-
-    function nextPage() {
-        if (currentPage < pages.length - 1)
-            currentPage += 1
-    }
-
-    function previousPage() {
-        if (currentPage > 0)
-            currentPage -= 1
+        function onExitRequested() { Qt.quit() }
     }
 }

@@ -11,11 +11,15 @@ Button {
     // 🌟 核心开关
     property string type: "filled" // "filled" (默认) | "tonal" | "outlined" | "elevated" | "text"
     property string size: "m" // "xs" | "s" | "m" | "l" | "xl"
-    property string shape: "round" // "round" | "square"
+    property string shape: "round" // "round" | "square" | "squircle" | "hexagon" | ...
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool loading: false // 🌟 MD3: Loading state with progress indicator
+    property bool loadingWithContainer: false
     property bool selected: false // 🌟 MD3: Toggle state support
+    property bool vibrant: false // 🌟 MD3 Expressive: Vibrant gradient background
     property bool bouncy: MeoTheme.isExpressive && MeoTheme.isBouncy
+    property real contentSpacing: (size === "xs" ? 4 : 8) * MeoTheme.globalScale
+    readonly property string effectiveType: type === "filledTonal" ? "tonal" : type
 
     // Toggle Support
     checkable: false
@@ -46,28 +50,30 @@ Button {
 
     readonly property color bgColor: {
         if (!control.enabled) {
-            if (type === "outlined" || type === "text")
+            if (effectiveType === "outlined" || effectiveType === "text")
                 return Qt.rgba(textColor.r, textColor.g, textColor.b, 0);
             return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
         }
 
         let base;
-        if (type === "filled") base = (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
-        else if (type === "tonal") base = (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8";
-        else if (type === "elevated") base = (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA";
+        if (effectiveType === "filled") base = (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
+        else if (effectiveType === "tonal") base = (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8";
+        else if (effectiveType === "elevated") base = (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA";
         else base = Qt.rgba(0, 0, 0, 0);
 
-        if (control.checked) {
-            if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : base;
-            if (type === "outlined") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : base;
+        if (control.checked || control.selected) {
+            if (effectiveType === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : base;
+            if (effectiveType === "outlined") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : base;
         }
         return base;
     }
 
+    readonly property color vibrantColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.tertiary !== 'undefined') ? MeoTheme.tertiary : "#7D5260"
+
     readonly property real elevation: {
-        if (!control.enabled || type === "text" || type === "outlined") return 0;
-        if (type === "elevated") return control.pressed ? 2 : (control.hovered ? 2 : 1);
-        if (type === "filled" || type === "tonal") return (control.pressed || control.checked) ? 0 : (control.hovered ? 1 : 0);
+        if (!control.enabled || effectiveType === "text" || effectiveType === "outlined") return 0;
+        if (effectiveType === "elevated") return control.pressed ? 1 : (control.hovered ? 2 : 1);
+        if (effectiveType === "filled" || effectiveType === "tonal") return (control.pressed || control.checked || control.selected) ? 0 : (control.hovered ? 1 : 0);
         return 0;
     }
 
@@ -81,12 +87,12 @@ Button {
         if (!control.enabled) {
             return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);
         }
-        if (control.checked) {
-             if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D";
-             if (type === "outlined") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B";
+        if (control.checked || control.selected) {
+             if (effectiveType === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D";
+             if (effectiveType === "outlined") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B";
         }
-        if (type === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? MeoTheme.contentOnPrimary : "#FFFFFF";
-        if (type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B";
+        if (effectiveType === "filled") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? MeoTheme.contentOnPrimary : "#FFFFFF";
+        if (effectiveType === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B";
         return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
     }
 
@@ -98,8 +104,8 @@ Button {
         else if (size === "xl") base = 48;
         else base = 24;
 
-        if (control.icon.name !== "" || control.icon.source.toString() !== "" || control.checked) return (base * 0.66) * MeoTheme.globalScale;
-        return (control.type === "text" ? base * 0.5 : base) * MeoTheme.globalScale;
+        if (control.icon.name !== "" || control.icon.source.toString() !== "" || control.checked || control.selected) return (base * 0.66) * MeoTheme.globalScale;
+        return (control.effectiveType === "text" ? base * 0.5 : base) * MeoTheme.globalScale;
     }
     rightPadding: {
         let base;
@@ -108,7 +114,7 @@ Button {
         else if (size === "l") base = 32;
         else if (size === "xl") base = 48;
         else base = 24;
-        return (control.type === "text" ? base * 0.5 : base) * MeoTheme.globalScale;
+        return (control.effectiveType === "text" ? base * 0.5 : base) * MeoTheme.globalScale;
     }
     topPadding: 0
     bottomPadding: 0
@@ -128,26 +134,22 @@ Button {
 
         Row {
             id: contentRow
-            spacing: (size === "xs" ? 4 : 8) * MeoTheme.globalScale
+            spacing: control.contentSpacing
             anchors.centerIn: parent
             opacity: control.loading ? 0.0 : 1.0
             visible: opacity > 0
             Behavior on opacity { NumberAnimation { duration: control.motionFast } }
 
             MeoIcon {
-                icon: control.checked ? "check" : (control.icon.name || control.icon.source.toString())
-                visible: control.checked || control.icon.name !== "" || control.icon.source.toString() !== ""
-                size: {
-                    if (size === "xs" || size === "s") return 18;
-                    if (size === "xl") return 32;
-                    return 24;
-                }
+                icon: (control.checked || control.selected) ? "check" : (control.icon.name || control.icon.source.toString())
+                visible: control.checked || control.selected || control.icon.name !== "" || control.icon.source.toString() !== ""
+                size: control.iconSize
                 color: control.textColor
                 anchors.verticalCenter: parent.verticalCenter
                 Behavior on color { ColorAnimation { duration: control.motionFast } }
 
                 Behavior on icon {
-                    enabled: control.checkable
+                    enabled: control.checkable || control.selected
                     SequentialAnimation {
                         NumberAnimation { target: parent; property: "scale"; to: 0; duration: control.motionFast }
                         PropertyAction { target: parent; property: "icon" }
@@ -170,9 +172,11 @@ Button {
             }
         }
 
-        MeoProgressBar {
-            type: "circular"
+        MeoLoadingIndicator {
             indeterminate: true
+            color: control.textColor
+            vibrant: control.vibrant
+            withContainer: control.loadingWithContainer
             anchors.centerIn: parent
             width: (control.iconSize + 6) * MeoTheme.globalScale
             height: (control.iconSize + 6) * MeoTheme.globalScale
@@ -184,10 +188,22 @@ Button {
         }
     }
 
-    background: Rectangle {
-        implicitWidth: Math.max((control.type === "text" ? 48 : 64) * MeoTheme.globalScale, contentItem.implicitWidth + leftPadding + rightPadding)
-        implicitHeight: control.implicitHeight
-        radius: {
+    background: Item {
+        implicitWidth: Math.max((control.effectiveType === "text" ? 48 : 64) * MeoTheme.globalScale, contentItem.implicitWidth + leftPadding + rightPadding)
+        // Avoid circular dependency by using explicit height logic instead of control.implicitHeight
+        implicitHeight: {
+            if (control.size === "xs") return MeoTheme.buttonHeightXS || 32 * MeoTheme.globalScale;
+            if (control.size === "s") return MeoTheme.buttonHeightS || 40 * MeoTheme.globalScale;
+            if (control.size === "l") return MeoTheme.buttonHeightL || 56 * MeoTheme.globalScale;
+            if (control.size === "xl") return MeoTheme.buttonHeightXL || 72 * MeoTheme.globalScale;
+            return MeoTheme.buttonHeightM || 48 * MeoTheme.globalScale;
+        }
+
+        readonly property real baseRadius: {
+            if (control.pressed) {
+                if (control.size === "xs" || control.size === "s") return MeoTheme.shapeSmall;
+                return MeoTheme.shapeMedium;
+            }
             if (shape === "square") {
                 if (size === "xs" || size === "s") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * MeoTheme.globalScale;
                 return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * MeoTheme.globalScale;
@@ -195,49 +211,107 @@ Button {
             if (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive) return MeoTheme.expressiveShapeCornerRadius;
             return height / 2;
         }
-        
-        color: control.bgColor
 
-        scale: (control.bouncy && control.pressed) ? 0.98 : 1.0
-        Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
-
-        // Surface Tint for Elevation
-        Rectangle {
+        MeoShape {
+            id: shapeBg
             anchors.fill: parent
-            radius: parent.radius
-            color: (control.type === "elevated" && typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceTint !== 'undefined') ? MeoTheme.surfaceTint(control.elevation) : "transparent"
-            visible: control.type === "elevated"
-            Behavior on color { ColorAnimation { duration: control.motionFast } }
+            type: (control.shape === "round" || control.shape === "square") ? "rect" : control.shape
+            radius: parent.baseRadius
+            color: control.vibrant && control.effectiveType === "filled" ? "transparent" : control.bgColor
+
+            // Vibrant Gradient Overlay
+            Rectangle {
+                anchors.fill: parent
+                radius: shapeBg.radius
+                visible: control.vibrant && control.effectiveType === "filled"
+                gradient: Gradient {
+                    orientation: Gradient.Horizontal
+                    GradientStop { position: 0.0; color: control.bgColor }
+                    GradientStop { position: 1.0; color: control.vibrantColor }
+                }
+
+                layer.enabled: control.shape !== "round" && control.shape !== "square" && control.shape !== "rect"
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: Item {
+                        width: shapeBg.width
+                        height: shapeBg.height
+                        MeoShape {
+                            anchors.fill: parent
+                            type: shapeBg.type
+                            radius: shapeBg.radius
+                        }
+                    }
+                }
+            }
+
+            // Surface Tint for Elevation
+            Rectangle {
+                anchors.fill: parent
+                radius: shapeBg.radius
+                color: (control.effectiveType === "elevated" && typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceTint !== 'undefined') ? MeoTheme.surfaceTint(control.elevation) : "transparent"
+                visible: control.effectiveType === "elevated"
+                Behavior on color { ColorAnimation { duration: control.motionFast } }
+
+                layer.enabled: control.shape !== "round" && control.shape !== "square" && control.shape !== "rect"
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: Item {
+                        width: shapeBg.width
+                        height: shapeBg.height
+                        MeoShape {
+                            anchors.fill: parent
+                            type: shapeBg.type
+                            radius: shapeBg.radius
+                        }
+                    }
+                }
+            }
+
+            MeoStateLayer {
+                radius: shapeBg.radius
+                pressed: control.pressed
+                hovered: control.hovered
+                focused: control.visualFocus
+                color: control.textColor
+
+                layer.enabled: control.shape !== "round" && control.shape !== "square" && control.shape !== "rect"
+                layer.effect: MultiEffect {
+                    maskEnabled: true
+                    maskSource: Item {
+                        width: shapeBg.width
+                        height: shapeBg.height
+                        MeoShape {
+                            anchors.fill: parent
+                            type: shapeBg.type
+                            radius: shapeBg.radius
+                        }
+                    }
+                }
+            }
+
+            strokeColor: {
+                if (control.effectiveType !== "outlined") return "transparent";
+                if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
+                if (control.activeFocus) return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
+                return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E";
+            }
+            strokeWidth: (control.effectiveType === "outlined" && (control.activeFocus || control.selected || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive))) ? 2 : (control.effectiveType === "outlined" ? 1 : 0)
+
+            // Simplified Elevation Shadow
+            layer.enabled: control.elevation > 0 || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.effectiveType === "filled" && isEmphasized)
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowBlur: (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.effectiveType === "filled" && isEmphasized) ? 0.4 : 0.2
+                shadowVerticalOffset: (control.elevation > 0 ? control.elevation : (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.effectiveType === "filled" && isEmphasized ? 2 : 0)) * MeoTheme.globalScale
+                shadowColor: Qt.rgba(0,0,0,0.2)
+            }
+
+            Behavior on color { ColorAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+            Behavior on radius { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
         }
 
-        MeoStateLayer {
-            radius: parent.radius
-            pressed: control.pressed
-            hovered: control.hovered
-            focused: control.visualFocus
-            color: control.textColor
-        }
-
-        border.color: {
-            if (control.type !== "outlined") return "transparent";
-            if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
-            if (control.activeFocus) return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
-            return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E";
-        }
-        border.width: (control.type === "outlined" && (control.activeFocus || control.selected || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive))) ? 2 : (control.type === "outlined" ? 1 : 0)
-
-        // Simplified Elevation Shadow
-        layer.enabled: control.elevation > 0 || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.type === "filled" && isEmphasized)
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowBlur: (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.type === "filled" && isEmphasized) ? 0.4 : 0.2
-            shadowVerticalOffset: (control.elevation > 0 ? control.elevation : (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.type === "filled" && isEmphasized ? 2 : 0)) * MeoTheme.globalScale
-            shadowColor: Qt.rgba(0,0,0,0.2)
-        }
-
-        Behavior on color { ColorAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-        Behavior on border.color { ColorAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-        Behavior on border.width { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-        Behavior on radius { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
+        scale: control.pressed ? 0.975 : (control.hovered && control.effectiveType !== "text" ? 1.008 : 1.0)
+        Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1.0]) } }
     }
 }

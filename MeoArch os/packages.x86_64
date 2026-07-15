@@ -2,6 +2,9 @@ alsa-utils
 amd-ucode
 arch-install-scripts
 archinstall
+iso-codes
+networkmanager
+noto-fonts-cjk
 qt6-base
 qt6-declarative
 qt6-svg

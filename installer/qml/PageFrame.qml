@@ -1,425 +1,151 @@
 pragma ComponentBehavior: Bound
-
 import QtQuick
+import QtQuick.Controls
+import MeoUI 1.0 as Meo
 import "."
+import "components"
 
 Item {
     id: frame
-
-    readonly property real compactBreakpoint: 980
-    readonly property real baseWidth: 1440
-    readonly property real baseHeight: 900
-    readonly property real scaleFactor: Math.max(0.72, Math.min(1.18, Math.min(width / baseWidth, height / baseHeight)))
-    readonly property bool compact: width < frame.compactBreakpoint || height < 700
-    readonly property real pageMargin: frame.dp(frame.compact ? 20 : 32)
-    readonly property real cardInset: frame.dp(frame.compact ? 22 : 40)
-    readonly property real cardBottomControlHeight: frame.dp(72)
-    readonly property real mainCardWidth: Math.max(frame.compact ? 560 : 860,
-        Math.min(frame.width - frame.pageMargin * 2, frame.width * (frame.compact ? 0.86 : 0.60), frame.compact ? 760 : 1220))
-    readonly property real mainCardHeight: Math.max(frame.compact ? 400 : 560,
-        Math.min(frame.height - frame.pageMargin * 4, frame.height * (frame.compact ? 0.64 : 0.68), frame.compact ? 520 : 800))
-
-    readonly property string typeface: roboto.name.length > 0 ? roboto.name : "Roboto"
-    readonly property int displayLarge: Math.round(frame.dp(MeoTheme.displayLargeEmphasized.size))
-    readonly property int displaySmall: Math.round(frame.dp(MeoTheme.displaySmallEmphasized.size))
-    readonly property int titleMedium: Math.round(frame.dp(MeoTheme.titleMediumEmphasized.size))
-    readonly property int labelLarge: Math.round(frame.dp(MeoTheme.labelLargeEmphasized.size))
-    readonly property int labelSmall: Math.round(frame.dp(MeoTheme.labelSmall.size))
-    readonly property int bodyLarge: Math.round(frame.dp(MeoTheme.bodyLarge.size))
-    property bool powerMenuOpen: false
-    property bool systemActionsEnabled: false
-    property string statusMessage: ""
-
-    property string pageTitle: ""
+    property var controller
     property int pageIndex: 0
     property int pageCount: 10
-    default property alias content: pageContent.data
-    property string primaryLabel: pageIndex === pageCount - 1 ? "Finish" : "Get Started"
+    property string pageTitle: ""
+    property string pageSubtitle: ""
+    property string primaryLabel: pageIndex === 0 ? "Get Started" : "Continue"
+    property bool showBackButton: pageIndex > 0 && pageIndex < 8
     property bool showPrimaryButton: true
-    property bool showBackButton: pageIndex > 0
+    property bool primaryEnabled: true
+    property bool primaryAdvances: true
+    property bool languageMenuOpen: false
+    property bool powerMenuOpen: false
+    property string statusMessage: ""
+    default property alias content: body.data
+    readonly property real scaleFactor: Math.max(0.72, Math.min(1.28, Math.min(width / 1440, height / 900)))
+    readonly property bool compact: width < 1060 || height < 700
+    readonly property real pageMargin: dp(compact ? 20 : 32)
+    readonly property real cardInset: dp(compact ? 24 : 40)
+    readonly property real mainCardWidth: Math.min(width - pageMargin * 2, dp(compact ? 1040 : 860))
+    readonly property real mainCardHeight: Math.min(height - pageMargin * 3.2, dp(compact ? 690 : 612))
+    readonly property string roboto: robotoLoader.name.length ? robotoLoader.name : "Roboto"
+    readonly property string comfortaa: comfortaaLoader.name.length ? comfortaaLoader.name : "Comfortaa"
+    readonly property string symbols: symbolsLoader.name.length ? symbolsLoader.name : "Material Symbols Rounded"
     property url assetsRoot: Qt.resolvedUrl("../assets/")
     readonly property url fallbackAssetsRoot: Qt.resolvedUrl("../../assets/")
 
     signal nextRequested()
     signal previousRequested()
     signal exitRequested()
-    signal systemActionRequested(string action)
+    signal primaryRequested()
 
-    function dp(value) {
-        return Math.round(value * scaleFactor)
-    }
+    function dp(value) { return Math.round(value * scaleFactor) }
+    function asset(path) { return String(assetsRoot) + path }
+    function useFallbackAssets() { if (String(assetsRoot) !== String(fallbackAssetsRoot)) assetsRoot = fallbackAssetsRoot }
+    function firePrimary() { primaryAdvances ? nextRequested() : primaryRequested() }
+    function playEntrance(direction) { card.reveal(direction) }
+    onStatusMessageChanged: if (statusMessage.length) snackbar.open()
 
-    function asset(relativePath) {
-        return String(assetsRoot) + relativePath
-    }
-
-    function useFallbackAssets() {
-        if (String(assetsRoot) !== String(fallbackAssetsRoot))
-            assetsRoot = fallbackAssetsRoot
-    }
-
-    function requestSystemAction(action, label, noOp) {
-        powerMenuOpen = false
-        if (noOp) {
-            statusMessage = label + " selected. No system action was executed."
-            return
-        }
-
-        if (!systemActionsEnabled) {
-            statusMessage = label + " is disabled. Start with --enable-system-actions to test the action bridge."
-            return
-        }
-
-        statusMessage = label + " requested. Native bridge is not connected yet."
-        systemActionRequested(action)
-    }
-
-    FontLoader {
-        id: roboto
-        source: frame.asset("fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf")
-        onStatusChanged: if (status === FontLoader.Error) frame.useFallbackAssets()
-    }
+    FontLoader { id: robotoLoader; source: frame.asset("fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf"); onStatusChanged: if (status === FontLoader.Error) frame.useFallbackAssets() }
+    FontLoader { id: comfortaaLoader; source: frame.asset("fonts/Comfortaa/Comfortaa-VariableFont_wght.ttf"); onStatusChanged: if (status === FontLoader.Error) frame.useFallbackAssets() }
+    FontLoader { id: symbolsLoader; source: frame.asset("fonts/Material_Symbols_Outlined,Material_Symbols_Rounded,Material_Symbols_Sharp/Material_Symbols_Rounded/static/MaterialSymbolsRounded-Regular.ttf"); onStatusChanged: if (status === FontLoader.Error) frame.useFallbackAssets() }
 
     Image {
         anchors.fill: parent
         source: frame.asset("wallpapers/installer_background.png")
         fillMode: Image.PreserveAspectCrop
-        smooth: true
         onStatusChanged: if (status === Image.Error) frame.useFallbackAssets()
     }
 
     Rectangle {
-        id: brandPill
-        x: frame.pageMargin
-        y: frame.pageMargin
-        width: Math.min(frame.dp(278), parent.width - frame.pageMargin * 2 - topActions.width - frame.dp(20))
-        height: frame.dp(48)
-        radius: frame.dp(18)
-        color: MeoTheme.surfaceContainerLow
-        opacity: 0.78
-        border.color: MeoTheme.outlineVariant
-        border.width: 0
-
-        Image {
-            id: brandLogo
-            x: frame.dp(20)
-            anchors.verticalCenter: parent.verticalCenter
-            width: frame.dp(64)
-            height: frame.dp(28)
-            source: frame.asset("icons/Logo.png")
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-        }
-
-        Text {
-            anchors.left: brandLogo.right
-            anchors.leftMargin: frame.dp(14)
-            anchors.right: parent.right
-            anchors.rightMargin: frame.dp(16)
-            anchors.verticalCenter: parent.verticalCenter
-            text: "MeoArch Installer"
-            color: MeoTheme.contentOnSurfaceVariant
-            elide: Text.ElideRight
-            font.family: frame.typeface
-            font.weight: MeoTheme.titleMediumEmphasized.weight
-            font.pixelSize: frame.titleMedium
+        x: frame.pageMargin; y: frame.pageMargin
+        width: frame.dp(278); height: frame.dp(48); radius: frame.dp(18)
+        color: Qt.rgba(1, 1, 1, 0.80)
+        Row {
+            anchors.fill: parent; anchors.leftMargin: frame.dp(18); spacing: frame.dp(12)
+            Image { width: frame.dp(68); height: frame.dp(32); anchors.verticalCenter: parent.verticalCenter; source: frame.asset("icons/Logo.png"); fillMode: Image.PreserveAspectFit }
+            Text { anchors.verticalCenter: parent.verticalCenter; text: "MeoArch Installer"; color: MeoTheme.onSurface; font.family: frame.comfortaa; font.bold: true; font.pixelSize: frame.dp(18) }
         }
     }
 
     Row {
-        id: topActions
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.topMargin: frame.pageMargin
-        anchors.rightMargin: frame.pageMargin
-        spacing: frame.dp(10)
+        id: actions
+        anchors.top: parent.top; anchors.right: parent.right
+        anchors.topMargin: frame.pageMargin; anchors.rightMargin: frame.pageMargin; spacing: frame.dp(10)
+        MeoIconButton { iconText: "?"; iconFont: frame.roboto; accessibleName: "Help"; onClicked: frame.statusMessage = "Documentation is available in the installer guide." }
+        MeoIconButton { iconText: "L"; iconFont: frame.roboto; accessibleName: "Installer language"; onClicked: { frame.languageMenuOpen = !frame.languageMenuOpen; frame.powerMenuOpen = false } }
+        MeoIconButton { iconText: "P"; iconFont: frame.roboto; accessibleName: "Power"; onClicked: { frame.powerMenuOpen = !frame.powerMenuOpen; frame.languageMenuOpen = false } }
+    }
 
-        Repeater {
-            model: [
-                { icon: "?", label: "Help" },
-                { icon: "◎", label: "Language" },
-                { icon: "⏻", label: "Power" }
-            ]
-
-            Rectangle {
-                id: topActionButton
+    MotionPopup {
+        id: languagePopup
+        presentation: "menu"
+        visible: frame.languageMenuOpen
+        x: frame.width - frame.pageMargin - width
+        y: frame.pageMargin + frame.dp(58)
+        width: frame.dp(300); height: Math.min(frame.dp(544), frame.height - y - frame.pageMargin)
+        padding: frame.dp(8); modal: false; closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        onClosed: frame.languageMenuOpen = false
+        contentItem: ListView {
+            clip: true; model: frame.controller ? frame.controller.uiLanguages : []
+            delegate: Rectangle {
+                id: languageOption
                 required property var modelData
-
-                width: frame.dp(48)
-                height: frame.dp(48)
-                radius: frame.dp(18)
-                color: MeoTheme.surfaceContainerLow
-                opacity: 0.78
-
-                Text {
-                    anchors.centerIn: parent
-                    text: topActionButton.modelData.icon
-                    color: MeoTheme.contentOnSurfaceVariant
-                    font.family: frame.typeface
-                    font.letterSpacing: 0
-                    font.weight: Font.DemiBold
-                    font.pixelSize: frame.dp(topActionButton.modelData.label === "Power" ? 25 : 24)
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        if (topActionButton.modelData.label === "Power")
-                            frame.powerMenuOpen = !frame.powerMenuOpen
-                    }
-                }
+                width: ListView.view.width; height: frame.dp(48); radius: frame.dp(12)
+                color: frame.controller && frame.controller.uiLanguage === languageOption.modelData.id ? MeoTheme.primaryContainer : "transparent"
+                Meo.MeoStateLayer { anchors.fill: parent; radius: parent.radius; hovered: languageHover.hovered; pressed: languageTap.pressed; color: MeoTheme.onSurface }
+                Text { anchors.left: parent.left; anchors.leftMargin: frame.dp(16); anchors.verticalCenter: parent.verticalCenter; text: languageOption.modelData.nativeName; font.family: frame.roboto; font.pixelSize: frame.dp(15); color: MeoTheme.onSurface }
+                Text { anchors.right: parent.right; anchors.rightMargin: frame.dp(16); anchors.verticalCenter: parent.verticalCenter; text: frame.controller && frame.controller.uiLanguage === languageOption.modelData.id ? "✓" : ""; font.pixelSize: frame.dp(18); color: MeoTheme.primary }
+                HoverHandler { id: languageHover }
+                TapHandler { id: languageTap; onTapped: { frame.controller.setUiLanguage(languageOption.modelData.id); frame.languageMenuOpen = false } }
             }
         }
     }
 
-    Rectangle {
-        id: menuShadow
-        anchors.top: topActions.bottom
-        anchors.right: parent.right
-        anchors.topMargin: frame.dp(16)
-        anchors.rightMargin: frame.pageMargin - frame.dp(2)
-        width: frame.dp(204)
-        height: menuCard.height
-        radius: frame.dp(22)
+    MotionPopup {
+        presentation: "menu"
         visible: frame.powerMenuOpen
-        color: MeoTheme.outlineVariant
-        opacity: 0.18
-    }
-
-    Rectangle {
-        id: menuCard
-        anchors.top: topActions.bottom
-        anchors.right: parent.right
-        anchors.topMargin: frame.dp(12)
-        anchors.rightMargin: frame.pageMargin
-        width: menuShadow.width
-        height: frame.dp(216)
-        radius: menuShadow.radius
-        visible: frame.powerMenuOpen
-        color: MeoTheme.surfaceContainerLow
-        border.color: MeoTheme.outlineVariant
-        border.width: 0
-        opacity: 0.92
-
-        Column {
-            anchors.fill: parent
-            anchors.margins: frame.dp(8)
-            spacing: frame.dp(4)
-
+        x: frame.width - frame.pageMargin - width; y: frame.pageMargin + frame.dp(58)
+        width: frame.dp(220); height: frame.dp(124); padding: frame.dp(8)
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        onClosed: frame.powerMenuOpen = false
+        contentItem: Column {
             Repeater {
-                model: [
-                    { icon: "⏻", label: "Power off", action: "poweroff", noOp: false },
-                    { icon: "↻", label: "Restart", action: "reboot", noOp: false },
-                    { icon: "☾", label: "Sleep", action: "suspend", noOp: false },
-                    { icon: "•", label: "Test no-op", action: "noop", noOp: true }
-                ]
-
-                Row {
-                    id: powerMenuItem
+                model: [{ label: "Restart", action: "restart" }, { label: "Shut down", action: "shutdown" }]
+                delegate: MeoButton {
                     required property var modelData
-
-                    width: parent.width
-                    height: frame.dp(48)
-                    spacing: frame.dp(12)
-
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: powerMenuItem.modelData.icon
-                        color: MeoTheme.contentOnSurfaceVariant
-                        font.family: frame.typeface
-                        font.letterSpacing: 0
-                        font.weight: Font.DemiBold
-                        font.pixelSize: frame.dp(20)
-                    }
-
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: frame.dp(128)
-                        text: powerMenuItem.modelData.label
-                        color: MeoTheme.contentOnSurface
-                        font.family: frame.typeface
-                        font.weight: MeoTheme.labelLarge.weight
-                        font.pixelSize: frame.labelLarge
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: frame.requestSystemAction(
-                            powerMenuItem.modelData.action,
-                            powerMenuItem.modelData.label,
-                            powerMenuItem.modelData.noOp
-                        )
-                    }
+                    width: parent.width; text: modelData.label; kind: "text"
+                    onClicked: { modelData.action === "restart" ? frame.controller.requestRestart() : frame.controller.requestShutdown(); frame.powerMenuOpen = false }
                 }
             }
         }
     }
 
-    Rectangle {
-        id: mainCard
-        anchors.centerIn: parent
-        width: frame.mainCardWidth
-        height: frame.mainCardHeight
-        radius: frame.dp(30)
-        color: MeoTheme.surfaceContainerLowest
-        opacity: 0.64
-        border.color: MeoTheme.outlineVariant
-        border.width: 0
-
+    Meo.MeoMotionSurface {
+        id: card
+        anchors.centerIn: parent; width: frame.mainCardWidth; height: frame.mainCardHeight
+        radius: frame.dp(30); color: Qt.rgba(1, 1, 1, 0.94); elevation: 3
         Item {
-            id: pageContent
-            anchors.fill: parent
-            anchors.leftMargin: frame.cardInset
-            anchors.rightMargin: frame.cardInset
-            anchors.topMargin: frame.cardInset
-            anchors.bottomMargin: frame.cardInset + frame.cardBottomControlHeight
+            id: body
+            anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; anchors.bottom: footer.top
+            anchors.margins: frame.cardInset; anchors.bottomMargin: frame.dp(16)
         }
-
         Rectangle {
-            visible: frame.showBackButton
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: frame.dp(22)
-            anchors.bottomMargin: frame.dp(22)
-            width: frame.dp(82)
-            height: frame.dp(40)
-            radius: frame.dp(20)
-            color: MeoTheme.surfaceContainerHigh
-
-            Row {
+            id: footer
+            anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
+            height: frame.dp(80); color: "transparent"
+            MeoButton { visible: frame.showBackButton; anchors.left: parent.left; anchors.leftMargin: frame.dp(24); anchors.verticalCenter: parent.verticalCenter; text: "Back"; kind: "text"; onClicked: frame.previousRequested() }
+            Meo.MeoPageIndicator {
                 anchors.centerIn: parent
+                count: frame.pageCount
+                currentIndex: frame.pageIndex
+                dotSize: frame.dp(6)
+                activeDotWidth: frame.dp(18)
                 spacing: frame.dp(6)
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "‹"
-                    color: MeoTheme.contentOnSurfaceVariant
-                    font.family: frame.typeface
-                    font.letterSpacing: 0
-                    font.weight: Font.DemiBold
-                    font.pixelSize: frame.dp(18)
-                }
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "Back"
-                    color: MeoTheme.contentOnSurfaceVariant
-                    font.family: frame.typeface
-                    font.weight: MeoTheme.labelSmall.weight
-                    font.pixelSize: frame.labelSmall
-                }
             }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: frame.previousRequested()
-            }
-        }
-
-        Rectangle {
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            anchors.leftMargin: frame.showBackButton ? frame.dp(114) : frame.dp(22)
-            anchors.bottomMargin: frame.dp(22)
-            width: frame.dp(74)
-            height: frame.dp(40)
-            radius: frame.dp(20)
-            color: MeoTheme.surfaceContainerHigh
-
-            Row {
-                anchors.centerIn: parent
-                spacing: frame.dp(6)
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "‹"
-                    color: MeoTheme.contentOnSurfaceVariant
-                    font.family: frame.typeface
-                    font.letterSpacing: 0
-                    font.weight: Font.DemiBold
-                    font.pixelSize: frame.dp(18)
-                }
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "Exit"
-                    color: MeoTheme.contentOnSurfaceVariant
-                    font.family: frame.typeface
-                    font.weight: MeoTheme.labelSmall.weight
-                    font.pixelSize: frame.labelSmall
-                }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: frame.exitRequested()
-            }
-        }
-
-        Rectangle {
-            visible: frame.showPrimaryButton
-            anchors.right: parent.right
-            anchors.bottom: parent.bottom
-            anchors.rightMargin: frame.dp(22)
-            anchors.bottomMargin: frame.dp(22)
-            width: Math.max(frame.dp(136), primaryText.implicitWidth + frame.dp(56))
-            height: frame.dp(40)
-            radius: frame.dp(20)
-            color: MeoTheme.primary
-
-            Row {
-                anchors.centerIn: parent
-                spacing: frame.dp(8)
-
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "✦"
-                    color: MeoTheme.contentOnPrimary
-                    font.family: frame.typeface
-                    font.letterSpacing: 0
-                    font.weight: Font.DemiBold
-                    font.pixelSize: frame.dp(18)
-                }
-
-                Text {
-                    id: primaryText
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: frame.primaryLabel
-                    color: MeoTheme.contentOnPrimary
-                    font.family: frame.typeface
-                    font.weight: MeoTheme.labelLargeEmphasized.weight
-                    font.pixelSize: frame.labelLarge
-                }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                onClicked: frame.nextRequested()
-            }
+            MeoButton { visible: frame.showPrimaryButton; enabled: frame.primaryEnabled; anchors.right: parent.right; anchors.rightMargin: frame.dp(24); anchors.verticalCenter: parent.verticalCenter; text: frame.primaryLabel; minWidth: frame.dp(136); onClicked: frame.firePrimary() }
         }
     }
 
-    Rectangle {
-        anchors.left: parent.left
-        anchors.bottom: parent.bottom
-        anchors.leftMargin: frame.pageMargin
-        anchors.bottomMargin: frame.dp(16)
-        width: Math.min(parent.width - frame.pageMargin * 2, frame.dp(430))
-        height: frame.dp(28)
-        radius: frame.dp(14)
-        color: MeoTheme.surfaceContainerLow
-        opacity: 0.9
-
-        Text {
-            anchors.centerIn: parent
-            width: parent.width - frame.dp(24)
-            text: frame.statusMessage !== "" ? frame.statusMessage : "No disk changes will be made until the final confirmation step."
-            color: MeoTheme.contentOnSurfaceVariant
-            horizontalAlignment: Text.AlignHCenter
-            elide: Text.ElideRight
-            font.family: frame.typeface
-            font.weight: Font.Normal
-            font.pixelSize: frame.labelSmall
-        }
-    }
+    Meo.MeoSnackbar { id: snackbar; message: frame.controller && frame.controller.errorMessage.length ? frame.controller.errorMessage : frame.statusMessage }
+    Connections { target: frame.controller; ignoreUnknownSignals: true; function onErrorMessageChanged() { if (frame.controller.errorMessage.length) snackbar.open() } }
 }

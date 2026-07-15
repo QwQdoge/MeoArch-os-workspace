@@ -44,8 +44,8 @@ The Linux showcase release source package also includes `run-showcase-linux.sh`
 at the package root:
 
 ```bash
-tar -xzf meo-ui-showcase-linux-x64-source-0.2.0.tar.gz
-cd meo-ui-showcase-linux-x64-source-0.2.0
+tar -xzf meo-ui-showcase-linux-x64-source-0.3.0.tar.gz
+cd meo-ui-showcase-linux-x64-source-0.3.0
 ./run-showcase-linux.sh
 ```
 
@@ -65,12 +65,12 @@ under `/usr/local/share/fonts/meo-ui`. The script creates the compatibility
 import path `/opt/meo-ui/qml/MeoUI` for existing `import MeoUI` applications.
 
 ```bash
-tar -xzf meo-ui-runtime-0.2.0.tar.gz
-cd meo-ui-runtime-0.2.0
+tar -xzf meo-ui-runtime-0.3.0.tar.gz
+cd meo-ui-runtime-0.3.0
 ./install-runtime.sh install
 ./install-runtime.sh verify
 ./install-runtime.sh update --yes
-./install-runtime.sh upgrade --version 0.2.1
+./install-runtime.sh upgrade --version 0.3.1
 ./install-runtime.sh uninstall
 ```
 
@@ -81,7 +81,7 @@ install does not require administrator privileges:
 .\tools\install-runtime.ps1 -Action install
 .\tools\install-runtime.ps1 -Action verify
 .\tools\install-runtime.ps1 -Action update -Yes
-.\tools\install-runtime.ps1 -Action upgrade -Version 0.2.1
+.\tools\install-runtime.ps1 -Action upgrade -Version 0.3.1
 .\tools\install-runtime.ps1 -Action uninstall
 ```
 
@@ -109,3 +109,5 @@ On multi-config generators such as Visual Studio, add `--config Release` to the 
 ## Showcase Coverage
 
 The showcase entry point is `showcase/MeoShowcase.qml`. It includes pages for theme tokens, buttons, inputs, navigation, selection, display, feedback, patterns, data tables, expressive controls, component lab, widget lab, and layout lab.
+
+`MeoWindowMetrics` follows Windows effective-pixel size classes: small through 640 px, medium from 641-1007 px, and large from 1008 px. Applications should consume its navigation mode, page margins, pane width, maximum content width, and adaptive column count rather than defining local breakpoints.

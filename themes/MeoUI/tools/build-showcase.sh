@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ -z "${LC_ALL:-}" ]]; then
+  export LC_ALL=C.UTF-8
+  export LANG=C.UTF-8
+fi
+
 config="Release"
 build_dir="out/build/showcase"
 install_dir="out/install/showcase"

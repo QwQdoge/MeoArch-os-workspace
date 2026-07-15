@@ -24,6 +24,7 @@ Control {
     readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
     readonly property color themeSurfaceContainerLow: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionFast: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationFast !== "undefined") ? MeoTheme.motionDurationFast : 150
 
     readonly property var fontToken: {
         if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
@@ -82,7 +83,7 @@ Control {
             color: control.themeOnSurface
         }
 
-        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on color { ColorAnimation { duration: control.motionFast } }
     }
 
     MouseArea {
@@ -126,6 +127,7 @@ Control {
 
         Text {
             text: control.label
+            font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
             font.pixelSize: fontToken.size * control.themeGlobalScale
             font.weight: fontToken.weight
             font.letterSpacing: (fontToken.letterSpacing || 0) * control.themeGlobalScale

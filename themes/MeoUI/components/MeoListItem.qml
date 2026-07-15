@@ -25,13 +25,12 @@ Control {
 
     property bool interactive: true
     property bool isSegmented: false // MD3 Expressive: Segmented list style
-    property string roundingStrategy: "none" // "all" | "top" | "bottom" | "middle" | "none"
+    property string roundingStrategy: "all" // "all" | "top" | "bottom" | "middle" | "none"
     property bool isDense: false // MD3 Expressive: Compact list style
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool vibrant: false // 🌟 MD3 Expressive: Vibrant selection style
     property bool selected: false
     property string shape: "rect" // 🌟 MD3 Expressive: "rect" | "squircle" | "hexagon" | ...
-    property string roundingStrategy: "all" // "all" | "top" | "bottom" | "none"
 
     signal clicked()
 
@@ -110,7 +109,6 @@ Control {
                     if (selected) return control.themeOnSecondaryContainer;
                     return control.themeOnSurface;
                 }
-                radius: parent.radius
             }
 
             Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }

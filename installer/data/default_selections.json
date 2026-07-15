@@ -1,28 +1,23 @@
 {
+  "schemaVersion": 1,
+  "preferences": { "uiLanguage": "en" },
   "locale": {
-    "archinstallLanguage": "English",
-    "sys-language": "en_US",
-    "sys-encoding": "UTF-8",
-    "locale": "en_US.UTF-8",
-    "keyboard-layout": "us",
-    "timezone": "UTC"
+    "systemLocale": "en_US.UTF-8",
+    "sysLanguage": "en_US",
+    "sysEncoding": "UTF-8",
+    "formatCountry": "US",
+    "formatLocale": "en_US.UTF-8",
+    "timezone": "UTC",
+    "keyboardLayout": "us"
   },
-  "network": {
-    "mode": "networkmanager"
-  },
+  "network": { "mode": "networkmanager" },
   "privacy": {
-    "telemetry": false,
-    "firewall": true
+    "diagnostics": false,
+    "firewall": true,
+    "securityUpdates": true,
+    "diskEncryption": false,
+    "restrictAppPermissions": true
   },
-  "disk": {
-    "mode": "not_configured"
-  },
-  "user": {
-    "hostname": "meoarch",
-    "username": "meo"
-  },
-  "credentials": {
-    "rootPasswordHash": "",
-    "userPasswordHash": ""
-  }
+  "disk": { "mode": "erase", "filesystem": "btrfs", "swap": "zram" },
+  "user": { "hostname": "meoarch", "username": "meo", "automaticLogin": false }
 }

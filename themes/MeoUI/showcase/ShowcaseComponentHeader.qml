@@ -2,43 +2,53 @@ import QtQuick
 import QtQuick.Layouts
 import MeoUI
 
-ColumnLayout {
+Item {
     id: control
 
     property var componentData: ({})
 
     width: parent ? parent.width : implicitWidth
-    spacing: MeoTheme.space8
+    implicitWidth: headerColumn.implicitWidth
+    implicitHeight: headerColumn.implicitHeight
 
-    RowLayout {
-        Layout.fillWidth: true
+    ColumnLayout {
+        id: headerColumn
+        anchors.left: parent.left
+        anchors.right: parent.right
         spacing: MeoTheme.space12
 
-        MeoText {
-            text: componentData.name || ""
-            typeRole: "title"
-            typeSize: "medium"
-            emphasized: true
-            color: MeoTheme.contentOnSurface
+        GridLayout {
+            Layout.fillWidth: true
+            columns: control.width <= MeoTheme.windowBreakpointSmall * MeoTheme.globalScale ? 1 : 2
+            rowSpacing: MeoTheme.space8
+            columnSpacing: MeoTheme.space12
+
+            MeoText {
+                text: control.componentData.name || ""
+                typeRole: "title"
+                typeSize: "medium"
+                emphasized: true
+                color: MeoTheme.contentOnSurface
+            }
+
+            MeoText {
+                Layout.fillWidth: true
+                text: control.componentData.source || ""
+                typeRole: "label"
+                typeSize: "small"
+                color: MeoTheme.contentOnSurfaceVariant
+                elide: Text.ElideLeft
+                horizontalAlignment: parent.columns === 1 ? Text.AlignLeft : Text.AlignRight
+            }
         }
 
         MeoText {
             Layout.fillWidth: true
-            text: componentData.source || ""
-            typeRole: "label"
-            typeSize: "small"
+            text: control.componentData.summary || ""
+            typeRole: "body"
+            typeSize: "medium"
             color: MeoTheme.contentOnSurfaceVariant
-            elide: Text.ElideLeft
-            horizontalAlignment: Text.AlignRight
+            wrapMode: Text.WordWrap
         }
-    }
-
-    MeoText {
-        Layout.fillWidth: true
-        text: componentData.summary || ""
-        typeRole: "body"
-        typeSize: "medium"
-        color: MeoTheme.contentOnSurfaceVariant
-        wrapMode: Text.WordWrap
     }
 }

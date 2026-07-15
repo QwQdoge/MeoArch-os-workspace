@@ -8,12 +8,71 @@ Control {
     // 🌟 核心对外属性
     property var columns: [] // [{ label: "Column", width: 100, property: "prop", sortable: true }]
     property var model: []   // [{ prop: "value", selected: false }]
+    property var rowData: model
     property bool selectable: false
+    property bool showCheckBoxes: selectable
+    property bool showDividers: true
+    property bool hoverEffect: true
     property string sortProperty: ""
     property bool sortAscending: true
+    property var selectedIndices: []
+    property bool allSelected: false
+    property bool isIndeterminate: false
 
     signal sortRequested(string property, bool ascending)
     signal selectionChanged()
+
+    function rowIsSelected(row) {
+        return !!(row && (row.selected || row.isSelected))
+    }
+
+    function refreshSelectionState() {
+        let indices = []
+        for (let i = 0; i < control.model.length; i++) {
+            if (rowIsSelected(control.model[i]))
+                indices.push(i)
+        }
+        selectedIndices = indices
+        allSelected = control.model.length > 0 && indices.length === control.model.length
+        isIndeterminate = indices.length > 0 && indices.length < control.model.length
+    }
+
+    function toggleAll(selected) {
+        let newModel = [...control.model]
+        newModel.forEach(item => {
+            item.selected = selected
+            item.isSelected = selected
+        })
+        control.model = newModel
+        refreshSelectionState()
+        control.selectionChanged()
+    }
+
+    function toggleRow(rowIndex, selected) {
+        if (rowIndex < 0 || rowIndex >= control.model.length)
+            return
+        let newModel = [...control.model]
+        newModel[rowIndex].selected = selected
+        newModel[rowIndex].isSelected = selected
+        control.model = newModel
+        refreshSelectionState()
+        control.selectionChanged()
+    }
+
+    onRowDataChanged: {
+        if (model !== rowData)
+            model = rowData
+    }
+    onModelChanged: {
+        if (rowData !== model)
+            rowData = model
+        refreshSelectionState()
+    }
+    onShowCheckBoxesChanged: selectable = showCheckBoxes
+    onSelectableChanged: {
+        if (showCheckBoxes !== selectable)
+            showCheckBoxes = selectable
+    }
 
     // 🌟 作用域防御与主题适配
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -58,27 +117,16 @@ Control {
                     visible: control.selectable
                     MeoCheckbox {
                         anchors.centerIn: parent
-                        checked: {
-                            if (control.model.length === 0) return false;
-                            return control.model.every(item => item.selected);
-                        }
-                        indeterminate: {
-                            let selectedCount = control.model.filter(item => item.selected).length;
-                            return selectedCount > 0 && selectedCount < control.model.length;
-                        }
-                        onToggled: (isChecked) => {
-                            let newModel = [...control.model];
-                            newModel.forEach(item => item.selected = isChecked);
-                            control.model = newModel;
-                            control.selectionChanged();
-                        }
+                        checked: control.allSelected
+                        indeterminate: control.isIndeterminate
+                        onToggled: (isChecked) => control.toggleAll(isChecked)
                     }
                 }
 
                 Repeater {
                     model: control.columns
                     delegate: Item {
-                        width: modelData.width ? modelData.width * control.themeGlobalScale : (headerRow.width - (control.selectable ? 56 : 0) - 32) / control.columns.length
+                            width: modelData.width ? modelData.width * control.themeGlobalScale : (headerRow.width - (control.selectable ? 56 : 0) - 32) / control.columns.length
                         height: parent.height
 
                         Row {
@@ -97,7 +145,7 @@ Control {
                             MeoIcon {
                                 icon: control.sortAscending ? "arrow_upward" : "arrow_downward"
                                 size: 16
-                                visible: !!modelData.sortable && control.sortProperty === modelData.property
+                                visible: !!modelData.sortable && control.sortProperty === (modelData.property || modelData.role)
                                 color: control.themePrimary
                                 anchors.verticalCenter: parent.verticalCenter
                             }
@@ -107,13 +155,14 @@ Control {
                             anchors.fill: parent
                             enabled: !!modelData.sortable
                             onClicked: {
-                                if (control.sortProperty === modelData.property) {
+                                let sortRole = modelData.property || modelData.role;
+                                if (control.sortProperty === sortRole) {
                                     control.sortAscending = !control.sortAscending;
                                 } else {
-                                    control.sortProperty = modelData.property;
+                                    control.sortProperty = sortRole;
                                     control.sortAscending = true;
                                 }
-                                control.sortRequested(modelData.property, control.sortAscending);
+                                control.sortRequested(sortRole, control.sortAscending);
                             }
                         }
                     }
@@ -142,7 +191,7 @@ Control {
                 height: 52 * control.themeGlobalScale
 
                 readonly property var row: modelData
-                readonly property bool isSelected: row.selected || false
+                readonly property bool isSelected: control.rowIsSelected(row)
 
                 Rectangle {
                     anchors.fill: parent
@@ -151,7 +200,8 @@ Control {
                     MeoStateLayer {
                         anchors.fill: parent
                         pressed: rowMouseArea.pressed
-                        hovered: rowMouseArea.containsMouse
+                        hovered: control.hoverEffect && rowMouseArea.containsMouse
+                        color: rowDelegate.isSelected ? control.themeOnSurface : control.themeOnSurfaceVariant
                     }
                 }
 
@@ -168,12 +218,7 @@ Control {
                         MeoCheckbox {
                             anchors.centerIn: parent
                             checked: rowDelegate.isSelected
-                            onToggled: (isChecked) => {
-                                let newModel = [...control.model];
-                                newModel[index].selected = isChecked;
-                                control.model = newModel;
-                                control.selectionChanged();
-                            }
+                            onToggled: (isChecked) => control.toggleRow(index, isChecked)
                         }
                     }
 
@@ -195,7 +240,10 @@ Control {
                             Component {
                                 id: defaultTextDelegate
                                 Text {
-                                    text: columnData.property ? columnData.property.split('.').reduce((obj, i) => obj[i], rowData) : ""
+                                    text: {
+                                        let path = columnData.property || columnData.role || "";
+                                        return path ? path.split('.').reduce((obj, i) => obj ? obj[i] : "", rowData) : "";
+                                    }
                                     font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                                     font.pixelSize: control.fontBodyMedium.size * control.themeGlobalScale
                                     color: control.themeOnSurfaceVariant
@@ -212,7 +260,7 @@ Control {
                     width: parent.width
                     height: 1 * control.themeGlobalScale
                     color: control.themeOutlineVariant
-                    visible: index < listView.count - 1
+                    visible: control.showDividers && index < listView.count - 1
                 }
 
                 MouseArea {
@@ -221,10 +269,7 @@ Control {
                     hoverEnabled: true
                     onClicked: {
                         if (control.selectable) {
-                            let newModel = [...control.model];
-                            newModel[index].selected = !newModel[index].selected;
-                            control.model = newModel;
-                            control.selectionChanged();
+                            control.toggleRow(index, !rowDelegate.isSelected);
                         }
                     }
                 }

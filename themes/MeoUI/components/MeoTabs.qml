@@ -11,8 +11,25 @@ Control {
     property int currentIndex: 0
     property string type: "primary" // "primary" | "secondary"
     property bool isScrollable: false
+    property int previousIndex: 0
 
     signal clicked(int index)
+
+    onCurrentIndexChanged: {
+        Qt.callLater(updateIndicator)
+        previousIndex = currentIndex
+    }
+
+    function updateIndicator() {
+        if (!slidingIndicator || !tabRepeater)
+            return
+        let item = tabRepeater.itemAt(control.currentIndex)
+        if (!item)
+            return
+        let indicatorWidth = control.type === "secondary" ? item.width : Math.max(32 * control.themeGlobalScale, item.contentWidth)
+        slidingIndicator.leftEdge = item.x + (item.width - indicatorWidth) / 2
+        slidingIndicator.rightEdge = slidingIndicator.leftEdge + indicatorWidth
+    }
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -21,6 +38,8 @@ Control {
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property color themeOutlineVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outlineVariant !== 'undefined') ? MeoTheme.outlineVariant : "#C4C7C5"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionFast: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationFast !== 'undefined') ? MeoTheme.motionDurationFast : 150
+    readonly property int motionIndicator: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium1 !== 'undefined') ? MeoTheme.motionDurationMedium1 : 250
 
     readonly property var fontTitleSmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.titleSmall !== 'undefined') ? MeoTheme.titleSmall : { "size": 14, "weight": Font.Medium }
 
@@ -35,7 +54,7 @@ Control {
                     break;
                 }
             }
-            return (hasIcon ? 64 : 48) * themeGlobalScale;
+            return (hasIcon ? 72 : 48) * themeGlobalScale;
         }
         return 48 * themeGlobalScale;
     }
@@ -73,6 +92,8 @@ Control {
                 Repeater {
                     id: tabRepeater
                     model: control.model
+                    onItemAdded: Qt.callLater(control.updateIndicator)
+                    onItemRemoved: Qt.callLater(control.updateIndicator)
                     delegate: Item {
                         id: tabItem
                         width: control.isScrollable ? Math.max(90 * control.themeGlobalScale, contentCol.implicitWidth + 32 * control.themeGlobalScale) : (layoutRow.width / Math.max(1, control.model.length))
@@ -80,7 +101,7 @@ Control {
 
                         readonly property real contentWidth: contentCol.implicitWidth
                         readonly property var itemData: modelData
-                        readonly property string label: typeof itemData === 'string' ? itemData : (itemData.label || "")
+                        readonly property string label: typeof itemData === 'string' ? itemData : (itemData.label || itemData.text || "")
                         readonly property string icon: typeof itemData === 'object' ? (itemData.icon || "") : ""
                         readonly property string badgeText: typeof itemData === 'object' ? (itemData.badgeText || "") : ""
                         readonly property bool badgeDot: typeof itemData === 'object' ? (itemData.badgeDot || false) : false
@@ -127,7 +148,7 @@ Control {
                                     font.pixelSize: control.fontTitleSmall.size * control.themeGlobalScale
                                     font.weight: tabItem.isSelected ? Font.Bold : control.fontTitleSmall.weight
                                     color: tabItem.isSelected ? control.themePrimary : control.themeOnSurfaceVariant
-                                    Behavior on color { ColorAnimation { duration: 150 } }
+                                    Behavior on color { ColorAnimation { duration: control.motionFast } }
                                 }
 
                                 MeoBadge {
@@ -170,33 +191,33 @@ Control {
             Rectangle {
                 id: slidingIndicator
                 anchors.bottom: parent.bottom
-                height: 3 * control.themeGlobalScale
-                radius: 3 * control.themeGlobalScale
+                height: (control.type === "secondary" ? 2 : 3) * control.themeGlobalScale
+                radius: control.type === "secondary" ? 0 : 3 * control.themeGlobalScale
                 color: control.themePrimary
 
-                readonly property Item currentItem: tabRepeater.itemAt(control.currentIndex)
+                property real leftEdge: 0
+                property real rightEdge: 0
 
-                x: currentItem ? currentItem.x + (currentItem.width - width) / 2 : 0
-                width: {
-                    if (!currentItem) return 0;
-                    if (control.type === "secondary") return currentItem.width;
-                    // For primary, it wraps the content
-                    return Math.max(32 * control.themeGlobalScale, currentItem.contentWidth);
-                }
+                x: leftEdge
+                width: Math.max(0, rightEdge - leftEdge)
 
-                Behavior on x {
+                Behavior on leftEdge {
                     NumberAnimation {
-                        duration: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationMedium1 !== "undefined") ? MeoTheme.motionDurationMedium1 : 250
+                        duration: control.motionIndicator
                         easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.05, 0.7, 0.1, 1.0]
                     }
                 }
-                Behavior on width {
+                Behavior on rightEdge {
                     NumberAnimation {
-                        duration: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationMedium1 !== "undefined") ? MeoTheme.motionDurationMedium1 : 250
+                        duration: control.motionIndicator
                         easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.05, 0.7, 0.1, 1.0]
                     }
                 }
             }
         }
     }
+
+    Component.onCompleted: Qt.callLater(updateIndicator)
+    onWidthChanged: Qt.callLater(updateIndicator)
+    onModelChanged: Qt.callLater(updateIndicator)
 }

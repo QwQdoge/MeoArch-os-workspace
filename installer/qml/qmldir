@@ -1,1 +1,3 @@
 singleton MeoTheme 1.0 MeoTheme.qml
+singleton InstallerSession 1.0 InstallerSession.qml
+singleton PreviewController 1.0 PreviewController.qml

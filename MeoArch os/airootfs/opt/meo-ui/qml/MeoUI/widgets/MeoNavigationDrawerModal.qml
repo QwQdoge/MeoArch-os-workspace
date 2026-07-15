@@ -42,12 +42,25 @@ Popup {
         }
     }
 
-    // Enter/Exit Animations
+    // Windows/WinUI-style directional motion. Motion is disabled centrally for
+    // users that request reduced motion.
     enter: Transition {
-        NumberAnimation { property: "x"; from: -control.width; to: 0; duration: 250; easing.type: Easing.OutCubic }
+        NumberAnimation {
+            property: "x"
+            from: -control.width
+            to: 0
+            duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlNormal
+            easing.bezierCurve: MeoTheme.motionEasingEnter
+        }
     }
     exit: Transition {
-        NumberAnimation { property: "x"; from: 0; to: -control.width; duration: 200; easing.type: Easing.InCubic }
+        NumberAnimation {
+            property: "x"
+            from: 0
+            to: -control.width
+            duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlFast
+            easing.bezierCurve: MeoTheme.motionEasingExit
+        }
     }
 
     Column {

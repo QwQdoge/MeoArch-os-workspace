@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import MeoUI
 
 Flickable {
@@ -12,13 +13,15 @@ Flickable {
     property real compactWidth: 680 * themeGlobalScale
     property real mediumWidth: 920 * themeGlobalScale
     property real expandedWidth: 1180 * themeGlobalScale
-    property real padding: (isCompact ? 16 : 24) * themeGlobalScale
-    property real sectionSpacing: 24 * themeGlobalScale
+    property real padding: windowMetrics.pageMargin
+    property real sectionSpacing: windowMetrics.sectionSpacing
     default property alias content: bodyColumn.data
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== "undefined" && typeof MeoTheme.globalScale !== "undefined") ? MeoTheme.globalScale : 1.0
-    readonly property bool isCompact: width < 600 * themeGlobalScale
-    readonly property bool isMedium: width >= 600 * themeGlobalScale && width < 840 * themeGlobalScale
+    readonly property bool isCompact: windowMetrics.isSmall
+    readonly property bool isMedium: windowMetrics.isMedium
+    readonly property bool isExpanded: windowMetrics.isLarge
+    readonly property string windowSizeClass: windowMetrics.sizeClass
     readonly property real maxContentWidth: isCompact ? compactWidth : (isMedium ? mediumWidth : expandedWidth)
     readonly property var fontPageTitle: (typeof MeoTheme !== "undefined" && typeof MeoTheme.titleBig !== "undefined") ? MeoTheme.titleBig : { "size": 28, "weight": Font.DemiBold, "lineHeight": 36, "letterSpacing": 0 }
     readonly property var fontPageSubtitle: (typeof MeoTheme !== "undefined" && typeof MeoTheme.bodyBig !== "undefined") ? MeoTheme.bodyBig : { "size": 16, "weight": Font.Normal, "lineHeight": 24, "letterSpacing": 0.5 }
@@ -27,6 +30,12 @@ Flickable {
     contentHeight: rootColumn.implicitHeight + padding * 2
     clip: true
     boundsBehavior: Flickable.StopAtBounds
+
+    MeoWindowMetrics {
+        id: windowMetrics
+        availableWidth: control.width
+        availableHeight: control.height
+    }
 
     Column {
         id: rootColumn
@@ -46,13 +55,15 @@ Flickable {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: control.sectionSpacing
 
-            Row {
+            GridLayout {
                 width: parent.width
-                spacing: 16 * control.themeGlobalScale
+                columns: control.isCompact ? 1 : 2
+                columnSpacing: 16 * control.themeGlobalScale
+                rowSpacing: 12 * control.themeGlobalScale
                 visible: control.title !== "" || control.subtitle !== "" || control.actions.length > 0
 
                 Column {
-                    width: parent.width - actionsRow.width - (actionsRow.visible ? parent.spacing : 0)
+                    Layout.fillWidth: true
                     spacing: 4 * control.themeGlobalScale
 
                     MeoText {
@@ -81,7 +92,7 @@ Flickable {
                     id: actionsRow
                     visible: control.actions.length > 0
                     spacing: 4 * control.themeGlobalScale
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.alignment: control.isCompact ? Qt.AlignLeft : Qt.AlignRight | Qt.AlignVCenter
 
                     Repeater {
                         model: control.actions

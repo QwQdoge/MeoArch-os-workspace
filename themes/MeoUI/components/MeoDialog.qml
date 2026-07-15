@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import MeoUI
 
 Popup {
@@ -10,6 +11,8 @@ Popup {
     property string confirmText: "Confirm"
     property string cancelText: "Cancel"
     property string icon: ""
+    property bool showAcceptButton: true
+    property bool showRejectButton: true
 
     signal confirmed()
     signal cancelled()
@@ -34,9 +37,16 @@ Popup {
     focus: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
+    Overlay.modal: Rectangle {
+        color: Qt.rgba(0, 0, 0, 0.32)
+        Behavior on opacity { NumberAnimation { duration: control.motionExit } }
+    }
+
     background: Rectangle {
         color: control.themeSurfaceContainerHigh
-        radius: 28 * control.themeGlobalScale
+        radius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeExtraLarge !== 'undefined') ? MeoTheme.shapeExtraLarge : 28 * control.themeGlobalScale
+        layer.enabled: true
+        layer.effect: MultiEffect { shadowEnabled: true; shadowBlur: 0.55; shadowVerticalOffset: 8; shadowColor: Qt.rgba(0, 0, 0, 0.22) }
     }
 
     contentItem: Column {
@@ -75,10 +85,12 @@ Popup {
             width: parent.width - 48 * control.themeGlobalScale
             layoutDirection: Qt.RightToLeft
             spacing: 8 * control.themeGlobalScale
+            visible: control.showAcceptButton || control.showRejectButton
 
             MeoButton {
                 text: control.confirmText
                 type: "text"
+                visible: control.showAcceptButton
                 onClicked: {
                     control.confirmed()
                     control.close()
@@ -88,6 +100,7 @@ Popup {
             MeoButton {
                 text: control.cancelText
                 type: "text"
+                visible: control.showRejectButton
                 onClicked: {
                     control.cancelled()
                     control.close()
@@ -97,11 +110,15 @@ Popup {
     }
 
     enter: Transition {
-        NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: control.motionEnter }
-        NumberAnimation { property: "scale"; from: 0.9; to: 1.0; duration: control.motionEnter; easing.type: Easing.OutBack }
+        ParallelAnimation {
+            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: control.motionEnter; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1]) }
+            NumberAnimation { property: "scale"; from: 0.94; to: 1.0; duration: control.motionEnter; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1]) }
+        }
     }
     exit: Transition {
-        NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: control.motionExit }
-        NumberAnimation { property: "scale"; from: 1.0; to: 0.9; duration: control.motionExit }
+        ParallelAnimation {
+            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: control.motionExit; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15]) }
+            NumberAnimation { property: "scale"; from: 1.0; to: 0.98; duration: control.motionExit; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15]) }
+        }
     }
 }

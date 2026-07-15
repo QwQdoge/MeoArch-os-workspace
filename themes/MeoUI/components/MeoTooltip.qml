@@ -8,12 +8,16 @@ ToolTip {
     readonly property color themeInverseSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined' && MeoTheme.isDarkMode) ? "#E6E1E5" : "#313033"
     readonly property color themeInverseOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined' && MeoTheme.isDarkMode) ? "#313033" : "#F4F0F4"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionFast: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationFast !== 'undefined') ? MeoTheme.motionDurationFast : 150
+    readonly property var fontLabelSmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelSmall !== 'undefined') ? MeoTheme.labelSmall : { "size": 11, "weight": Font.Medium }
 
     padding: 8 * themeGlobalScale
 
     contentItem: Text {
         text: control.text
-        font.pixelSize: 12 * control.themeGlobalScale
+        font.pixelSize: control.fontLabelSmall.size * control.themeGlobalScale
+        font.weight: control.fontLabelSmall.weight
+        font.letterSpacing: (control.fontLabelSmall.letterSpacing || 0) * control.themeGlobalScale
         color: control.themeInverseOnSurface
     }
 
@@ -26,9 +30,9 @@ ToolTip {
     }
 
     enter: Transition {
-        NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 150 }
+        NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: control.motionFast }
     }
     exit: Transition {
-        NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 150 }
+        NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: control.motionFast }
     }
 }

@@ -20,8 +20,13 @@ Column {
     readonly property color themeOnSurface: (typeof MeoTheme !== "undefined" && typeof MeoTheme.contentOnSurface !== "undefined") ? MeoTheme.contentOnSurface : "#1C1B1F"
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== "undefined" && typeof MeoTheme.contentOnSurfaceVariant !== "undefined") ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property color themeOutlineVariant: (typeof MeoTheme !== "undefined" && typeof MeoTheme.outlineVariant !== "undefined") ? MeoTheme.outlineVariant : "#C4C7C5"
+    readonly property color themeSurfaceContainerLowest: (typeof MeoTheme !== "undefined" && typeof MeoTheme.surfaceContainerLowest !== "undefined") ? MeoTheme.surfaceContainerLowest : "#FFFFFF"
+    readonly property color themeSecondaryContainer: (typeof MeoTheme !== "undefined" && typeof MeoTheme.secondaryContainer !== "undefined") ? MeoTheme.secondaryContainer : "#E8DEF8"
+    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== "undefined" && typeof MeoTheme.contentOnSecondaryContainer !== "undefined") ? MeoTheme.contentOnSecondaryContainer : "#1D192B"
     readonly property var fontTitleMedium: (typeof MeoTheme !== "undefined" && typeof MeoTheme.titleMedium !== "undefined") ? MeoTheme.titleMedium : { "size": 16, "weight": Font.Medium, "lineHeight": 24, "letterSpacing": 0.15 }
     readonly property var fontBodyMedium: (typeof MeoTheme !== "undefined" && typeof MeoTheme.bodyMedium !== "undefined") ? MeoTheme.bodyMedium : { "size": 14, "weight": Font.Normal, "lineHeight": 20, "letterSpacing": 0.25 }
+    readonly property int animationDuration: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationMedium2 !== "undefined") ? MeoTheme.motionDurationMedium2 : 250
+    readonly property var emphasizedCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.2, 0.0, 0.0, 1.0]
 
     width: parent ? parent.width : 680 * themeGlobalScale
     spacing: 12 * themeGlobalScale
@@ -105,8 +110,8 @@ Column {
                         MeoStateLayer {
                             anchors.fill: parent
                             radius: parent.radius
-                            hovered: rowItem.hovered
-                            pressed: rowItem.pressed
+                            hovered: rowItem.hovered || false
+                            pressed: rowItem.pressed || false
                             color: rowItem.selected ? control.themeOnSecondaryContainer : control.themeOnSurface
                         }
 

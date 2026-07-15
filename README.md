@@ -11,9 +11,10 @@ final live image is assembled.
 ## Current Status
 
 - The existing archiso profile is kept at `MeoArch os/`.
-- A Cage-based Qt Quick/QML graphical installer framework is present.
-- The installer is currently non-destructive and writes only a preview config.
-- `archinstall` is planned as the future installation backend.
+- A compiled Qt 6/C++ host and ten-step MD3 Qt Quick installer are present.
+- Runtime locale, ISO 3166-1 country, IANA time-zone, and XKB catalogs are available.
+- Archinstall and KDE configuration adapters are implemented behind explicit safety gates.
+- The default installer mode is non-destructive and simulates progress.
 - Installer documentation is available in English and Simplified Chinese.
 
 ## Repository Layout
@@ -84,6 +85,7 @@ systemd
   -> meoarch-installer-kiosk
   -> cage
   -> meoarch-installer
+  -> meoarch-installer-app
   -> QML installer UI
 ```
 
@@ -96,15 +98,14 @@ MeoArch os/airootfs/usr/local/bin/
 MeoArch os/airootfs/etc/systemd/system/
 ```
 
-The framework is intentionally safe. It can write:
+The framework is intentionally safe. It can write preview artifacts under:
 
 ```text
-/tmp/meoarch-archinstall-preview.json
+/tmp/meoarch-installer/
 ```
 
-It must not partition disks, format filesystems, mount target disks, run
-`archinstall`, run `pacstrap`, or install GRUB until the destructive path is
-fully designed and explicitly enabled.
+It will not call Archinstall unless real-install mode is enabled, Summary is
+confirmed, disk geometry is present, and the separate credentials artifact is ready.
 
 ## Building The ISO
 
@@ -115,7 +116,10 @@ Builds should be run on Arch Linux with `archiso` installed:
 ```
 
 The build script synchronizes the installer source into `airootfs` before
-calling `mkarchiso`.
+calling `mkarchiso`. A development machine without Qt 6 headers can still build
+the ISO: the optional C++ host is skipped and the live image runs the same QML
+views with `qml6`. The live image itself always installs `qt6-base`,
+`qt6-declarative`, `qt6-svg`, and `qt6-wayland` from the Arch repositories.
 
 ## Development Notes
 

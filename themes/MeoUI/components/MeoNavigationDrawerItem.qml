@@ -126,7 +126,12 @@ Control {
                 color: control.selected ? control.themeOnSecondaryContainer : (control.mode === "group" ? control.themeOnSurface : control.themeOnSurfaceVariant)
                 verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color {
+                    ColorAnimation {
+                        duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlFast
+                        easing.bezierCurve: control.selected ? MeoTheme.motionEasingEnter : MeoTheme.motionEasingExit
+                    }
+                }
             }
 
             Text {

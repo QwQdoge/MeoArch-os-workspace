@@ -27,7 +27,7 @@ Rectangle {
     implicitHeight: 56 * themeGlobalScale
 
     // 📐 Expressive Expansion Logic
-    readonly property bool isWide: parent && parent.width > 600 * themeGlobalScale
+    readonly property bool isWide: parent && MeoTheme.windowSizeClass(parent.width) !== "small"
 
     function activateSearch() {
         if (!active) {
@@ -46,9 +46,9 @@ Rectangle {
 
     readonly property color themeSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surface !== 'undefined') ? MeoTheme.surface : "#FFFBFE"
 
-    Behavior on width { NumberAnimation { duration: 300; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
-    Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
-    Behavior on radius { NumberAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
+    Behavior on width { NumberAnimation { duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingEnter } }
+    Behavior on color { ColorAnimation { duration: MeoTheme.motionDurationControlFast; easing.bezierCurve: MeoTheme.motionEasingEnter } }
+    Behavior on radius { NumberAnimation { duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingEnter } }
 
     Row {
         anchors.fill: parent
@@ -76,12 +76,12 @@ Rectangle {
                 size: 24
                 color: leadingButton.icon.color
                 rotation: control.active ? 0 : -90
-                Behavior on rotation { NumberAnimation { duration: 250; easing.bezierCurve: MeoTheme.motionEasingSoul } }
+                Behavior on rotation { NumberAnimation { duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingEnter } }
                 Behavior on icon {
                     SequentialAnimation {
-                        NumberAnimation { target: parent; property: "opacity"; to: 0; duration: 100 }
+                        NumberAnimation { target: parent; property: "opacity"; to: 0; duration: MeoTheme.motionDurationControlFaster }
                         PropertyAction { property: "icon" }
-                        NumberAnimation { target: parent; property: "opacity"; to: 1; duration: 100 }
+                        NumberAnimation { target: parent; property: "opacity"; to: 1; duration: MeoTheme.motionDurationControlFaster }
                     }
                 }
             }
@@ -114,7 +114,7 @@ Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             visible: icon.name !== ""
             opacity: visible ? 1.0 : 0.0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { NumberAnimation { duration: MeoTheme.motionDurationControlFast } }
 
             onClicked: {
                 if (control.active && control.text !== "") {
@@ -130,9 +130,9 @@ Rectangle {
                 color: trailingButton.icon.color
                 Behavior on icon {
                     SequentialAnimation {
-                        NumberAnimation { target: parent; property: "scale"; to: 0.5; duration: 100 }
+                        NumberAnimation { target: parent; property: "scale"; to: 0.5; duration: MeoTheme.motionDurationControlFaster }
                         PropertyAction { property: "icon" }
-                        NumberAnimation { target: parent; property: "scale"; to: 1.0; duration: 100 }
+                        NumberAnimation { target: parent; property: "scale"; to: 1.0; duration: MeoTheme.motionDurationControlFaster }
                     }
                 }
             }

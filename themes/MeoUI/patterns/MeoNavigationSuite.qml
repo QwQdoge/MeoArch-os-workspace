@@ -16,10 +16,17 @@ Item {
     signal clicked(int index)
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== "undefined" && typeof MeoTheme.globalScale !== "undefined") ? MeoTheme.globalScale : 1.0
-    readonly property bool isCompact: availableWidth < 600 * themeGlobalScale
-    readonly property bool isMedium: availableWidth >= 600 * themeGlobalScale && availableWidth < 840 * themeGlobalScale
-    readonly property bool isExpanded: availableWidth >= 840 * themeGlobalScale
-    readonly property real expandedDrawerWidth: Math.max(240 * themeGlobalScale, Math.min(320 * themeGlobalScale, 280 * themeGlobalScale))
+    readonly property bool isCompact: windowMetrics.isSmall
+    readonly property bool isMedium: windowMetrics.isMedium
+    readonly property bool isExpanded: windowMetrics.isLarge
+    readonly property string windowSizeClass: windowMetrics.sizeClass
+    readonly property real expandedDrawerWidth: 280 * themeGlobalScale
+
+    MeoWindowMetrics {
+        id: windowMetrics
+        availableWidth: control.availableWidth
+        availableHeight: control.height
+    }
 
     implicitWidth: isCompact ? 360 * themeGlobalScale : (isMedium ? (expandedRail ? 256 : 80) * themeGlobalScale : expandedDrawerWidth)
     implicitHeight: isCompact ? 80 * themeGlobalScale : 600 * themeGlobalScale

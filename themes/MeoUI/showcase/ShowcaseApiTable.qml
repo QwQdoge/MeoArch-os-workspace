@@ -6,17 +6,19 @@ ColumnLayout {
     id: control
 
     property string api: ""
-    property string states: ""
+    property string stateSummary: ""
     property string variants: ""
 
     width: parent ? parent.width : implicitWidth
     spacing: MeoTheme.space8
 
-    RowLayout {
+    GridLayout {
         Layout.fillWidth: true
-        spacing: MeoTheme.space8
+        columns: control.width < 520 * MeoTheme.globalScale ? 1 : 2
+        rowSpacing: MeoTheme.space8
+        columnSpacing: MeoTheme.space8
         ApiPill { label: "Variants"; value: control.variants }
-        ApiPill { label: "States"; value: control.states }
+        ApiPill { label: "States"; value: control.stateSummary }
     }
 
     ApiPill {
@@ -26,6 +28,7 @@ ColumnLayout {
     }
 
     component ApiPill: Rectangle {
+        id: pill
         property string label: ""
         property string value: ""
 
@@ -44,7 +47,7 @@ ColumnLayout {
             spacing: MeoTheme.space2
 
             MeoText {
-                text: parent.parent.label
+                text: pill.label
                 typeRole: "label"
                 typeSize: "small"
                 color: MeoTheme.primary
@@ -52,7 +55,7 @@ ColumnLayout {
 
             MeoText {
                 width: parent.width
-                text: parent.parent.value
+                text: pill.value
                 typeRole: "body"
                 typeSize: "small"
                 color: MeoTheme.contentOnSurfaceVariant

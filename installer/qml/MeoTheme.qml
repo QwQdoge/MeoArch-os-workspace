@@ -11,6 +11,7 @@ QtObject {
     property bool isDarkMode: false
     property bool isExpressive: false
     property bool isBouncy: true
+    property bool reduceMotion: false
 
     // 🎨 MeoArch MD3 fallback color schemes
     // Used role-by-role whenever a dynamic color scheme is unavailable or incomplete.
@@ -148,32 +149,50 @@ QtObject {
     }
 
     // 🌟 Motion Tokens (MD3 Standard)
-    readonly property var motionDurationShort1: 50
-    readonly property var motionDurationShort2: 100
-    readonly property var motionDurationShort3: 150
-    readonly property var motionDurationShort4: 200
-    readonly property var motionDurationMedium1: 250
-    readonly property var motionDurationMedium2: 300
-    readonly property var motionDurationMedium3: 350
-    readonly property var motionDurationMedium4: 400
-    readonly property var motionDurationLong1: 450
-    readonly property var motionDurationLong2: 500
-    readonly property var motionDurationLong3: 550
-    readonly property var motionDurationLong4: 600
-    readonly property var motionDurationExtraLong1: 700
-    readonly property var motionDurationExtraLong2: 800
-    readonly property var motionDurationExtraLong3: 900
-    readonly property var motionDurationExtraLong4: 1000
+    readonly property int motionDurationShort1: reduceMotion ? 0 : 50
+    readonly property int motionDurationShort2: reduceMotion ? 0 : 100
+    readonly property int motionDurationShort3: reduceMotion ? 0 : 150
+    readonly property int motionDurationShort4: reduceMotion ? 0 : 200
+    readonly property int motionDurationMedium1: reduceMotion ? 0 : 250
+    readonly property int motionDurationMedium2: reduceMotion ? 0 : 300
+    readonly property int motionDurationMedium3: reduceMotion ? 0 : 350
+    readonly property int motionDurationMedium4: reduceMotion ? 0 : 400
+    readonly property int motionDurationLong1: reduceMotion ? 0 : 450
+    readonly property int motionDurationLong2: reduceMotion ? 0 : 500
+    readonly property int motionDurationLong3: reduceMotion ? 0 : 550
+    readonly property int motionDurationLong4: reduceMotion ? 0 : 600
+    readonly property int motionDurationExtraLong1: reduceMotion ? 0 : 700
+    readonly property int motionDurationExtraLong2: reduceMotion ? 0 : 800
+    readonly property int motionDurationExtraLong3: reduceMotion ? 0 : 900
+    readonly property int motionDurationExtraLong4: reduceMotion ? 0 : 1000
 
-    readonly property list<real> motionEasingStandard: [0.2, 0, 0, 1]
-    readonly property list<real> motionEasingStandardAccelerate: [0.3, 0, 1, 1]
-    readonly property list<real> motionEasingStandardDecelerate: [0, 0, 0, 1]
-    readonly property list<real> motionEasingEmphasized: [0.2, 0, 0, 1] // Simplified for Soul Curve compatibility
-    readonly property list<real> motionEasingEmphasizedAccelerate: [0.3, 0, 0.8, 0.15]
-    readonly property list<real> motionEasingEmphasizedDecelerate: [0.05, 0.7, 0.1, 1]
+    // Cubic Bézier control points plus the required 1,1 endpoint for QML.
+    readonly property list<real> motionEasingStandard: [0.2, 0, 0, 1, 1, 1]
+    readonly property list<real> motionEasingStandardAccelerate: [0.3, 0, 1, 1, 1, 1]
+    readonly property list<real> motionEasingStandardDecelerate: [0, 0, 0, 1, 1, 1]
+    readonly property list<real> motionEasingEmphasized: [0.2, 0, 0, 1, 1, 1]
+    readonly property list<real> motionEasingEmphasizedAccelerate: [0.3, 0, 0.8, 0.15, 1, 1]
+    readonly property list<real> motionEasingEmphasizedDecelerate: [0.05, 0.7, 0.1, 1, 1, 1]
 
     // 🌟 Soul Curve (MD3 Expressive Standard)
-    readonly property list<real> motionEasingSoul: [0.34, 0.8, 0.34, 1.0]
+    readonly property list<real> motionEasingSoul: [0.34, 0.8, 0.34, 1.0, 1, 1]
+
+    // MD3 interaction state opacities.
+    readonly property real stateHoverOpacity: 0.08
+    readonly property real stateFocusOpacity: 0.10
+    readonly property real statePressedOpacity: 0.10
+    readonly property real stateDraggedOpacity: 0.16
+    readonly property real disabledContainerOpacity: 0.12
+    readonly property real disabledContentOpacity: 0.38
+
+    // Semantic surface/elevation helpers shared by installer components.
+    readonly property color scrim: "#000000"
+    readonly property color shadow: "#000000"
+    readonly property color inverseSurface: isDarkMode ? "#E6E1E5" : "#322F35"
+    readonly property color inverseOnSurface: isDarkMode ? "#322F35" : "#F5EFF7"
+    readonly property color success: isDarkMode ? "#8ED6A0" : "#256D3A"
+    readonly property color successContainer: isDarkMode ? "#164A27" : "#D8F3DC"
+    readonly property color onSuccessContainer: isDarkMode ? "#C1F1CB" : "#123C20"
 
     property color outlineVariant: isDarkMode ? "#44474F" : "#C4C7C5"
 

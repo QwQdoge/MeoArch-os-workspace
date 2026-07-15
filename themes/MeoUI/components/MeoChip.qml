@@ -65,6 +65,10 @@ Control {
     padding: 0
     leftPadding: (icon !== "" ? 8 : (size === "xl" ? 24 : 16)) * themeGlobalScale
     rightPadding: (closable ? 8 : (size === "xl" ? 24 : 16)) * themeGlobalScale
+    opacity: enabled ? 1.0 : 0.62
+    scale: (enabled && mouseArea.pressed && MeoTheme.isExpressive) ? 0.98 : 1.0
+    Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+    Behavior on opacity { NumberAnimation { duration: control.motionFast } }
 
     background: Rectangle {
         radius: (size === "xl" ? 16 : 8) * themeGlobalScale
@@ -81,6 +85,7 @@ Control {
             id: mouseArea
             anchors.fill: parent
             hoverEnabled: true
+            enabled: control.enabled
             onClicked: control.clicked()
         }
 
@@ -89,6 +94,7 @@ Control {
             radius: parent.radius
             pressed: mouseArea.pressed
             hovered: mouseArea.containsMouse
+            focused: control.visualFocus
             pressX: mouseArea.mouseX
             pressY: mouseArea.mouseY
             color: control.selected ? control.selectedContentColor : control.themeOnSurface
@@ -138,6 +144,7 @@ Control {
             }
             MouseArea {
                 anchors.fill: parent
+                enabled: control.enabled
                 onClicked: control.closed()
             }
         }

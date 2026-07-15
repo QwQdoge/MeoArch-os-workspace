@@ -12,6 +12,8 @@ ColumnLayout {
     spacing: MeoTheme.space8
 
     MeoText {
+        id: titleText
+        Layout.fillWidth: true
         text: control.title
         typeRole: "label"
         typeSize: "big"
@@ -21,6 +23,7 @@ ColumnLayout {
     Flow {
         id: body
         Layout.fillWidth: true
+        Layout.preferredHeight: childrenRect.height
         spacing: MeoTheme.space12
     }
 }

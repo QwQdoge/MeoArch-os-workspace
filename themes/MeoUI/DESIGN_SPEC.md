@@ -49,6 +49,22 @@ All tokens live in `MeoTheme.qml`.
 
 Every fixed visual dimension in a component should be multiplied by `globalScale` or use a token that already includes it.
 
+### Adaptive Windows
+
+MeoUI follows the Windows effective-pixel window classes so layouts change according to the space available to the application, not the physical display resolution.
+
+| Size class | Effective width | Primary navigation | Page margin |
+| --- | --- | --- | --- |
+| Small | 0-640 | Bottom navigation or modal drawer | 12 |
+| Medium | 641-1007 | 80 px navigation rail | 24 |
+| Large | 1008+ | 280 px expanded navigation drawer | 32 |
+
+Use `MeoWindowMetrics` inside reusable views. It provides `sizeClass`, `small`, `medium`, `large`, `pageMargin`, `paneWidth`, `maximumContentWidth`, `navigationMode`, `supportsTwoPane`, and `preferredColumns`. Do not duplicate 640/1008 breakpoint expressions in pages.
+
+Layouts must remain usable at 360x480. A width change may alter navigation, column count, pane visibility, control arrangement, and margins, but must not discard view or form state. Prefer fluid sizing inside a size class and discrete adaptive changes only at a breakpoint.
+
+Reference: [Windows responsive design](https://learn.microsoft.com/windows/apps/design/layout/responsive-design) and [screen sizes and breakpoints](https://learn.microsoft.com/windows/apps/design/layout/screen-sizes-and-breakpoints-for-responsive-design).
+
 ### Color Roles
 
 Use color roles by purpose, not by color name.
@@ -186,6 +202,18 @@ Semantic motion tokens:
 | `motionDurationSlow` | `long1` | Larger surface or page-level transitions. |
 | `motionDurationRippleExpand` | `medium4` | Circular ripple expansion. |
 | `motionDurationRippleFade` | `medium2` | Ripple fade-out. |
+
+Windows-compatible control timing:
+
+| Token | Value | Use |
+| --- | --- | --- |
+| `motionDurationControlFaster` | 83 | Tiny press/icon feedback. |
+| `motionDurationControlFast` | 167 | Exit, fade, hover, and color feedback. |
+| `motionDurationControlNormal` | 250 | Enter, selection indicator, pane, and page transitions. |
+
+Use `motionEasingEnter` for elements arriving or expanding and `motionEasingExit` for elements leaving or collapsing. `reduceMotion` must collapse nonessential durations to zero while preserving the final state. Popups use `MeoMotionPopup`; elevated/appearing surfaces use `MeoMotionSurface`. Components may add motion, but application pages must not reimplement these primitives.
+
+Reference: [Windows timing and easing](https://learn.microsoft.com/windows/apps/design/motion/timing-and-easing).
 
 Easing tokens:
 

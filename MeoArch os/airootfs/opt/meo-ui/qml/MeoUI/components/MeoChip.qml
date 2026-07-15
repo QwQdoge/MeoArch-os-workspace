@@ -14,6 +14,11 @@ Control {
     property bool selected: false
     property bool closable: false
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
+    property real contentSpacing: (size === "xs" ? 4 : 8) * themeGlobalScale
+    property color selectedContainerColor: themeSecondaryContainer
+    property color selectedContentColor: themeOnSecondaryContainer
+    property color contentColor: selected ? selectedContentColor : themeOnSurfaceVariant
+    property color outlineColor: themeOutline
 
     signal clicked()
     signal closed()
@@ -27,6 +32,7 @@ Control {
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
     readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionFast: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationFast !== "undefined") ? MeoTheme.motionDurationFast : 150
     readonly property var fontToken: {
         if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
         let token;
@@ -59,15 +65,19 @@ Control {
     padding: 0
     leftPadding: (icon !== "" ? 8 : (size === "xl" ? 24 : 16)) * themeGlobalScale
     rightPadding: (closable ? 8 : (size === "xl" ? 24 : 16)) * themeGlobalScale
+    opacity: enabled ? 1.0 : 0.62
+    scale: (enabled && mouseArea.pressed && MeoTheme.isExpressive) ? 0.98 : 1.0
+    Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+    Behavior on opacity { NumberAnimation { duration: control.motionFast } }
 
     background: Rectangle {
         radius: (size === "xl" ? 16 : 8) * themeGlobalScale
-        color: control.selected ? control.themeSecondaryContainer : "transparent"
+        color: control.selected ? control.selectedContainerColor : "transparent"
         border.color: {
             if (control.selected) return "transparent"
-            if (!control.enabled) return Qt.rgba(control.themeOutline.r, control.themeOutline.g, control.themeOutline.b, 0.12)
+            if (!control.enabled) return Qt.rgba(control.outlineColor.r, control.outlineColor.g, control.outlineColor.b, 0.12)
             if (control.activeFocus) return control.themePrimary
-            return control.themeOutline
+            return control.outlineColor
         }
         border.width: (control.activeFocus && !control.selected) ? 2 * themeGlobalScale : 1 * themeGlobalScale
 
@@ -75,6 +85,7 @@ Control {
             id: mouseArea
             anchors.fill: parent
             hoverEnabled: true
+            enabled: control.enabled
             onClicked: control.clicked()
         }
 
@@ -83,17 +94,18 @@ Control {
             radius: parent.radius
             pressed: mouseArea.pressed
             hovered: mouseArea.containsMouse
+            focused: control.visualFocus
             pressX: mouseArea.mouseX
             pressY: mouseArea.mouseY
-            color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurface
+            color: control.selected ? control.selectedContentColor : control.themeOnSurface
         }
 
-        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on color { ColorAnimation { duration: control.motionFast } }
     }
 
     contentItem: Row {
         id: contentRow
-        spacing: (size === "xs" ? 4 : 8) * control.themeGlobalScale
+        spacing: control.contentSpacing
         anchors.verticalCenter: parent.verticalCenter
 
         MeoIcon {
@@ -104,28 +116,35 @@ Control {
                 if (size === "xl") return 32;
                 return 24;
             }
-            color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
+            color: control.contentColor
             anchors.verticalCenter: parent.verticalCenter
         }
 
         Text {
             text: control.label
+            font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
             font.pixelSize: fontToken.size * control.themeGlobalScale
             font.weight: fontToken.weight
             font.letterSpacing: (fontToken.letterSpacing || 0) * control.themeGlobalScale
-            color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
+            color: control.contentColor
             verticalAlignment: Text.AlignVCenter
         }
 
-        Text {
-            text: "×"
+        Item {
             visible: control.closable
-            font.pixelSize: (size === "xl" ? 24 : 18) * control.themeGlobalScale
-            color: control.themeOnSurfaceVariant
-            verticalAlignment: Text.AlignVCenter
+            width: (size === "xl" ? 32 : 18) * control.themeGlobalScale
+            height: width
+            anchors.verticalCenter: parent.verticalCenter
 
+            MeoIcon {
+                anchors.centerIn: parent
+                icon: "close"
+                size: control.size === "xl" ? 24 : 18
+                color: control.contentColor
+            }
             MouseArea {
                 anchors.fill: parent
+                enabled: control.enabled
                 onClicked: control.closed()
             }
         }

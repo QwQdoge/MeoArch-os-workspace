@@ -140,11 +140,14 @@ Popup {
 
     enter: Transition {
         ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) }
-            NumberAnimation { property: "scale"; from: 0.8; to: 1.0; duration: control.motionMedium; easing.bezierCurve: [0.34, 1.56, 0.64, 1] }
+            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1.0]) }
+            NumberAnimation { property: "scale"; from: 0.92; to: 1.0; duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1.0]) }
         }
     }
     exit: Transition {
-        NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: control.motionFast }
+        ParallelAnimation {
+            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15]) }
+            NumberAnimation { property: "scale"; from: 1.0; to: 0.98; duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15]) }
+        }
     }
 }

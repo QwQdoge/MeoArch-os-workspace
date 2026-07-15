@@ -11,6 +11,26 @@ QtObject {
     property bool isDarkMode: false
     property bool isExpressive: false
     property bool isBouncy: true
+    property bool reduceMotion: false
+    property bool transparencyEnabled: true
+
+    // Windows uses effective pixels and window width, not physical screen size,
+    // for adaptive decisions. Keep these values centralized so every MeoUI
+    // shell switches layout at the same point.
+    readonly property real windowBreakpointSmall: 640
+    readonly property real windowBreakpointLarge: 1008
+
+    function windowSizeClass(availableWidth) {
+        const effectiveWidth = Math.max(0, availableWidth) / Math.max(0.1, globalScale)
+        if (effectiveWidth <= windowBreakpointSmall) return "small"
+        if (effectiveWidth < windowBreakpointLarge) return "medium"
+        return "large"
+    }
+
+    function windowPageMargin(availableWidth) {
+        const sizeClass = windowSizeClass(availableWidth)
+        return (sizeClass === "small" ? 12 : sizeClass === "medium" ? 24 : 32) * globalScale
+    }
 
     // 🎨 MeoArch MD3 fallback color schemes
     // Used role-by-role whenever a dynamic color scheme is unavailable or incomplete.
@@ -149,22 +169,22 @@ QtObject {
     }
 
     // 🌟 Motion Tokens (MD3 Standard)
-    readonly property var motionDurationShort1: 50
-    readonly property var motionDurationShort2: 100
-    readonly property var motionDurationShort3: 150
-    readonly property var motionDurationShort4: 200
-    readonly property var motionDurationMedium1: 250
-    readonly property var motionDurationMedium2: 300
-    readonly property var motionDurationMedium3: 350
-    readonly property var motionDurationMedium4: 400
-    readonly property var motionDurationLong1: 450
-    readonly property var motionDurationLong2: 500
-    readonly property var motionDurationLong3: 550
-    readonly property var motionDurationLong4: 600
-    readonly property var motionDurationExtraLong1: 700
-    readonly property var motionDurationExtraLong2: 800
-    readonly property var motionDurationExtraLong3: 900
-    readonly property var motionDurationExtraLong4: 1000
+    readonly property int motionDurationShort1: reduceMotion ? 0 : 50
+    readonly property int motionDurationShort2: reduceMotion ? 0 : 100
+    readonly property int motionDurationShort3: reduceMotion ? 0 : 150
+    readonly property int motionDurationShort4: reduceMotion ? 0 : 200
+    readonly property int motionDurationMedium1: reduceMotion ? 0 : 250
+    readonly property int motionDurationMedium2: reduceMotion ? 0 : 300
+    readonly property int motionDurationMedium3: reduceMotion ? 0 : 350
+    readonly property int motionDurationMedium4: reduceMotion ? 0 : 400
+    readonly property int motionDurationLong1: reduceMotion ? 0 : 450
+    readonly property int motionDurationLong2: reduceMotion ? 0 : 500
+    readonly property int motionDurationLong3: reduceMotion ? 0 : 550
+    readonly property int motionDurationLong4: reduceMotion ? 0 : 600
+    readonly property int motionDurationExtraLong1: reduceMotion ? 0 : 700
+    readonly property int motionDurationExtraLong2: reduceMotion ? 0 : 800
+    readonly property int motionDurationExtraLong3: reduceMotion ? 0 : 900
+    readonly property int motionDurationExtraLong4: reduceMotion ? 0 : 1000
 
     // Semantic motion aliases for component code.
     readonly property var motionDurationInstant: motionDurationShort1
@@ -174,12 +194,20 @@ QtObject {
     readonly property var motionDurationRippleExpand: motionDurationMedium4
     readonly property var motionDurationRippleFade: motionDurationMedium2
 
+    // WinUI-compatible control timing aliases. These are useful for desktop
+    // surfaces while the full MD3 duration scale remains available above.
+    readonly property int motionDurationControlFaster: reduceMotion ? 0 : 83
+    readonly property int motionDurationControlFast: reduceMotion ? 0 : 167
+    readonly property int motionDurationControlNormal: reduceMotion ? 0 : 250
+
     readonly property list<real> motionEasingStandard: [0.2, 0, 0, 1]
     readonly property list<real> motionEasingStandardAccelerate: [0.3, 0, 1, 1]
     readonly property list<real> motionEasingStandardDecelerate: [0, 0, 0, 1]
     readonly property list<real> motionEasingEmphasized: [0.05, 0.7, 0.1, 1]
     readonly property list<real> motionEasingEmphasizedAccelerate: [0.3, 0, 0.8, 0.15]
     readonly property list<real> motionEasingEmphasizedDecelerate: [0.05, 0.7, 0.1, 1]
+    readonly property list<real> motionEasingEnter: [0, 0, 0, 1]
+    readonly property list<real> motionEasingExit: [1, 0, 1, 1]
 
     // Compatibility alias used by existing expressive components.
     readonly property list<real> motionEasingSoul: motionEasingEmphasized
@@ -189,6 +217,17 @@ QtObject {
     readonly property real stateOpacityFocus: 0.10
     readonly property real stateOpacityPressed: 0.10
     readonly property real stateOpacityDragged: 0.16
+
+    // Semantic feedback and surface roles used by products consuming MeoUI.
+    readonly property real disabledContainerOpacity: 0.12
+    readonly property real disabledContentOpacity: 0.38
+    readonly property color scrim: "#000000"
+    readonly property color shadow: "#000000"
+    readonly property color inverseSurface: isDarkMode ? "#E6E1E5" : "#313033"
+    readonly property color contentOnInverseSurface: isDarkMode ? "#313033" : "#F4F0F4"
+    readonly property color success: isDarkMode ? "#8ED6A0" : "#256D3A"
+    readonly property color successContainer: isDarkMode ? "#164A27" : "#D8F3DC"
+    readonly property color contentOnSuccessContainer: isDarkMode ? "#C1F1CB" : "#123C20"
 
     property color outlineVariant: isDarkMode ? "#44474F" : "#C4C7C5"
 

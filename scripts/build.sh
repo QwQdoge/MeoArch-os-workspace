@@ -11,6 +11,7 @@ if ! command -v mkarchiso >/dev/null 2>&1; then
   exit 1
 fi
 
+bash "${repo_root}/scripts/build-installer-app.sh"
 "${repo_root}/scripts/sync-installer-to-airootfs.sh"
 
 mkdir -p "${work_dir}" "${out_dir}"
