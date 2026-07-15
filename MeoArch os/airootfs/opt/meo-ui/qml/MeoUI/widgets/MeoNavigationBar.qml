@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 import MeoUI
 
 Rectangle {
@@ -57,8 +56,18 @@ Rectangle {
                             color: isSelected ? control.themeSecondaryContainer : "transparent"
                             opacity: isSelected ? 1.0 : 0.0
 
-                            Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
-                            Behavior on opacity { NumberAnimation { duration: 250 } }
+                            Behavior on width {
+                                NumberAnimation {
+                                    duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlNormal
+                                    easing.bezierCurve: MeoTheme.motionEasingEnter
+                                }
+                            }
+                            Behavior on opacity {
+                                NumberAnimation {
+                                    duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlFast
+                                    easing.bezierCurve: isSelected ? MeoTheme.motionEasingEnter : MeoTheme.motionEasingExit
+                                }
+                            }
                         }
 
                         MeoIcon {

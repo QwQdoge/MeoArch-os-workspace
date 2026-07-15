@@ -7,6 +7,8 @@
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
 #include <QResource>
+#include <QQuickWindow>
+#include <QTimer>
 #include <QObject>
 #include <QTextStream>
 #include <QUrl>
@@ -112,6 +114,31 @@ int main(int argc, char *argv[]) {
     }
     window->raise();
     window->requestActivate();
+
+    QString screenshotPath;
+    for (const QString &argument : app.arguments()) {
+      if (argument.startsWith(QStringLiteral("--screenshot="))) {
+        screenshotPath = argument.mid(13);
+        break;
+      }
+    }
+    if (!screenshotPath.isEmpty()) {
+      if (auto *quickWindow = qobject_cast<QQuickWindow *>(window)) {
+        QTimer::singleShot(1200, quickWindow,
+                           [quickWindow, screenshotPath, &app]() {
+          const QImage image = quickWindow->grabWindow();
+          if (!image.isNull() && image.save(screenshotPath)) {
+            qInfo() << "Saved visual regression image to" << screenshotPath;
+            app.quit();
+            return;
+          }
+          qCritical() << "Could not save visual regression image to"
+                      << screenshotPath;
+          app.exit(2);
+        });
+        QTimer::singleShot(10000, &app, [&app]() { app.exit(3); });
+      }
+    }
   } else {
     qWarning() << "QML root object is not a QWindow.";
   }

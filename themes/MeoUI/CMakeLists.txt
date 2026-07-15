@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(MeoUI VERSION 0.2.0 LANGUAGES CXX)
+project(MeoUI VERSION 0.3.0 LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
 include(GNUInstallDirs)
 
@@ -12,6 +12,9 @@ find_package(Qt6 REQUIRED COMPONENTS Core Quick QuickControls2 Gui Qml)
 
 # Use Qt 6's standard :/qt/qml resource prefix for QML modules.
 qt_policy(SET QTP0001 NEW)
+if(QT_KNOWN_POLICY_QTP0004)
+    qt_policy(SET QTP0004 NEW)
+endif()
 
 set_source_files_properties(MeoTheme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
@@ -20,7 +23,7 @@ qt_add_qml_module(meoui_module
     STATIC
     URI "MeoUI"
     VERSION 1.0
-    OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/MeoUI"
+    OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/MeoUI"
     QML_FILES
                 widgets/MeoNavigationBar.qml
         widgets/MeoNavigationDrawerModal.qml
@@ -50,6 +53,7 @@ qt_add_qml_module(meoui_module
         showcase/ShowcaseStateGrid.qml
         showcase/ShowcaseVariantRow.qml
 MeoTheme.qml
+        MeoWindowMetrics.qml
         components/MeoButton.qml
         components/MeoText.qml
         components/MeoSplitButton.qml
@@ -86,6 +90,8 @@ MeoTheme.qml
         components/MeoTooltip.qml
         components/MeoSnackbar.qml
         components/MeoStateLayer.qml
+        components/MeoMotionPopup.qml
+        components/MeoMotionSurface.qml
         components/MeoFilterChip.qml
         components/MeoInputChip.qml
         components/MeoPullToRefresh.qml
@@ -118,7 +124,6 @@ MeoTheme.qml
         widgets/MeoSearchView.qml
         widgets/MeoTopAppBar.qml
         widgets/MeoSearchSuggestions.qml
-        widgets/MeoAccountSwitcher.qml
         components/MeoAssistChip.qml
         components/MeoAvatar.qml
         components/MeoSuggestionChip.qml

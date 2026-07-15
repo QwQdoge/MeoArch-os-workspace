@@ -22,6 +22,12 @@ if [ ! -f "${config_file}" ] || [ ! -f "${creds_file}" ]; then
   exit 4
 fi
 
+manifest_file="${state_dir}/config_manifest.json"
+if [ ! -f "${manifest_file}" ] || ! python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1], encoding="utf-8")).get("realInstallReady") else 1)' "${manifest_file}"; then
+  echo "Generated configuration is preview-only; refusing real installation." | tee -a "${log_file}" >&2
+  exit 5
+fi
+
 if ! command -v archinstall >/dev/null 2>&1; then
   echo "archinstall is not available." | tee -a "${log_file}" >&2
   exit 127

@@ -9,12 +9,16 @@ Item {
     property Component detailComponent: null
     property bool showDetail: false
 
-    // MD3 Adaptive Breakpoints
-    readonly property bool isCompact: width < 600 * themeGlobalScale
-    readonly property bool isMedium: width >= 600 * themeGlobalScale && width < 840 * themeGlobalScale
-    readonly property bool isExpanded: width >= 840 * themeGlobalScale
-
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property bool isCompact: windowMetrics.isSmall
+    readonly property bool isMedium: windowMetrics.isMedium
+    readonly property bool isExpanded: windowMetrics.isLarge
+
+    MeoWindowMetrics {
+        id: windowMetrics
+        availableWidth: control.width
+        availableHeight: control.height
+    }
 
     readonly property real paneWidth: {
         if (isExpanded) return 400 * themeGlobalScale
@@ -51,6 +55,10 @@ Item {
         visible: control.isCompact
 
         initialItem: control.listComponent
+        pushEnter: Transition { NumberAnimation { property: "x"; from: stackView.width * 0.08; to: 0; duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingEnter } }
+        pushExit: Transition { NumberAnimation { property: "opacity"; from: 1; to: 0; duration: MeoTheme.motionDurationControlFast } }
+        popEnter: Transition { NumberAnimation { property: "opacity"; from: 0; to: 1; duration: MeoTheme.motionDurationControlFast } }
+        popExit: Transition { NumberAnimation { property: "x"; from: 0; to: stackView.width * 0.08; duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingExit } }
 
         onCurrentItemChanged: {
             // Logic to sync with showDetail if needed

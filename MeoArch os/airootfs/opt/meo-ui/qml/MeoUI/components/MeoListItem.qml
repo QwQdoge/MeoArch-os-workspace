@@ -25,6 +25,7 @@ Control {
 
     property bool interactive: true
     property bool isSegmented: false // MD3 Expressive: Segmented list style
+    property string roundingStrategy: "all" // "all" | "top" | "bottom" | "middle" | "none"
     property bool isDense: false // MD3 Expressive: Compact list style
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool vibrant: false // 🌟 MD3 Expressive: Vibrant selection style
@@ -75,10 +76,9 @@ Control {
         height: control.height
         x: control.isSegmented ? 8 * control.themeGlobalScale : 0
 
-        MeoShape {
+        Rectangle {
             id: shapeBg
             anchors.fill: parent
-            type: isSegmented ? control.shape : "rect"
             radius: {
                 if (!isSegmented) return 0;
                 if (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && selected) return MeoTheme.shapeLargeIncreased;
@@ -90,6 +90,12 @@ Control {
                 return vibrant ? themePrimaryContainer : themeSecondaryContainer;
             }
 
+            // MD3 Expressive: Rounding strategies for connected items in a group
+            topLeftRadius: (roundingStrategy === "all" || roundingStrategy === "top") ? radius : 0
+            topRightRadius: (roundingStrategy === "all" || roundingStrategy === "top") ? radius : 0
+            bottomLeftRadius: (roundingStrategy === "all" || roundingStrategy === "bottom") ? radius : 0
+            bottomRightRadius: (roundingStrategy === "all" || roundingStrategy === "bottom") ? radius : 0
+
             MeoStateLayer {
                 anchors.fill: parent
                 visible: control.interactive
@@ -97,28 +103,25 @@ Control {
                 hovered: mouseArea.containsMouse
                 pressX: mouseArea.mouseX
                 pressY: mouseArea.mouseY
+                radius: (control.isSegmented && control.roundingStrategy === "all" && control.shape === "rect") ? shapeBg.radius : 0
                 color: {
                     if (vibrant && selected) return control.themeOnPrimaryContainer;
                     if (selected) return control.themeOnSecondaryContainer;
                     return control.themeOnSurface;
                 }
-
-                layer.enabled: isSegmented && control.shape !== "rect"
-                layer.effect: MultiEffect {
-                    maskEnabled: true
-                    maskSource: Item {
-                        width: shapeBg.width
-                        height: shapeBg.height
-                        MeoShape {
-                            anchors.fill: parent
-                            type: control.shape
-                            radius: shapeBg.radius
-                        }
-                    }
-                }
             }
 
             Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
+        }
+
+        // Overlay for complex shapes if using MeoShape (Note: MeoShape doesn't support partial rounding as easily as Rectangle)
+        MeoShape {
+            anchors.fill: parent
+            visible: isSegmented && control.shape !== "rect"
+            type: control.shape
+            radius: shapeBg.radius
+            color: shapeBg.color
+            opacity: selected ? 1.0 : 0.0
         }
     }
 
@@ -126,6 +129,7 @@ Control {
         id: mouseArea
         anchors.fill: parent
         enabled: control.interactive
+        hoverEnabled: true
         onClicked: control.clicked()
     }
 
@@ -185,6 +189,7 @@ Control {
             Text {
                 text: control.overline
                 width: parent.width
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelSmall !== 'undefined' ? MeoTheme.labelSmall.size : 11) * control.themeGlobalScale
                 font.weight: Font.Normal
                 color: control.themeOnSurfaceVariant
@@ -196,6 +201,7 @@ Control {
             Text {
                 text: control.headline
                 width: parent.width
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: fontBodyLarge.size * control.themeGlobalScale
                 font.weight: (control.selected && !isSegmented) ? Font.Bold : fontBodyLarge.weight
                 font.letterSpacing: (fontBodyLarge.letterSpacing || 0) * control.themeGlobalScale
@@ -213,6 +219,7 @@ Control {
             Text {
                 text: control.supportingText
                 width: parent.width
+                font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: fontBodyMedium.size * control.themeGlobalScale
                 font.weight: fontBodyMedium.weight
                 font.letterSpacing: (fontBodyMedium.letterSpacing || 0) * control.themeGlobalScale

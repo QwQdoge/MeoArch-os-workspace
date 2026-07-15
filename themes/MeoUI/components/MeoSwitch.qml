@@ -4,13 +4,22 @@ import MeoUI
 
 Control {
     id: control
+    activeFocusOnTab: true
 
     property bool checked: false
     property bool isExpressive: MeoTheme.isExpressive
     property string label: ""
-    property string icon: ""
+    property string text: label
+    property bool showIcon: true
+    property string icon: "check"
     property string uncheckedIcon: ""
     signal toggled(bool checked)
+
+    onTextChanged: label = text
+    onLabelChanged: {
+        if (text !== label)
+            text = label
+    }
 
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
@@ -20,6 +29,9 @@ Control {
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionFast: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationFast !== 'undefined') ? MeoTheme.motionDurationFast : 150
+    readonly property int motionShort: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationShort4 !== 'undefined') ? MeoTheme.motionDurationShort4 : 200
+    readonly property int motionMedium: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium1 !== 'undefined') ? MeoTheme.motionDurationMedium1 : 250
 
     readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
 
@@ -33,6 +45,7 @@ Control {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
+        enabled: control.enabled
         onClicked: {
             control.checked = !control.checked
             control.toggled(control.checked)
@@ -61,33 +74,33 @@ Control {
                 if (control.checked) return control.themePrimary
                 return control.themeOutline
             }
-            border.width: 2 * control.themeGlobalScale
+            border.width: control.checked ? 0 : 2 * control.themeGlobalScale
 
             Rectangle {
                 id: thumb
                 width: {
                     if (mouseArea.pressed) return (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive ? 32 : 28) * control.themeGlobalScale
-                    return (control.checked || control.icon !== "") ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
+                    return (control.checked || control.showIcon) ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
                 }
                 height: {
                     if (mouseArea.pressed) return (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive ? 32 : 28) * control.themeGlobalScale
-                    return (control.checked || control.icon !== "") ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
+                    return (control.checked || control.showIcon) ? 24 * control.themeGlobalScale : 16 * control.themeGlobalScale
                 }
                 radius: width / 2
                 anchors.verticalCenter: parent.verticalCenter
-                x: control.checked ? (parent.width - width - 4 * control.themeGlobalScale) : (control.icon !== "" ? 4 * control.themeGlobalScale : (8 * control.themeGlobalScale + (16 * control.themeGlobalScale - width)/2))
+                x: control.checked ? (parent.width - width - 4 * control.themeGlobalScale) : (control.showIcon ? 4 * control.themeGlobalScale : (8 * control.themeGlobalScale + (16 * control.themeGlobalScale - width)/2))
 
                 MeoIcon {
                     id: thumbIcon
                     anchors.centerIn: parent
-                    icon: control.checked ? control.icon : control.uncheckedIcon
+                    icon: control.checked ? (control.showIcon ? (control.icon || "check") : "") : control.uncheckedIcon
                     size: 16
                     color: control.checked ? control.themePrimary : control.themeOnSurfaceVariant
                     visible: icon !== ""
-                    scale: (control.checked ? control.icon : control.uncheckedIcon) !== "" ? 1.0 : 0.0
+                    scale: (control.checked ? control.showIcon : control.uncheckedIcon !== "") ? 1.0 : 0.0
                     Behavior on scale {
                         NumberAnimation {
-                            duration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium1 !== 'undefined') ? MeoTheme.motionDurationMedium1 : 250
+                            duration: control.motionMedium
                             easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingSoul !== 'undefined') ? MeoTheme.motionEasingSoul : [0.05, 0.7, 0.1, 1]
                         }
                     }
@@ -108,6 +121,7 @@ Control {
                         radius: width / 2
                         pressed: mouseArea.pressed
                         hovered: mouseArea.containsMouse
+                        focused: control.activeFocus
                         pressX: mouseArea.mouseX - thumb.x
                         pressY: mouseArea.mouseY - thumb.y
                         color: control.checked ? control.themePrimary : control.themeOnSurface
@@ -116,27 +130,27 @@ Control {
 
                 Behavior on x {
                     NumberAnimation {
-                        duration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium1 !== 'undefined') ? MeoTheme.motionDurationMedium1 : 250
+                        duration: control.motionMedium
                         easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1]
                     }
                 }
                 Behavior on width {
                     NumberAnimation {
-                        duration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationShort4 !== 'undefined') ? MeoTheme.motionDurationShort4 : 200
+                        duration: control.motionShort
                         easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1]
                     }
                 }
                 Behavior on height {
                     NumberAnimation {
-                        duration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationShort4 !== 'undefined') ? MeoTheme.motionDurationShort4 : 200
+                        duration: control.motionShort
                         easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1]
                     }
                 }
-                Behavior on color { ColorAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+                Behavior on color { ColorAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
             }
 
-            Behavior on color { ColorAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-            Behavior on border.color { ColorAnimation { duration: 200; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+            Behavior on color { ColorAnimation { duration: control.motionShort; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+            Behavior on border.color { ColorAnimation { duration: control.motionShort; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
         }
 
         Text {

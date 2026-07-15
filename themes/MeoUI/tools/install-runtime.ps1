@@ -11,7 +11,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-if ([string]::IsNullOrWhiteSpace($Version)) { $Version = "0.2.0" }
+if ([string]::IsNullOrWhiteSpace($Version)) { $Version = "0.3.0" }
 if ([string]::IsNullOrWhiteSpace($Prefix)) { $Prefix = Join-Path $env:LOCALAPPDATA "MeoUI" }
 if ([string]::IsNullOrWhiteSpace($FontDir)) { $FontDir = Join-Path $Prefix "fonts" }
 

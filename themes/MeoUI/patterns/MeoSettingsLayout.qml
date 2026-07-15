@@ -9,15 +9,21 @@ Flickable {
 
     property string title: "Settings"
     property alias model: repeater.model
-    property real padding: 16 * themeGlobalScale
+    property real padding: windowMetrics.pageMargin
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
     readonly property var fontTitleLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.titleLarge !== 'undefined') ? MeoTheme.titleLarge : { "size": 22, "weight": Font.Normal }
 
+    MeoWindowMetrics {
+        id: windowMetrics
+        availableWidth: control.width
+        availableHeight: control.height
+    }
+
     Column {
         id: contentColumn
-        width: parent.width - control.padding * 2
-        x: control.padding
+        width: Math.min(parent.width - control.padding * 2, windowMetrics.maximumContentWidth)
+        anchors.horizontalCenter: parent.horizontalCenter
         y: control.padding
         spacing: 0
 

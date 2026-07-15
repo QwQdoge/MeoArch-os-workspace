@@ -14,6 +14,10 @@ TextField {
     property string errorText: "" // 错误提示文本（开启 isError 时优先显示）
     property bool showClearButton: false // 是否显示一键清除按钮
     property string placeholder: "" // 代替 placeholderText 以防止 Binding Loop 的占位文本
+    property string supportingText: "" // Reference-compatible alias for helper text.
+    property bool error: isError
+    property bool isPassword: false
+    property bool passwordVisible: false
 
     // MD3 扩展属性
     property string leadingIcon: "" // 前置图标
@@ -22,6 +26,19 @@ TextField {
     property string suffixText: "" // 后缀文本
     property int maxLength: -1 // 最大长度，用于计数器
     property bool showCounter: false // 是否显示计数器
+
+    signal trailingIconClicked()
+
+    onSupportingTextChanged: helperText = supportingText
+    onHelperTextChanged: {
+        if (supportingText !== helperText)
+            supportingText = helperText
+    }
+    onErrorChanged: isError = error
+    onIsErrorChanged: {
+        if (error !== isError)
+            error = isError
+    }
 
     // 🌟 作用域防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -75,6 +92,7 @@ TextField {
     font.pixelSize: currentFont.size * themeGlobalScale
     font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
     font.weight: currentFont.weight
+    echoMode: control.isPassword && !control.passwordVisible ? TextInput.Password : TextInput.Normal
     selectByMouse: true
     
     placeholderText: (label === "" || overlayLayer.isCollapsed) ? placeholder : ""
@@ -119,9 +137,11 @@ TextField {
             id: containerRect
             width: parent.width
             height: control.containerHeight
-            radius: control.type === "filled" ? 0 : 4 * control.themeGlobalScale
-            topLeftRadius: 4 * control.themeGlobalScale
-            topRightRadius: 4 * control.themeGlobalScale
+            radius: control.type === "filled"
+                    ? 12 * control.themeGlobalScale
+                    : (control.activeFocus ? 16 : 12) * control.themeGlobalScale
+            topLeftRadius: control.activeFocus ? 16 * control.themeGlobalScale : 12 * control.themeGlobalScale
+            topRightRadius: control.activeFocus ? 16 * control.themeGlobalScale : 12 * control.themeGlobalScale
             color: {
                 let base = control.containerColor;
                 if (control.enabled && control.hovered && control.type === "filled") {
@@ -145,17 +165,20 @@ TextField {
             border.width: control.type === "outlined" ? (control.activeFocus ? 2 : 1) : 0
             
             Behavior on border.color { ColorAnimation { duration: control.motionFast } }
+            Behavior on radius { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1]) } }
+            Behavior on topLeftRadius { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1]) } }
+            Behavior on topRightRadius { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1]) } }
 
             Rectangle {
                 id: activeIndicator
                 anchors.bottom: parent.bottom
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: control.activeFocus ? parent.width : 0
+                anchors.left: parent.left
+                anchors.right: parent.right
                 height: control.activeFocus ? 2 * control.themeGlobalScale : 1 * control.themeGlobalScale
                 color: control.indicatorColor
                 visible: control.type === "filled"
 
-                Behavior on width { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+                Behavior on height { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
                 Behavior on color { ColorAnimation { duration: control.motionFast } }
             }
         }
@@ -211,10 +234,29 @@ TextField {
 
         MeoIcon {
             icon: control.trailingIcon
-            visible: control.trailingIcon !== ""
+            visible: control.trailingIcon !== "" && !control.isPassword
             size: control.size === "xs" ? 18 : 24
             anchors.verticalCenter: parent.verticalCenter
             color: control.isError ? control.themeError : control.themeOnSurfaceVariant
+
+            MouseArea {
+                anchors.fill: parent
+                anchors.margins: -12 * control.themeGlobalScale
+                enabled: control.enabled
+                cursorShape: Qt.PointingHandCursor
+                onClicked: control.trailingIconClicked()
+            }
+        }
+
+        MeoIconButton {
+            visible: control.isPassword
+            icon.name: control.passwordVisible ? "visibility_off" : "visibility"
+            anchors.verticalCenter: parent.verticalCenter
+            width: (control.size === "xs" ? 24 : 32) * control.themeGlobalScale
+            height: width
+            size: control.size === "xs" ? "xs" : "s"
+            type: "standard"
+            onClicked: control.passwordVisible = !control.passwordVisible
         }
 
         // Clear Button

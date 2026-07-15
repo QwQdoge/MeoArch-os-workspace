@@ -14,25 +14,29 @@ Flickable {
     property real padding: 24 * themeGlobalScale
     property real spacing: 24 * themeGlobalScale
     property int columns: 3 // Default for expanded
+    property bool adaptive: true
 
     // Adaptive Columns
-    readonly property bool isCompact: width < 600 * themeGlobalScale
-    readonly property bool isMedium: width >= 600 * themeGlobalScale && width < 840 * themeGlobalScale
-
-    onWidthChanged: {
-        if (isCompact) columns = 1
-        else if (isMedium) columns = 2
-        else columns = 3
-    }
+    readonly property bool isCompact: windowMetrics.isSmall
+    readonly property bool isMedium: windowMetrics.isMedium
+    readonly property bool isExpanded: windowMetrics.isLarge
+    readonly property int effectiveColumns: adaptive ? windowMetrics.preferredColumns : Math.max(1, columns)
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+
+    MeoWindowMetrics {
+        id: windowMetrics
+        availableWidth: control.width
+        availableHeight: control.height
+        maxColumns: control.columns
+    }
 
     GridLayout {
         id: grid
         x: control.padding
         y: control.padding
         width: parent.width - control.padding * 2
-        columns: control.columns
+        columns: control.effectiveColumns
         rowSpacing: control.spacing
         columnSpacing: control.spacing
 

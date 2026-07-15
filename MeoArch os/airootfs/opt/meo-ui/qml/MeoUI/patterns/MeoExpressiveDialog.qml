@@ -24,6 +24,8 @@ Popup {
     readonly property color themeSecondary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondary !== 'undefined') ? MeoTheme.secondary : "#625B71"
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionEnter: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium4 !== 'undefined') ? MeoTheme.motionDurationMedium4 : 400
+    readonly property int motionExit: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium1 !== 'undefined') ? MeoTheme.motionDurationMedium1 : 250
 
     // MD3 Expressive Typography
     readonly property var fontHeadlineSmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.headlineSmallEmphasized !== 'undefined') ? MeoTheme.headlineSmallEmphasized : { "size": 24, "weight": Font.Bold }
@@ -123,15 +125,15 @@ Popup {
 
     enter: Transition {
         ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: 400; easing.type: Easing.OutQuint }
-            NumberAnimation { property: "scale"; from: 0.8; to: 1.0; duration: 400; easing.bezierCurve: [0.34, 1.56, 0.64, 1] } // Bouncy entrance
+            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: control.motionEnter; easing.type: Easing.OutQuint }
+            NumberAnimation { property: "scale"; from: 0.8; to: 1.0; duration: control.motionEnter; easing.bezierCurve: [0.34, 1.56, 0.64, 1] } // Bouncy entrance
         }
     }
 
     exit: Transition {
         ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: 250; easing.type: Easing.InQuint }
-            NumberAnimation { property: "scale"; from: 1.0; to: 0.8; duration: 250; easing.type: Easing.InQuint }
+            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: control.motionExit; easing.type: Easing.InQuint }
+            NumberAnimation { property: "scale"; from: 1.0; to: 0.8; duration: control.motionExit; easing.type: Easing.InQuint }
         }
     }
 }

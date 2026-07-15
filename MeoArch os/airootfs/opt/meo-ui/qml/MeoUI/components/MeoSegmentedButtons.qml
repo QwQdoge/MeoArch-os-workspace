@@ -60,6 +60,32 @@ Frame {
         border.color: "transparent"
         border.width: 0
         radius: (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeFull : 20 * control.themeGlobalScale)
+
+        // 🌟 Sliding Selection Background (MD3 Expressive Pattern for single-select)
+        Rectangle {
+            id: slidingBg
+            visible: !control.multiSelect && control.model.length > 0
+            height: parent.height
+            radius: parent.radius
+            color: control.themePrimary
+
+            readonly property Item currentItem: itemRepeater.itemAt(control.currentIndex)
+            x: currentItem ? currentItem.x + rowLayout.x : 0
+            width: currentItem ? currentItem.width : 0
+
+            Behavior on x {
+                NumberAnimation {
+                    duration: control.motionMedium
+                    easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.05, 0.7, 0.1, 1.0]
+                }
+            }
+            Behavior on width {
+                NumberAnimation {
+                    duration: control.motionMedium
+                    easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.05, 0.7, 0.1, 1.0]
+                }
+            }
+        }
     }
 
     Row {
@@ -68,6 +94,7 @@ Frame {
         spacing: 2 * control.themeGlobalScale
 
         Repeater {
+            id: itemRepeater
             model: control.model
             
             delegate: Item {
@@ -117,7 +144,8 @@ Frame {
                         anchors.fill: parent
                         radius: height / 2
                         color: delegateItem.activeBgColor
-                        opacity: delegateItem.isSelected ? 1 : 0
+                        // Only show individual selectedBg in multiSelect mode
+                        opacity: control.multiSelect && delegateItem.isSelected ? 1 : 0
                         scale: mouseArea.pressed ? 0.98 : (delegateItem.isSelected ? 1 : 0.92)
 
                         Behavior on opacity {

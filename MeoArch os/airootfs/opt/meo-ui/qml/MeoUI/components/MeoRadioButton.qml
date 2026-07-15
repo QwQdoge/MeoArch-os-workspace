@@ -8,7 +8,17 @@ Control {
     // 🌟 核心属性
     property bool checked: false
     property string label: ""
+    property string text: label
     signal toggled(bool checked)
+
+    onTextChanged: {
+        if (label !== text)
+            label = text
+    }
+    onLabelChanged: {
+        if (text !== label)
+            text = label
+    }
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -16,6 +26,9 @@ Control {
     readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
     readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionStateDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationShort2 !== 'undefined') ? MeoTheme.motionDurationShort2 : 100
+    readonly property int motionSelectDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationFast !== 'undefined') ? MeoTheme.motionDurationFast : 150
+    readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
 
     implicitWidth: Math.max(radioOuter.width + (label !== "" ? spacing + labelText.implicitWidth : 0), 40 * themeGlobalScale)
     implicitHeight: Math.max(radioOuter.height, 40 * themeGlobalScale)
@@ -28,6 +41,7 @@ Control {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
+        enabled: control.enabled
         onClicked: {
             if (!control.checked) {
                 control.checked = true
@@ -60,7 +74,7 @@ Control {
 
                 Behavior on width {
                     NumberAnimation {
-                        duration: 150;
+                        duration: control.motionSelectDuration
                         easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]
                     }
                 }
@@ -83,14 +97,16 @@ Control {
                 }
             }
 
-            Behavior on border.color { ColorAnimation { duration: 200; easing.bezierCurve: [0.34, 0.8, 0.34, 1.0] } }
+            Behavior on border.color { ColorAnimation { duration: control.motionStateDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
         }
 
         // 🔤 标签文本
         Text {
             id: labelText
             text: control.label
-            font.pixelSize: 14 * control.themeGlobalScale
+            font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
+            font.pixelSize: control.fontLabelLarge.size * control.themeGlobalScale
+            font.weight: control.fontLabelLarge.weight
             color: control.enabled ? control.themeOnSurface : (isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38))
             anchors.verticalCenter: parent.verticalCenter
             visible: text !== ""

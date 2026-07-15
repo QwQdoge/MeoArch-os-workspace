@@ -10,12 +10,33 @@ Control {
     property real value: 0.0
     property bool discrete: false
     property real stepSize: 1.0
+    property bool snapMode: false
+    property bool tickMarksEnabled: discrete
+    property bool valueLabelEnabled: true
     property bool isThick: false // 🌟 MD3 Expressive: Thicker track variant
     property bool wavy: false // 🌟 MD3 Expressive: Wavy track variant
     property bool expressive: true // Legacy support
     property string size: expressive ? "m" : "xs" // "xs" | "s" | "m" | "l" | "xl"
+    readonly property bool pressed: internalSlider.pressed
 
     signal moved(real value)
+
+    function normalizedValue(rawValue) {
+        var nextValue = Math.max(from, Math.min(to, rawValue))
+        if ((discrete || snapMode || tickMarksEnabled) && stepSize > 0) {
+            var steps = Math.round((nextValue - from) / stepSize)
+            nextValue = from + steps * stepSize
+        }
+        return Math.max(from, Math.min(to, nextValue))
+    }
+
+    function setValue(rawValue) {
+        var nextValue = normalizedValue(rawValue)
+        if (value !== nextValue) {
+            value = nextValue
+            moved(value)
+        }
+    }
 
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
@@ -24,6 +45,11 @@ Control {
     readonly property color themeSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8"
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property int motionStateDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationFast !== 'undefined') ? MeoTheme.motionDurationFast : 150
+    readonly property int motionTrackDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium1 !== 'undefined') ? MeoTheme.motionDurationMedium1 : 250
+    readonly property int motionLabelDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationShort2 !== 'undefined') ? MeoTheme.motionDurationShort2 : 100
+    readonly property int motionWaveDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationExtraLong3 !== 'undefined') ? MeoTheme.motionDurationExtraLong3 : 900
+    readonly property var fontLabelSmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelSmall !== 'undefined') ? MeoTheme.labelSmall : { "size": 12, "weight": Font.Medium }
 
     // 📐 尺寸映射 (MD3 Expressive Slider)
     readonly property real trackHeight: {
@@ -48,6 +74,12 @@ Control {
     }
 
     readonly property real thumbGap: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.sliderThumbGapExpressive !== 'undefined') ? MeoTheme.sliderThumbGapExpressive : 6 * themeGlobalScale
+    readonly property real visualThumbWidth: {
+        if (size === "xs") return internalSlider.pressed ? 2 * themeGlobalScale : thumbWidth
+        return internalSlider.pressed ? 2 * themeGlobalScale : thumbWidth
+    }
+    readonly property real trackEndX: internalSlider.visualPosition * internalSlider.availableWidth
+    readonly property real activeTrackWidth: Math.max(0, trackEndX - thumbGap - visualThumbWidth / 2)
 
     implicitWidth: 200 * themeGlobalScale
     implicitHeight: wavy ? 44 * themeGlobalScale : Math.max(thumbHeight + 8 * themeGlobalScale, 44 * themeGlobalScale)
@@ -61,12 +93,12 @@ Control {
         from: control.from
         to: control.to
         value: control.value
-        stepSize: control.discrete ? control.stepSize : 0.0
+        stepSize: (control.discrete || control.snapMode || control.tickMarksEnabled) ? control.stepSize : 0.0
         live: true
+        enabled: control.enabled
 
         onMoved: {
-            control.value = value
-            control.moved(value)
+            control.setValue(value)
         }
 
         background: Item {
@@ -85,11 +117,11 @@ Control {
                 radius: height / 2
                 color: Qt.rgba(control.themeOnSurfaceVariant.r, control.themeOnSurfaceVariant.g, control.themeOnSurfaceVariant.b, 0.12)
 
-                Behavior on height { NumberAnimation { duration: 200 } }
+                Behavior on height { NumberAnimation { duration: control.motionTrackDuration } }
 
                 // Tick marks for discrete slider
                 Repeater {
-                    model: control.discrete ? Math.floor((control.to - control.from) / control.stepSize) + 1 : 0
+                    model: (control.discrete || control.tickMarksEnabled) && control.stepSize > 0 ? Math.floor((control.to - control.from) / control.stepSize) + 1 : 0
                     delegate: Rectangle {
                         x: index * (parent.width / (model - 1)) - width / 2
                         y: (parent.height - height) / 2
@@ -106,12 +138,19 @@ Control {
             Rectangle {
                 visible: !control.wavy
                 y: (parent.height - height) / 2
-                width: internalSlider.visualPosition * parent.width
+                width: control.activeTrackWidth
                 height: trackRect.height
                 radius: height / 2
                 color: control.themePrimary
 
-                Behavior on height { NumberAnimation { duration: 200 } }
+                Behavior on width {
+                    enabled: !internalSlider.pressed
+                    NumberAnimation {
+                        duration: control.motionTrackDuration
+                        easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1]
+                    }
+                }
+                Behavior on height { NumberAnimation { duration: control.motionTrackDuration } }
             }
 
             Canvas {
@@ -167,7 +206,7 @@ Control {
                     running: control.visible && control.wavy
                     from: 0
                     to: 52 * control.themeGlobalScale
-                    duration: 900
+                    duration: control.motionWaveDuration
                     loops: Animation.Infinite
                     easing.type: Easing.Linear
                 }
@@ -193,7 +232,7 @@ Control {
                 border.color: control.size !== "xs" ? control.themePrimary : "transparent"
                 border.width: control.size !== "xs" ? 1 * control.themeGlobalScale : 0
 
-                Behavior on width { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
+                Behavior on width { NumberAnimation { duration: control.motionStateDuration; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
             }
 
             // 🌟 Value Label (MD3 Tooltip style)
@@ -206,15 +245,16 @@ Control {
                 height: 28 * control.themeGlobalScale
                 radius: height / 2
                 color: control.themePrimary
-                visible: internalSlider.pressed
+                visible: control.valueLabelEnabled && (internalSlider.pressed || internalSlider.hovered)
 
                 Text {
                     id: labelText
                     anchors.centerIn: parent
                     text: control.discrete ? control.value.toFixed(0) : control.value.toFixed(1)
                     color: control.themeOnPrimary
-                    font.pixelSize: 12 * control.themeGlobalScale
-                    font.weight: Font.Medium
+                    font.family: (typeof MeoTheme !== "undefined" && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
+                    font.pixelSize: control.fontLabelSmall.size * control.themeGlobalScale
+                    font.weight: control.fontLabelSmall.weight
                 }
 
                 // Small arrow down
@@ -228,10 +268,10 @@ Control {
                     color: control.themePrimary
                 }
 
-                scale: internalSlider.pressed ? 1.0 : 0.0
-                opacity: internalSlider.pressed ? 1.0 : 0.0
-                Behavior on scale { NumberAnimation { duration: 150; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
+                scale: (internalSlider.pressed || internalSlider.hovered) ? 1.0 : 0.0
+                opacity: (internalSlider.pressed || internalSlider.hovered) ? 1.0 : 0.0
+                Behavior on scale { NumberAnimation { duration: control.motionStateDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
+                Behavior on opacity { NumberAnimation { duration: control.motionStateDuration } }
             }
 
             // 🌟 状态层反馈
@@ -246,7 +286,7 @@ Control {
                     if (internalSlider.hovered) return Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.08)
                     return "transparent"
                 }
-                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on color { ColorAnimation { duration: control.motionStateDuration } }
             }
         }
     }

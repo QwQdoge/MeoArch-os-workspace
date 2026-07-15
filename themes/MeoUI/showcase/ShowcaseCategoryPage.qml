@@ -50,11 +50,13 @@ MeoPageLayout {
             componentData: modelData
 
             ShowcaseStateGrid {
-                width: parent.width
+                Layout.fillWidth: true
+                Layout.preferredHeight: childrenRect.height
             }
 
             ShowcaseVariantRow {
-                width: parent.width
+                Layout.fillWidth: true
+                Layout.preferredHeight: implicitHeight
                 title: "Live sample"
 
                 ShowcaseSampleDelegate {
@@ -63,14 +65,14 @@ MeoPageLayout {
             }
 
             ShowcaseApiTable {
-                width: parent.width
+                Layout.fillWidth: true
                 variants: modelData.variants
-                states: modelData.states
+                stateSummary: modelData.states
                 api: modelData.api
             }
 
             ShowcaseSnippet {
-                width: parent.width
+                Layout.fillWidth: true
                 code: modelData.usage
             }
         }

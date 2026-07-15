@@ -15,6 +15,7 @@ Usage: meoarch-installer [options] [-- QML_ARGS...]
 Options:
   --enable-archinstall-preflight  Run archinstall --dry-run preflight in the background.
   --enable-system-actions         Enable QML system-action requests for future native bridge testing.
+  --enable-real-install           Allow the compiled host to call the guarded Archinstall adapter.
   -h, --help                      Show this help.
 
 Defaults are non-destructive: no archinstall preflight and no enabled system actions.
@@ -29,6 +30,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --enable-system-actions)
       qml_args+=("--enable-system-actions")
+      shift
+      ;;
+    --enable-real-install)
+      qml_args+=("--enable-real-install")
       shift
       ;;
     --)
@@ -54,6 +59,18 @@ if [ "${enable_archinstall_preflight}" -eq 1 ] && [ -x "${app_dir}/backend/archi
     "${app_dir}/backend/archinstall-preflight.sh" >/dev/null 2>&1 &
 fi
 
+native_app="${app_dir}/bin/meoarch-installer-app"
+if [ -x "${native_app}" ]; then
+  missing_libraries="$(ldd "${native_app}" 2>/dev/null | awk '/not found/ { print $1 }' | paste -sd, -)"
+  if [ -z "${missing_libraries}" ]; then
+    export MEOARCH_INSTALLER_ROOT="${app_dir}"
+    export MEOARCH_INSTALLER_QML_ROOT="${app_dir}/qml"
+    exec "${native_app}" "${qml_args[@]}"
+  fi
+  echo "Native installer host is missing libraries (${missing_libraries}); using the QML runtime." >&2
+fi
+
+export QML2_IMPORT_PATH="${app_dir}/qml:/usr/lib/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
 if command -v qml6 >/dev/null 2>&1; then
   exec qml6 -I "$meoui_import_path" "$main_qml" "${qml_args[@]}"
 elif command -v qml >/dev/null 2>&1; then

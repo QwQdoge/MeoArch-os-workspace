@@ -6,23 +6,36 @@ Rectangle {
     id: control
 
     property var componentData: ({})
+    property string title: ""
+    property string subtitle: ""
+    property string source: ""
+    readonly property var headerData: {
+        if (componentData && componentData.name) return componentData;
+        return {
+            "name": title,
+            "summary": subtitle,
+            "source": source
+        };
+    }
     default property alias content: contentColumn.data
 
     width: parent ? parent.width : implicitWidth
-    implicitHeight: contentColumn.implicitHeight + MeoTheme.space32
-    radius: MeoTheme.shapeLarge
-    color: MeoTheme.surfaceContainerLowest
-    border.color: MeoTheme.outlineVariant
+    readonly property bool compact: width <= MeoTheme.windowBreakpointSmall * MeoTheme.globalScale
+    readonly property real contentMargin: compact ? MeoTheme.space12 : MeoTheme.space24
+    implicitHeight: contentColumn.implicitHeight + contentMargin * 2
+    radius: compact ? MeoTheme.shapeSmall : MeoTheme.shapeMedium
+    color: MeoTheme.surface
+    border.color: Qt.rgba(MeoTheme.outlineVariant.r, MeoTheme.outlineVariant.g, MeoTheme.outlineVariant.b, 0.72)
 
     ColumnLayout {
         id: contentColumn
         anchors.fill: parent
-        anchors.margins: MeoTheme.space16
-        spacing: MeoTheme.space16
+        anchors.margins: control.contentMargin
+        spacing: control.compact ? MeoTheme.space16 : MeoTheme.space24
 
         ShowcaseComponentHeader {
             Layout.fillWidth: true
-            componentData: control.componentData
+            componentData: control.headerData
         }
     }
 }
