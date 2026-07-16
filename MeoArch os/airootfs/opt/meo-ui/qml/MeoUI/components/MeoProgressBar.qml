@@ -20,13 +20,14 @@ Control {
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themeSurfaceContainerHighest: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHighest !== 'undefined') ? MeoTheme.surfaceContainerHighest : "#E6E1E5"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property int motionProgressDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium1 !== 'undefined') ? MeoTheme.motionDurationMedium1 : 250
-    readonly property int motionWaveDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationExtraLong3 !== 'undefined') ? MeoTheme.motionDurationExtraLong3 : 900
-    readonly property int motionIndeterminateDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationExtraLong4 !== 'undefined') ? MeoTheme.motionDurationExtraLong4 + MeoTheme.motionDurationShort2 : 1100
+    readonly property int motionProgressDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium !== 'undefined') ? MeoTheme.motionDurationMedium : 220
+    readonly property int motionWaveDuration: MeoTheme.reduceMotion ? 0 : 720
+    readonly property int motionIndeterminateDuration: MeoTheme.reduceMotion ? 0 : 760
     readonly property int motionIndeterminateCycle: motionIndeterminateDuration * 2
     readonly property int motionIndeterminateDelay: motionIndeterminateDuration
-    readonly property int motionCircularSweepDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationLong4 !== 'undefined') ? MeoTheme.motionDurationLong4 + MeoTheme.motionDurationShort1 : 650
-    readonly property int motionCircularRotationDuration: motionCircularSweepDuration
+    readonly property int motionCircularSweepDuration: MeoTheme.reduceMotion ? 0 : 540
+    readonly property int motionCircularRotationDuration: MeoTheme.reduceMotion ? 0 : 1080
+    readonly property bool animationActive: indeterminate && visible && width > 0 && height > 0 && !MeoTheme.reduceMotion
 
     implicitWidth: type === "linear" ? 240 * themeGlobalScale : 48 * themeGlobalScale
     implicitHeight: {
@@ -93,7 +94,7 @@ Control {
                 }
 
                 SequentialAnimation {
-                    running: control.indeterminate && control.visible && control.type === "linear" && !control.wavy
+                    running: control.animationActive && control.type === "linear" && !control.wavy
                     loops: Animation.Infinite
                     PauseAnimation { duration: index === 0 ? 0 : control.motionIndeterminateDelay }
                     ParallelAnimation {
@@ -144,8 +145,9 @@ Control {
             var strokeWidth = (control.isThick ? 10 : 8) * control.themeGlobalScale;
             var mid = height / 2;
             var progressWidth = Math.max(0, Math.min(width, width * control.value));
-            var amp = 4 * control.themeGlobalScale;
-            var wavelength = 26 * control.themeGlobalScale;
+            var amp = Math.min(strokeWidth * 0.34, 3.5 * control.themeGlobalScale);
+            var wavelength = 40 * control.themeGlobalScale;
+            var sampleStep = Math.max(1, 1.25 * control.themeGlobalScale);
 
             ctx.lineCap = "round";
             ctx.lineJoin = "round";
@@ -162,14 +164,14 @@ Control {
             ctx.strokeStyle = control.activeColor;
             ctx.beginPath();
             if (control.indeterminate) {
-                var cycle = Math.max(1, 52 * control.themeGlobalScale);
+                var cycle = Math.max(1, width + width * 0.5);
                 var progress = (phase % cycle) / cycle;
                 var barWidth = width * 0.5;
                 var startX = (width + barWidth) * progress - barWidth;
                 var endX = startX + barWidth;
                 var hasStarted = false;
 
-                for (var ix = 0; ix <= width; ix += 3 * control.themeGlobalScale) {
+                for (var ix = Math.max(0, startX); ix <= Math.min(width, endX); ix += sampleStep) {
                     if (ix >= startX && ix <= endX) {
                         var iy = mid + Math.sin((ix + phase) / wavelength * Math.PI * 2) * amp;
                         if (!hasStarted) {
@@ -181,19 +183,17 @@ Control {
                     }
                 }
             } else {
-                for (var x = 0; x <= progressWidth; x += 3 * control.themeGlobalScale) {
+                for (var x = 0; x < progressWidth; x += sampleStep) {
                     var y = mid + Math.sin((x + phase) / wavelength * Math.PI * 2) * amp;
                     if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
                 }
+                if (progressWidth > 0) {
+                    var endY = mid + Math.sin((progressWidth + phase) / wavelength * Math.PI * 2) * amp;
+                    if (progressWidth < sampleStep) ctx.moveTo(0, mid);
+                    ctx.lineTo(progressWidth, endY);
+                }
             }
             ctx.stroke();
-
-            if (!control.indeterminate && progressWidth < width) {
-                ctx.fillStyle = control.activeColor;
-                ctx.beginPath();
-                ctx.arc(width, mid, 2 * control.themeGlobalScale, 0, Math.PI * 2);
-                ctx.fill();
-            }
         }
 
         onWidthChanged: requestPaint()
@@ -206,11 +206,13 @@ Control {
         }
 
         NumberAnimation on phase {
-            running: control.visible && control.wavy && control.indeterminate && control.type === "linear"
+            running: control.animationActive && control.wavy && control.type === "linear"
             from: 0
-            to: 52 * control.themeGlobalScale
+            to: Math.max(1, wavyCanvas.width + wavyCanvas.width * 0.5)
             duration: control.motionWaveDuration
             loops: Animation.Infinite
+            // Translation is intentionally linear: the first and final wave
+            // phase are spatially continuous, so there is no loop snap.
             easing.type: Easing.Linear
         }
     }
@@ -221,8 +223,10 @@ Control {
         visible: control.type === "circular"
         anchors.fill: parent
 
-        property real startAngle: 0
-        property real endAngle: control.indeterminate ? 0.2 : control.value
+        property real cyclePhase: 0
+        readonly property real sweep: control.indeterminate ? 0.14 + 0.58 * (0.5 - 0.5 * Math.cos(cyclePhase * 2 * Math.PI)) : control.value
+        readonly property real startAngle: control.indeterminate ? cyclePhase - sweep : 0
+        readonly property real endAngle: control.indeterminate ? cyclePhase : control.value
 
         onPaint: {
             var ctx = getContext("2d");
@@ -261,30 +265,19 @@ Control {
             }
         }
 
-        onStartAngleChanged: requestPaint()
-        onEndAngleChanged: requestPaint()
-        onRotationChanged: requestPaint()
+        onCyclePhaseChanged: requestPaint()
         onWidthChanged: requestPaint()
         onHeightChanged: requestPaint()
 
-        // 🌟 MD3 "Advance and Retreat" Animation logic
-        SequentialAnimation {
-            running: control.indeterminate && control.visible && control.type === "circular"
+        // A periodic sweep avoids the former two-segment pause.  Its start and
+        // end values are visually identical, keeping the loop continuous.
+        NumberAnimation on cyclePhase {
+            running: control.animationActive && control.type === "circular"
+            from: 0
+            to: 1
+            duration: control.motionCircularRotationDuration
             loops: Animation.Infinite
-
-            ParallelAnimation {
-                NumberAnimation { target: canvas; property: "startAngle"; from: 0; to: 0.75; duration: control.motionCircularSweepDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-                NumberAnimation { target: canvas; property: "endAngle"; from: 0.2; to: 0.95; duration: control.motionCircularSweepDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-                NumberAnimation { target: canvas; property: "rotation"; from: 0; to: 180; duration: control.motionCircularRotationDuration; easing.type: Easing.Linear }
-            }
-            ParallelAnimation {
-                NumberAnimation { target: canvas; property: "startAngle"; from: 0.75; to: 1.5; duration: control.motionCircularSweepDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-                NumberAnimation { target: canvas; property: "endAngle"; from: 0.95; to: 1.7; duration: control.motionCircularSweepDuration; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] }
-                NumberAnimation { target: canvas; property: "rotation"; from: 180; to: 360; duration: control.motionCircularRotationDuration; easing.type: Easing.Linear }
-            }
-
-            // Reset angles to prevent overflow while maintaining rotation continuity
-            ScriptAction { script: { canvas.startAngle %= 1.0; canvas.endAngle %= 1.0; } }
+            easing.type: Easing.Linear
         }
     }
 }

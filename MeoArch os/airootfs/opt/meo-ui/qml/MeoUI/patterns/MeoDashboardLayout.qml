@@ -17,9 +17,9 @@ Flickable {
     property bool adaptive: true
 
     // Adaptive Columns
-    readonly property bool isCompact: windowMetrics.isSmall
-    readonly property bool isMedium: windowMetrics.isMedium
-    readonly property bool isExpanded: windowMetrics.isLarge
+    readonly property bool isCompact: windowMetrics.isCompactWidth
+    readonly property bool isMedium: windowMetrics.isMediumWidth
+    readonly property bool isExpanded: windowMetrics.isExpandedWidth || windowMetrics.isLargeWidth || windowMetrics.isExtraLargeWidth
     readonly property int effectiveColumns: adaptive ? windowMetrics.preferredColumns : Math.max(1, columns)
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0

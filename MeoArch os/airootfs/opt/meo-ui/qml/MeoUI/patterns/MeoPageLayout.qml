@@ -18,11 +18,11 @@ Flickable {
     default property alias content: bodyColumn.data
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== "undefined" && typeof MeoTheme.globalScale !== "undefined") ? MeoTheme.globalScale : 1.0
-    readonly property bool isCompact: windowMetrics.isSmall
-    readonly property bool isMedium: windowMetrics.isMedium
-    readonly property bool isExpanded: windowMetrics.isLarge
-    readonly property string windowSizeClass: windowMetrics.sizeClass
-    readonly property real maxContentWidth: isCompact ? compactWidth : (isMedium ? mediumWidth : expandedWidth)
+    readonly property bool isCompact: windowMetrics.isCompactWidth
+    readonly property bool isMedium: windowMetrics.isMediumWidth
+    readonly property bool isExpanded: windowMetrics.isExpandedWidth || windowMetrics.isLargeWidth || windowMetrics.isExtraLargeWidth
+    readonly property string windowSizeClass: windowMetrics.widthSizeClass
+    readonly property real maxContentWidth: Math.min(windowMetrics.maximumContentWidth, isCompact ? compactWidth : (isMedium ? mediumWidth : expandedWidth))
     readonly property var fontPageTitle: (typeof MeoTheme !== "undefined" && typeof MeoTheme.titleBig !== "undefined") ? MeoTheme.titleBig : { "size": 28, "weight": Font.DemiBold, "lineHeight": 36, "letterSpacing": 0 }
     readonly property var fontPageSubtitle: (typeof MeoTheme !== "undefined" && typeof MeoTheme.bodyBig !== "undefined") ? MeoTheme.bodyBig : { "size": 16, "weight": Font.Normal, "lineHeight": 24, "letterSpacing": 0.5 }
 

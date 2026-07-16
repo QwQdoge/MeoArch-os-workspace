@@ -129,7 +129,9 @@ Button {
     contentItem: Item {
         implicitWidth: Math.max(contentRow.implicitWidth, (iconSize + 6) * MeoTheme.globalScale)
         implicitHeight: Math.max(contentRow.implicitHeight, (iconSize + 6) * MeoTheme.globalScale)
-        scale: (control.bouncy && control.pressed) ? 0.98 : 1.0
+        // Press feedback remains perceptible in the regular theme too; the
+        // expressive theme merely gets a slightly stronger compression.
+        scale: control.pressed ? (control.bouncy ? 0.985 : 0.99) : 1.0
         Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
 
         Row {
@@ -164,7 +166,8 @@ Button {
                 font.pixelSize: fontToken.size * MeoTheme.globalScale
                 font.weight: fontToken.weight
                 font.letterSpacing: (fontToken.letterSpacing || 0) * MeoTheme.globalScale
-                lineHeight: (fontToken.lineHeight ? (fontToken.lineHeight / fontToken.size) : 1.2)
+                lineHeightMode: Text.FixedHeight
+                lineHeight: fontToken.lineHeight ? fontToken.lineHeight * MeoTheme.globalScale : font.pixelSize * 1.2
                 color: control.textColor
                 verticalAlignment: Text.AlignVCenter
                 anchors.verticalCenter: parent.verticalCenter
@@ -203,6 +206,13 @@ Button {
             if (control.pressed) {
                 if (control.size === "xs" || control.size === "s") return MeoTheme.shapeSmall;
                 return MeoTheme.shapeMedium;
+            }
+            // Hover owns the first shape response.  This gives mouse users an
+            // immediate affordance before a click instead of morphing only on
+            // press.
+            if (control.hovered) {
+                if (control.size === "xs" || control.size === "s") return MeoTheme.shapeMedium;
+                return MeoTheme.shapeLargeIncreased;
             }
             if (shape === "square") {
                 if (size === "xs" || size === "s") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * MeoTheme.globalScale;
@@ -270,6 +280,7 @@ Button {
 
             MeoStateLayer {
                 radius: shapeBg.radius
+                shape: shapeBg.type
                 pressed: control.pressed
                 hovered: control.hovered
                 focused: control.visualFocus
@@ -308,10 +319,17 @@ Button {
             }
 
             Behavior on color { ColorAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingStandard !== "undefined") ? MeoTheme.motionEasingStandard : [0.2, 0, 0, 1] } }
-            Behavior on radius { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasized !== "undefined") ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1] } }
+            Behavior on radius {
+                NumberAnimation {
+                    // Get into the new silhouette quickly, then decelerate
+                    // into its final contour so the end never snaps.
+                    duration: control.hovered || control.pressed ? MeoTheme.motionDurationShapeEnter : MeoTheme.motionDurationShapeSettle
+                    easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1]
+                }
+            }
         }
 
-        scale: control.pressed ? 0.975 : (control.hovered && control.effectiveType !== "text" ? 1.008 : 1.0)
+        scale: control.pressed ? 0.985 : (control.hovered && control.effectiveType !== "text" ? 1.006 : 1.0)
         Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1.0]) } }
     }
 }

@@ -1,7 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
-import MeoUI 1.0 as Meo
+import MeoUI 1.0
 import ".."
 import "../components"
 
@@ -10,40 +10,127 @@ PageFrame {
     showBackButton: false
     showPrimaryButton: controller && controller.installationState === "complete"
     primaryLabel: "Continue"
-    readonly property var stages: ["Validating configuration", "Preparing disk and filesystems", "Installing and configuring MeoArch", "Final checks"]
+    readonly property var stages: [
+        "Validating configuration",
+        "Preparing disk and filesystems",
+        "Installing and configuring MeoArch",
+        "Final checks"
+    ]
+
     Column {
-        anchors.fill: parent; spacing: page.dp(18)
-        PageHeading { width: parent.width; title: "Installing"; subtitle: "Keep this device powered on while MeoArch is installed." }
-        Row {
-            width: parent.width; spacing: page.dp(16)
-            Text { text: page.controller ? page.controller.installationProgress + "%" : "0%"; font.family: page.comfortaa; font.bold: true; font.pixelSize: page.dp(40); color: MeoTheme.primary }
-            Text { anchors.baseline: parent.children[0].baseline; text: page.controller && page.controller.installationState === "complete" ? "Installation complete" : "Working…"; font.family: page.roboto; font.pixelSize: page.dp(16); color: MeoTheme.onSurfaceVariant }
+        width: parent.width
+        spacing: page.dp(18)
+
+        PageHeading {
+            width: parent.width
+            title: "Installing"
+            subtitle: "Keep this device powered on while MeoArch is installed."
         }
-        Meo.MeoProgressBar { width: parent.width; height: page.dp(8); value: page.controller ? page.controller.installationProgress / 100 : 0; isThick: true; vibrant: true }
-        Rectangle {
-            width: parent.width; height: page.dp(240); radius: page.dp(16); color: MeoTheme.surfaceContainerLow
+        Row {
+            width: parent.width
+            spacing: page.dp(16)
+
+            MeoText {
+                text: page.controller ? page.controller.installationProgress + "%" : "0%"
+                typeRole: "title"
+                typeSize: "big"
+                emphasized: true
+                color: MeoTheme.primary
+            }
+            MeoText {
+                anchors.baseline: parent.children[0].baseline
+                text: page.controller && page.controller.installationState === "complete"
+                      ? "Installation complete" : "Working…"
+                typeRole: "body"
+                typeSize: "big"
+                color: MeoTheme.contentOnSurfaceVariant
+            }
+        }
+        MeoProgressBar {
+            width: parent.width
+            height: page.dp(8)
+            value: page.controller ? page.controller.installationProgress / 100 : 0
+            isThick: true
+            vibrant: true
+        }
+        MeoCard {
+            width: parent.width
+            implicitHeight: page.dp(240)
+            type: "filled"
+            padding: page.dp(20)
+
             Column {
-                anchors.fill: parent; anchors.leftMargin: page.dp(20); anchors.rightMargin: page.dp(20)
+                width: parent.width
                 Repeater {
                     model: page.stages
-                    delegate: Rectangle {
+                    delegate: Item {
                         id: stageRow
                         required property string modelData
                         required property int index
-                        width: parent.width; height: page.dp(56); color: "transparent"
+                        width: parent.width
+                        height: page.dp(50)
                         readonly property int threshold: index * 25
-                        MeoBusyIndicator { id: stageSpinner; anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; width: page.dp(22); height: page.dp(22); running: visible; visible: page.controller && page.controller.installationProgress >= parent.threshold && page.controller.installationProgress < parent.threshold + 25 }
-                        Text { anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; visible: !stageSpinner.visible; text: page.controller && page.controller.installationProgress >= parent.threshold + 25 ? "✓" : "○"; color: page.controller && page.controller.installationProgress >= parent.threshold ? MeoTheme.primary : MeoTheme.outline; font.pixelSize: page.dp(20) }
-                        Text { anchors.left: parent.left; anchors.leftMargin: page.dp(36); anchors.verticalCenter: parent.verticalCenter; text: stageRow.modelData; font.family: page.roboto; font.pixelSize: page.dp(15); font.weight: page.controller && page.controller.installationProgress >= parent.threshold && page.controller.installationProgress < parent.threshold + 25 ? Font.Bold : Font.Normal; color: MeoTheme.onSurface }
+                        readonly property bool active: page.controller
+                                                               && page.controller.installationProgress >= threshold
+                                                               && page.controller.installationProgress < threshold + 25
+                        readonly property bool complete: page.controller
+                                                                 && page.controller.installationProgress >= threshold + 25
+
+                        MeoLoadingIndicator {
+                            id: stageSpinner
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            size: "xs"
+                            running: stageRow.active
+                            indeterminate: true
+                            visible: stageRow.active
+                        }
+                        MeoIcon {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            visible: !stageSpinner.visible
+                            icon: stageRow.complete ? "check_circle" : "radio_button_unchecked"
+                            size: 22
+                            color: stageRow.complete ? MeoTheme.primary : MeoTheme.outline
+                        }
+                        MeoText {
+                            anchors.left: parent.left
+                            anchors.leftMargin: page.dp(36)
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: stageRow.modelData
+                            typeRole: "body"
+                            typeSize: "medium"
+                            emphasized: stageRow.active
+                            color: MeoTheme.contentOnSurface
+                        }
                     }
                 }
             }
         }
-        MeoButton { text: "Show Details"; kind: "text"; onClicked: logPopup.open() }
+        MeoButton { text: "Show Details"; type: "text"; onClicked: logPopup.openFrom(this) }
     }
-    MotionPopup {
-        id: logPopup; anchors.centerIn: Overlay.overlay; width: Math.min(page.dp(720), Overlay.overlay ? Overlay.overlay.width - page.dp(64) : page.dp(720)); height: page.dp(420); modal: true; padding: page.dp(24); closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+    MeoMotionPopup {
+        id: logPopup
+        presentation: MeoMotionPopup.Dialog
+        anchors.centerIn: Overlay.overlay
+        width: Math.min(page.dp(720), Overlay.overlay ? Overlay.overlay.width - page.dp(64) : page.dp(720))
+        height: page.dp(420)
+        padding: page.dp(24)
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
         surfaceColor: "#252329"
-        contentItem: Column { spacing: page.dp(12); Text { text: "Installation details"; color: "white"; font.family: page.comfortaa; font.bold: true; font.pixelSize: page.dp(24) } Text { width: parent.width; text: "[preview] configuration validated\n[preview] disk plan prepared\n[preview] MeoArch packages configured\nSecrets are never written to this log."; color: "#E9E4EC"; font.family: page.roboto; font.pixelSize: page.dp(13); lineHeight: 1.5 } }
+
+        contentItem: Column {
+            spacing: page.dp(12)
+            MeoText { text: "Installation details"; color: "white"; typeRole: "title"; typeSize: "medium"; emphasized: true }
+            MeoText {
+                width: parent.width
+                text: "[preview] configuration validated\n[preview] disk plan prepared\n[preview] MeoArch packages configured\nSecrets are never written to this log."
+                color: "#E9E4EC"
+                typeRole: "body"
+                typeSize: "small"
+                lineHeight: 1.5
+            }
+        }
     }
 }

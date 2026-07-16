@@ -1,121 +1,199 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Effects
 import MeoUI
 
 Control {
     id: control
 
-    // 🌟 核心属性
-    // model: [{ label: "Action", icon: "add", action: function }]
+    // Connected single-selection action group.
     property var model: []
-    property string type: "tonal" // "filled" | "tonal" | "outlined" | "elevated"
-    property string size: "m" // "xs" | "s" | "m" | "l" | "xl"
+    property string type: "tonal" // filled | tonal | outlined | elevated
+    property string size: "m" // xs | s | m | l | xl
     property int currentIndex: 0
+    signal selected(int index, var data)
 
-    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
-    readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? MeoTheme.contentOnPrimary : "#FFFFFF"
-    readonly property color themePrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
-    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D"
-    readonly property color themeOnSecondaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSecondaryContainer !== 'undefined') ? MeoTheme.contentOnSecondaryContainer : "#1D192B"
-    readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
+    readonly property real themeGlobalScale: MeoTheme.globalScale
+    readonly property color themePrimary: MeoTheme.primary
+    readonly property color themeOnPrimary: MeoTheme.contentOnPrimary
+    readonly property color themePrimaryContainer: MeoTheme.primaryContainer
+    readonly property color themeOnPrimaryContainer: MeoTheme.contentOnPrimaryContainer
+    readonly property color themeSecondaryContainer: MeoTheme.secondaryContainer
+    readonly property color themeOnSecondaryContainer: MeoTheme.contentOnSecondaryContainer
+    readonly property color themeSurfaceContainer: MeoTheme.surfaceContainer
+    readonly property color themeSurfaceContainerLow: MeoTheme.surfaceContainerLow
+    readonly property color themeOutline: MeoTheme.outline
+    readonly property color themeOutlineVariant: MeoTheme.outlineVariant
+    readonly property real groupRadius: height / 2
+    readonly property real inset: 2 * themeGlobalScale
+    readonly property bool outlined: type === "outlined"
 
-    readonly property var fontToken: {
-        if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
-        if (size === "xs") return MeoTheme.labelSmall;
-        if (size === "s") return MeoTheme.labelMedium;
-        if (size === "l") return MeoTheme.titleSmall;
-        if (size === "xl") return MeoTheme.titleMedium;
-        return MeoTheme.labelLarge;
+    readonly property var fontToken: size === "xs" ? MeoTheme.labelSmall
+                                     : size === "s" ? MeoTheme.labelMedium
+                                     : size === "l" ? MeoTheme.titleSmall
+                                     : size === "xl" ? MeoTheme.titleMedium
+                                     : MeoTheme.labelLarge
+    readonly property color idleBackground: {
+        if (!enabled) return MeoTheme.isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12)
+        if (type === "filled") return themePrimaryContainer
+        if (type === "tonal") return themeSecondaryContainer
+        if (type === "elevated") return themeSurfaceContainerLow
+        return themeSurfaceContainer
     }
+    readonly property color idleForeground: type === "tonal" ? themeOnSecondaryContainer
+                                        : type === "filled" ? themeOnPrimaryContainer
+                                        : themePrimary
 
-    implicitHeight: {
-        if (size === "xs") return MeoTheme.buttonHeightXS || 32 * themeGlobalScale;
-        if (size === "s") return MeoTheme.buttonHeightS || 40 * themeGlobalScale;
-        if (size === "l") return MeoTheme.buttonHeightL || 56 * themeGlobalScale;
-        if (size === "xl") return MeoTheme.buttonHeightXL || 72 * themeGlobalScale;
-        return MeoTheme.buttonHeightM || 48 * themeGlobalScale;
-    }
+    implicitHeight: size === "xs" ? MeoTheme.buttonHeightXS
+                  : size === "s" ? MeoTheme.buttonHeightS
+                  : size === "l" ? MeoTheme.buttonHeightL
+                  : size === "xl" ? MeoTheme.buttonHeightXL
+                  : MeoTheme.buttonHeightM
+    implicitWidth: groupRow.implicitWidth
+    leftPadding: 0
+    rightPadding: 0
+    topPadding: 0
+    bottomPadding: 0
 
-    implicitWidth: contentRow.implicitWidth
+    contentItem: Item {
+        implicitWidth: groupRow.implicitWidth
+        implicitHeight: control.implicitHeight
+        clip: true
 
-    contentItem: Row {
-        id: contentRow
-        spacing: 0
+        Rectangle {
+            id: groupSurface
+            anchors.fill: parent
+            radius: control.groupRadius
+            color: control.idleBackground
+            border.width: control.outlined ? Math.max(1, control.themeGlobalScale) : 0
+            border.color: control.themeOutline
 
-        Repeater {
-            model: control.model
-            delegate: Button {
-                id: btn
-                property var itemData: modelData
-                property bool selected: index === control.currentIndex
+            layer.enabled: control.type === "elevated" && control.enabled
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowBlur: 0.16
+                shadowVerticalOffset: control.themeGlobalScale
+                shadowOpacity: 0.16
+                shadowColor: Qt.rgba(0, 0, 0, 0.22)
+            }
 
-                implicitHeight: control.height
-                implicitWidth: Math.max((control.size === "xs" ? 48 : 64) * control.themeGlobalScale, btnContent.implicitWidth + (control.size === "xs" ? 16 : 24) * control.themeGlobalScale)
-                z: selected ? 2 : 1
+            Behavior on color { ColorAnimation { duration: MeoTheme.motionDurationState } }
+        }
 
-                background: Item {
-                    clip: true // 🌟 This is the key to connected shapes
+        Row {
+            id: groupRow
+            anchors.fill: parent
+            spacing: 0
 
-                    Rectangle {
-                        id: mainBg
-                        // Make the rectangle wider than the container to "hide" rounded corners
-                        x: index === 0 ? 0 : -height / 2
-                        width: parent.width + (index === 0 ? (index === control.model.length - 1 ? 0 : height / 2) : (index === control.model.length - 1 ? height / 2 : height))
-                        height: parent.height
-                        radius: height / 2
+            Repeater {
+                model: control.model
 
-                        color: {
-                            if (!control.enabled) return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined' && MeoTheme.isDarkMode) ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
-                            if (btn.selected) return control.themePrimary;
-                            if (control.type === "filled") return control.themePrimaryContainer;
-                            if (control.type === "tonal") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.secondaryContainer !== 'undefined') ? MeoTheme.secondaryContainer : "#E8DEF8";
-                            if (control.type === "elevated") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerLow !== 'undefined') ? MeoTheme.surfaceContainerLow : "#F7F2FA";
-                            return "transparent";
+                delegate: Button {
+                    id: groupButton
+                    property var itemData: modelData
+                    readonly property string itemLabel: typeof itemData === "string" ? itemData : (itemData.label || "")
+                    readonly property string itemIcon: typeof itemData === "object" ? (itemData.icon || "") : ""
+                    readonly property bool selected: index === control.currentIndex
+                    readonly property bool isFirst: index === 0
+                    readonly property bool isLast: index === control.model.length - 1
+                    readonly property real segmentRadius: isFirst || isLast ? control.groupRadius - control.inset : 10 * control.themeGlobalScale
+                    readonly property color foreground: selected ? control.themeOnPrimary : control.idleForeground
+
+                    implicitWidth: Math.max((control.size === "xs" ? 56 : 72) * control.themeGlobalScale,
+                                            groupButtonContent.implicitWidth + (control.size === "xs" ? 20 : 28) * control.themeGlobalScale)
+                    implicitHeight: control.implicitHeight
+                    leftPadding: 0
+                    rightPadding: 0
+                    topPadding: 0
+                    bottomPadding: 0
+                    hoverEnabled: true
+
+                    background: Item {
+                        clip: true
+
+                        Rectangle {
+                            id: selectionSurface
+                            anchors.fill: parent
+                            anchors.margins: control.inset
+                            radius: groupButton.segmentRadius
+                            color: control.themePrimary
+                            opacity: groupButton.selected ? 1 : 0
+                            transformOrigin: Item.Center
+                            scale: groupButton.pressed ? 0.96 : groupButton.selected ? 1 : 0.92
+
+                            Behavior on opacity {
+                                NumberAnimation {
+                                    duration: groupButton.selected ? MeoTheme.motionDurationSelection : MeoTheme.motionDurationState
+                                    easing.bezierCurve: groupButton.selected ? MeoTheme.motionEasingEmphasizedDecelerate : MeoTheme.motionEasingEmphasizedAccelerate
+                                }
+                            }
+                            Behavior on scale {
+                                NumberAnimation {
+                                    duration: groupButton.pressed ? MeoTheme.motionDurationState : MeoTheme.motionDurationSelection
+                                    easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate
+                                }
+                            }
                         }
-                        border.color: control.themeOutline
-                        border.width: (control.type === "outlined") ? 1 * themeGlobalScale : 0
 
-                        Behavior on color { ColorAnimation { duration: 200 } }
+                        MeoStateLayer {
+                            anchors.fill: parent
+                            radius: groupButton.segmentRadius
+                            pressed: groupButton.pressed
+                            hovered: groupButton.hovered
+                            pressX: groupButton.pressX
+                            pressY: groupButton.pressY
+                            color: groupButton.foreground
+                        }
+
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: Math.max(1, control.themeGlobalScale)
+                            height: parent.height - 16 * control.themeGlobalScale
+                            color: control.outlined ? control.themeOutline : control.themeOutlineVariant
+                            opacity: index > 0 && !groupButton.selected ? 0.78 : 0
+                            Behavior on opacity { NumberAnimation { duration: MeoTheme.motionDurationState } }
+                        }
                     }
 
-                    MeoStateLayer {
-                        // Match the mainBg geometry for consistent state layer behavior
-                        x: index === 0 ? 0 : -parent.height / 2
-                        width: parent.width + (index === 0 ? (index === control.model.length - 1 ? 0 : parent.height / 2) : (index === control.model.length - 1 ? parent.height / 2 : parent.height))
-                        radius: parent.height / 2
-                        pressed: btn.pressed
-                        hovered: btn.hovered
-                        color: btn.selected ? control.themeOnPrimary : control.themePrimary
+                    contentItem: Item {
+                        Row {
+                            id: groupButtonContent
+                            anchors.centerIn: parent
+                            spacing: (control.size === "xs" ? 4 : 8) * control.themeGlobalScale
+
+                            MeoIcon {
+                                icon: groupButton.itemIcon
+                                visible: icon.length > 0
+                                size: control.size === "xs" ? 16 * control.themeGlobalScale
+                                      : control.size === "xl" ? 24 * control.themeGlobalScale
+                                      : 18 * control.themeGlobalScale
+                                color: groupButton.foreground
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+
+                            Text {
+                                text: groupButton.itemLabel
+                                visible: text.length > 0
+                                font.family: MeoTheme.typefacePlain
+                                font.pixelSize: control.fontToken.size * control.themeGlobalScale
+                                font.weight: groupButton.selected ? Font.Bold : control.fontToken.weight
+                                color: groupButton.foreground
+                                lineHeightMode: Text.FixedHeight
+                                lineHeight: (control.fontToken.lineHeight || 20) * control.themeGlobalScale
+                                verticalAlignment: Text.AlignVCenter
+                                anchors.verticalCenter: parent.verticalCenter
+                                Behavior on color { ColorAnimation { duration: MeoTheme.motionDurationState } }
+                            }
+                        }
                     }
-                }
 
-                contentItem: Row {
-                    id: btnContent
-                    spacing: (control.size === "xs" ? 4 : 8) * control.themeGlobalScale
-                    anchors.centerIn: parent
-
-                    MeoIcon {
-                        icon: btn.itemData.icon || ""
-                        visible: icon !== ""
-                        size: (control.size === "xs" ? 16 : (control.size === "xl" ? 24 : 18))
-                        color: btn.selected ? control.themeOnPrimary : (control.type === "filled" ? control.themeOnPrimaryContainer : control.themePrimary)
-                        anchors.verticalCenter: parent.verticalCenter
+                    onClicked: {
+                        control.currentIndex = index
+                        if (typeof groupButton.itemData === "object" && groupButton.itemData.action)
+                            groupButton.itemData.action()
+                        control.selected(index, groupButton.itemData)
                     }
-
-                    Text {
-                        text: btn.itemData.label || ""
-                        visible: text !== ""
-                        font.pixelSize: control.fontToken.size * control.themeGlobalScale
-                        font.weight: btn.selected ? Font.Bold : control.fontToken.weight
-                        color: btn.selected ? control.themeOnPrimary : (control.type === "filled" ? control.themeOnPrimaryContainer : control.themePrimary)
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-                }
-
-                onClicked: {
-                    control.currentIndex = index;
-                    if (btn.itemData.action) btn.itemData.action();
                 }
             }
         }

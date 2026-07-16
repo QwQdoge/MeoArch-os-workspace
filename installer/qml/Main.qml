@@ -1,9 +1,12 @@
 import QtQuick
 import QtQuick.Window
+import MeoUI 1.0
 import "." as Installer
 
 Window {
     id: root
+    required property var installerController
+    property int initialPage: 0
     width: 1440
     height: 900
     minimumWidth: 960
@@ -12,57 +15,50 @@ Window {
     color: MeoTheme.windowBg
     title: "MeoArch Installer"
 
-    property int currentPage: 0
+    property int currentPage: root.initialPage
     property int navigationDirection: 1
     property string screenshotPath: ""
-    readonly property var controller: typeof installerController !== "undefined" ? installerController : Installer.PreviewController
+    readonly property var controller: root.installerController || Installer.PreviewController
     readonly property var pages: [
-        "pages/WelcomePage.qml", "pages/LanguageRegionPage.qml", "pages/KeyboardLayoutPage.qml",
-        "pages/NetworkPage.qml", "pages/PrivacySecurityPage.qml", "pages/DiskSelectionPage.qml",
-        "pages/UserAccountPage.qml", "pages/SummaryPage.qml", "pages/InstallingPage.qml", "pages/FinishPage.qml"
+        Qt.resolvedUrl("pages/WelcomePage.qml"), Qt.resolvedUrl("pages/LanguageRegionPage.qml"),
+        Qt.resolvedUrl("pages/KeyboardLayoutPage.qml"), Qt.resolvedUrl("pages/NetworkPage.qml"),
+        Qt.resolvedUrl("pages/PrivacySecurityPage.qml"), Qt.resolvedUrl("pages/DiskSelectionPage.qml"),
+        Qt.resolvedUrl("pages/UserAccountPage.qml"), Qt.resolvedUrl("pages/SummaryPage.qml"),
+        Qt.resolvedUrl("pages/InstallingPage.qml"), Qt.resolvedUrl("pages/FinishPage.qml")
     ]
 
     Component.onCompleted: {
         for (let i = 0; i < Qt.application.arguments.length; ++i) {
             const argument = Qt.application.arguments[i]
-            if (argument.indexOf("--page=") === 0)
-                currentPage = Math.max(0, Math.min(pages.length - 1, Number(argument.substring(7))))
             if (argument.indexOf("--screenshot=") === 0)
                 screenshotPath = argument.substring(13)
+            if (argument.indexOf("--size=") === 0) {
+                const parts = argument.substring(7).toLowerCase().split("x")
+                if (parts.length === 2) {
+                    root.width = Math.max(root.minimumWidth, Number(parts[0]))
+                    root.height = Math.max(root.minimumHeight, Number(parts[1]))
+                }
+            }
         }
-        if (screenshotPath.length)
-            failSafeTimer.start()
-        if (screenshotPath.length)
-            captureTimer.start()
+        if (screenshotPath.length) {
+            MeoTheme.reduceMotion = true
+        }
     }
 
-    Timer {
-        id: captureTimer
-        interval: 1000
-        repeat: false
-        onTriggered: root.contentItem.grabToImage(function(result) {
-            result.saveToFile(root.screenshotPath)
-            Qt.quit()
-        }, Qt.size(root.width, root.height))
-    }
-    Timer { id: failSafeTimer; interval: 3500; repeat: false; onTriggered: Qt.quit() }
-
-    Loader {
-        id: pageLoader
+    MeoPageHost {
+        id: pageHost
         anchors.fill: parent
         source: root.pages[root.currentPage]
-        onLoaded: {
+        direction: root.navigationDirection
+        onPageLoaded: item => {
             item.pageIndex = root.currentPage
             item.pageCount = root.pages.length
             item.controller = root.controller
-            const entrance = item["playEntrance"]
-            if (typeof entrance === "function")
-                entrance.call(item, root.navigationDirection)
         }
     }
 
     Connections {
-        target: pageLoader.item
+        target: pageHost.currentItem
         ignoreUnknownSignals: true
         function onNextRequested() {
             if (root.currentPage < root.pages.length - 1) {
@@ -77,5 +73,11 @@ Window {
             }
         }
         function onExitRequested() { Qt.quit() }
+        function onNavigateRequested(index) {
+            if (index >= 0 && index < root.pages.length) {
+                root.navigationDirection = index < root.currentPage ? -1 : 1
+                root.currentPage = index
+            }
+        }
     }
 }

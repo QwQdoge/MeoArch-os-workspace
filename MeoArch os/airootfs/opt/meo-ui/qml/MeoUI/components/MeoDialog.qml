@@ -3,8 +3,9 @@ import QtQuick.Controls
 import QtQuick.Effects
 import MeoUI
 
-Popup {
+MeoMotionPopup {
     id: control
+    presentation: MeoMotionPopup.Dialog
 
     property string title: ""
     property string message: ""
@@ -37,15 +38,10 @@ Popup {
     focus: true
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
-    Overlay.modal: Rectangle {
-        color: Qt.rgba(0, 0, 0, 0.32)
-        Behavior on opacity { NumberAnimation { duration: control.motionExit } }
-    }
-
     background: Rectangle {
         color: control.themeSurfaceContainerHigh
         radius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeExtraLarge !== 'undefined') ? MeoTheme.shapeExtraLarge : 28 * control.themeGlobalScale
-        layer.enabled: true
+        layer.enabled: control.visible
         layer.effect: MultiEffect { shadowEnabled: true; shadowBlur: 0.55; shadowVerticalOffset: 8; shadowColor: Qt.rgba(0, 0, 0, 0.22) }
     }
 
@@ -109,16 +105,4 @@ Popup {
         }
     }
 
-    enter: Transition {
-        ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: control.motionEnter; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1]) }
-            NumberAnimation { property: "scale"; from: 0.94; to: 1.0; duration: control.motionEnter; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1]) }
-        }
-    }
-    exit: Transition {
-        ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: control.motionExit; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15]) }
-            NumberAnimation { property: "scale"; from: 1.0; to: 0.98; duration: control.motionExit; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15]) }
-        }
-    }
 }

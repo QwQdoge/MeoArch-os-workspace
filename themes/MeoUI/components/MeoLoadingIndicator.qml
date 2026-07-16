@@ -19,9 +19,16 @@ Control {
     // 🌟 作用域与主题安全防御
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property int loadingCycleDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationExtraLong4 !== 'undefined') ? MeoTheme.motionDurationExtraLong4 * 6 : 6000
-    readonly property int loadingRotationDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationExtraLong4 !== 'undefined') ? MeoTheme.motionDurationExtraLong4 * 3 : 3000
-    readonly property var lobeSequence: [10, 9, 5, 2, 8, 4, 2]
+    readonly property int loadingCycleDuration: MeoTheme.reduceMotion ? 0 : 2400
+    readonly property int loadingRotationDuration: MeoTheme.reduceMotion ? 0 : 1800
+    // Canvas is among the most expensive primitives in a dense installer.
+    // Do not keep its two infinite animations alive while it has no pixels.
+    readonly property bool animationActive: running && indeterminate && visible
+                                                && width > 0 && height > 0
+                                                && !MeoTheme.reduceMotion
+    // Start and end on the same contour. The previous 2 → 10 reset was the
+    // visible hard snap at the end of each loop.
+    readonly property var lobeSequence: [10, 9, 5, 2, 8, 4, 2, 10]
 
     implicitWidth: {
         if (size === "xs") return 24 * themeGlobalScale
@@ -56,7 +63,7 @@ Control {
             onRotationAngleChanged: requestPaint()
 
             ParallelAnimation {
-                running: control.running && control.indeterminate && control.visible
+                running: control.animationActive
                 loops: Animation.Infinite
 
                 NumberAnimation {

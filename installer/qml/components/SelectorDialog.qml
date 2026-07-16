@@ -1,11 +1,11 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
-import MeoUI 1.0 as Meo
-import ".."
+import MeoUI 1.0
 
-MotionPopup {
+MeoMotionPopup {
     id: popup
+    presentation: MeoMotionPopup.Dialog
     property string title: "Select"
     property var sourceModel: []
     property string primaryKey: "id"
@@ -21,6 +21,7 @@ MotionPopup {
     height: Math.min(620, Overlay.overlay ? Overlay.overlay.height - 64 : 620)
     padding: 24
     closePolicy: Popup.CloseOnEscape
+    initialFocusItem: search
 
     function rebuild() {
         const needle = searchText.trim().toLowerCase()
@@ -39,8 +40,8 @@ MotionPopup {
 
     contentItem: Column {
         spacing: 16
-        Text { width: parent.width; text: popup.title + " · " + popup.filteredModel.length; font.family: "Comfortaa"; font.bold: true; font.pixelSize: 26; color: MeoTheme.onSurface }
-        MeoTextField { id: search; width: parent.width; label: "Search"; placeholder: "Type a name or code"; onTextChanged: popup.searchText = text }
+        MeoText { width: parent.width; text: popup.title + " · " + popup.filteredModel.length; typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
+        MeoTextField { id: search; width: parent.width; type: "outlined"; size: "l"; label: "Search"; placeholder: "Type a name or code"; onTextChanged: popup.searchText = text }
         ListView {
             id: list
             width: parent.width; height: parent.height - 150; clip: true; model: popup.filteredModel
@@ -53,6 +54,8 @@ MotionPopup {
             }
             highlight: Rectangle { radius: 16; color: MeoTheme.primaryContainer }
             highlightFollowsCurrentItem: true
+            Keys.onDownPressed: incrementCurrentIndex()
+            Keys.onUpPressed: decrementCurrentIndex()
             ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
             delegate: Rectangle {
                 id: option
@@ -60,9 +63,12 @@ MotionPopup {
                 required property int index
                 width: ListView.view.width; height: 56; radius: 16; color: "transparent"
                 activeFocusOnTab: true
-                Meo.MeoStateLayer { anchors.fill: parent; radius: option.radius; hovered: optionHover.hovered; pressed: optionTap.pressed; focused: option.activeFocus; color: MeoTheme.onSurface }
-                Text { anchors.left: parent.left; anchors.leftMargin: 16; anchors.right: code.left; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.labelKey] || option.modelData[popup.primaryKey]); font.family: "Roboto"; font.pixelSize: 15; font.weight: Font.Medium; color: MeoTheme.onSurface; elide: Text.ElideRight }
-                Text { id: code; anchors.right: parent.right; anchors.rightMargin: 16; anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.secondaryKey] || option.modelData[popup.primaryKey]); font.family: "Roboto"; font.pixelSize: 13; color: MeoTheme.onSurfaceVariant }
+                Accessible.role: Accessible.RadioButton
+                Accessible.name: String(option.modelData[popup.labelKey] || option.modelData[popup.primaryKey])
+                Accessible.checked: String(option.modelData[popup.primaryKey]) === popup.pendingId
+                MeoStateLayer { anchors.fill: parent; radius: option.radius; hovered: optionHover.hovered; pressed: optionTap.pressed; focused: option.activeFocus; color: MeoTheme.contentOnSurface }
+                MeoText { anchors.left: parent.left; anchors.leftMargin: 16; anchors.right: code.left; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.labelKey] || option.modelData[popup.primaryKey]); typeRole: "body"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface; elide: Text.ElideRight }
+                MeoText { id: code; anchors.right: parent.right; anchors.rightMargin: 16; anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.secondaryKey] || option.modelData[popup.primaryKey]); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant }
                 HoverHandler { id: optionHover }
                 TapHandler { id: optionTap; onTapped: { popup.pendingId = String(option.modelData[popup.primaryKey]); list.currentIndex = option.index; option.forceActiveFocus() } }
                 Keys.onReturnPressed: { popup.pendingId = String(option.modelData[popup.primaryKey]); list.currentIndex = option.index }
@@ -70,8 +76,8 @@ MotionPopup {
         }
         Row {
             anchors.right: parent.right; spacing: 8
-            MeoButton { text: "Cancel"; kind: "text"; onClicked: popup.close() }
-            MeoButton { text: "Apply"; enabled: popup.pendingId.length > 0; onClicked: { popup.applied(popup.pendingId); popup.close() } }
+            MeoButton { text: "Cancel"; type: "text"; onClicked: popup.close() }
+            MeoButton { text: "Apply"; type: "filled"; enabled: popup.pendingId.length > 0; onClicked: { popup.applied(popup.pendingId); popup.close() } }
         }
     }
 }

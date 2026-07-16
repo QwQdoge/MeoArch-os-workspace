@@ -29,7 +29,7 @@ Popup {
         radius: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * control.themeGlobalScale
         // MD3 Elevation 2
 
-        layer.enabled: true
+        layer.enabled: control.visible
         layer.effect: MultiEffect {
             shadowEnabled: true
             shadowBlur: 0.2
@@ -66,7 +66,7 @@ Popup {
                 visible: control.icon !== "" && control.image === ""
             }
 
-            layer.enabled: true
+            layer.enabled: control.visible
             layer.effect: MultiEffect {
                 maskEnabled: true
                 maskSource: Item {

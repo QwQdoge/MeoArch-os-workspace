@@ -12,6 +12,9 @@ Rectangle {
     property Component footer: null
     property string labelType: "always" // "always" | "selected" | "none"
     property string shape: "pill" // 🌟 MD3 Expressive Shape
+    // During a live window drag, layout must follow the pointer rather than
+    // queueing a rail-width animation behind every resize event.
+    property bool resizeInstantly: false
 
     signal clicked(int index)
 
@@ -28,11 +31,14 @@ Rectangle {
     width: (isExpanded ? 256 : 80) * themeGlobalScale
     height: parent ? parent.height : 600 * themeGlobalScale
     color: themeSurface
+    clip: true
 
     Behavior on width {
         NumberAnimation {
-            duration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium4 !== 'undefined') ? MeoTheme.motionDurationMedium4 : 400
-            easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingSoul !== 'undefined') ? MeoTheme.motionEasingSoul : [0.05, 0.7, 0.1, 1]
+            duration: control.resizeInstantly || MeoTheme.reduceMotion
+                      ? 0
+                      : ((typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationSelection !== 'undefined') ? MeoTheme.motionDurationSelection : 220)
+            easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingEmphasizedDecelerate !== 'undefined') ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1]
         }
     }
 
@@ -60,10 +66,22 @@ Rectangle {
         Repeater {
             model: control.model
             delegate: Item {
+                id: destination
                 width: control.width
                 height: control.isExpanded ? 56 * control.themeGlobalScale : 64 * control.themeGlobalScale
+                activeFocusOnTab: true
+                Accessible.role: Accessible.PageTab
+                Accessible.name: modelData.label
+                Accessible.selected: isSelected
+                Accessible.focusable: true
+                Accessible.onPressAction: activate()
 
                 readonly property bool isSelected: control.currentIndex === index
+
+                function activate() {
+                    control.currentIndex = index
+                    control.clicked(index)
+                }
 
                 Item {
                     id: wrapper
@@ -73,24 +91,35 @@ Rectangle {
 
                     MeoShape {
                         id: selectionIndicator
-                        width: control.isExpanded ? parent.width : (isSelected ? 56 * control.themeGlobalScale : 32 * control.themeGlobalScale)
+                        width: parent.width
                         height: 32 * control.themeGlobalScale
                         radius: 16 * control.themeGlobalScale
                         type: control.shape
                         color: isSelected ? control.themeSecondaryContainer : "transparent"
                         anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.verticalCenter: control.isExpanded ? parent.verticalCenter : undefined
-                        y: control.isExpanded ? (parent.height - height) / 2 : 0
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: control.isExpanded
+
+                        MeoStateLayer {
+                            anchors.fill: parent
+                            radius: parent.radius
+                            hovered: mouseArea.containsMouse
+                            pressed: mouseArea.pressed
+                            focused: destination.activeFocus
+                            pressX: selectionIndicator.mapFromItem(mouseArea, mouseArea.mouseX, mouseArea.mouseY).x
+                            pressY: selectionIndicator.mapFromItem(mouseArea, mouseArea.mouseX, mouseArea.mouseY).y
+                            color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
+                        }
 
                         Behavior on width {
                             NumberAnimation {
-                                duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlNormal
+                                duration: MeoTheme.motionDurationSelection
                                 easing.bezierCurve: MeoTheme.motionEasingEnter
                             }
                         }
                         Behavior on color {
                             ColorAnimation {
-                                duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlFast
+                                duration: MeoTheme.motionDurationState
                                 easing.bezierCurve: isSelected ? MeoTheme.motionEasingEnter : MeoTheme.motionEasingExit
                             }
                         }
@@ -109,13 +138,48 @@ Rectangle {
                             spacing: 3 * control.themeGlobalScale
 
                             Item {
-                                width: 24 * control.themeGlobalScale
-                                height: 24 * control.themeGlobalScale
+                                width: 56 * control.themeGlobalScale
+                                height: 32 * control.themeGlobalScale
                                 anchors.horizontalCenter: parent.horizontalCenter
+
+                                MeoShape {
+                                    id: collapsedIndicator
+                                    width: isSelected ? parent.width : 32 * control.themeGlobalScale
+                                    height: parent.height
+                                    anchors.centerIn: parent
+                                    radius: 16 * control.themeGlobalScale
+                                    type: control.shape
+                                    color: isSelected ? control.themeSecondaryContainer : "transparent"
+
+                                    MeoStateLayer {
+                                        anchors.fill: parent
+                                        radius: parent.radius
+                                        hovered: mouseArea.containsMouse
+                                        pressed: mouseArea.pressed
+                                        focused: destination.activeFocus
+                                        pressX: collapsedIndicator.mapFromItem(mouseArea, mouseArea.mouseX, mouseArea.mouseY).x
+                                        pressY: collapsedIndicator.mapFromItem(mouseArea, mouseArea.mouseX, mouseArea.mouseY).y
+                                        color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
+                                    }
+
+                                    Behavior on width {
+                                        NumberAnimation {
+                                            duration: MeoTheme.motionDurationSelection
+                                            easing.bezierCurve: MeoTheme.motionEasingEnter
+                                        }
+                                    }
+                                    Behavior on color {
+                                        ColorAnimation {
+                                            duration: MeoTheme.motionDurationState
+                                            easing.bezierCurve: isSelected ? MeoTheme.motionEasingEnter : MeoTheme.motionEasingExit
+                                        }
+                                    }
+                                }
 
                                 MeoIcon {
                                     anchors.centerIn: parent
                                     icon: modelData.icon
+                                    fill: isSelected
                                     size: 24
                                     color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                                 }
@@ -124,10 +188,10 @@ Rectangle {
                                     text: modelData.badgeText || (modelData.badgeCount !== undefined ? modelData.badgeCount.toString() : "")
                                     isDot: modelData.badgeDot || false
                                     visible: text !== "" || isDot
-                                    anchors.horizontalCenter: parent.right
-                                    anchors.verticalCenter: parent.top
-                                    anchors.horizontalCenterOffset: -2 * control.themeGlobalScale
-                                    anchors.verticalCenterOffset: 2 * control.themeGlobalScale
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    anchors.horizontalCenterOffset: 12 * control.themeGlobalScale
+                                    anchors.verticalCenterOffset: -12 * control.themeGlobalScale
                                 }
                             }
 
@@ -158,6 +222,7 @@ Rectangle {
                                 MeoIcon {
                                     anchors.centerIn: parent
                                     icon: modelData.icon
+                                    fill: isSelected
                                     size: 24
                                     color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                                 }
@@ -180,6 +245,7 @@ Rectangle {
                                 font.weight: isSelected ? Font.Bold : fontLabelLarge.weight
                                 color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                                 anchors.verticalCenter: parent.verticalCenter
+                                verticalAlignment: Text.AlignVCenter
                                 elide: Text.ElideRight
                                 width: parent.width - 24 * control.themeGlobalScale - 28 * control.themeGlobalScale
                             }
@@ -188,12 +254,17 @@ Rectangle {
                 }
 
                 MouseArea {
+                    id: mouseArea
                     anchors.fill: parent
+                    hoverEnabled: true
                     onClicked: {
-                        control.currentIndex = index
-                        control.clicked(index)
+                        destination.forceActiveFocus(Qt.MouseFocusReason)
+                        destination.activate()
                     }
                 }
+                Keys.onReturnPressed: activate()
+                Keys.onEnterPressed: activate()
+                Keys.onSpacePressed: activate()
             }
         }
     }

@@ -10,9 +10,9 @@ Item {
     property bool showDetail: false
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property bool isCompact: windowMetrics.isSmall
-    readonly property bool isMedium: windowMetrics.isMedium
-    readonly property bool isExpanded: windowMetrics.isLarge
+    readonly property bool isCompact: windowMetrics.isCompactWidth || windowMetrics.isMediumWidth
+    readonly property bool isMedium: windowMetrics.isExpandedWidth
+    readonly property bool isExpanded: windowMetrics.isLargeWidth || windowMetrics.isExtraLargeWidth
 
     MeoWindowMetrics {
         id: windowMetrics
@@ -55,10 +55,10 @@ Item {
         visible: control.isCompact
 
         initialItem: control.listComponent
-        pushEnter: Transition { NumberAnimation { property: "x"; from: stackView.width * 0.08; to: 0; duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingEnter } }
-        pushExit: Transition { NumberAnimation { property: "opacity"; from: 1; to: 0; duration: MeoTheme.motionDurationControlFast } }
-        popEnter: Transition { NumberAnimation { property: "opacity"; from: 0; to: 1; duration: MeoTheme.motionDurationControlFast } }
-        popExit: Transition { NumberAnimation { property: "x"; from: 0; to: stackView.width * 0.08; duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingExit } }
+        pushEnter: Transition { NumberAnimation { property: "x"; from: MeoTheme.reduceMotion ? 0 : stackView.width * 0.08; to: 0; duration: MeoTheme.motionDurationPage; easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate } }
+        pushExit: Transition { NumberAnimation { property: "opacity"; from: 1; to: 0; duration: MeoTheme.motionDurationState } }
+        popEnter: Transition { NumberAnimation { property: "opacity"; from: 0; to: 1; duration: MeoTheme.motionDurationState } }
+        popExit: Transition { NumberAnimation { property: "x"; from: 0; to: MeoTheme.reduceMotion ? 0 : stackView.width * 0.08; duration: MeoTheme.motionDurationPage; easing.bezierCurve: MeoTheme.motionEasingEmphasizedAccelerate } }
 
         onCurrentItemChanged: {
             // Logic to sync with showDetail if needed

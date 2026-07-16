@@ -19,9 +19,9 @@ Item {
     property Component snackbar: null
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property bool isCompact: windowMetrics.isSmall
-    readonly property bool isMedium: windowMetrics.isMedium
-    readonly property bool isExpanded: windowMetrics.isLarge
+    readonly property bool isCompact: windowMetrics.isCompactWidth
+    readonly property bool isMedium: windowMetrics.isMediumWidth
+    readonly property bool isExpanded: windowMetrics.isExpandedWidth || windowMetrics.isLargeWidth || windowMetrics.isExtraLargeWidth
 
     MeoWindowMetrics {
         id: windowMetrics

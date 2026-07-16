@@ -11,7 +11,7 @@ ShowcaseCategoryPage {
         width: parent.width
 
         MeoAccountSwitcher {
-            Layout.alignment: Qt.AlignHCenter
+            Layout.alignment: Text.AlignHCenter
             model: [
                 { name: "Meo Developer", email: "dev@meo.ui", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Meo" },
                 { name: "Design Lead", email: "design@meo.ui", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Design" }

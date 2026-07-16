@@ -20,7 +20,7 @@ Rectangle {
     default property alias content: contentColumn.data
 
     width: parent ? parent.width : implicitWidth
-    readonly property bool compact: width <= MeoTheme.windowBreakpointSmall * MeoTheme.globalScale
+    readonly property bool compact: width < MeoTheme.windowBreakpointMedium * MeoTheme.globalScale
     readonly property real contentMargin: compact ? MeoTheme.space12 : MeoTheme.space24
     implicitHeight: contentColumn.implicitHeight + contentMargin * 2
     radius: compact ? MeoTheme.shapeSmall : MeoTheme.shapeMedium

@@ -15,7 +15,7 @@ Flickable {
     property real spacing: 16 * themeGlobalScale
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property int effectiveColumns: windowMetrics.isSmall ? 1 : 2
+    readonly property int effectiveColumns: windowMetrics.isCompactWidth ? 1 : 2
 
     MeoWindowMetrics {
         id: windowMetrics

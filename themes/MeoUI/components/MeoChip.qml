@@ -61,6 +61,15 @@ Control {
         return 32 * themeGlobalScale;
     }
     implicitWidth: contentRow.implicitWidth + leftPadding + rightPadding
+    activeFocusOnTab: enabled
+    Accessible.role: Accessible.Button
+    Accessible.name: label
+    Accessible.checkable: type === "filter"
+    Accessible.checked: selected
+    Accessible.onPressAction: control.clicked()
+    Keys.onReturnPressed: control.clicked()
+    Keys.onEnterPressed: control.clicked()
+    Keys.onSpacePressed: control.clicked()
 
     padding: 0
     leftPadding: (icon !== "" ? 8 : (size === "xl" ? 24 : 16)) * themeGlobalScale
@@ -86,12 +95,16 @@ Control {
             anchors.fill: parent
             hoverEnabled: true
             enabled: control.enabled
-            onClicked: control.clicked()
+            onClicked: {
+                control.forceActiveFocus(Qt.MouseFocusReason)
+                control.clicked()
+            }
         }
 
         MeoStateLayer {
             anchors.fill: parent
             radius: parent.radius
+            shape: "rect"
             pressed: mouseArea.pressed
             hovered: mouseArea.containsMouse
             focused: control.visualFocus
@@ -110,6 +123,7 @@ Control {
 
         MeoIcon {
             icon: control.icon
+            fill: control.selected
             visible: icon !== ""
             size: {
                 if (size === "xs" || size === "s") return 18;
@@ -126,6 +140,8 @@ Control {
             font.pixelSize: fontToken.size * control.themeGlobalScale
             font.weight: fontToken.weight
             font.letterSpacing: (fontToken.letterSpacing || 0) * control.themeGlobalScale
+            lineHeightMode: Text.FixedHeight
+            lineHeight: fontToken.lineHeight ? fontToken.lineHeight * control.themeGlobalScale : font.pixelSize * 1.2
             color: control.contentColor
             verticalAlignment: Text.AlignVCenter
         }

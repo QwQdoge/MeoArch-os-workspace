@@ -49,7 +49,7 @@ Popup {
             property: "x"
             from: -control.width
             to: 0
-            duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlNormal
+            duration: MeoTheme.motionDurationSheetEnter
             easing.bezierCurve: MeoTheme.motionEasingEnter
         }
     }
@@ -58,7 +58,7 @@ Popup {
             property: "x"
             from: 0
             to: -control.width
-            duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlFast
+            duration: MeoTheme.motionDurationSheetExit
             easing.bezierCurve: MeoTheme.motionEasingExit
         }
     }

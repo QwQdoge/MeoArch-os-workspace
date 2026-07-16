@@ -44,8 +44,8 @@ The Linux showcase release source package also includes `run-showcase-linux.sh`
 at the package root:
 
 ```bash
-tar -xzf meo-ui-showcase-linux-x64-source-0.3.0.tar.gz
-cd meo-ui-showcase-linux-x64-source-0.3.0
+tar -xzf meo-ui-showcase-linux-x64-source-0.3.1.tar.gz
+cd meo-ui-showcase-linux-x64-source-0.3.1
 ./run-showcase-linux.sh
 ```
 
@@ -65,8 +65,8 @@ under `/usr/local/share/fonts/meo-ui`. The script creates the compatibility
 import path `/opt/meo-ui/qml/MeoUI` for existing `import MeoUI` applications.
 
 ```bash
-tar -xzf meo-ui-runtime-0.3.0.tar.gz
-cd meo-ui-runtime-0.3.0
+tar -xzf meo-ui-runtime-0.3.1.tar.gz
+cd meo-ui-runtime-0.3.1
 ./install-runtime.sh install
 ./install-runtime.sh verify
 ./install-runtime.sh update --yes

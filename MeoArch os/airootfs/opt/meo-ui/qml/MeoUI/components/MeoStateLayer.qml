@@ -9,8 +9,12 @@ Item {
     property bool hovered: false
     property bool focused: false
     property bool dragged: false
+    property bool rippleEnabled: true
     property color color: "#000000" // 默认覆盖颜色（通常为 On-Surface 或 Primary）
     property real radius: 0
+    // Keep the state layer clipped to the same silhouette as its owner.  A
+    // radius-only mask turns circular and expressive controls into rectangles.
+    property string shape: "rect"
     property real pressX: pointerTracker.containsMouse ? pointerTracker.mouseX : width / 2
     property real pressY: pointerTracker.containsMouse ? pointerTracker.mouseY : height / 2
 
@@ -39,6 +43,8 @@ Item {
     }
 
     function trigger(x, y) {
+        if (!control.enabled || !control.rippleEnabled || (typeof MeoTheme !== "undefined" && MeoTheme.reduceMotion))
+            return
         rippleExpand.stop()
         rippleFade.stop()
         rippleFadeIn.stop()
@@ -60,10 +66,14 @@ Item {
     Item {
         id: maskedLayer
         anchors.fill: parent
-        layer.enabled: control.radius > 0
+        visible: baseLayer.opacity > 0 || rippleLayer.opacity > 0
+        layer.enabled: visible && control.radius > 0
         layer.effect: MultiEffect {
             maskEnabled: true
             maskThresholdMin: 0.5
+            // Rectangle + radius is intentionally self-contained here.  The
+            // state layer is used by every primitive, so importing the module
+            // it belongs to would create a runtime self-import cycle.
             maskSource: Rectangle {
                 width: control.width
                 height: control.height
@@ -105,6 +115,19 @@ Item {
             radius: radiusValue
             color: control.color
             opacity: 0
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            color: "transparent"
+            radius: control.radius
+            border.width: control.focused ? Math.max(2, 2 * control.themeGlobalScale) : 0
+            border.color: control.color
+            opacity: control.focused ? 0.78 : 0
+
+            Behavior on opacity {
+                NumberAnimation { duration: control.hoverDuration }
+            }
         }
     }
 

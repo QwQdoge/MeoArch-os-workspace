@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.1 - 2026-07-16
+
+- Reduced idle rendering cost across cards, dialogs, menus, tooltips, avatars, floating toolbars, persistent sheets, carousels, and virtualized delegates.
+- Paused canvas-heavy loading, skeleton, pull-to-refresh, progress, and wavy-slider motion whenever there is no drawable or active interactive surface.
+- Removed the carousel's transparent per-item mask layer, which allocated an offscreen effect without clipping the delegate.
+- Preserved the MD3 interaction and reduced-motion behavior while avoiding hidden popup shadows and unnecessary surface-tint masks.
+- Refined FAB, Button Group, Segmented Buttons, Split Button, and Bottom App Bar grouping from the prior motion release.
+- Rebuilt the MeoUI Showcase and MeoArch Installer for Windows, and synchronized the shared runtime for the ISO installer.
+
 ## 0.3.0 - 2026-07-15
 
 - Added Windows-style small, medium, and large window size classes at 640 and 1008 effective pixels.

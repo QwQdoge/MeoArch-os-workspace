@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-version="${MEO_UI_VERSION:-0.3.0}"
+version="${MEO_UI_VERSION:-0.3.1}"
 action="install"
 install_root="${MEO_UI_PREFIX:-/opt/meo-ui}"
 font_target="${MEO_UI_FONT_DIR:-/usr/local/share/fonts/meo-ui}"
@@ -18,7 +18,7 @@ Options:
   --font-dir DIR    Font install dir. Default: /usr/local/share/fonts/meo-ui
   --qml-source DIR  QML module source directory.
   --font-source DIR Font source directory.
-  --version VALUE   Version marker. Default: 0.3.0
+  --version VALUE   Version marker. Default: 0.3.1
   -y, --yes         Non-interactive approval.
   -h, --help        Show this help.
 EOF

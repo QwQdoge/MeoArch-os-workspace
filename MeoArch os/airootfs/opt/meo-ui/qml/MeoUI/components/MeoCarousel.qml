@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Effects
 import MeoUI
 
 Control {
@@ -14,7 +13,6 @@ Control {
     spacing: (type === "multi-browse" || type === "uncontained") ? 8 * themeGlobalScale : 16 * themeGlobalScale
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property real themeShapeExtraLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeExtraLarge !== 'undefined') ? MeoTheme.shapeExtraLarge : 28 * themeGlobalScale
 
     implicitWidth: parent ? parent.width : 400 * themeGlobalScale
     implicitHeight: itemHeight + (showPageIndicator ? 32 * themeGlobalScale : 0)
@@ -25,7 +23,7 @@ Control {
 
     Timer {
         interval: control.interval
-        running: control.autoScroll && control.visible
+        running: control.autoScroll && control.visible && control.enabled && listView.count > 1
         repeat: true
         onTriggered: {
             if (listView.count > 0) {
@@ -76,30 +74,15 @@ Control {
                 property var modelData: model.modelData
                 property int modelIndex: index
 
-                // 🌟 MD3 Corner Radius for Carousel Items
-                Rectangle {
-                    anchors.fill: parent
-                    z: -1
-                    radius: control.themeShapeExtraLarge
-                    color: "transparent"
-                    border.color: "transparent"
-                    layer.enabled: true
-                    layer.effect: MultiEffect {
-                        maskEnabled: true
-                        maskThresholdMin: 0.5
-                        maskSource: Rectangle {
-                            width: delegateLoader.width
-                            height: delegateLoader.height
-                            radius: control.themeShapeExtraLarge
-                        }
-                    }
-                }
+                // Delegates own their own clipping.  The previous transparent
+                // sibling was not a mask for the Loader, but did allocate an
+                // offscreen layer for every carousel item.
             }
         }
         snapMode: (control.type === "uncontained" || control.type === "full-screen") ? ListView.NoSnap : ListView.SnapToItem
         highlightMoveDuration: (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive) ? 600 : 300
-        preferredHighlightBegin: (type === "hero" || type === "uncontained") ? 16 * control.themeGlobalScale : 0
-        preferredHighlightEnd: (type === "hero" || type === "uncontained") ? width - 16 * control.themeGlobalScale : width
+        preferredHighlightBegin: (control.type === "hero" || control.type === "uncontained") ? 16 * control.themeGlobalScale : 0
+        preferredHighlightEnd: (control.type === "hero" || control.type === "uncontained") ? width - 16 * control.themeGlobalScale : width
         highlightRangeMode: (control.type === "hero" || control.type === "uncontained") ? ListView.ApplyRange : ListView.NoHighlightRange
     }
 

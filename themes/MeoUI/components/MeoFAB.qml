@@ -6,101 +6,133 @@ import MeoUI
 Button {
     id: control
 
-    // 🌟 核心属性
-    // type: "small" | "regular" (默认) | "large" | "extended"
+    // type: "small" | "regular" | "large" | "extended"
     property string type: "regular"
-    property bool collapsed: false // MD3 Expressive: Collapse extended FAB to circle
+    property bool collapsed: false
     readonly property string effectiveType: type === "standard" ? "regular" : type
     icon.name: "add"
 
-    // 🌟 作用域与主题安全防御
-    readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
-    readonly property color themePrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ? MeoTheme.primaryContainer : "#EADDFF"
-    readonly property color themeOnPrimaryContainer: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ? MeoTheme.contentOnPrimaryContainer : "#21005D"
-    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property int motionFast: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationFast !== "undefined") ? MeoTheme.motionDurationFast : 150
-    readonly property int motionMedium: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationMedium !== "undefined") ? MeoTheme.motionDurationMedium : 300
-    readonly property real elevationLevel: {
-        if (!control.enabled) return 0
-        if (control.hovered) return 4
-        return 3
+    readonly property color themePrimaryContainer: MeoTheme.primaryContainer
+    readonly property color themeOnPrimaryContainer: MeoTheme.contentOnPrimaryContainer
+    readonly property real themeGlobalScale: MeoTheme.globalScale
+    readonly property var fontLabelLarge: MeoTheme.labelLarge
+    readonly property bool showsLabel: effectiveType === "extended" && text.length > 0
+    readonly property real baseSize: effectiveType === "small" ? 40 * themeGlobalScale
+                                      : effectiveType === "large" ? 96 * themeGlobalScale
+                                      : 56 * themeGlobalScale
+    readonly property real restRadius: effectiveType === "small" ? 12 * themeGlobalScale
+                                      : effectiveType === "large" ? 28 * themeGlobalScale
+                                      : 16 * themeGlobalScale
+    readonly property real interactiveRadius: pressed ? baseSize / 2
+                                             : hovered ? Math.min(baseSize / 2, restRadius + 8 * themeGlobalScale)
+                                                       : restRadius
+    readonly property real elevationLevel: !enabled ? 0 : hovered ? 4 : 3
+
+    implicitWidth: showsLabel && !collapsed
+                   ? Math.max(112 * themeGlobalScale, fabContent.implicitWidth + 32 * themeGlobalScale)
+                   : baseSize
+    implicitHeight: baseSize
+    leftPadding: 0
+    rightPadding: 0
+    topPadding: 0
+    bottomPadding: 0
+    hoverEnabled: true
+
+    Behavior on implicitWidth {
+        NumberAnimation {
+            duration: MeoTheme.motionDurationSelection
+            easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate
+        }
     }
-
-    readonly property var fontLabelLarge: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelLarge !== 'undefined') ? MeoTheme.labelLarge : { "size": 14, "weight": Font.Medium }
-
-    // 📐 尺寸映射
-    readonly property real size: {
-        if (effectiveType === "small") return 40 * themeGlobalScale
-        if (effectiveType === "large") return 96 * themeGlobalScale
-        return 56 * themeGlobalScale // regular and extended
-    }
-
-    readonly property real radiusSize: {
-        if (effectiveType === "small") return 12 * themeGlobalScale
-        if (effectiveType === "large") return 28 * themeGlobalScale
-        return 16 * themeGlobalScale
-    }
-
-    implicitWidth: (effectiveType === "extended" && !collapsed) ? Math.max(80 * themeGlobalScale, contentRow.implicitWidth + 32 * themeGlobalScale) : size
-    implicitHeight: size
-
-    Behavior on implicitWidth { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
 
     background: Rectangle {
-        radius: control.radiusSize
+        id: fabBackground
+        radius: control.interactiveRadius
         color: control.themePrimaryContainer
+        transformOrigin: Item.Center
+        scale: control.pressed ? 0.96 : control.hovered ? 1.025 : 1.0
 
-        // MD3 Elevation (Shadow)
-        layer.enabled: true
+        layer.enabled: control.elevationLevel > 0
         layer.effect: MultiEffect {
             shadowEnabled: true
             shadowBlur: control.elevationLevel * 0.2
-            shadowVerticalOffset: control.elevationLevel * 1.2 * control.themeGlobalScale
-            shadowOpacity: control.elevationLevel > 0 ? 0.2 + control.elevationLevel * 0.02 : 0
-            shadowColor: Qt.rgba(0,0,0,0.2)
+            shadowVerticalOffset: control.elevationLevel * 1.15 * control.themeGlobalScale
+            shadowOpacity: control.elevationLevel > 0 ? 0.16 + control.elevationLevel * 0.018 : 0
+            shadowColor: Qt.rgba(0, 0, 0, 0.24)
         }
 
-        // MD3 state layer with circular ripple from press origin.
         MeoStateLayer {
             anchors.fill: parent
             radius: parent.radius
             pressed: control.pressed
             hovered: control.hovered
+            pressX: control.pressX
+            pressY: control.pressY
             color: control.themeOnPrimaryContainer
         }
 
-        Behavior on color { ColorAnimation { duration: control.motionFast } }
+        Behavior on radius {
+            NumberAnimation {
+                duration: control.pressed || control.hovered
+                          ? MeoTheme.motionDurationShapeEnter
+                          : MeoTheme.motionDurationShapeSettle
+                easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate
+            }
+        }
+        Behavior on scale {
+            NumberAnimation {
+                duration: MeoTheme.motionDurationState
+                easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate
+            }
+        }
     }
 
-    contentItem: Row {
-        id: contentRow
-        spacing: 8 * control.themeGlobalScale
-        anchors.centerIn: parent
+    contentItem: Item {
+        id: contentRoot
+        implicitWidth: fabContent.implicitWidth
+        implicitHeight: fabContent.implicitHeight
+        clip: true
 
-        MeoIcon {
-            icon: control.icon.name || control.icon.source.toString()
-            size: (control.effectiveType === "large" ? 36 : 24)
-            color: control.themeOnPrimaryContainer
-            anchors.verticalCenter: parent.verticalCenter
-        }
+        Row {
+            id: fabContent
+            anchors.centerIn: parent
+            height: Math.max(fabIcon.height, labelText.height)
+            spacing: 8 * control.themeGlobalScale * labelText.reveal
 
-        Text {
-            id: labelText
-            text: control.text
-            visible: control.effectiveType === "extended" && control.text !== ""
-            font.pixelSize: fontLabelLarge.size * control.themeGlobalScale
-            font.weight: fontLabelLarge.weight
-            color: control.themeOnPrimaryContainer
-            verticalAlignment: Text.AlignVCenter
-            anchors.verticalCenter: parent.verticalCenter
+            MeoIcon {
+                id: fabIcon
+                icon: control.icon.name || control.icon.source.toString()
+                size: control.effectiveType === "large" ? 36 * control.themeGlobalScale : 24 * control.themeGlobalScale
+                color: control.themeOnPrimaryContainer
+                anchors.verticalCenter: parent.verticalCenter
+            }
 
-            opacity: (control.effectiveType === "extended" && !control.collapsed) ? 1.0 : 0.0
-            Behavior on opacity { NumberAnimation { duration: control.motionFast } }
+            Text {
+                id: labelText
+                property real reveal: control.showsLabel && !control.collapsed ? 1 : 0
+                width: implicitWidth * reveal
+                height: implicitHeight
+                clip: true
+                visible: reveal > 0
+                text: control.text
+                font.family: MeoTheme.typefacePlain
+                font.pixelSize: control.fontLabelLarge.size * control.themeGlobalScale
+                font.weight: control.fontLabelLarge.weight
+                color: control.themeOnPrimaryContainer
+                lineHeightMode: Text.FixedHeight
+                lineHeight: (control.fontLabelLarge.lineHeight || 20) * control.themeGlobalScale
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+                opacity: reveal
+                anchors.verticalCenter: parent.verticalCenter
 
-            // Clip text when collapsing to avoid layout artifacts
-            clip: true
-            width: (control.effectiveType === "extended" && control.collapsed) ? 0 : implicitWidth
-            Behavior on width { NumberAnimation { duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
+                Behavior on reveal {
+                    NumberAnimation {
+                        duration: MeoTheme.motionDurationSelection
+                        easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate
+                    }
+                }
+            }
         }
     }
 }

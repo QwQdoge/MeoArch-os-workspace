@@ -28,5 +28,9 @@ Text {
     font.weight: typeToken.weight
     font.variableAxes: ({ "wght": weightValue })
     font.letterSpacing: (typeToken.letterSpacing || 0) * themeGlobalScale
-    lineHeight: typeToken.lineHeight ? typeToken.lineHeight / typeToken.size : 1.2
+    // Fixed MD3 line boxes avoid the apparent baseline drift that proportional
+    // line height causes when labels sit beside icons or controls.
+    lineHeightMode: Text.FixedHeight
+    lineHeight: typeToken.lineHeight ? typeToken.lineHeight * themeGlobalScale : font.pixelSize * 1.2
+    verticalAlignment: Text.AlignVCenter
 }

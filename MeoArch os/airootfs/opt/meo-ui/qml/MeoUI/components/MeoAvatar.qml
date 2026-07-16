@@ -48,7 +48,7 @@ Item {
             visible: control.source !== ""
             fillMode: Image.PreserveAspectCrop
 
-            layer.enabled: true
+            layer.enabled: img.visible
             layer.effect: MultiEffect {
                 maskEnabled: true
                 maskSource: shapeBg

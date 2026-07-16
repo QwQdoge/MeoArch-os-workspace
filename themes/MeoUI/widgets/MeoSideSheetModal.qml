@@ -23,7 +23,7 @@ MeoMotionPopup {
     width: Math.min(parent ? parent.width : 400 * themeGlobalScale, 400 * themeGlobalScale)
     height: parent ? parent.height : 600 * themeGlobalScale
 
-    presentation: "sheet"
+    presentation: MeoMotionPopup.SideSheet
     surfaceRadius: MeoTheme.shapeLarge
     surfaceColor: control.themeSurfaceContainerLow
     modal: true

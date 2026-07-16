@@ -19,7 +19,7 @@ Item {
 
         GridLayout {
             Layout.fillWidth: true
-            columns: control.width <= MeoTheme.windowBreakpointSmall * MeoTheme.globalScale ? 1 : 2
+            columns: control.width < MeoTheme.windowBreakpointMedium * MeoTheme.globalScale ? 1 : 2
             rowSpacing: MeoTheme.space8
             columnSpacing: MeoTheme.space12
 
