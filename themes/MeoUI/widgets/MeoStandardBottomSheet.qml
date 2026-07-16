@@ -42,7 +42,7 @@ Item {
         }
 
         // MD3 Elevation Shadow
-        layer.enabled: true
+        layer.enabled: control.visible
         layer.effect: MultiEffect {
             shadowEnabled: true
             shadowBlur: 0.2

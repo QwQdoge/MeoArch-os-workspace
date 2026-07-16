@@ -48,8 +48,14 @@ Control {
     readonly property int motionStateDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationFast !== 'undefined') ? MeoTheme.motionDurationFast : 150
     readonly property int motionTrackDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium1 !== 'undefined') ? MeoTheme.motionDurationMedium1 : 250
     readonly property int motionLabelDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationShort2 !== 'undefined') ? MeoTheme.motionDurationShort2 : 100
-    readonly property int motionWaveDuration: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationExtraLong3 !== 'undefined') ? MeoTheme.motionDurationExtraLong3 : 900
+    readonly property int motionWaveDuration: MeoTheme.reduceMotion ? 0 : 720
     readonly property var fontLabelSmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.labelSmall !== 'undefined') ? MeoTheme.labelSmall : { "size": 12, "weight": Font.Medium }
+    // The wave remains expressive while a pointer or keyboard focus is on the
+    // slider, but does not repaint an idle page at display refresh rate.
+    readonly property bool waveAnimationActive: wavy && visible && enabled
+                                                && width > 0 && height > 0
+                                                && (internalSlider.hovered || internalSlider.pressed || internalSlider.activeFocus)
+                                                && !MeoTheme.reduceMotion
 
     // 📐 尺寸映射 (MD3 Expressive Slider)
     readonly property real trackHeight: {
@@ -166,8 +172,9 @@ Control {
                     var strokeWidth = (control.isThick ? 10 : (control.size === "xs" ? 4 : 8)) * control.themeGlobalScale;
                     var mid = height / 2;
                     var progressWidth = Math.max(0, Math.min(width, width * internalSlider.visualPosition));
-                    var amp = 4 * control.themeGlobalScale;
-                    var wavelength = 26 * control.themeGlobalScale;
+                    var amp = Math.min(strokeWidth * 0.34, 3.5 * control.themeGlobalScale);
+                    var wavelength = 40 * control.themeGlobalScale;
+                    var sampleStep = Math.max(1, 1.25 * control.themeGlobalScale);
 
                     ctx.lineCap = "round";
                     ctx.lineJoin = "round";
@@ -184,9 +191,14 @@ Control {
                     // Active wavy track
                     ctx.strokeStyle = control.themePrimary;
                     ctx.beginPath();
-                    for (var x = 0; x <= progressWidth; x += 3 * control.themeGlobalScale) {
+                    for (var x = 0; x < progressWidth; x += sampleStep) {
                         var y = mid + Math.sin((x + phase) / wavelength * Math.PI * 2) * amp;
                         if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                    }
+                    if (progressWidth > 0) {
+                        var endY = mid + Math.sin((progressWidth + phase) / wavelength * Math.PI * 2) * amp;
+                        if (progressWidth < sampleStep) ctx.moveTo(0, mid);
+                        ctx.lineTo(progressWidth, endY);
                     }
                     ctx.stroke();
 
@@ -203,9 +215,11 @@ Control {
                 }
 
                 NumberAnimation on phase {
-                    running: control.visible && control.wavy
+                    running: control.waveAnimationActive
                     from: 0
-                    to: 52 * control.themeGlobalScale
+                    // Advance exactly one wavelength. The loop endpoints are
+                    // therefore visually identical instead of snapping back.
+                    to: 40 * control.themeGlobalScale
                     duration: control.motionWaveDuration
                     loops: Animation.Infinite
                     easing.type: Easing.Linear

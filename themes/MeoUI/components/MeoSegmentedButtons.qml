@@ -2,251 +2,205 @@ import QtQuick
 import QtQuick.Controls
 import MeoUI
 
-Frame {
+Control {
     id: control
 
-    // 🌟 核心对外属性
-    // model can be ["option1", "option2"] or [{ label: "option1", icon: "home" }, ...]
     property var model: ["option1", "option2", "option3"]
-    property int currentIndex: 0 // 当前选中的索引
+    property int currentIndex: 0
     property bool multiSelect: false
     property var selectedIndices: []
-    property string size: "m" // "xs" | "s" | "m" | "l" | "xl"
-    signal selected(int index, var data) // 选中时向外发射的信号
+    property string size: "m" // xs | s | m | l | xl
+    signal selected(int index, var data)
 
-    // 🌟 消除外部作用域歧义
-    readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
-    
-    readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
-    readonly property color themeOutline: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E"
-    readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
-    readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property int themeSpace4: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.space4 !== 'undefined') ? MeoTheme.space4 : 4
-    readonly property int motionFast: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationFast !== "undefined") ? MeoTheme.motionDurationFast : 150
-    readonly property int motionMedium: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationMedium !== "undefined") ? MeoTheme.motionDurationMedium : 300
-    readonly property int motionExit: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionDurationShort2 !== "undefined") ? MeoTheme.motionDurationShort2 : 100
-
-    readonly property var fontToken: {
-        if (typeof MeoTheme === 'undefined') return { "size": 14, "weight": Font.Medium };
-        if (size === "xs") return MeoTheme.labelSmall;
-        if (size === "s") return MeoTheme.labelMedium;
-        if (size === "l") return MeoTheme.titleSmall;
-        if (size === "xl") return MeoTheme.titleMedium;
-        return MeoTheme.labelLarge;
-    }
-
-    padding: 0
-    implicitHeight: {
-        if (size === "xs") return MeoTheme.buttonHeightXS || 32 * themeGlobalScale;
-        if (size === "s") return MeoTheme.buttonHeightS || 40 * themeGlobalScale;
-        if (size === "l") return MeoTheme.buttonHeightL || 56 * themeGlobalScale;
-        if (size === "xl") return MeoTheme.buttonHeightXL || 72 * themeGlobalScale;
-        return MeoTheme.buttonHeightM || 48 * themeGlobalScale;
-    }
-    
-    implicitWidth: {
-        let total = 0;
-        for (let i = 0; i < model.length; i++) {
-            let labelText = typeof model[i] === 'string' ? model[i] : (model[i].label || "");
-            let hasIcon = typeof model[i] === 'object' && model[i].icon;
-            let base = (size === "xs" ? 64 : (size === "xl" ? 100 : 80));
-            total += Math.max(base * themeGlobalScale, labelText.length * 8 * themeGlobalScale + (hasIcon ? 48 : 32) * themeGlobalScale);
+    readonly property real themeGlobalScale: MeoTheme.globalScale
+    readonly property color themePrimary: MeoTheme.primary
+    readonly property color themePrimaryContainer: MeoTheme.primaryContainer
+    readonly property color themeOnPrimaryContainer: MeoTheme.contentOnPrimaryContainer
+    readonly property color themeOnSurfaceVariant: MeoTheme.contentOnSurfaceVariant
+    readonly property color themeSurface: MeoTheme.surface
+    readonly property color themeOutline: MeoTheme.outline
+    readonly property real groupRadius: height / 2
+    readonly property real inset: 2 * themeGlobalScale
+    readonly property bool hasAnyIcon: {
+        for (let i = 0; i < model.length; ++i) {
+            if (typeof model[i] === "object" && model[i].icon)
+                return true
         }
-        return Math.max(240 * themeGlobalScale, total);
+        return false
+    }
+    readonly property var fontToken: size === "xs" ? MeoTheme.labelSmall
+                                     : size === "s" ? MeoTheme.labelMedium
+                                     : size === "l" ? MeoTheme.titleSmall
+                                     : size === "xl" ? MeoTheme.titleMedium
+                                     : MeoTheme.labelLarge
+
+    implicitHeight: size === "xs" ? MeoTheme.buttonHeightXS
+                  : size === "s" ? MeoTheme.buttonHeightS
+                  : size === "l" ? MeoTheme.buttonHeightL
+                  : size === "xl" ? MeoTheme.buttonHeightXL
+                  : MeoTheme.buttonHeightM
+    implicitWidth: {
+        let total = 0
+        for (let i = 0; i < model.length; ++i) {
+            const item = model[i]
+            const label = typeof item === "string" ? item : (item.label || "")
+            total += Math.max(84 * themeGlobalScale,
+                              label.length * control.fontToken.size * 0.72 * themeGlobalScale
+                              + (hasAnyIcon ? 56 : 36) * themeGlobalScale)
+        }
+        return Math.max(1, total)
+    }
+    leftPadding: 0
+    rightPadding: 0
+    topPadding: 0
+    bottomPadding: 0
+
+    function isIndexSelected(index) {
+        return multiSelect ? selectedIndices.indexOf(index) !== -1 : currentIndex === index
+    }
+
+    function activateIndex(index, itemData) {
+        if (multiSelect) {
+            const next = selectedIndices.slice(0)
+            const selectedAt = next.indexOf(index)
+            if (selectedAt === -1)
+                next.push(index)
+            else
+                next.splice(selectedAt, 1)
+            selectedIndices = next
+        } else {
+            currentIndex = index
+        }
+        selected(index, itemData)
     }
 
     background: Rectangle {
-        color: "transparent"
-        border.color: "transparent"
-        border.width: 0
-        radius: (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeFull : 20 * control.themeGlobalScale)
-
-        // 🌟 Sliding Selection Background (MD3 Expressive Pattern for single-select)
-        Rectangle {
-            id: slidingBg
-            visible: !control.multiSelect && control.model.length > 0
-            height: parent.height
-            radius: parent.radius
-            color: control.themePrimary
-
-            readonly property Item currentItem: itemRepeater.itemAt(control.currentIndex)
-            x: currentItem ? currentItem.x + rowLayout.x : 0
-            width: currentItem ? currentItem.width : 0
-
-            Behavior on x {
-                NumberAnimation {
-                    duration: control.motionMedium
-                    easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.05, 0.7, 0.1, 1.0]
-                }
-            }
-            Behavior on width {
-                NumberAnimation {
-                    duration: control.motionMedium
-                    easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.05, 0.7, 0.1, 1.0]
-                }
-            }
-        }
+        radius: control.groupRadius
+        color: control.themeSurface
+        border.color: control.themeOutline
+        border.width: Math.max(1, control.themeGlobalScale)
     }
 
-    Row {
-        id: rowLayout
-        anchors.fill: parent
-        spacing: 2 * control.themeGlobalScale
+    contentItem: Row {
+        id: segmentRow
+        spacing: 0
+        clip: true
 
         Repeater {
-            id: itemRepeater
             model: control.model
-            
-            delegate: Item {
-                id: delegateItem
-                width: (control.width - rowLayout.spacing * Math.max(0, control.model.length - 1)) / Math.max(1, control.model.length)
+
+            delegate: Button {
+                id: segmentButton
+                property var itemData: modelData
+                readonly property string itemLabel: typeof itemData === "string" ? itemData : (itemData.label || "")
+                readonly property string itemIcon: typeof itemData === "object" ? (itemData.icon || "") : ""
+                readonly property bool selected: control.isIndexSelected(index)
+                readonly property bool previousSelected: index > 0 && control.isIndexSelected(index - 1)
+                readonly property bool isFirst: index === 0
+                readonly property bool isLast: index === control.model.length - 1
+                readonly property real segmentRadius: isFirst || isLast ? control.groupRadius - control.inset : 10 * control.themeGlobalScale
+                readonly property color foreground: selected ? control.themeOnPrimaryContainer : control.themeOnSurfaceVariant
+
+                width: Math.max(1, segmentRow.width / Math.max(1, control.model.length))
                 height: control.height
-                z: isSelected ? 2 : 1
+                leftPadding: 0
+                rightPadding: 0
+                topPadding: 0
+                bottomPadding: 0
+                hoverEnabled: true
 
-                readonly property var itemData: modelData
-                readonly property string itemLabel: typeof itemData === 'string' ? itemData : (itemData.label || "")
-                readonly property string itemIcon: typeof itemData === 'object' ? (itemData.icon || "") : ""
-                readonly property bool isSelected: control.multiSelect ? control.selectedIndices.includes(index) : control.currentIndex === index
-
-                readonly property color activeBgColor: control.themePrimary
-                
-                readonly property color inactiveBgColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primaryContainer !== 'undefined') ?
-                    MeoTheme.primaryContainer : Qt.rgba(control.themePrimary.r, control.themePrimary.g, control.themePrimary.b, 0.18)
-
-                readonly property color activeTextColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? 
-                    MeoTheme.contentOnPrimary : "#FFFFFF"
-
-                readonly property color inactiveTextColor: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimaryContainer !== 'undefined') ?
-                    MeoTheme.contentOnPrimaryContainer : control.themePrimary
-
-                readonly property color textColor: isSelected ? activeTextColor : inactiveTextColor
-
-                Item {
-                    anchors.fill: parent
+                background: Item {
                     clip: true
 
                     Rectangle {
-                        id: baseBg
+                        id: selectedSurface
                         anchors.fill: parent
-                        radius: height / 2
-                        color: delegateItem.inactiveBgColor
-
-                        Behavior on color { 
-                            ColorAnimation { 
-                                duration: control.motionFast;
-                                easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]
-                            } 
-                        }
-                    }
-
-                    Rectangle {
-                        id: selectedBg
-                        anchors.fill: parent
-                        radius: height / 2
-                        color: delegateItem.activeBgColor
-                        // Only show individual selectedBg in multiSelect mode
-                        opacity: control.multiSelect && delegateItem.isSelected ? 1 : 0
-                        scale: mouseArea.pressed ? 0.98 : (delegateItem.isSelected ? 1 : 0.92)
+                        anchors.margins: control.inset
+                        radius: segmentButton.segmentRadius
+                        color: control.themePrimaryContainer
+                        opacity: segmentButton.selected ? 1 : 0
+                        transformOrigin: Item.Center
+                        scale: segmentButton.pressed ? 0.96 : segmentButton.selected ? 1 : 0.92
 
                         Behavior on opacity {
                             NumberAnimation {
-                                duration: delegateItem.isSelected ? control.motionMedium : control.motionExit
-                                easing.bezierCurve: delegateItem.isSelected
-                                                    ? ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1])
-                                                    : ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedAccelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15])
+                                duration: segmentButton.selected ? MeoTheme.motionDurationSelection : MeoTheme.motionDurationState
+                                easing.bezierCurve: segmentButton.selected ? MeoTheme.motionEasingEmphasizedDecelerate : MeoTheme.motionEasingEmphasizedAccelerate
                             }
                         }
                         Behavior on scale {
                             NumberAnimation {
-                                duration: delegateItem.isSelected ? control.motionMedium : control.motionFast
-                                easing.bezierCurve: delegateItem.isSelected
-                                                    ? ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedDecelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1])
-                                                    : ((typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingEmphasizedAccelerate !== "undefined") ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15])
+                                duration: segmentButton.pressed ? MeoTheme.motionDurationState : MeoTheme.motionDurationSelection
+                                easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate
                             }
                         }
                     }
 
                     MeoStateLayer {
                         anchors.fill: parent
-                        radius: height / 2
-                        pressed: mouseArea.pressed
-                        hovered: mouseArea.containsMouse
-                        pressX: mouseArea.mouseX
-                        pressY: mouseArea.mouseY
-                        color: delegateItem.textColor
+                        radius: segmentButton.segmentRadius
+                        pressed: segmentButton.pressed
+                        hovered: segmentButton.hovered
+                        pressX: segmentButton.pressX
+                        pressY: segmentButton.pressY
+                        color: segmentButton.foreground
                     }
 
-                    MouseArea {
-                        id: mouseArea
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: {
-                            if (control.multiSelect) {
-                                let arr = [...control.selectedIndices]
-                                let idx = arr.indexOf(index)
-                                if (idx === -1) arr.push(index)
-                                else arr.splice(idx, 1)
-                                control.selectedIndices = arr
-                            } else {
-                                control.currentIndex = index;
-                            }
-                            control.selected(index, itemData);
-                        }
+                    Rectangle {
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.max(1, control.themeGlobalScale)
+                        height: parent.height - 12 * control.themeGlobalScale
+                        color: control.themeOutline
+                        opacity: index > 0 && !segmentButton.selected && !segmentButton.previousSelected ? 1 : 0
+                        Behavior on opacity { NumberAnimation { duration: MeoTheme.motionDurationState } }
                     }
                 }
 
-                Row {
-                    anchors.centerIn: parent
-                    spacing: control.themeSpace4 * control.themeGlobalScale
+                contentItem: Item {
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 6 * control.themeGlobalScale
 
-                    // Checkmark or Icon
-                    Item {
-                        width: (isSelected || itemIcon !== "") ? (control.size === "xl" ? 24 : 18) * control.themeGlobalScale : 0
-                        height: width
-                        anchors.verticalCenter: parent.verticalCenter
-                        clip: true
-                        
-                        MeoIcon {
-                            anchors.centerIn: parent
-                            icon: isSelected ? "check" : itemIcon
-                            size: (control.size === "xl" ? 24 : 18)
-                            color: delegateItem.textColor
+                        Item {
+                            width: control.hasAnyIcon || segmentButton.selected ? 18 * control.themeGlobalScale : 0
+                            height: width
+                            clip: true
 
-                            opacity: (isSelected || itemIcon !== "") ? 1.0 : 0.0
-                            scale: (isSelected || itemIcon !== "") ? 1.0 : 0.5
-
-                            Behavior on opacity { NumberAnimation { duration: control.motionFast } }
-                            Behavior on scale { NumberAnimation { duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0] } }
-                        }
-
-                        Behavior on width {
-                            NumberAnimation {
-                                duration: control.motionFast
-                                easing.bezierCurve: (typeof MeoTheme !== "undefined" && typeof MeoTheme.motionEasingSoul !== "undefined") ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]
+                            MeoIcon {
+                                anchors.centerIn: parent
+                                icon: segmentButton.selected ? "check" : segmentButton.itemIcon
+                                size: control.size === "xl" ? 24 * control.themeGlobalScale : 18 * control.themeGlobalScale
+                                color: segmentButton.foreground
+                                opacity: segmentButton.selected || segmentButton.itemIcon.length > 0 ? 1 : 0
+                                scale: segmentButton.selected ? 1 : 0.82
+                                Behavior on opacity { NumberAnimation { duration: MeoTheme.motionDurationState } }
+                                Behavior on scale {
+                                    NumberAnimation {
+                                        duration: MeoTheme.motionDurationSelection
+                                        easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate
+                                    }
+                                }
                             }
                         }
-                    }
 
-                    Text {
-                        text: delegateItem.itemLabel
-                        font.pixelSize: control.fontToken.size * control.themeGlobalScale
-                        font.weight: isSelected ? (control.fontToken.weight === Font.Normal ? Font.Medium : Font.Bold) : control.fontToken.weight
-                        color: delegateItem.textColor
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: text !== ""
-                        
-                        Behavior on color { ColorAnimation { duration: control.motionFast } }
+                        Text {
+                            text: segmentButton.itemLabel
+                            font.family: MeoTheme.typefacePlain
+                            font.pixelSize: control.fontToken.size * control.themeGlobalScale
+                            font.weight: segmentButton.selected ? Font.Medium : control.fontToken.weight
+                            color: segmentButton.foreground
+                            lineHeightMode: Text.FixedHeight
+                            lineHeight: (control.fontToken.lineHeight || 20) * control.themeGlobalScale
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                            anchors.verticalCenter: parent.verticalCenter
+                            Behavior on color { ColorAnimation { duration: MeoTheme.motionDurationState } }
+                        }
                     }
                 }
 
-                Rectangle {
-                    width: 1
-                    height: parent.height - 12 * control.themeGlobalScale
-                    color: control.themeOutline
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    visible: false
-                }
+                onClicked: control.activateIndex(index, segmentButton.itemData)
             }
         }
     }

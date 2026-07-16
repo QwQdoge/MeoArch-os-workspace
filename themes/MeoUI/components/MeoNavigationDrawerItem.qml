@@ -65,6 +65,7 @@ Control {
 
             MeoStateLayer {
                 radius: selectedLayer.radius
+                shape: "pill"
                 pressed: mouseArea.pressed
                 hovered: mouseArea.containsMouse
                 pressX: mouseArea.mouseX - selectedLayer.x
@@ -105,6 +106,7 @@ Control {
 
         MeoIcon {
             icon: control.icon
+            fill: control.selected
             size: 24
             color: control.selected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
             anchors.verticalCenter: parent.verticalCenter
@@ -121,14 +123,15 @@ Control {
                 font.family: (typeof MeoTheme !== 'undefined' && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: (control.mode === "group" ? fontBodyLarge.size : fontLabelLarge.size) * control.themeGlobalScale
                 font.weight: control.mode === "group" ? fontBodyLarge.weight : (control.selected ? Font.DemiBold : fontLabelLarge.weight)
-                lineHeight: control.mode === "group" ? (fontBodyLarge.lineHeight / fontBodyLarge.size) : 20 / 14
+                lineHeightMode: Text.FixedHeight
+                lineHeight: (control.mode === "group" ? fontBodyLarge.lineHeight : 20) * control.themeGlobalScale
                 font.letterSpacing: ((control.mode === "group" ? fontBodyLarge.letterSpacing : fontLabelLarge.letterSpacing) || 0) * control.themeGlobalScale
                 color: control.selected ? control.themeOnSecondaryContainer : (control.mode === "group" ? control.themeOnSurface : control.themeOnSurfaceVariant)
                 verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
                 Behavior on color {
                     ColorAnimation {
-                        duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlFast
+                        duration: MeoTheme.motionDurationState
                         easing.bezierCurve: control.selected ? MeoTheme.motionEasingEnter : MeoTheme.motionEasingExit
                     }
                 }
@@ -141,7 +144,9 @@ Control {
                 font.family: (typeof MeoTheme !== 'undefined' && MeoTheme.typefacePlain) ? MeoTheme.typefacePlain : "Roboto"
                 font.pixelSize: fontBodyMedium.size * control.themeGlobalScale
                 font.weight: fontBodyMedium.weight
-                lineHeight: fontBodyMedium.lineHeight / fontBodyMedium.size
+                lineHeightMode: Text.FixedHeight
+                lineHeight: fontBodyMedium.lineHeight * control.themeGlobalScale
+                verticalAlignment: Text.AlignVCenter
                 font.letterSpacing: (fontBodyMedium.letterSpacing || 0) * control.themeGlobalScale
                 color: control.themeOnSurfaceVariant
                 elide: Text.ElideRight

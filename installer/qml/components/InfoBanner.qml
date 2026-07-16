@@ -1,7 +1,7 @@
 import QtQuick
-import MeoUI 1.0 as Meo
+import MeoUI 1.0
 
-Meo.MeoBanner {
+MeoBanner {
     property string iconText: "i"
     property string iconFont: "Roboto"
     property string message: ""

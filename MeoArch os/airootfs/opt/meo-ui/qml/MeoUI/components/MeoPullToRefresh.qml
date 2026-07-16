@@ -14,6 +14,7 @@ Control {
     readonly property color themeSurfaceContainerHigh: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceContainerHigh !== 'undefined') ? MeoTheme.surfaceContainerHigh : "#ECE6F0"
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    readonly property bool animationActive: refreshing && visible && width > 0 && height > 0 && !MeoTheme.reduceMotion
 
     implicitWidth: 40 * themeGlobalScale
     implicitHeight: 40 * themeGlobalScale
@@ -24,7 +25,7 @@ Control {
         color: control.themeSurfaceContainerHigh
 
         // Elevation Shadow (Standard MD3 Level 2 for pull-to-refresh)
-        layer.enabled: true
+        layer.enabled: control.visible && control.opacity > 0
         layer.effect: MultiEffect {
             shadowEnabled: true
             shadowBlur: 0.2
@@ -106,7 +107,7 @@ Control {
 
             // Indeterminate animation
             SequentialAnimation {
-                running: control.refreshing && control.visible
+                running: control.animationActive
                 loops: Animation.Infinite
 
                 ParallelAnimation {

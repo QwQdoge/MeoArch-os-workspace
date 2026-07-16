@@ -53,7 +53,7 @@ Item {
     Loader {
         id: sampleLoader
         sourceComponent: sampleFor(control.componentData.name || "")
-        Behavior on x { NumberAnimation { duration: MeoTheme.motionDurationControlFast; easing.bezierCurve: MeoTheme.motionEasingEnter } }
+        Behavior on x { NumberAnimation { duration: MeoTheme.motionDurationState; easing.bezierCurve: MeoTheme.motionEasingStandardDecelerate } }
     }
 
     function sampleFor(name) {

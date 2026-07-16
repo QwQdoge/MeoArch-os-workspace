@@ -1,13 +1,13 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
-import MeoUI 1.0 as Meo
+import MeoUI 1.0
 import "."
-import "components"
 
 Item {
     id: frame
-    property var controller
+
+    property var controller: PreviewController
     property int pageIndex: 0
     property int pageCount: 10
     property string pageTitle: ""
@@ -17,124 +17,297 @@ Item {
     property bool showPrimaryButton: true
     property bool primaryEnabled: true
     property bool primaryAdvances: true
-    property bool languageMenuOpen: false
-    property bool powerMenuOpen: false
     property string statusMessage: ""
-    default property alias content: body.data
-    readonly property real scaleFactor: Math.max(0.72, Math.min(1.28, Math.min(width / 1440, height / 900)))
-    readonly property bool compact: width < 1060 || height < 700
-    readonly property real pageMargin: dp(compact ? 20 : 32)
-    readonly property real cardInset: dp(compact ? 24 : 40)
-    readonly property real mainCardWidth: Math.min(width - pageMargin * 2, dp(compact ? 1040 : 860))
-    readonly property real mainCardHeight: Math.min(height - pageMargin * 3.2, dp(compact ? 690 : 612))
-    readonly property string roboto: robotoLoader.name.length ? robotoLoader.name : "Roboto"
-    readonly property string comfortaa: comfortaaLoader.name.length ? comfortaaLoader.name : "Comfortaa"
+    default property alias content: bodyHost.data
+
+    readonly property real pageMargin: windowMetrics.pageMargin
+    readonly property real cardInset: compactHeight ? dp(24)
+                                                     : windowMetrics.isExtraLargeWidth ? dp(48)
+                                                                                       : windowMetrics.isLargeWidth ? dp(40) : dp(32)
+    readonly property real mainCardWidth: Math.min(width - pageMargin * 2,
+                                                    windowMetrics.isExtraLargeWidth ? dp(1152)
+                                                                                   : windowMetrics.isLargeWidth ? dp(860) : dp(760))
+    readonly property bool reserveTopBar: height < dp(720)
+    readonly property real cardTop: reserveTopBar ? pageMargin + dp(64)
+                                                   : (height - mainCardHeight) / 2
+    readonly property real mainCardHeight: Math.min(height - pageMargin * 2,
+                                                     reserveTopBar ? height - cardTop - pageMargin : Number.MAX_VALUE,
+                                                     windowMetrics.isExtraLargeWidth ? dp(736)
+                                                                                    : windowMetrics.isLargeWidth ? dp(612) : dp(520))
+    readonly property real footerHeight: compactHeight ? dp(64)
+                                                        : windowMetrics.isExtraLargeWidth ? dp(96)
+                                                                                          : windowMetrics.isLargeWidth ? dp(80) : dp(72)
+    readonly property bool compactHeight: windowMetrics.isCompactHeight || mainCardHeight < dp(560)
+    readonly property string roboto: robotoLoader.name.length ? robotoLoader.name : MeoTheme.typefacePlain
+    readonly property string comfortaa: comfortaaLoader.name.length ? comfortaaLoader.name : MeoTheme.typefaceBrand
     readonly property string symbols: symbolsLoader.name.length ? symbolsLoader.name : "Material Symbols Rounded"
-    property url assetsRoot: Qt.resolvedUrl("../assets/")
-    readonly property url fallbackAssetsRoot: Qt.resolvedUrl("../../assets/")
+    property url assetsRoot: String(Qt.resolvedUrl("." )).indexOf("/opt/meoarch-installer/") >= 0
+                             ? Qt.resolvedUrl("../assets/") : Qt.resolvedUrl("../../assets/")
 
     signal nextRequested()
     signal previousRequested()
     signal exitRequested()
     signal primaryRequested()
+    signal navigateRequested(int index)
 
-    function dp(value) { return Math.round(value * scaleFactor) }
+    function dp(value) { return Math.round(value * MeoTheme.globalScale) }
     function asset(path) { return String(assetsRoot) + path }
-    function useFallbackAssets() { if (String(assetsRoot) !== String(fallbackAssetsRoot)) assetsRoot = fallbackAssetsRoot }
     function firePrimary() { primaryAdvances ? nextRequested() : primaryRequested() }
-    function playEntrance(direction) { card.reveal(direction) }
-    onStatusMessageChanged: if (statusMessage.length) snackbar.open()
 
-    FontLoader { id: robotoLoader; source: frame.asset("fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf"); onStatusChanged: if (status === FontLoader.Error) frame.useFallbackAssets() }
-    FontLoader { id: comfortaaLoader; source: frame.asset("fonts/Comfortaa/Comfortaa-VariableFont_wght.ttf"); onStatusChanged: if (status === FontLoader.Error) frame.useFallbackAssets() }
-    FontLoader { id: symbolsLoader; source: frame.asset("fonts/Material_Symbols_Outlined,Material_Symbols_Rounded,Material_Symbols_Sharp/Material_Symbols_Rounded/static/MaterialSymbolsRounded-Regular.ttf"); onStatusChanged: if (status === FontLoader.Error) frame.useFallbackAssets() }
+    onStatusMessageChanged: if (statusMessage.length) snackbar.open()
+    Component.onCompleted: MeoTheme.isDarkMode = false
+
+    MeoWindowMetrics {
+        id: windowMetrics
+        availableWidth: frame.width
+        availableHeight: frame.height
+    }
+
+    FontLoader {
+        id: robotoLoader
+        source: frame.asset("fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf")
+    }
+    FontLoader {
+        id: comfortaaLoader
+        source: frame.asset("fonts/Comfortaa/Comfortaa-VariableFont_wght.ttf")
+    }
+    FontLoader {
+        id: symbolsLoader
+        source: frame.asset("fonts/Material_Symbols_Outlined,Material_Symbols_Rounded,Material_Symbols_Sharp/Material_Symbols_Rounded/static/MaterialSymbolsRounded_28pt-Regular.ttf")
+    }
 
     Image {
         anchors.fill: parent
         source: frame.asset("wallpapers/installer_background.png")
         fillMode: Image.PreserveAspectCrop
-        onStatusChanged: if (status === Image.Error) frame.useFallbackAssets()
     }
 
     Rectangle {
-        x: frame.pageMargin; y: frame.pageMargin
-        width: frame.dp(278); height: frame.dp(48); radius: frame.dp(18)
-        color: Qt.rgba(1, 1, 1, 0.80)
+        x: frame.pageMargin
+        y: frame.pageMargin
+        width: windowMetrics.isExtraLargeWidth ? frame.dp(328) : frame.dp(278)
+        height: windowMetrics.isExtraLargeWidth ? frame.dp(56) : frame.dp(48)
+        radius: frame.dp(18)
+        color: Qt.rgba(1, 1, 1, 0.86)
+
         Row {
-            anchors.fill: parent; anchors.leftMargin: frame.dp(18); spacing: frame.dp(12)
-            Image { width: frame.dp(68); height: frame.dp(32); anchors.verticalCenter: parent.verticalCenter; source: frame.asset("icons/Logo.png"); fillMode: Image.PreserveAspectFit }
-            Text { anchors.verticalCenter: parent.verticalCenter; text: "MeoArch Installer"; color: MeoTheme.onSurface; font.family: frame.comfortaa; font.bold: true; font.pixelSize: frame.dp(18) }
+            anchors.fill: parent
+            anchors.leftMargin: frame.dp(18)
+            spacing: frame.dp(12)
+
+            Image {
+                width: frame.dp(68)
+                height: frame.dp(32)
+                anchors.verticalCenter: parent.verticalCenter
+                source: frame.asset("icons/Logo.png")
+                fillMode: Image.PreserveAspectFit
+            }
+            MeoText {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "MeoArch Installer"
+                typeRole: "title"
+                typeSize: "small"
+                emphasized: true
+                color: MeoTheme.contentOnSurface
+            }
         }
     }
 
     Row {
         id: actions
-        anchors.top: parent.top; anchors.right: parent.right
-        anchors.topMargin: frame.pageMargin; anchors.rightMargin: frame.pageMargin; spacing: frame.dp(10)
-        MeoIconButton { iconText: "?"; iconFont: frame.roboto; accessibleName: "Help"; onClicked: frame.statusMessage = "Documentation is available in the installer guide." }
-        MeoIconButton { iconText: "L"; iconFont: frame.roboto; accessibleName: "Installer language"; onClicked: { frame.languageMenuOpen = !frame.languageMenuOpen; frame.powerMenuOpen = false } }
-        MeoIconButton { iconText: "P"; iconFont: frame.roboto; accessibleName: "Power"; onClicked: { frame.powerMenuOpen = !frame.powerMenuOpen; frame.languageMenuOpen = false } }
+        anchors.top: parent.top
+        anchors.right: parent.right
+        anchors.topMargin: frame.pageMargin
+        anchors.rightMargin: frame.pageMargin
+        spacing: frame.dp(8)
+
+        MeoIconButton {
+            icon.name: "help"
+            size: "l"
+            type: "tonal"
+            Accessible.name: "Help"
+            onClicked: frame.statusMessage = "Documentation is available in the installer guide."
+        }
+        MeoIconButton {
+            id: languageButton
+            icon.name: "language"
+            size: "l"
+            type: "tonal"
+            Accessible.name: "Installer language"
+            onClicked: languagePopup.openFrom(languageButton)
+        }
+        MeoIconButton {
+            id: powerButton
+            icon.name: "power_settings_new"
+            size: "l"
+            type: "tonal"
+            Accessible.name: "Power"
+            onClicked: powerPopup.openFrom(powerButton)
+        }
     }
 
-    MotionPopup {
+    MeoMotionPopup {
         id: languagePopup
-        presentation: "menu"
-        visible: frame.languageMenuOpen
+        presentation: MeoMotionPopup.Menu
         x: frame.width - frame.pageMargin - width
         y: frame.pageMargin + frame.dp(58)
-        width: frame.dp(300); height: Math.min(frame.dp(544), frame.height - y - frame.pageMargin)
-        padding: frame.dp(8); modal: false; closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        onClosed: frame.languageMenuOpen = false
+        width: frame.dp(300)
+        height: Math.min(frame.dp(544), frame.height - y - frame.pageMargin)
+        padding: frame.dp(8)
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
         contentItem: ListView {
-            clip: true; model: frame.controller ? frame.controller.uiLanguages : []
+            id: languageList
+            clip: true
+            model: frame.controller ? frame.controller.uiLanguages : []
+            keyNavigationEnabled: true
+            boundsBehavior: Flickable.StopAtBounds
+
             delegate: Rectangle {
                 id: languageOption
                 required property var modelData
-                width: ListView.view.width; height: frame.dp(48); radius: frame.dp(12)
-                color: frame.controller && frame.controller.uiLanguage === languageOption.modelData.id ? MeoTheme.primaryContainer : "transparent"
-                Meo.MeoStateLayer { anchors.fill: parent; radius: parent.radius; hovered: languageHover.hovered; pressed: languageTap.pressed; color: MeoTheme.onSurface }
-                Text { anchors.left: parent.left; anchors.leftMargin: frame.dp(16); anchors.verticalCenter: parent.verticalCenter; text: languageOption.modelData.nativeName; font.family: frame.roboto; font.pixelSize: frame.dp(15); color: MeoTheme.onSurface }
-                Text { anchors.right: parent.right; anchors.rightMargin: frame.dp(16); anchors.verticalCenter: parent.verticalCenter; text: frame.controller && frame.controller.uiLanguage === languageOption.modelData.id ? "✓" : ""; font.pixelSize: frame.dp(18); color: MeoTheme.primary }
+                required property int index
+                width: ListView.view.width
+                height: frame.dp(48)
+                radius: frame.dp(12)
+                color: frame.controller && frame.controller.uiLanguage === modelData.id
+                       ? MeoTheme.primaryContainer : "transparent"
+                activeFocusOnTab: true
+                Accessible.role: Accessible.MenuItem
+                Accessible.name: modelData.nativeName
+                Accessible.selected: frame.controller && frame.controller.uiLanguage === modelData.id
+
+                function choose() {
+                    frame.controller.setUiLanguage(modelData.id)
+                    languagePopup.close()
+                }
+
+                MeoStateLayer {
+                    anchors.fill: parent
+                    radius: parent.radius
+                    hovered: languageHover.hovered
+                    pressed: languageTap.pressed
+                    focused: languageOption.activeFocus
+                    color: MeoTheme.contentOnSurface
+                }
+                MeoText {
+                    anchors.left: parent.left
+                    anchors.leftMargin: frame.dp(16)
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: languageOption.modelData.nativeName
+                    typeRole: "body"
+                    typeSize: "medium"
+                    color: MeoTheme.contentOnSurface
+                }
+                MeoIcon {
+                    anchors.right: parent.right
+                    anchors.rightMargin: frame.dp(16)
+                    anchors.verticalCenter: parent.verticalCenter
+                    icon: frame.controller && frame.controller.uiLanguage === languageOption.modelData.id ? "check" : ""
+                    size: 20
+                    color: MeoTheme.primary
+                }
                 HoverHandler { id: languageHover }
-                TapHandler { id: languageTap; onTapped: { frame.controller.setUiLanguage(languageOption.modelData.id); frame.languageMenuOpen = false } }
+                TapHandler {
+                    id: languageTap
+                    onTapped: {
+                        languageOption.forceActiveFocus(Qt.MouseFocusReason)
+                        languageOption.choose()
+                    }
+                }
+                Keys.onReturnPressed: choose()
+                Keys.onEnterPressed: choose()
+                Keys.onSpacePressed: choose()
             }
         }
     }
 
-    MotionPopup {
-        presentation: "menu"
-        visible: frame.powerMenuOpen
-        x: frame.width - frame.pageMargin - width; y: frame.pageMargin + frame.dp(58)
-        width: frame.dp(220); height: frame.dp(124); padding: frame.dp(8)
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        onClosed: frame.powerMenuOpen = false
+    MeoMotionPopup {
+        id: powerPopup
+        presentation: MeoMotionPopup.Menu
+        x: frame.width - frame.pageMargin - width
+        y: frame.pageMargin + frame.dp(58)
+        width: frame.dp(220)
+        height: frame.dp(112)
+        padding: frame.dp(8)
+
         contentItem: Column {
             Repeater {
-                model: [{ label: "Restart", action: "restart" }, { label: "Shut down", action: "shutdown" }]
-                delegate: MeoButton {
+                model: [
+                    { label: "Restart", icon: "restart_alt", action: "restart" },
+                    { label: "Shut down", icon: "power_settings_new", action: "shutdown" }
+                ]
+                delegate: MeoListItem {
                     required property var modelData
-                    width: parent.width; text: modelData.label; kind: "text"
-                    onClicked: { modelData.action === "restart" ? frame.controller.requestRestart() : frame.controller.requestShutdown(); frame.powerMenuOpen = false }
+                    width: parent.width
+                    implicitHeight: frame.dp(48)
+                    headline: modelData.label
+                    leadingIcon: modelData.icon
+                    onClicked: {
+                        modelData.action === "restart" ? frame.controller.requestRestart()
+                                                         : frame.controller.requestShutdown()
+                        powerPopup.close()
+                    }
                 }
             }
         }
     }
 
-    Meo.MeoMotionSurface {
+    MeoMotionSurface {
         id: card
-        anchors.centerIn: parent; width: frame.mainCardWidth; height: frame.mainCardHeight
-        radius: frame.dp(30); color: Qt.rgba(1, 1, 1, 0.94); elevation: 3
-        Item {
-            id: body
-            anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; anchors.bottom: footer.top
-            anchors.margins: frame.cardInset; anchors.bottomMargin: frame.dp(16)
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: frame.cardTop
+        width: frame.mainCardWidth
+        height: frame.mainCardHeight
+        radius: windowMetrics.isExtraLargeWidth ? frame.dp(32) : frame.dp(28)
+        color: Qt.rgba(1, 1, 1, 0.96)
+        elevation: 3
+
+        Flickable {
+            id: contentFlick
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: footer.top
+            anchors.leftMargin: frame.cardInset
+            anchors.rightMargin: frame.cardInset
+            anchors.topMargin: frame.cardInset
+            anchors.bottomMargin: frame.compactHeight ? frame.dp(8) : frame.dp(16)
+            contentWidth: width
+            contentHeight: bodyHost.height
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: contentHeight > height
+            ScrollBar.vertical: ScrollBar { policy: contentFlick.interactive ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
+
+            Item {
+                id: bodyHost
+                width: contentFlick.width
+                height: Math.max(contentFlick.height,
+                                 children.length && children[0].implicitHeight !== undefined
+                                 ? children[0].implicitHeight : contentFlick.height)
+            }
         }
+
         Rectangle {
             id: footer
-            anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
-            height: frame.dp(80); color: "transparent"
-            MeoButton { visible: frame.showBackButton; anchors.left: parent.left; anchors.leftMargin: frame.dp(24); anchors.verticalCenter: parent.verticalCenter; text: "Back"; kind: "text"; onClicked: frame.previousRequested() }
-            Meo.MeoPageIndicator {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            height: frame.footerHeight
+            color: "transparent"
+
+            MeoButton {
+                visible: frame.showBackButton
+                anchors.left: parent.left
+                anchors.leftMargin: frame.dp(24)
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Back"
+                type: "text"
+                size: "m"
+                onClicked: frame.previousRequested()
+            }
+            MeoPageIndicator {
                 anchors.centerIn: parent
                 count: frame.pageCount
                 currentIndex: frame.pageIndex
@@ -142,10 +315,33 @@ Item {
                 activeDotWidth: frame.dp(18)
                 spacing: frame.dp(6)
             }
-            MeoButton { visible: frame.showPrimaryButton; enabled: frame.primaryEnabled; anchors.right: parent.right; anchors.rightMargin: frame.dp(24); anchors.verticalCenter: parent.verticalCenter; text: frame.primaryLabel; minWidth: frame.dp(136); onClicked: frame.firePrimary() }
+            MeoButton {
+                visible: frame.showPrimaryButton
+                enabled: frame.primaryEnabled
+                anchors.right: parent.right
+                anchors.rightMargin: frame.dp(24)
+                anchors.verticalCenter: parent.verticalCenter
+                implicitWidth: Math.max(frame.dp(136), contentItem.implicitWidth + leftPadding + rightPadding)
+                text: frame.primaryLabel
+                type: "filled"
+                size: "m"
+                isEmphasized: true
+                onClicked: frame.firePrimary()
+            }
         }
     }
 
-    Meo.MeoSnackbar { id: snackbar; message: frame.controller && frame.controller.errorMessage.length ? frame.controller.errorMessage : frame.statusMessage }
-    Connections { target: frame.controller; ignoreUnknownSignals: true; function onErrorMessageChanged() { if (frame.controller.errorMessage.length) snackbar.open() } }
+    MeoSnackbar {
+        id: snackbar
+        message: frame.controller && frame.controller.errorMessage.length
+                 ? frame.controller.errorMessage : frame.statusMessage
+    }
+    Connections {
+        target: frame.controller || null
+        ignoreUnknownSignals: true
+        function onErrorMessageChanged() {
+            if (frame.controller.errorMessage.length)
+                snackbar.open()
+        }
+    }
 }

@@ -18,8 +18,6 @@ install -Dm644 "${repo_root}/themes/MeoUI/MeoWindowMetrics.qml" "${meoui_dst}/Me
 rm -rf "${installer_dst}"
 install -d "${installer_dst}"
 cp -a "${installer_src}/qml" "${installer_dst}/qml"
-install -Dm644 "${repo_root}/themes/MeoUI/MeoTheme.qml" \
-  "${installer_dst}/qml/MeoTheme.qml"
 cp -a "${installer_src}/backend" "${installer_dst}/backend"
 cp -a "${installer_src}/data" "${installer_dst}/data"
 cp -a "${installer_src}/app" "${installer_dst}/app"
@@ -28,7 +26,7 @@ cp -a "${repo_root}/assets" "${installer_dst}/assets"
 find "${installer_dst}/backend" -type f \( -name "*.sh" -o -name "*.py" \) -exec chmod 755 {} +
 find "${installer_dst}/data" -type f -exec chmod 644 {} +
 
-native_binary="${repo_root}/build/installer-host/meoarch-installer-app"
+native_binary="${MEOARCH_INSTALLER_NATIVE_BINARY:-${repo_root}/build/installer-host/meoarch-installer-app}"
 if [ -x "${native_binary}" ]; then
   install -Dm755 "${native_binary}" "${installer_dst}/bin/meoarch-installer-app"
 else

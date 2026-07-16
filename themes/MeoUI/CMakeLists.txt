@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(MeoUI VERSION 0.3.0 LANGUAGES CXX)
+project(MeoUI VERSION 0.3.1 LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
 include(GNUInstallDirs)
 
@@ -92,6 +92,7 @@ MeoTheme.qml
         components/MeoStateLayer.qml
         components/MeoMotionPopup.qml
         components/MeoMotionSurface.qml
+        components/MeoPageHost.qml
         components/MeoFilterChip.qml
         components/MeoInputChip.qml
         components/MeoPullToRefresh.qml

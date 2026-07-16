@@ -48,6 +48,8 @@ Button {
         readonly property real baseRadius: {
             if (control.pressed)
                 return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * control.themeGlobalScale;
+            if (control.hovered && shape === "square")
+                return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLargeIncreased !== 'undefined') ? MeoTheme.shapeLargeIncreased : 20 * control.themeGlobalScale;
             if (shape === "square") {
                 if (size === "xs" || size === "s") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeMedium !== 'undefined') ? MeoTheme.shapeMedium : 12 * MeoTheme.globalScale;
                 return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.shapeLarge !== 'undefined') ? MeoTheme.shapeLarge : 16 * MeoTheme.globalScale;
@@ -80,13 +82,14 @@ Button {
 
             Behavior on radius {
                 NumberAnimation {
-                    duration: (typeof MeoTheme !== "undefined" ? MeoTheme.motionDurationMedium1 : 250)
-                    easing.bezierCurve: (typeof MeoTheme !== "undefined" ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1])
+                    duration: control.hovered || control.pressed ? MeoTheme.motionDurationShapeEnter : MeoTheme.motionDurationShapeSettle
+                    easing.bezierCurve: (typeof MeoTheme !== "undefined" ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1])
                 }
             }
 
             MeoStateLayer {
                 radius: shapeBg.radius
+                shape: shapeBg.type
                 pressed: control.pressed
                 hovered: control.hovered
                 focused: control.visualFocus
@@ -111,14 +114,23 @@ Button {
                 }
             }
         }
+
+        scale: control.pressed ? 0.96 : (control.hovered ? 1.035 : 1.0)
+        Behavior on scale {
+            NumberAnimation {
+                duration: control.pressed ? MeoTheme.motionDurationFast : MeoTheme.motionDurationShapeEnter
+                easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate
+            }
+        }
     }
 
     contentItem: Item {
-        scale: control.pressed ? 0.92 : 1
-        Behavior on scale { NumberAnimation { duration: (typeof MeoTheme !== "undefined" ? MeoTheme.motionDurationShort3 : 150); easing.bezierCurve: (typeof MeoTheme !== "undefined" ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1]) } }
+        scale: control.pressed ? 0.94 : (control.hovered ? 1.02 : 1)
+        Behavior on scale { NumberAnimation { duration: (typeof MeoTheme !== "undefined" ? MeoTheme.motionDurationFast : 120); easing.bezierCurve: (typeof MeoTheme !== "undefined" ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1]) } }
         MeoIcon {
             anchors.centerIn: parent
             icon: control.selected ? (control.selectedIcon || control.icon.name || control.icon.source.toString()) : (control.icon.name || control.icon.source.toString())
+            fill: control.selected
             size: control.iconSize
             color: {
                 if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.38) : Qt.rgba(0, 0, 0, 0.38);

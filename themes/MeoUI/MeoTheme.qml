@@ -14,22 +14,36 @@ QtObject {
     property bool reduceMotion: false
     property bool transparencyEnabled: true
 
-    // Windows uses effective pixels and window width, not physical screen size,
-    // for adaptive decisions. Keep these values centralized so every MeoUI
-    // shell switches layout at the same point.
-    readonly property real windowBreakpointSmall: 640
-    readonly property real windowBreakpointLarge: 1008
+    // Material 3 adaptive window classes, expressed in effective pixels.
+    readonly property real windowBreakpointMedium: 600
+    readonly property real windowBreakpointExpanded: 840
+    readonly property real windowBreakpointLarge: 1200
+    readonly property real windowBreakpointExtraLarge: 1600
+    readonly property real windowHeightBreakpointMedium: 480
+    readonly property real windowHeightBreakpointExpanded: 900
 
-    function windowSizeClass(availableWidth) {
+    function windowWidthSizeClass(availableWidth) {
         const effectiveWidth = Math.max(0, availableWidth) / Math.max(0.1, globalScale)
-        if (effectiveWidth <= windowBreakpointSmall) return "small"
-        if (effectiveWidth < windowBreakpointLarge) return "medium"
-        return "large"
+        if (effectiveWidth < windowBreakpointMedium) return "compact"
+        if (effectiveWidth < windowBreakpointExpanded) return "medium"
+        if (effectiveWidth < windowBreakpointLarge) return "expanded"
+        if (effectiveWidth < windowBreakpointExtraLarge) return "large"
+        return "extraLarge"
+    }
+
+    function windowHeightSizeClass(availableHeight) {
+        const effectiveHeight = Math.max(0, availableHeight) / Math.max(0.1, globalScale)
+        if (effectiveHeight < windowHeightBreakpointMedium) return "compact"
+        if (effectiveHeight < windowHeightBreakpointExpanded) return "medium"
+        return "expanded"
     }
 
     function windowPageMargin(availableWidth) {
-        const sizeClass = windowSizeClass(availableWidth)
-        return (sizeClass === "small" ? 12 : sizeClass === "medium" ? 24 : 32) * globalScale
+        const sizeClass = windowWidthSizeClass(availableWidth)
+        if (sizeClass === "compact") return 16 * globalScale
+        if (sizeClass === "medium" || sizeClass === "expanded") return 24 * globalScale
+        if (sizeClass === "large") return 32 * globalScale
+        return 40 * globalScale
     }
 
     // 🎨 MeoArch MD3 fallback color schemes
@@ -57,7 +71,15 @@ QtObject {
         "onSurface": "#323233",
         "surfaceVariant": "#E0DEE6",
         "onSurfaceVariant": "#5E5C66",
-        "outline": "#8E8999"
+        "outline": "#8E8999",
+        "outlineVariant": "#C4C7C5",
+        "surfaceContainerLowest": "#FFFFFF",
+        "surfaceContainerLow": "#F7F2FA",
+        "surfaceContainer": "#F3EDF7",
+        "surfaceContainerHigh": "#ECE6F0",
+        "surfaceContainerHighest": "#E6E1E5",
+        "inverseSurface": "#313033",
+        "onInverseSurface": "#F4F0F4"
     })
 
     readonly property var fallbackDarkColorScheme: ({
@@ -83,7 +105,15 @@ QtObject {
         "onSurface": "#E4E4E6",
         "surfaceVariant": "#5E5C66",
         "onSurfaceVariant": "#DEDBE6",
-        "outline": "#AAA7B3"
+        "outline": "#AAA7B3",
+        "outlineVariant": "#44474F",
+        "surfaceContainerLowest": "#0F0E11",
+        "surfaceContainerLow": "#1D1B20",
+        "surfaceContainer": "#211F26",
+        "surfaceContainerHigh": "#2B2930",
+        "surfaceContainerHighest": "#36343B",
+        "inverseSurface": "#E6E1E5",
+        "onInverseSurface": "#313033"
     })
 
     // 🎨 Dynamic color provider API
@@ -155,11 +185,11 @@ QtObject {
     property color outline: dynamicColorsAvailable && dynamicColorScheme.outline ? dynamicColorScheme.outline : (isDarkMode ? "#AAA7B3" : "#8E8999")
     
     // M3 Surface Containers
-    property color surfaceContainerLowest: isDarkMode ? "#0F0E11" : "#FFFFFF"
-    property color surfaceContainerLow: isDarkMode ? "#1D1B20" : "#F7F2FA"
-    property color surfaceContainer: isDarkMode ? "#211F26" : "#F3EDF7"
-    property color surfaceContainerHigh: isDarkMode ? "#2B2930" : "#ECE6F0"
-    property color surfaceContainerHighest: isDarkMode ? "#36343B" : "#E6E1E5"
+    property color surfaceContainerLowest: dynamicOrFallback("surfaceContainerLowest")
+    property color surfaceContainerLow: dynamicOrFallback("surfaceContainerLow")
+    property color surfaceContainer: dynamicOrFallback("surfaceContainer")
+    property color surfaceContainerHigh: dynamicOrFallback("surfaceContainerHigh")
+    property color surfaceContainerHighest: dynamicOrFallback("surfaceContainerHighest")
 
     // 🌟 Surface Tint Helper (MD3 Elevation Overlay)
     function surfaceTint(level) {
@@ -186,19 +216,26 @@ QtObject {
     readonly property int motionDurationExtraLong3: reduceMotion ? 0 : 900
     readonly property int motionDurationExtraLong4: reduceMotion ? 0 : 1000
 
-    // Semantic motion aliases for component code.
+    // Material 3 semantic motion aliases for component code.
     readonly property var motionDurationInstant: motionDurationShort1
-    readonly property var motionDurationFast: motionDurationShort3
-    readonly property var motionDurationMedium: motionDurationMedium2
-    readonly property var motionDurationSlow: motionDurationLong1
-    readonly property var motionDurationRippleExpand: motionDurationMedium4
-    readonly property var motionDurationRippleFade: motionDurationMedium2
-
-    // WinUI-compatible control timing aliases. These are useful for desktop
-    // surfaces while the full MD3 duration scale remains available above.
-    readonly property int motionDurationControlFaster: reduceMotion ? 0 : 83
-    readonly property int motionDurationControlFast: reduceMotion ? 0 : 167
-    readonly property int motionDurationControlNormal: reduceMotion ? 0 : 250
+    // Interactive desktop feedback needs to acknowledge a pointer immediately.
+    // Longer values stay reserved for spatial transitions rather than hover/press.
+    readonly property var motionDurationFast: reduceMotion ? 0 : 120
+    readonly property var motionDurationMedium: reduceMotion ? 0 : 220
+    readonly property var motionDurationSlow: reduceMotion ? 0 : 320
+    readonly property var motionDurationRippleExpand: reduceMotion ? 0 : 280
+    readonly property var motionDurationRippleFade: reduceMotion ? 0 : 160
+    readonly property int motionDurationState: reduceMotion ? 0 : 100
+    readonly property int motionDurationSelection: reduceMotion ? 0 : 220
+    readonly property int motionDurationShapeEnter: reduceMotion ? 0 : 140
+    readonly property int motionDurationShapeSettle: reduceMotion ? 0 : 220
+    readonly property int motionDurationDialogEnter: reduceMotion ? 0 : 240
+    readonly property int motionDurationDialogExit: reduceMotion ? 0 : 160
+    readonly property int motionDurationMenuEnter: reduceMotion ? 0 : 160
+    readonly property int motionDurationMenuExit: reduceMotion ? 0 : 120
+    readonly property int motionDurationSheetEnter: reduceMotion ? 0 : 320
+    readonly property int motionDurationSheetExit: reduceMotion ? 0 : 220
+    readonly property int motionDurationPage: reduceMotion ? 0 : 320
 
     readonly property list<real> motionEasingStandard: [0.2, 0, 0, 1]
     readonly property list<real> motionEasingStandardAccelerate: [0.3, 0, 1, 1]
@@ -213,9 +250,9 @@ QtObject {
     readonly property list<real> motionEasingSoul: motionEasingEmphasized
 
     // MD3 state-layer opacity tokens.
-    readonly property real stateOpacityHover: 0.08
-    readonly property real stateOpacityFocus: 0.10
-    readonly property real stateOpacityPressed: 0.10
+    readonly property real stateOpacityHover: 0.10
+    readonly property real stateOpacityFocus: 0.12
+    readonly property real stateOpacityPressed: 0.14
     readonly property real stateOpacityDragged: 0.16
 
     // Semantic feedback and surface roles used by products consuming MeoUI.
@@ -223,13 +260,13 @@ QtObject {
     readonly property real disabledContentOpacity: 0.38
     readonly property color scrim: "#000000"
     readonly property color shadow: "#000000"
-    readonly property color inverseSurface: isDarkMode ? "#E6E1E5" : "#313033"
-    readonly property color contentOnInverseSurface: isDarkMode ? "#313033" : "#F4F0F4"
+    readonly property color inverseSurface: dynamicOrFallback("inverseSurface")
+    readonly property color contentOnInverseSurface: dynamicOrFallback("onInverseSurface")
     readonly property color success: isDarkMode ? "#8ED6A0" : "#256D3A"
     readonly property color successContainer: isDarkMode ? "#164A27" : "#D8F3DC"
     readonly property color contentOnSuccessContainer: isDarkMode ? "#C1F1CB" : "#123C20"
 
-    property color outlineVariant: isDarkMode ? "#44474F" : "#C4C7C5"
+    property color outlineVariant: dynamicOrFallback("outlineVariant")
 
     // MD3 Fixed Colors (Same in both Light and Dark mode)
     property color primaryFixed: "#EADDFF"

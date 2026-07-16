@@ -11,6 +11,7 @@ Item {
     property list<Component> pages
     property int currentIndex: 0
     property int compactNavigationLimit: 5
+    property bool windowResizeActive: false
 
     // 🌟 Safe Area Insets (Edge-to-Edge support)
     property real safeAreaTop: 0
@@ -23,12 +24,29 @@ Item {
     property Component fab: null
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property bool isCompact: windowMetrics.isSmall
-    readonly property bool isMedium: windowMetrics.isMedium
-    readonly property bool isExpanded: windowMetrics.isLarge
-    readonly property string windowSizeClass: windowMetrics.sizeClass
+    readonly property bool isCompact: windowMetrics.isCompactWidth
+    readonly property bool isMedium: windowMetrics.isMediumWidth
+    readonly property bool isExpanded: windowMetrics.isExpandedWidth
+    readonly property bool isLarge: windowMetrics.isLargeWidth || windowMetrics.isExtraLargeWidth
+    readonly property string windowSizeClass: windowMetrics.widthSizeClass
     readonly property real expandedDrawerWidth: 280 * themeGlobalScale
     readonly property var compactNavigationModel: navigationModel.slice(0, Math.min(compactNavigationLimit, navigationModel.length))
+
+    onWidthChanged: {
+        windowResizeActive = true
+        resizeSettled.restart()
+    }
+    onHeightChanged: {
+        windowResizeActive = true
+        resizeSettled.restart()
+    }
+
+    Timer {
+        id: resizeSettled
+        interval: 90
+        repeat: false
+        onTriggered: control.windowResizeActive = false
+    }
 
     MeoWindowMetrics {
         id: windowMetrics
@@ -45,18 +63,20 @@ Item {
         // 1. Navigation Rail (Medium)
         MeoNavigationRail {
             id: navRail
-            width: control.isMedium ? 80 * control.themeGlobalScale : 0
+            width: control.isMedium ? 80 * control.themeGlobalScale : control.isExpanded ? 256 * control.themeGlobalScale : 0
             height: parent.height
             model: control.navigationModel
             currentIndex: control.currentIndex
             visible: width > 0
-            enabled: control.isMedium
-            opacity: control.isMedium ? 1 : 0
+            enabled: control.isMedium || control.isExpanded
+            opacity: control.isMedium || control.isExpanded ? 1 : 0
+            isExpanded: control.isExpanded
+            resizeInstantly: control.windowResizeActive
             header: control.accountHeader ? accountHeaderWrapper : null
             onClicked: (index) => { control.currentIndex = index }
 
-            Behavior on width { NumberAnimation { duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingEnter } }
-            Behavior on opacity { NumberAnimation { duration: MeoTheme.motionDurationControlFast } }
+            Behavior on width { NumberAnimation { duration: control.windowResizeActive || MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationSelection; easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate } }
+            Behavior on opacity { NumberAnimation { duration: MeoTheme.motionDurationState } }
 
             Component {
                 id: accountHeaderWrapper
@@ -67,18 +87,18 @@ Item {
         // 2. Navigation Drawer (Expanded)
         MeoNavigationDrawer {
             id: navDrawer
-            width: control.isExpanded ? control.expandedDrawerWidth : 0
+            width: control.isLarge ? control.expandedDrawerWidth : 0
             height: parent.height
             model: control.navigationModel
             currentIndex: control.currentIndex
             visible: width > 0
-            enabled: control.isExpanded
-            opacity: control.isExpanded ? 1 : 0
+            enabled: control.isLarge
+            opacity: control.isLarge ? 1 : 0
             header: control.accountHeader
             onClicked: (index) => { control.currentIndex = index }
 
-            Behavior on width { NumberAnimation { duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingEnter } }
-            Behavior on opacity { NumberAnimation { duration: MeoTheme.motionDurationControlFast } }
+            Behavior on width { NumberAnimation { duration: control.windowResizeActive || MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationSelection; easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate } }
+            Behavior on opacity { NumberAnimation { duration: MeoTheme.motionDurationState } }
         }
 
         // 3. Main Content Area
@@ -86,7 +106,7 @@ Item {
             width: parent.width - (navRail.visible ? navRail.width : 0) - (navDrawer.visible ? navDrawer.width : 0)
             height: parent.height
 
-            Behavior on width { NumberAnimation { duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingEnter } }
+            Behavior on width { NumberAnimation { duration: control.windowResizeActive || MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationSelection; easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate } }
 
             // Top App Bar (Compact only, with Hamburger)
             MeoTopAppBar {
@@ -165,7 +185,7 @@ Item {
 
     ParallelAnimation {
         id: pageEntrance
-        NumberAnimation { target: pageLoader; property: "opacity"; from: 0.72; to: 1; duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingEnter }
-        NumberAnimation { target: pageLoader; property: "scale"; from: 0.992; to: 1; duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: MeoTheme.motionEasingEnter }
+        NumberAnimation { target: pageLoader; property: "opacity"; from: 0.72; to: 1; duration: MeoTheme.motionDurationPage; easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate }
+        NumberAnimation { target: pageLoader; property: "scale"; from: MeoTheme.reduceMotion ? 1 : 0.992; to: 1; duration: MeoTheme.motionDurationPage; easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate }
     }
 }

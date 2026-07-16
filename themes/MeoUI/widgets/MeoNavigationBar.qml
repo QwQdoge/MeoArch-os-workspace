@@ -32,10 +32,22 @@ Rectangle {
         Repeater {
             model: control.model
             delegate: Item {
+                id: destination
                 width: control.width / control.model.length
                 height: control.height
+                activeFocusOnTab: true
+                Accessible.role: Accessible.PageTab
+                Accessible.name: modelData.label
+                Accessible.selected: isSelected
+                Accessible.focusable: true
+                Accessible.onPressAction: activate()
 
                 readonly property bool isSelected: control.currentIndex === index
+
+                function activate() {
+                    control.currentIndex = index
+                    control.clicked(index)
+                }
 
                 Column {
                     anchors.centerIn: parent
@@ -58,13 +70,13 @@ Rectangle {
 
                             Behavior on width {
                                 NumberAnimation {
-                                    duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlNormal
-                                    easing.bezierCurve: MeoTheme.motionEasingEnter
+                                    duration: MeoTheme.motionDurationSelection
+                                    easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate
                                 }
                             }
                             Behavior on opacity {
                                 NumberAnimation {
-                                    duration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationControlFast
+                                    duration: MeoTheme.motionDurationState
                                     easing.bezierCurve: isSelected ? MeoTheme.motionEasingEnter : MeoTheme.motionEasingExit
                                 }
                             }
@@ -73,6 +85,7 @@ Rectangle {
                         MeoIcon {
                             anchors.centerIn: parent
                             icon: modelData.icon
+                            fill: isSelected
                             size: 24
                             color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurfaceVariant
                         }
@@ -94,6 +107,7 @@ Rectangle {
                         anchors.horizontalCenter: parent.horizontalCenter
                         font.pixelSize: fontLabelMedium.size * control.themeGlobalScale
                         font.weight: isSelected ? Font.Bold : fontLabelMedium.weight
+                        verticalAlignment: Text.AlignVCenter
                         color: isSelected ? control.themeOnSurface : control.themeOnSurfaceVariant
                         visible: {
                             if (control.labelType === "always") return true
@@ -110,6 +124,7 @@ Rectangle {
                     radius: 16 * control.themeGlobalScale
                     hovered: hitArea.containsMouse
                     pressed: hitArea.pressed
+                    focused: destination.activeFocus
                     pressX: hitArea.mouseX
                     pressY: hitArea.mouseY
                     color: isSelected ? control.themeOnSecondaryContainer : control.themeOnSurface
@@ -120,10 +135,13 @@ Rectangle {
                     anchors.fill: parent
                     hoverEnabled: true
                     onClicked: {
-                        control.currentIndex = index
-                        control.clicked(index)
+                        destination.forceActiveFocus(Qt.MouseFocusReason)
+                        destination.activate()
                     }
                 }
+                Keys.onReturnPressed: activate()
+                Keys.onEnterPressed: activate()
+                Keys.onSpacePressed: activate()
             }
         }
     }

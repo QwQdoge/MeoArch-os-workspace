@@ -1,9 +1,11 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
+import MeoUI
 
-Popup {
+MeoMotionPopup {
     id: control
+    presentation: MeoMotionPopup.Menu
 
     // 🌟 核心属性
     property var model: [] // [{ label/text, icon, trailingText, trailingIcon, type, enabled, action, subItems, isVibrant }]
@@ -50,7 +52,7 @@ Popup {
         radius: (typeof MeoTheme !== 'undefined' ? MeoTheme.shapeMedium : 12 * control.themeGlobalScale)
 
         // MD3 Elevation Level 2
-        layer.enabled: true
+        layer.enabled: control.visible
         layer.effect: MultiEffect {
             shadowEnabled: true
             shadowBlur: 0.2
@@ -138,16 +140,4 @@ Popup {
         }
     }
 
-    enter: Transition {
-        ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 0.0; to: 1.0; duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1.0]) }
-            NumberAnimation { property: "scale"; from: 0.92; to: 1.0; duration: control.motionMedium; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedDecelerate : [0.05, 0.7, 0.1, 1.0]) }
-        }
-    }
-    exit: Transition {
-        ParallelAnimation {
-            NumberAnimation { property: "opacity"; from: 1.0; to: 0.0; duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15]) }
-            NumberAnimation { property: "scale"; from: 1.0; to: 0.98; duration: control.motionFast; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasizedAccelerate : [0.3, 0, 0.8, 0.15]) }
-        }
-    }
 }

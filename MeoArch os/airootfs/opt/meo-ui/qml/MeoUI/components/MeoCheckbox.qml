@@ -84,6 +84,7 @@ Control {
 
                 MeoStateLayer {
                     radius: width / 2
+                    shape: "circle"
                     pressed: mouseArea.pressed
                     hovered: mouseArea.containsMouse
                     pressX: mouseArea.mouseX - parent.x

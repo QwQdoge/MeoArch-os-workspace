@@ -34,6 +34,14 @@ Frame {
     readonly property int motionFast: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationFast !== 'undefined') ? MeoTheme.motionDurationFast : 150
 
     padding: 16 * themeGlobalScale
+    activeFocusOnTab: interactive
+    Accessible.role: interactive ? Accessible.Button : Accessible.Pane
+    Accessible.focusable: interactive
+    Accessible.selected: selected
+    Accessible.onPressAction: if (interactive) control.clicked()
+    Keys.onReturnPressed: if (interactive) control.clicked()
+    Keys.onEnterPressed: if (interactive) control.clicked()
+    Keys.onSpacePressed: if (interactive) control.clicked()
 
     background: Item {
         MeoShape {
@@ -42,6 +50,8 @@ Frame {
             type: control.shape
             radius: mouseArea.pressed
                     ? ((typeof MeoTheme !== 'undefined' && MeoTheme.shapeMedium) ? MeoTheme.shapeMedium : control.radius)
+                    : mouseArea.containsMouse && control.interactive
+                      ? ((typeof MeoTheme !== 'undefined' && MeoTheme.shapeLargeIncreased) ? MeoTheme.shapeLargeIncreased : control.radius)
                     : control.selected
                       ? ((typeof MeoTheme !== 'undefined' && MeoTheme.shapeLargeIncreased) ? MeoTheme.shapeLargeIncreased : control.radius)
                       : control.radius
@@ -59,10 +69,13 @@ Frame {
             Rectangle {
                 anchors.fill: parent
                 color: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceTint !== 'undefined') ? MeoTheme.surfaceTint(control.level) : "transparent"
-                visible: type !== "filled"
+                // Surface tint belongs to elevated surfaces.  Keeping it off
+                // plain and outlined cards avoids an otherwise permanent
+                // offscreen mask for the most common card variants.
+                visible: control.type === "elevated" && control.level > 0
                 Behavior on color { ColorAnimation { duration: control.motionFast } }
 
-                layer.enabled: true
+                layer.enabled: visible && control.visible
                 layer.effect: MultiEffect {
                     maskEnabled: true
                     maskSource: Item {
@@ -78,7 +91,7 @@ Frame {
             }
 
             // MD3 Elevation for 'elevated' type
-            layer.enabled: control.elevation > 0
+            layer.enabled: control.visible && control.elevation > 0
             layer.effect: MultiEffect {
                 shadowEnabled: true
                 shadowBlur: control.elevation * 0.2
@@ -89,37 +102,35 @@ Frame {
 
             MeoStateLayer {
                 anchors.fill: parent
+                radius: shapeBg.radius
+                shape: shapeBg.type
                 visible: control.interactive
                 pressed: mouseArea.pressed
                 hovered: mouseArea.containsMouse
+                focused: control.activeFocus
                 pressX: mouseArea.mouseX
                 pressY: mouseArea.mouseY
                 color: control.isDarkMode ? "#FFFFFF" : "#000000"
-
-                layer.enabled: true
-                layer.effect: MultiEffect {
-                    maskEnabled: true
-                    maskSource: Item {
-                        width: shapeBg.width
-                        height: shapeBg.height
-                        MeoShape {
-                            anchors.fill: parent
-                            type: control.shape
-                            radius: control.radius
-                        }
-                    }
-                }
             }
 
             MouseArea {
                 id: mouseArea
                 anchors.fill: parent
                 enabled: control.interactive
-                onClicked: control.clicked()
+                hoverEnabled: true
+                onClicked: {
+                    control.forceActiveFocus(Qt.MouseFocusReason)
+                    control.clicked()
+                }
             }
 
             Behavior on color { ColorAnimation { duration: control.motionFast } }
-            Behavior on radius { NumberAnimation { duration: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionDurationMedium1 : 250); easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingEmphasized : [0.05, 0.7, 0.1, 1]) } }
+            Behavior on radius {
+                NumberAnimation {
+                    duration: mouseArea.containsMouse || mouseArea.pressed ? MeoTheme.motionDurationShapeEnter : MeoTheme.motionDurationShapeSettle
+                    easing.bezierCurve: MeoTheme.motionEasingEmphasizedDecelerate
+                }
+            }
         }
 
     }

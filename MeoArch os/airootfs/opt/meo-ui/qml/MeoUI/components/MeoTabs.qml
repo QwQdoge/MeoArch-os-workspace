@@ -26,7 +26,7 @@ Control {
         let item = tabRepeater.itemAt(control.currentIndex)
         if (!item)
             return
-        let indicatorWidth = control.type === "secondary" ? item.width : Math.max(32 * control.themeGlobalScale, item.contentWidth)
+        let indicatorWidth = control.type === "secondary" ? item.width : Math.max(32 * control.themeGlobalScale, item.width - 32 * control.themeGlobalScale)
         slidingIndicator.leftEdge = item.x + (item.width - indicatorWidth) / 2
         slidingIndicator.rightEdge = slidingIndicator.leftEdge + indicatorWidth
     }
@@ -38,8 +38,8 @@ Control {
     readonly property color themeOnSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurfaceVariant !== 'undefined') ? MeoTheme.contentOnSurfaceVariant : "#49454F"
     readonly property color themeOutlineVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outlineVariant !== 'undefined') ? MeoTheme.outlineVariant : "#C4C7C5"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
-    readonly property int motionFast: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationFast !== 'undefined') ? MeoTheme.motionDurationFast : 150
-    readonly property int motionIndicator: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionDurationMedium1 !== 'undefined') ? MeoTheme.motionDurationMedium1 : 250
+    readonly property int motionFast: MeoTheme.motionDurationState
+    readonly property int motionIndicator: MeoTheme.motionDurationSelection
 
     readonly property var fontTitleSmall: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.titleSmall !== 'undefined') ? MeoTheme.titleSmall : { "size": 14, "weight": Font.Medium }
 
@@ -121,6 +121,7 @@ Control {
                                 MeoIcon {
                                     anchors.centerIn: parent
                                     icon: tabItem.icon
+                                    fill: tabItem.isSelected
                                     size: 24 // MeoIcon handles themeGlobalScale internally
                                     color: tabItem.isSelected ? control.themePrimary : control.themeOnSurfaceVariant
                                 }
@@ -147,6 +148,7 @@ Control {
                                     text: tabItem.label
                                     font.pixelSize: control.fontTitleSmall.size * control.themeGlobalScale
                                     font.weight: tabItem.isSelected ? Font.Bold : control.fontTitleSmall.weight
+                                    verticalAlignment: Text.AlignVCenter
                                     color: tabItem.isSelected ? control.themePrimary : control.themeOnSurfaceVariant
                                     Behavior on color { ColorAnimation { duration: control.motionFast } }
                                 }

@@ -73,7 +73,7 @@ Control {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: (index + 1).toString()
+                                text: String(index + 1)
                                 visible: !isCompleted
                                 font.pixelSize: 12 * control.themeGlobalScale
                                 font.weight: Font.Medium
@@ -145,7 +145,7 @@ Control {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: (index + 1).toString()
+                                text: String(index + 1)
                                 visible: !isCompleted
                                 font.pixelSize: 12 * control.themeGlobalScale
                                 font.weight: Font.Medium

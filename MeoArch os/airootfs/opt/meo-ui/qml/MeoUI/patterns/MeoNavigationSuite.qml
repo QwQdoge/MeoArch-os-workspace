@@ -16,10 +16,11 @@ Item {
     signal clicked(int index)
 
     readonly property real themeGlobalScale: (typeof MeoTheme !== "undefined" && typeof MeoTheme.globalScale !== "undefined") ? MeoTheme.globalScale : 1.0
-    readonly property bool isCompact: windowMetrics.isSmall
-    readonly property bool isMedium: windowMetrics.isMedium
-    readonly property bool isExpanded: windowMetrics.isLarge
-    readonly property string windowSizeClass: windowMetrics.sizeClass
+    readonly property bool isCompact: windowMetrics.isCompactWidth
+    readonly property bool isMedium: windowMetrics.isMediumWidth
+    readonly property bool isExpanded: windowMetrics.isExpandedWidth
+    readonly property bool isLarge: windowMetrics.isLargeWidth || windowMetrics.isExtraLargeWidth
+    readonly property string windowSizeClass: windowMetrics.widthSizeClass
     readonly property real expandedDrawerWidth: 280 * themeGlobalScale
 
     MeoWindowMetrics {
@@ -28,7 +29,7 @@ Item {
         availableHeight: control.height
     }
 
-    implicitWidth: isCompact ? 360 * themeGlobalScale : (isMedium ? (expandedRail ? 256 : 80) * themeGlobalScale : expandedDrawerWidth)
+    implicitWidth: isCompact ? 360 * themeGlobalScale : (isMedium ? 80 * themeGlobalScale : isExpanded ? 256 * themeGlobalScale : expandedDrawerWidth)
     implicitHeight: isCompact ? 80 * themeGlobalScale : 600 * themeGlobalScale
     width: implicitWidth
 
@@ -48,10 +49,10 @@ Item {
 
     MeoNavigationRail {
         anchors.fill: parent
-        visible: control.isMedium
+        visible: control.isMedium || control.isExpanded
         model: control.model
         currentIndex: control.currentIndex
-        isExpanded: control.expandedRail
+        isExpanded: control.isExpanded || control.expandedRail
         header: control.header
         footer: control.footer
         labelType: control.labelType
@@ -63,7 +64,7 @@ Item {
 
     MeoNavigationDrawer {
         anchors.fill: parent
-        visible: control.isExpanded
+        visible: control.isLarge
         model: control.model
         currentIndex: control.currentIndex
         header: control.header

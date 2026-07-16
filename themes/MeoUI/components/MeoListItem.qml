@@ -30,6 +30,7 @@ Control {
     property bool isEmphasized: false // MD3 Expressive: Use bold typography
     property bool vibrant: false // 🌟 MD3 Expressive: Vibrant selection style
     property bool selected: false
+    readonly property bool pressed: mouseArea.pressed
     property string shape: "rect" // 🌟 MD3 Expressive: "rect" | "squircle" | "hexagon" | ...
 
     signal clicked()
@@ -70,6 +71,16 @@ Control {
         return isSegmented ? 12 * themeGlobalScale : 16 * themeGlobalScale;
     }
     spacing: 16 * themeGlobalScale // Standardized MD3 spacing
+    activeFocusOnTab: interactive
+    Accessible.role: Accessible.ListItem
+    Accessible.name: headline
+    Accessible.description: supportingText
+    Accessible.selected: selected
+    Accessible.focusable: interactive
+    Accessible.onPressAction: if (interactive) control.clicked()
+    Keys.onReturnPressed: if (interactive) control.clicked()
+    Keys.onEnterPressed: if (interactive) control.clicked()
+    Keys.onSpacePressed: if (interactive) control.clicked()
 
     background: Item {
         width: control.width - (control.isSegmented ? 16 * control.themeGlobalScale : 0)
@@ -101,6 +112,7 @@ Control {
                 visible: control.interactive
                 pressed: mouseArea.pressed
                 hovered: mouseArea.containsMouse
+                focused: control.activeFocus
                 pressX: mouseArea.mouseX
                 pressY: mouseArea.mouseY
                 radius: (control.isSegmented && control.roundingStrategy === "all" && control.shape === "rect") ? shapeBg.radius : 0
@@ -111,7 +123,7 @@ Control {
                 }
             }
 
-            Behavior on color { ColorAnimation { duration: 250; easing.bezierCurve: (typeof MeoTheme !== 'undefined' ? MeoTheme.motionEasingSoul : [0.34, 0.8, 0.34, 1.0]) } }
+            Behavior on color { ColorAnimation { duration: MeoTheme.motionDurationSelection; easing.bezierCurve: MeoTheme.motionEasingEmphasized } }
         }
 
         // Overlay for complex shapes if using MeoShape (Note: MeoShape doesn't support partial rounding as easily as Rectangle)
@@ -130,7 +142,10 @@ Control {
         anchors.fill: parent
         enabled: control.interactive
         hoverEnabled: true
-        onClicked: control.clicked()
+        onClicked: {
+            control.forceActiveFocus(Qt.MouseFocusReason)
+            control.clicked()
+        }
     }
 
     contentItem: Row {

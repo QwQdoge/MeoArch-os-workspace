@@ -12,6 +12,9 @@ Item {
     readonly property color themeSurfaceVariant: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.surfaceVariant !== 'undefined') ? MeoTheme.surfaceVariant : "#E7E0EC"
     readonly property color themeOnSurface: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnSurface !== 'undefined') ? MeoTheme.contentOnSurface : "#1C1B1F"
     readonly property real themeGlobalScale: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.globalScale !== 'undefined') ? MeoTheme.globalScale : 1.0
+    // Pause shimmer whenever there is no drawable surface.  It resumes from
+    // its current position, so virtualized delegates do not flash on return.
+    readonly property bool animationActive: animate && visible && width > 0 && height > 0 && !MeoTheme.reduceMotion
 
     implicitWidth: 100 * themeGlobalScale
     implicitHeight: 20 * themeGlobalScale
@@ -45,7 +48,7 @@ Item {
                 from: -control.width * 2
                 to: control.width
                 duration: 1500
-                running: control.animate && control.visible
+                running: control.animationActive
                 loops: Animation.Infinite
             }
         }

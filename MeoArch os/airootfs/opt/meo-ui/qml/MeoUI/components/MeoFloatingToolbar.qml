@@ -24,7 +24,7 @@ Rectangle {
     radius: height / 2
 
     // MD3 Elevation Level 2
-    layer.enabled: true
+    layer.enabled: control.visible
     layer.effect: MultiEffect {
         shadowEnabled: true
         shadowBlur: 0.2

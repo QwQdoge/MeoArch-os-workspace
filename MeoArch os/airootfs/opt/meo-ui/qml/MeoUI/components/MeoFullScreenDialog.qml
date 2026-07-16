@@ -2,8 +2,9 @@ import QtQuick
 import QtQuick.Controls
 import MeoUI
 
-Popup {
+MeoMotionPopup {
     id: control
+    presentation: MeoMotionPopup.FullScreen
 
     property string title: ""
     property Component content: null
@@ -86,10 +87,4 @@ Popup {
         }
     }
 
-    enter: Transition {
-        NumberAnimation { property: "y"; from: control.height; to: 0; duration: 300; easing.type: Easing.OutCubic }
-    }
-    exit: Transition {
-        NumberAnimation { property: "y"; from: 0; to: control.height; duration: 250; easing.type: Easing.InCubic }
-    }
 }

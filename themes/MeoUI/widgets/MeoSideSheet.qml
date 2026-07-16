@@ -30,7 +30,7 @@ Rectangle {
     border.width: 1
     border.color: Qt.rgba(MeoTheme.outline.r, MeoTheme.outline.g, MeoTheme.outline.b, 0.22)
 
-    Behavior on x { NumberAnimation { duration: MeoTheme.motionDurationControlNormal; easing.bezierCurve: control.isOpen ? MeoTheme.motionEasingEnter : MeoTheme.motionEasingExit } }
+    Behavior on x { NumberAnimation { duration: control.isOpen ? MeoTheme.motionDurationSheetEnter : MeoTheme.motionDurationSheetExit; easing.bezierCurve: control.isOpen ? MeoTheme.motionEasingEmphasizedDecelerate : MeoTheme.motionEasingEmphasizedAccelerate } }
 
     Column {
         anchors.fill: parent

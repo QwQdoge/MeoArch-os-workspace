@@ -2,8 +2,9 @@ import QtQuick
 import QtQuick.Controls
 import MeoUI
 
-Popup {
+MeoMotionPopup {
     id: control
+    presentation: MeoMotionPopup.BottomSheet
 
     // 🌟 核心属性
     property Component content: null
@@ -56,10 +57,4 @@ Popup {
         }
     }
 
-    enter: Transition {
-        NumberAnimation { property: "y"; from: parent.height; to: control.y; duration: 300; easing.type: Easing.OutCubic }
-    }
-    exit: Transition {
-        NumberAnimation { property: "y"; from: control.y; to: parent.height; duration: 250; easing.type: Easing.InCubic }
-    }
 }

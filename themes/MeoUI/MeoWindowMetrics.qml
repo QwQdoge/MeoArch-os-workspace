@@ -12,32 +12,37 @@ QtObject {
 
     readonly property real effectiveWidth: Math.max(0, availableWidth) / Math.max(0.1, scale)
     readonly property real effectiveHeight: Math.max(0, availableHeight) / Math.max(0.1, scale)
-    readonly property string sizeClass: effectiveWidth <= MeoTheme.windowBreakpointSmall
-                                              ? "small"
-                                              : effectiveWidth < MeoTheme.windowBreakpointLarge
-                                                ? "medium" : "large"
-    readonly property bool isSmall: sizeClass === "small"
-    readonly property bool isMedium: sizeClass === "medium"
-    readonly property bool isLarge: sizeClass === "large"
-    readonly property bool isCompact: isSmall
-    readonly property bool isExpanded: isLarge
-    readonly property bool isShort: effectiveHeight > 0 && effectiveHeight < 640
+    readonly property string widthSizeClass: MeoTheme.windowWidthSizeClass(availableWidth)
+    readonly property string heightSizeClass: MeoTheme.windowHeightSizeClass(availableHeight)
+    readonly property bool isCompactWidth: widthSizeClass === "compact"
+    readonly property bool isMediumWidth: widthSizeClass === "medium"
+    readonly property bool isExpandedWidth: widthSizeClass === "expanded"
+    readonly property bool isLargeWidth: widthSizeClass === "large"
+    readonly property bool isExtraLargeWidth: widthSizeClass === "extraLarge"
+    readonly property bool isCompactHeight: heightSizeClass === "compact"
+    readonly property bool isMediumHeight: heightSizeClass === "medium"
+    readonly property bool isExpandedHeight: heightSizeClass === "expanded"
 
-    readonly property real pageMargin: (isSmall ? 12 : isMedium ? 24 : 32) * scale
-    readonly property real sectionSpacing: (isSmall ? 16 : 24) * scale
-    readonly property real controlSpacing: (isSmall ? 8 : 12) * scale
-    readonly property real paneWidth: (isSmall ? Math.min(320, effectiveWidth)
-                                               : isMedium ? 80 : 280) * scale
-    readonly property real maximumContentWidth: (isSmall ? effectiveWidth
-                                                          : isMedium ? 920 : 1200) * scale
-    readonly property string navigationMode: isSmall ? "minimal" : isMedium ? "compact" : "expanded"
-    readonly property bool usesOverlayPane: !isLarge
-    readonly property bool supportsTwoPane: !isSmall
+    readonly property real pageMargin: MeoTheme.windowPageMargin(availableWidth)
+    readonly property real sectionSpacing: (isCompactWidth ? 16 : 24) * scale
+    readonly property real controlSpacing: (isCompactWidth ? 8 : 12) * scale
+    readonly property real paneWidth: (isCompactWidth ? Math.min(360, effectiveWidth)
+                                                       : isMediumWidth ? 80
+                                                       : isExpandedWidth ? 256 : 280) * scale
+    readonly property real maximumContentWidth: (isCompactWidth ? effectiveWidth
+                                                                  : isMediumWidth ? 840
+                                                                  : isExpandedWidth ? 1040
+                                                                  : isLargeWidth ? 1200 : 1440) * scale
+    readonly property string navigationMode: isCompactWidth ? "bottomBar"
+                                                              : isMediumWidth ? "rail"
+                                                              : isExpandedWidth ? "expandedRail" : "drawer"
+    readonly property bool usesOverlayPane: isCompactWidth || isMediumWidth
+    readonly property bool supportsTwoPane: isExpandedWidth || isLargeWidth || isExtraLargeWidth
 
     readonly property int preferredColumns: {
-        if (isSmall) return 1
+        if (isCompactWidth) return 1
         const usableWidth = Math.max(0, effectiveWidth - (pageMargin * 2 / Math.max(0.1, scale)))
         const byWidth = Math.max(1, Math.floor((usableWidth + 24) / (minimumColumnWidth + 24)))
-        return Math.min(maxColumns, isMedium ? Math.min(2, byWidth) : byWidth)
+        return Math.min(maxColumns, isMediumWidth ? Math.min(2, byWidth) : byWidth)
     }
 }
