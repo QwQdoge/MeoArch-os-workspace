@@ -307,7 +307,7 @@ Button {
                 if (control.activeFocus) return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
                 return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E";
             }
-            strokeWidth: (control.effectiveType === "outlined" && (control.activeFocus || control.selected || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive))) ? 2 : (control.effectiveType === "outlined" ? 1 : 0)
+            strokeWidth: (control.effectiveType === "outlined" && (control.activeFocus || control.selected || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive))) ? ((typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthMedium !== 'undefined') ? MeoTheme.strokeWidthMedium : 2) : (control.effectiveType === "outlined" ? ((typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthThin !== 'undefined') ? MeoTheme.strokeWidthThin : 1) : 0)
 
             // Simplified Elevation Shadow
             layer.enabled: control.elevation > 0 || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.effectiveType === "filled" && isEmphasized)

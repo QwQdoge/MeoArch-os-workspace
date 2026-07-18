@@ -319,6 +319,11 @@ QtObject {
 
     readonly property real shapeSquareRadius: 4 * globalScale
 
+    // 🌟 Semantic thickness tokens
+    readonly property real strokeWidthThin: 1 * globalScale
+    readonly property real strokeWidthMedium: 2 * globalScale
+    readonly property real strokeWidthThick: 3 * globalScale
+
     // 🌟 MD3 Expressive Shape Library (Conceptual Tokens)
     readonly property string shapeSquircle: "squircle"
     readonly property string shapeHexagon: "hexagon"
