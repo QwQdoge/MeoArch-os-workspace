@@ -13,6 +13,7 @@ Frame {
     property string shape: "rect" // 🌟 MD3 Expressive: "rect" | "squircle" | "hexagon" | "diamond" | ...
     property bool interactive: false // 🌟 MD3: Supports click interaction
     property bool selected: false
+    property bool bouncy: true // 🌟 MD3: Expressive scale animation on interaction
 
     signal clicked()
 
@@ -63,7 +64,17 @@ Frame {
             }
             strokeColor: control.selected ? ((typeof MeoTheme !== 'undefined' && MeoTheme.primary) ? MeoTheme.primary : control.themeOutlineVariant)
                                           : control.type === "outlined" ? control.themeOutlineVariant : "transparent"
-            strokeWidth: control.selected ? 2 * control.themeGlobalScale : control.type === "outlined" ? 1 * control.themeGlobalScale : 0
+            strokeWidth: control.selected ? ((typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthMedium !== 'undefined') ? MeoTheme.strokeWidthMedium : 2 * control.themeGlobalScale)
+                                          : control.type === "outlined" ? ((typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthThin !== 'undefined') ? MeoTheme.strokeWidthThin : 1 * control.themeGlobalScale) : 0
+
+            scale: control.interactive && control.bouncy ? (mouseArea.pressed ? 0.97 : (mouseArea.containsMouse ? 1.015 : 1.0)) : 1.0
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: control.motionFast
+                    easing.bezierCurve: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.motionEasingSoul !== 'undefined') ? MeoTheme.motionEasingSoul : [0.34, 1.56, 0.64, 1.0]
+                }
+            }
 
             // Surface Tint for Elevation
             Rectangle {

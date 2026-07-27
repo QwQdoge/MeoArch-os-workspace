@@ -78,7 +78,7 @@ Button {
                 if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
                 return control.themeOutline;
             }
-            strokeWidth: control.effectiveType === "outlined" ? 1 * themeGlobalScale : 0
+            strokeWidth: control.effectiveType === "outlined" ? ((typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthThin !== 'undefined') ? MeoTheme.strokeWidthThin : 1 * themeGlobalScale) : 0
 
             Behavior on radius {
                 NumberAnimation {
