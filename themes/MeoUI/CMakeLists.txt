@@ -55,6 +55,8 @@ qt_add_qml_module(meoui_module
 MeoTheme.qml
         MeoWindowMetrics.qml
         components/MeoButton.qml
+        components/MeoIconToggleButton.qml
+        components/MeoChipDropdown.qml
         components/MeoText.qml
         components/MeoSplitButton.qml
         components/MeoButtonGroup.qml
