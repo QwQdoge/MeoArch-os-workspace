@@ -80,6 +80,7 @@ MeoTheme.qml
         components/MeoSlider.qml
         components/MeoRadioButton.qml
         components/MeoFAB.qml
+        components/MeoExtendedFAB.qml
         components/MeoCard.qml
         components/MeoMediaCard.qml
         components/MeoChip.qml

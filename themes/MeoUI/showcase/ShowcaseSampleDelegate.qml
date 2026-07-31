@@ -65,6 +65,7 @@ Item {
         if (name === "MeoButton" || name === "Expressive buttons") return buttonSample
         if (name === "MeoIconButton") return iconButtonSample
         if (name === "MeoFAB") return fabSample
+        if (name === "MeoExtendedFAB") return extendedFabSample
         if (name === "MeoFABMenu") return fabMenuSample
         if (name === "MeoSplitButton") return splitButtonSample
         if (name === "MeoButtonGroup") return buttonGroupSample
@@ -236,6 +237,95 @@ Item {
             FabColumn { label: "Regular"; fabType: "regular"; fabIcon: "add" }
             FabColumn { label: "Large"; fabType: "large"; fabIcon: "palette" }
             FabColumn { label: "Extended"; fabType: "extended"; fabIcon: "send"; fabText: "Send" }
+        }
+    }
+    Component {
+        id: extendedFabSample
+        Column {
+            spacing: MeoTheme.space16
+
+            Row {
+                spacing: MeoTheme.space16
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                MeoSwitch {
+                    id: collapseSwitch
+                    label: "Collapse All"
+                    checked: false
+                }
+
+                MeoSwitch {
+                    id: vibrantSwitch
+                    label: "Vibrant Gradient"
+                    checked: false
+                }
+
+                MeoSwitch {
+                    id: emphasizeSwitch
+                    label: "Emphasized Typography"
+                    checked: false
+                }
+            }
+
+            Flow {
+                spacing: MeoTheme.space24
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                Column {
+                    spacing: MeoTheme.space8
+                    anchors.verticalCenter: parent.verticalCenter
+                    MeoExtendedFAB {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        size: "small"
+                        icon.name: "edit"
+                        text: "Small Size"
+                        collapsed: collapseSwitch.checked
+                        vibrant: vibrantSwitch.checked
+                        isEmphasized: emphasizeSwitch.checked
+                    }
+                    SampleLabel {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        label: "Small (56dp)"
+                    }
+                }
+
+                Column {
+                    spacing: MeoTheme.space8
+                    anchors.verticalCenter: parent.verticalCenter
+                    MeoExtendedFAB {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        size: "medium"
+                        icon.name: "send"
+                        text: "Medium Size"
+                        collapsed: collapseSwitch.checked
+                        vibrant: vibrantSwitch.checked
+                        isEmphasized: emphasizeSwitch.checked
+                    }
+                    SampleLabel {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        label: "Medium (80dp)"
+                    }
+                }
+
+                Column {
+                    spacing: MeoTheme.space8
+                    anchors.verticalCenter: parent.verticalCenter
+                    MeoExtendedFAB {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        size: "large"
+                        icon.name: "palette"
+                        text: "Large Size"
+                        collapsed: collapseSwitch.checked
+                        vibrant: vibrantSwitch.checked
+                        isEmphasized: emphasizeSwitch.checked
+                        shape: "squircle"
+                    }
+                    SampleLabel {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        label: "Large Squircle (96dp)"
+                    }
+                }
+            }
         }
     }
     Component { id: fabMenuSample; Item { width: 220 * MeoTheme.globalScale; height: 96 * MeoTheme.globalScale; MeoFABMenu { anchors.centerIn: parent; model: control.chipItems } } }
