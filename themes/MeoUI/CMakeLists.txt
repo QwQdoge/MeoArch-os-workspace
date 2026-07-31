@@ -81,6 +81,7 @@ MeoTheme.qml
         components/MeoRadioButton.qml
         components/MeoFAB.qml
         components/MeoCard.qml
+        components/MeoMediaCard.qml
         components/MeoChip.qml
         components/MeoProgressBar.qml
         components/MeoDialog.qml
