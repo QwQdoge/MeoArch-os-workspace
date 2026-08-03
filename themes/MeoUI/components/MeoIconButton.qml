@@ -16,6 +16,14 @@ Button {
     property bool badgeDot: false
     readonly property string effectiveType: type === "filledTonal" ? "tonal" : type
 
+    // 🌟 Thickness properties for outline variants
+    property string thickness: "thin" // "thin" | "medium" | "thick"
+    readonly property real strokeWidthValue: {
+        if (thickness === "medium") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthMedium !== 'undefined') ? MeoTheme.strokeWidthMedium : 2 * themeGlobalScale;
+        if (thickness === "thick") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthThick !== 'undefined') ? MeoTheme.strokeWidthThick : 3 * themeGlobalScale;
+        return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthThin !== 'undefined') ? MeoTheme.strokeWidthThin : 1 * themeGlobalScale;
+    }
+
     readonly property bool isDarkMode: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.isDarkMode !== 'undefined') ? MeoTheme.isDarkMode : false
     readonly property color themePrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4"
     readonly property color themeOnPrimary: (typeof MeoTheme !== 'undefined' && typeof MeoTheme.contentOnPrimary !== 'undefined') ? MeoTheme.contentOnPrimary : "#FFFFFF"
@@ -78,7 +86,7 @@ Button {
                 if (!control.enabled) return isDarkMode ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(0, 0, 0, 0.12);
                 return control.themeOutline;
             }
-            strokeWidth: control.effectiveType === "outlined" ? ((typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthThin !== 'undefined') ? MeoTheme.strokeWidthThin : 1 * themeGlobalScale) : 0
+            strokeWidth: control.effectiveType === "outlined" ? (control.selected || control.activeFocus ? Math.max(control.strokeWidthValue, (typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthMedium !== 'undefined' ? MeoTheme.strokeWidthMedium : 2 * control.themeGlobalScale)) : control.strokeWidthValue) : 0
 
             Behavior on radius {
                 NumberAnimation {
