@@ -21,6 +21,14 @@ Button {
     property real contentSpacing: (size === "xs" ? 4 : 8) * MeoTheme.globalScale
     readonly property string effectiveType: type === "filledTonal" ? "tonal" : type
 
+    // 🌟 Thickness properties for outline variants
+    property string thickness: "thin" // "thin" | "medium" | "thick"
+    readonly property real strokeWidthValue: {
+        if (thickness === "medium") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthMedium !== 'undefined') ? MeoTheme.strokeWidthMedium : 2 * MeoTheme.globalScale;
+        if (thickness === "thick") return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthThick !== 'undefined') ? MeoTheme.strokeWidthThick : 3 * MeoTheme.globalScale;
+        return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthThin !== 'undefined') ? MeoTheme.strokeWidthThin : 1 * MeoTheme.globalScale;
+    }
+
     // Toggle Support
     checkable: false
     checked: false
@@ -307,7 +315,7 @@ Button {
                 if (control.activeFocus) return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.primary !== 'undefined') ? MeoTheme.primary : "#6750A4";
                 return (typeof MeoTheme !== 'undefined' && typeof MeoTheme.outline !== 'undefined') ? MeoTheme.outline : "#79747E";
             }
-            strokeWidth: (control.effectiveType === "outlined" && (control.activeFocus || control.selected || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive))) ? ((typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthMedium !== 'undefined') ? MeoTheme.strokeWidthMedium : 2) : (control.effectiveType === "outlined" ? ((typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthThin !== 'undefined') ? MeoTheme.strokeWidthThin : 1) : 0)
+            strokeWidth: (control.effectiveType === "outlined") ? (control.selected || control.activeFocus ? Math.max(control.strokeWidthValue, (typeof MeoTheme !== 'undefined' && typeof MeoTheme.strokeWidthMedium !== 'undefined' ? MeoTheme.strokeWidthMedium : 2 * MeoTheme.globalScale)) : control.strokeWidthValue) : 0
 
             // Simplified Elevation Shadow
             layer.enabled: control.elevation > 0 || (typeof MeoTheme !== 'undefined' && MeoTheme.isExpressive && control.effectiveType === "filled" && isEmphasized)
