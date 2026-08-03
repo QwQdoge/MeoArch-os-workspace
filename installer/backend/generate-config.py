@@ -4,9 +4,22 @@
 import argparse
 import json
 import os
+import re
+import uuid
 from pathlib import Path
 
 from hardware import detect_devices, driver_plan
+
+
+MEO_DESKTOP_PACKAGES = [
+    "dolphin",
+    "konsole",
+    "systemsettings",
+    "plasma-nm",
+    "plasma-pa",
+    "powerdevil",
+    "bluedevil",
+]
 
 
 def load_json(path: Path):
@@ -22,11 +35,77 @@ def write_json(path: Path, payload, mode=0o600):
     temporary.replace(path)
 
 
+def build_default_disk_layout(selections):
+    """Build an explicit Archinstall erase-disk layout for the selected device."""
+    disk = selections.get("disk", {})
+    if disk.get("mode", "erase") != "erase":
+        return None
+    device = disk.get("stableId", "")
+    safe_device = re.fullmatch(
+        r"/dev/(?:vd[a-z]+|sd[a-z]+|nvme\d+n\d+|disk/by-id/[A-Za-z0-9_.:+-]+)",
+        device,
+    )
+    if not safe_device or "usb" in device.lower() or "preview" in device.lower():
+        return None
+    filesystem = disk.get("filesystem", "btrfs")
+    if filesystem not in {"btrfs", "ext4"}:
+        return None
+    try:
+        total_mib = int(disk.get("sizeBytes", 0)) // (1024 * 1024)
+    except (TypeError, ValueError):
+        return None
+    if total_mib < 8192:
+        return None
+    root_size_mib = total_mib - 1027
+
+    def object_id(label):
+        return str(uuid.uuid5(uuid.NAMESPACE_URL, f"meoarch:{device}:{label}"))
+
+    sector_size = {"unit": "B", "value": 512}
+    return {
+        "config_type": "default_layout",
+        "device_modifications": [{
+            "device": device,
+            "wipe": True,
+            "partitions": [
+                {
+                    "btrfs": [],
+                    "dev_path": None,
+                    "flags": ["boot", "esp"],
+                    "fs_type": "fat32",
+                    "mount_options": [],
+                    "mountpoint": "/boot",
+                    "obj_id": object_id("efi"),
+                    "size": {"sector_size": sector_size, "unit": "MiB", "value": 1024},
+                    "start": {"sector_size": sector_size, "unit": "MiB", "value": 1},
+                    "status": "create",
+                    "type": "primary",
+                },
+                {
+                    "btrfs": [],
+                    "dev_path": None,
+                    "flags": [],
+                    "fs_type": filesystem,
+                    "mount_options": ["compress=zstd"] if filesystem == "btrfs" else [],
+                    "mountpoint": "/",
+                    "obj_id": object_id("root"),
+                    "size": {"sector_size": sector_size, "unit": "MiB", "value": root_size_mib},
+                    "start": {"sector_size": sector_size, "unit": "MiB", "value": 1025},
+                    "status": "create",
+                    "type": "primary",
+                },
+            ],
+        }],
+    }
+
+
 def build_user_configuration(selections, hardware_plan=None):
     locale = selections.get("locale", {})
     user = selections.get("user", {})
     disk = selections.get("disk", {})
     swap_mode = disk.get("swap", "zram")
+    hardware_packages = (hardware_plan or driver_plan(detect_devices()))["packages"]
+    desktop_packages = list(dict.fromkeys(hardware_packages + MEO_DESKTOP_PACKAGES))
     config = {
         "archinstall-language": "English",
         "audio_config": {"audio": "pipewire"},
@@ -44,9 +123,9 @@ def build_user_configuration(selections, hardware_plan=None):
         # The selected packages are derived from PCI IDs by hardware.py.  The
         # Archinstall profile's generic graphics setting remains in place for
         # desktop dependencies; this list adds the vendor-specific driver.
-        "packages": (hardware_plan or driver_plan(detect_devices()))["packages"],
+        "packages": desktop_packages,
         "profile_config": {
-            "gfx_driver": "All open-source (default)",
+            "gfx_driver": "All open-source",
             "greeter": "sddm",
             "profile": {"details": ["KDE Plasma"], "main": "Desktop"},
         },
@@ -55,8 +134,9 @@ def build_user_configuration(selections, hardware_plan=None):
         "swap": {"enabled": swap_mode == "zram", "algorithm": "zstd"} if swap_mode == "zram" else False,
         "timezone": locale.get("timezone", "UTC"),
     }
-    if disk.get("layout"):
-        config["disk_config"] = disk["layout"]
+    disk_layout = disk.get("layout") or build_default_disk_layout(selections)
+    if disk_layout:
+        config["disk_config"] = disk_layout
     return config
 
 

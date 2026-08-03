@@ -14,7 +14,8 @@ PageFrame {
             controller.setSelection("user", "fullName", InstallerSession.fullName)
             controller.setSelection("user", "username", InstallerSession.username)
             controller.setSelection("user", "hostname", InstallerSession.hostname)
-            nextRequested()
+            if (controller.setAccountPassword(InstallerSession.password))
+                nextRequested()
         }
     }
 

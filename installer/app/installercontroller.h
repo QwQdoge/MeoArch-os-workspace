@@ -63,6 +63,7 @@ public:
     Q_INVOKABLE QVariant selection(const QString &section, const QString &key, const QVariant &fallback = {}) const;
     Q_INVOKABLE bool validateAccount(const QString &username, const QString &hostname,
                                      const QString &password, const QString &confirmation);
+    Q_INVOKABLE bool setAccountPassword(const QString &password);
     Q_INVOKABLE void retryNetwork();
     Q_INVOKABLE void refreshDisks();
     Q_INVOKABLE QString generatePreview();
@@ -106,4 +107,5 @@ private:
     bool m_realInstallEnabled = false;
     bool m_systemActionsEnabled = false;
     bool m_summaryConfirmed = false;
+    QString m_userPasswordHash;
 };

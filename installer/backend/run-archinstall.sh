@@ -33,10 +33,45 @@ if ! command -v archinstall >/dev/null 2>&1; then
   exit 127
 fi
 
+prepare_package_mirrors() {
+  local mirrorlist="/etc/pacman.d/mirrorlist"
+  local refreshed="${state_dir}/mirrorlist.refreshed"
+
+  # Package downloads happen after the destructive disk step. Refresh and rank
+  # several HTTPS mirrors first so one slow CDN endpoint cannot strand a target
+  # after partitioning. Retain the rest of the ISO's generated mirror list as
+  # fallbacks, except for the Fastly endpoint that repeatedly times out on small
+  # signature files in the acceptance environment.
+  {
+    printf '%s\n' \
+      'Server = https://singapore.mirror.pkgbuild.com/$repo/os/$arch' \
+      'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch' \
+      'Server = https://mirror.rackspace.com/archlinux/$repo/os/$arch'
+    grep '^Server = ' "${mirrorlist}" \
+      | grep -Ev 'fastly\.mirror\.pkgbuild\.com|singapore\.mirror\.pkgbuild\.com|geo\.mirror\.pkgbuild\.com|mirror\.rackspace\.com'
+  } >"${refreshed}"
+  install -m 0644 "${refreshed}" "${mirrorlist}"
+  echo "Prepared a stable multi-mirror package fallback." | tee -a "${log_file}"
+
+  # Pacman's default low-speed timeout is too aggressive for large firmware
+  # packages on otherwise healthy links. Integrity remains enforced by package
+  # signatures and hashes.
+  sed -i '/^[[:space:]]*DisableDownloadTimeout[[:space:]]*$/d' /etc/pacman.conf
+  sed -i '/^[[:space:]]*ParallelDownloads[[:space:]]*=/a DisableDownloadTimeout' /etc/pacman.conf
+}
+
+prepare_package_mirrors
+
 echo "Starting archinstall with generated MeoArch JSON." | tee -a "${log_file}"
-archinstall --config "${config_file}" --creds "${creds_file}" 2>&1 | tee -a "${log_file}"
+archinstall --silent --config "${config_file}" --creds "${creds_file}" 2>&1 | tee -a "${log_file}"
 
 installer_root="${MEOARCH_INSTALLER_ROOT:-/opt/meoarch-installer}"
 target_root="${MEOARCH_TARGET_ROOT:-/mnt}"
+if [ ! -s "${target_root}/etc/fstab" ] \
+  || { [ ! -s "${target_root}/boot/grub/grub.cfg" ] \
+       && [ ! -d "${target_root}/boot/loader/entries" ]; }; then
+  echo "Archinstall did not produce a complete bootable target." | tee -a "${log_file}" >&2
+  exit 6
+fi
 "${installer_root}/backend/apply-target-customizations.sh" \
   "${target_root}" "/opt/meo-desktop" "${generated_dir}" 2>&1 | tee -a "${log_file}"

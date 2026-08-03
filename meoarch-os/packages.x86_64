@@ -4,11 +4,29 @@ arch-install-scripts
 archinstall
 iso-codes
 networkmanager
+networkmanager-qt
+bluez-qt
+solid
+pulseaudio-qt
 noto-fonts-cjk
 qt6-base
 qt6-declarative
 qt6-svg
 qt6-wayland
+plasma-desktop
+plasma-workspace
+plasma-nm
+plasma-pa
+powerdevil
+bluedevil
+systemsettings
+dolphin
+konsole
+sddm
+breeze
+kwin
+kscreen
+xdg-desktop-portal-kde
 b43-fwcutter
 base
 bcachefs-tools
@@ -144,9 +162,5 @@ mesa
 # 如果用 startx 手动启动图形界面，才保留
 xorg-xinit
 
-# 轻量窗口管理器
-openbox
-xterm
-
-# 图形安装器运行时
-# Cage 提供全屏 Wayland kiosk，Qt Quick/QML 提供安装器 UI。
+# Cage remains available as a recovery installer session.  The normal live
+# environment is the Meo Desktop Plasma session started by SDDM.

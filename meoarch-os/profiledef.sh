@@ -24,4 +24,13 @@ file_permissions=(
   ["/usr/local/bin/livecd-sound"]="0:0:755"
   ["/usr/local/bin/meoarch-installer"]="0:0:755"
   ["/usr/local/bin/meoarch-installer-kiosk"]="0:0:755"
+  ["/usr/local/bin/meoarch-installer-live"]="0:0:755"
+  ["/usr/local/bin/meoarch-installer-live-root"]="0:0:755"
+  ["/etc/sudoers.d/10-meoarch-live-installer"]="0:0:440"
+  ["/opt/meoarch-installer/bin/meoarch-installer-app"]="0:0:755"
+  ["/opt/meoarch-installer/backend/apply-target-customizations.sh"]="0:0:755"
+  ["/opt/meoarch-installer/backend/archinstall-preflight.sh"]="0:0:755"
+  ["/opt/meoarch-installer/backend/generate-config.py"]="0:0:755"
+  ["/opt/meoarch-installer/backend/hardware.py"]="0:0:755"
+  ["/opt/meoarch-installer/backend/run-archinstall.sh"]="0:0:755"
 )

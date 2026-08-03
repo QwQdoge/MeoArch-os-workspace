@@ -54,8 +54,37 @@ class GenerateConfigTests(unittest.TestCase):
             "packages": ["mesa", "vulkan-intel", "libva-mesa-driver", "nvidia-open", "nvidia-utils"],
         }
         config = MODULE.build_user_configuration(self.selections, hardware)
-        self.assertEqual(config["packages"], hardware["packages"])
+        self.assertEqual(config["packages"][:len(hardware["packages"])], hardware["packages"])
         self.assertIn("nvidia-open", config["packages"])
+        for package in MODULE.MEO_DESKTOP_PACKAGES:
+            self.assertIn(package, config["packages"])
+
+    def test_erase_mode_generates_explicit_safe_disk_layout(self):
+        self.selections["disk"]["stableId"] = "/dev/vda"
+        self.selections["disk"]["sizeBytes"] = 64 * 1024 * 1024 * 1024
+        config = MODULE.build_user_configuration(self.selections)
+        layout = config["disk_config"]
+        self.assertEqual(layout["config_type"], "default_layout")
+        modification = layout["device_modifications"][0]
+        self.assertEqual(modification["device"], "/dev/vda")
+        self.assertTrue(modification["wipe"])
+        self.assertEqual(modification["partitions"][0]["mountpoint"], "/boot")
+        self.assertEqual(modification["partitions"][0]["flags"], ["boot", "esp"])
+        self.assertEqual(modification["partitions"][1]["mountpoint"], "/")
+        self.assertEqual(modification["partitions"][1]["fs_type"], "btrfs")
+        self.assertEqual(modification["partitions"][1]["size"]["value"], 64509)
+        self.assertIsNone(modification["partitions"][0]["dev_path"])
+        self.assertEqual(
+            modification["partitions"][0]["start"]["sector_size"],
+            {"unit": "B", "value": 512},
+        )
+
+    def test_unsafe_or_preview_disk_never_generates_layout(self):
+        for device in ("preview-disk-0", "/dev/disk/by-id/usb-removable", "/dev/sda1", "/tmp/disk"):
+            with self.subTest(device=device):
+                self.selections["disk"]["stableId"] = device
+                self.selections["disk"]["sizeBytes"] = 64 * 1024 * 1024 * 1024
+                self.assertNotIn("disk_config", MODULE.build_user_configuration(self.selections))
 
     def test_omnistore_provisioning_is_allowlisted_and_requires_confirmation(self):
         self.selections["software"]["profiles"] = [

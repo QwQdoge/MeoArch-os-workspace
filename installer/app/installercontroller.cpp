@@ -114,7 +114,18 @@ void InstallerController::setFormatCountry(const QString &alpha2)
 }
 void InstallerController::setTimeZone(const QString &id) { writeSelection(QStringLiteral("locale"), QStringLiteral("timezone"), id); }
 void InstallerController::setKeyboardLayout(const QString &id) { writeSelection(QStringLiteral("locale"), QStringLiteral("keyboardLayout"), id); }
-void InstallerController::setSelectedDisk(const QString &id) { writeSelection(QStringLiteral("disk"), QStringLiteral("stableId"), id); }
+void InstallerController::setSelectedDisk(const QString &id)
+{
+    writeSelection(QStringLiteral("disk"), QStringLiteral("stableId"), id);
+    for (const QVariant &entry : m_disks) {
+        const QVariantMap disk = entry.toMap();
+        if (disk.value(QStringLiteral("id")).toString() == id) {
+            writeSelection(QStringLiteral("disk"), QStringLiteral("sizeBytes"),
+                           disk.value(QStringLiteral("sizeBytes")));
+            break;
+        }
+    }
+}
 void InstallerController::setSelection(const QString &s, const QString &key, const QVariant &value) { writeSelection(s, key, value); }
 QVariant InstallerController::selection(const QString &s, const QString &key, const QVariant &fallback) const { return section(s).value(key, fallback); }
 
@@ -332,6 +343,7 @@ void InstallerController::refreshDisks()
         }
         const qint64 size = d.value(QStringLiteral("size")).toVariant().toLongLong();
         m_disks.append(row({{"id", stableId}, {"name", d.value(QStringLiteral("model")).toString().trimmed().isEmpty() ? QStringLiteral("Storage device") : d.value(QStringLiteral("model")).toString().trimmed()},
+                            {"sizeBytes", size},
                             {"size", QLocale().formattedDataSize(size)}, {"available", QStringLiteral("Capacity ") + QLocale().formattedDataSize(size)},
                             {"kind", d.value(QStringLiteral("rm")).toInt() ? QStringLiteral("Removable") : (d.value(QStringLiteral("rota")).toInt() ? QStringLiteral("HDD") : QStringLiteral("SSD"))}}));
     }
@@ -358,6 +370,42 @@ bool InstallerController::validateAccount(const QString &username, const QString
     return true;
 }
 
+bool InstallerController::setAccountPassword(const QString &password)
+{
+    if (password.size() < 8) {
+        setError(QStringLiteral("Password must contain at least 8 characters."));
+        return false;
+    }
+#ifdef Q_OS_LINUX
+    QProcess process;
+    process.start(QStringLiteral("openssl"),
+                  {QStringLiteral("passwd"), QStringLiteral("-6"), QStringLiteral("-stdin")});
+    if (!process.waitForStarted(5000)) {
+        setError(QStringLiteral("Could not start the password hashing helper."));
+        return false;
+    }
+    process.write(password.toUtf8());
+    process.write("\n");
+    process.closeWriteChannel();
+    if (!process.waitForFinished(15000) || process.exitCode() != 0) {
+        setError(QStringLiteral("Could not securely hash the account password."));
+        return false;
+    }
+    m_userPasswordHash = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
+    if (!m_userPasswordHash.startsWith(QStringLiteral("$6$"))) {
+        m_userPasswordHash.clear();
+        setError(QStringLiteral("The password hashing helper returned an invalid result."));
+        return false;
+    }
+    setError({});
+    return true;
+#else
+    Q_UNUSED(password)
+    setError(QStringLiteral("Password hashing is unavailable on this platform."));
+    return false;
+#endif
+}
+
 QString InstallerController::sourceRoot() const
 {
     const QString env = qEnvironmentVariable("MEOARCH_INSTALLER_ROOT");
@@ -377,11 +425,36 @@ QString InstallerController::generatePreview()
 #ifdef Q_OS_LINUX
     const QString generator = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/generate-config.py"));
     if (QFileInfo::exists(generator)) {
+        if (m_userPasswordHash.isEmpty()) {
+            setError(QStringLiteral("Set a valid account password before generating the installation plan."));
+            return {};
+        }
+        const QString credentialsPath = QDir(directory).absoluteFilePath(QStringLiteral("credential-input.json"));
+        QSaveFile credentials(credentialsPath);
+        credentials.setDirectWriteFallback(false);
+        if (!credentials.open(QIODevice::WriteOnly)) {
+            setError(credentials.errorString());
+            return {};
+        }
+        credentials.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+        credentials.write(QJsonDocument(QJsonObject{
+            {QStringLiteral("userPasswordHash"), m_userPasswordHash}
+        }).toJson(QJsonDocument::Compact));
+        if (!credentials.commit()) {
+            setError(credentials.errorString());
+            return {};
+        }
         QProcess process;
         process.start(QStringLiteral("python3"), {generator, QStringLiteral("--data-dir"), QDir(sourceRoot()).absoluteFilePath(QStringLiteral("data")),
-                                                 QStringLiteral("--state-dir"), directory, QStringLiteral("--selections"), path});
-        if (!process.waitForFinished(15000) || process.exitCode() != 0) {
-            setError(QStringLiteral("Could not generate the Archinstall preview configuration."));
+                                                 QStringLiteral("--state-dir"), directory, QStringLiteral("--selections"), path,
+                                                 QStringLiteral("--credentials"), credentialsPath});
+        const bool finished = process.waitForFinished(15000);
+        QFile::remove(credentialsPath);
+        if (!finished || process.exitCode() != 0) {
+            const QString details = QString::fromUtf8(process.readAllStandardError()).trimmed();
+            setError(details.isEmpty()
+                         ? QStringLiteral("Could not generate the Archinstall preview configuration.")
+                         : details);
             return {};
         }
     }
@@ -406,14 +479,9 @@ void InstallerController::startInstallation()
     m_installationProgress = 0;
     emit installationChanged();
     if (!m_realInstallEnabled) {
-        auto *timer = new QTimer(this);
-        timer->setInterval(120);
-        connect(timer, &QTimer::timeout, this, [this, timer] {
-            m_installationProgress = std::min(100, m_installationProgress + 2);
-            if (m_installationProgress == 100) { m_installationState = QStringLiteral("complete"); timer->stop(); timer->deleteLater(); }
-            emit installationChanged();
-        });
-        timer->start();
+        m_installationState = QStringLiteral("failed");
+        setError(QStringLiteral("Real installation is disabled in preview mode."));
+        emit installationChanged();
         return;
     }
     const QString script = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/run-archinstall.sh"));

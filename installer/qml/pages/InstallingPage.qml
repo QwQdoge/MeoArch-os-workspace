@@ -40,7 +40,10 @@ PageFrame {
             MeoText {
                 anchors.baseline: parent.children[0].baseline
                 text: page.controller && page.controller.installationState === "complete"
-                      ? "Installation complete" : "Working…"
+                      ? "Installation complete"
+                      : page.controller && page.controller.installationState === "failed"
+                        ? "Installation stopped"
+                        : "Working…"
                 typeRole: "body"
                 typeSize: "big"
                 color: MeoTheme.contentOnSurfaceVariant
@@ -125,7 +128,9 @@ PageFrame {
             MeoText { text: "Installation details"; color: "white"; typeRole: "title"; typeSize: "medium"; emphasized: true }
             MeoText {
                 width: parent.width
-                text: "[preview] configuration validated\n[preview] disk plan prepared\n[preview] MeoArch packages configured\nSecrets are never written to this log."
+                text: page.controller && page.controller.installationState === "failed"
+                      ? "Installation did not complete.\n\n" + page.controller.errorMessage
+                      : "Live installation output is recorded in\n/tmp/meoarch-installer/logs/install.log\n\nSecrets are never written to this view."
                 color: "#E9E4EC"
                 typeRole: "body"
                 typeSize: "small"

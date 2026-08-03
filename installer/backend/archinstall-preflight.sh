@@ -45,14 +45,21 @@ if ! command -v archinstall >/dev/null 2>&1; then
 fi
 
 archinstall --version >"${log_file}" 2>&1 || true
-write_status "running" "Running archinstall --dry-run in the background." 0
+config_file="${state_dir}/generated/user_configuration.json"
+creds_file="${state_dir}/generated/user_credentials.json"
+if [ ! -f "${config_file}" ] || [ ! -f "${creds_file}" ]; then
+  write_status "waiting" "Generate the MeoArch installation plan before running preflight." 0
+  exit 0
+fi
+
+write_status "running" "Running a silent archinstall dry-run in the background." 0
 
 set +e
 if command -v timeout >/dev/null 2>&1; then
-  timeout 120s archinstall --dry-run >>"${log_file}" 2>&1 </dev/null
+  timeout 120s archinstall --silent --dry-run --config "${config_file}" --creds "${creds_file}" >>"${log_file}" 2>&1 </dev/null
   rc=$?
 else
-  archinstall --dry-run >>"${log_file}" 2>&1 </dev/null
+  archinstall --silent --dry-run --config "${config_file}" --creds "${creds_file}" >>"${log_file}" 2>&1 </dev/null
   rc=$?
 fi
 set -e
