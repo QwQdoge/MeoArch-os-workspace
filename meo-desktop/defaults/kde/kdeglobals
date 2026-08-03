@@ -1,0 +1,11 @@
+[General]
+ColorScheme=BreezeLight
+Name=Meo Desktop
+
+[KDE]
+LookAndFeelPackage=org.meo.desktop
+SingleClick=false
+ShowDeleteCommand=false
+
+[Icons]
+Theme=breeze

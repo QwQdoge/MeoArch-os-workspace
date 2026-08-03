@@ -10,6 +10,7 @@ QtObject {
     property string keyboardLayout: "us"
     property string networkState: "connected"
     property string selectedDisk: "preview-disk-0"
+    property string hardwareSummary: "Automatic PCI detection will select graphics drivers."
     property string installationState: "idle"
     property int installationProgress: 0
     property string errorMessage: ""

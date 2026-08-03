@@ -2,18 +2,24 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-airootfs="${repo_root}/MeoArch os/airootfs"
+airootfs="${repo_root}/meoarch-os/airootfs"
 installer_src="${repo_root}/installer"
 installer_dst="${airootfs}/opt/meoarch-installer"
-meoui_dst="${airootfs}/opt/meo-ui/qml/MeoUI"
+desktop_dst="${airootfs}/opt/meo-desktop"
+runtime_root="${repo_root}/build/installer-runtime-root/usr"
+meoui_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoUI"
+legacy_meoui_dst="${airootfs}/opt/meo-ui"
 
-install -d "${meoui_dst}"
-rm -rf "${meoui_dst}/components" "${meoui_dst}/patterns" "${meoui_dst}/widgets"
-cp -a "${repo_root}/themes/MeoUI/components" "${meoui_dst}/components"
-cp -a "${repo_root}/themes/MeoUI/patterns" "${meoui_dst}/patterns"
-cp -a "${repo_root}/themes/MeoUI/widgets" "${meoui_dst}/widgets"
-install -Dm644 "${repo_root}/themes/MeoUI/MeoTheme.qml" "${meoui_dst}/MeoTheme.qml"
-install -Dm644 "${repo_root}/themes/MeoUI/MeoWindowMetrics.qml" "${meoui_dst}/MeoWindowMetrics.qml"
+if [ ! -f "${runtime_root}/lib/libmeoui.so.0" ] \
+  || [ ! -f "${runtime_root}/lib/qt6/qml/MeoUI/qmldir" ]; then
+  echo "The compiled MeoUI runtime is missing. Run scripts/build-installer-app.sh first." >&2
+  exit 1
+fi
+
+rm -rf "${legacy_meoui_dst}" "${meoui_qml_dst}"
+install -d "${meoui_qml_dst}" "${airootfs}/usr/lib"
+cp -a "${runtime_root}/lib/libmeoui.so"* "${airootfs}/usr/lib/"
+cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
 
 rm -rf "${installer_dst}"
 install -d "${installer_dst}"
@@ -25,6 +31,14 @@ install -Dm644 "${installer_src}/CMakeLists.txt" "${installer_dst}/CMakeLists.tx
 cp -a "${repo_root}/assets" "${installer_dst}/assets"
 find "${installer_dst}/backend" -type f \( -name "*.sh" -o -name "*.py" \) -exec chmod 755 {} +
 find "${installer_dst}/data" -type f -exec chmod 644 {} +
+
+rm -rf "${desktop_dst}"
+install -d "${desktop_dst}/themes/look-and-feel" "${desktop_dst}/defaults" "${desktop_dst}/wallpaper"
+cp -a "${repo_root}/meo-desktop/themes/look-and-feel/org.meo.desktop" \
+  "${desktop_dst}/themes/look-and-feel/org.meo.desktop"
+cp -a "${repo_root}/meo-desktop/defaults/." "${desktop_dst}/defaults/"
+install -Dm644 "${repo_root}/assets/wallpapers/installer_background.png" \
+  "${desktop_dst}/wallpaper/installer_background.png"
 
 native_binary="${MEOARCH_INSTALLER_NATIVE_BINARY:-${repo_root}/build/installer-host/meoarch-installer-app}"
 if [ -x "${native_binary}" ]; then

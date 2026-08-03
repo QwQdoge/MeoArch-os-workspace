@@ -10,10 +10,14 @@ final live image is assembled.
 
 ## Current Status
 
-- The existing archiso profile is kept at `MeoArch os/`.
-- A compiled Qt 6/C++ host and ten-step MD3 Qt Quick installer are present.
+- The existing archiso profile is kept at `meoarch-os/`.
+- A compiled Qt 6/C++ host and eleven-step M3 Expressive Qt Quick installer are present.
+- MeoUI is a versioned shared QML module; the installer does not embed a private static copy.
+- Meo Desktop provides KDE Plasma look-and-feel, shelf defaults, packaging, and safe apply/reset tooling.
+- Optional software profiles are recorded as confirmation-required OmniStore provisioning intent.
 - Runtime locale, ISO 3166-1 country, IANA time-zone, and XKB catalogs are available.
 - Archinstall and KDE configuration adapters are implemented behind explicit safety gates.
+- The installer detects PCI display adapters and adds the matching Arch driver packages to the generated Archinstall configuration.
 - The default installer mode is non-destructive and simulates progress.
 - Installer documentation is available in English and Simplified Chinese.
 
@@ -21,7 +25,7 @@ final live image is assembled.
 
 ```text
 MeoArch_os-workspace/
-├── MeoArch os/          # Existing archiso profile; keep this directory name
+├── meoarch-os/          # Existing archiso profile; keep this directory name
 │   ├── profiledef.sh
 │   ├── packages.x86_64
 │   ├── pacman.conf
@@ -36,6 +40,7 @@ MeoArch_os-workspace/
 │   └── network/
 ├── themes/              # UI, GTK, Qt, GRUB, SDDM, and related themes
 │   └── MeoUI/
+├── meo-desktop/         # KDE Plasma profile, UX docs, setup, and packaging
 ├── installer/           # Standalone Cage installer source
 │   ├── bin/
 │   └── qml/
@@ -93,9 +98,9 @@ Runtime files are staged under:
 
 ```text
 installer/
-MeoArch os/airootfs/opt/meoarch-installer/
-MeoArch os/airootfs/usr/local/bin/
-MeoArch os/airootfs/etc/systemd/system/
+meoarch-os/airootfs/opt/meoarch-installer/
+meoarch-os/airootfs/usr/local/bin/
+meoarch-os/airootfs/etc/systemd/system/
 ```
 
 The framework is intentionally safe. It can write preview artifacts under:
@@ -120,10 +125,48 @@ calling `mkarchiso`. A development machine without Qt 6 headers can still build
 the ISO: the optional C++ host is skipped and the live image runs the same QML
 views with `qml6`. The live image itself always installs `qt6-base`,
 `qt6-declarative`, `qt6-svg`, and `qt6-wayland` from the Arch repositories.
+The build installs `libmeoui.so.0` and its QML plugin into the image from the
+same `themes/MeoUI` source used by the installer build.
+
+## Meo Desktop and OmniStore
+
+The installed system uses Archinstall's KDE Plasma profile, then applies the
+Meo Desktop look-and-feel, shelf layout, wallpaper, and global defaults to the
+mounted target. The desktop intentionally reuses KDE's NetworkManager, BlueZ,
+PipeWire, PowerDevil, notification, overview, and session actions.
+
+The software page does not silently install optional apps. It writes an
+allowlisted `omnistore-provisioning.json` with the selected workflow profiles
+and `requiresUserConfirmation: true`. The target receives that file under
+`/var/lib/omnistore/`. A signed or repository-resolvable OmniStore package is
+still required before first-login execution can be enabled.
+
+## Graphics Driver Detection
+
+Pacman is only a package transaction tool: it does not probe PCI hardware or
+choose a graphics driver.  Before it generates the Archinstall configuration,
+MeoArch reads the Live ISO PCI display devices and records
+`generated/hardware.json` alongside the generated configuration.  The detected
+vendor packages are added to `user_configuration.json` and are installed by
+Archinstall during the normal package phase:
+
+- AMD: Mesa, Radeon Vulkan, and VA-API Mesa support
+- Intel: Mesa, Intel Vulkan, and VA-API Mesa support
+- NVIDIA: `nvidia-open` and `nvidia-utils`
+- Unknown/no detectable adapter: a safe Mesa/Vulkan fallback
+
+Hybrid systems receive both applicable sets.  The detector never downloads
+packages on its own and never enables a legacy third-party NVIDIA driver; those
+remain explicit post-install choices.
+
+- `installer/backend/hardware.py` contains the vendor-ID mapping and is covered
+  by unit tests.
+- `installer/backend/generate-config.py` writes the audited plan to
+  `/tmp/meoarch-installer/generated/hardware.json` in the Live ISO.
 
 ## Development Notes
 
-- Keep `MeoArch os/` as the archiso profile path. Do not rename it unless the
+- Keep `meoarch-os/` as the archiso profile path. Do not rename it unless the
   project intentionally migrates the profile directory.
 - Edit installer source in `installer/`.
 - Use `scripts/sync-installer-to-airootfs.sh` to copy installer changes into the

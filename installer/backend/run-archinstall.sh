@@ -35,3 +35,8 @@ fi
 
 echo "Starting archinstall with generated MeoArch JSON." | tee -a "${log_file}"
 archinstall --config "${config_file}" --creds "${creds_file}" 2>&1 | tee -a "${log_file}"
+
+installer_root="${MEOARCH_INSTALLER_ROOT:-/opt/meoarch-installer}"
+target_root="${MEOARCH_TARGET_ROOT:-/mnt}"
+"${installer_root}/backend/apply-target-customizations.sh" \
+  "${target_root}" "/opt/meo-desktop" "${generated_dir}" 2>&1 | tee -a "${log_file}"

@@ -8,14 +8,11 @@
 #include <QQuickWindow>
 #include <QTimer>
 #include <QWindow>
-#include <QtQml/qqmlextensionplugin.h>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QTextStream>
 #include <algorithm>
 #include <memory>
-
-Q_IMPORT_QML_PLUGIN(MeoUIPlugin)
 
 int main(int argc, char *argv[])
 {
@@ -53,13 +50,21 @@ int main(int argc, char *argv[])
         return 0;
     }
     QQmlApplicationEngine engine;
+    const QString configuredMeoUiPath = qEnvironmentVariable("MEO_UI_QML_IMPORT_PATH");
+    if (!configuredMeoUiPath.isEmpty())
+        engine.addImportPath(configuredMeoUiPath);
+#ifdef MEOUI_QML_BUILD_IMPORT_PATH
+    engine.addImportPath(QString::fromUtf8(MEOUI_QML_BUILD_IMPORT_PATH));
+#endif
+    engine.addImportPath(QStringLiteral("/opt/meo-ui/qml"));
+    engine.addImportPath(QStringLiteral("/usr/lib/qt6/qml"));
     int initialPage = 0;
     for (const QString &argument : app.arguments()) {
         if (argument.startsWith(QStringLiteral("--page="))) {
             bool ok = false;
             const int requested = argument.mid(7).toInt(&ok);
             if (ok)
-                initialPage = std::clamp(requested, 0, 9);
+                initialPage = std::clamp(requested, 0, 10);
         }
     }
     engine.setInitialProperties({

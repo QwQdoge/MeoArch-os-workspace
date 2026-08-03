@@ -1,0 +1,23 @@
+[Unit]
+Description=MeoArch graphical installer kiosk
+After=systemd-user-sessions.service systemd-logind.service NetworkManager.service network.target
+Wants=NetworkManager.service network.target
+Conflicts=getty@tty1.service systemd-networkd.service systemd-networkd.socket
+
+[Service]
+Type=simple
+User=root
+TTYPath=/dev/tty1
+StandardInput=tty
+StandardOutput=journal
+StandardError=journal
+Environment=QT_QPA_PLATFORM=wayland
+Environment=MEO_UI_QML_IMPORT_PATH=/usr/lib/qt6/qml
+Environment=QML2_IMPORT_PATH=/opt/meoarch-installer/qml:/usr/lib/qt6/qml
+Environment=XKB_DEFAULT_LAYOUT=us
+ExecStart=/usr/local/bin/meoarch-installer-kiosk
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

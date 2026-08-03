@@ -1,0 +1,27 @@
+pkgname=meo-desktop
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="MeoArch KDE Plasma desktop defaults"
+arch=('any')
+url="https://github.com/QwQdoge"
+license=('GPL-3.0-or-later')
+depends=('plasma-desktop' 'plasma-workspace' 'plasma-nm' 'plasma-pa' 'powerdevil'
+         'bluedevil' 'systemsettings' 'dolphin' 'konsole' 'sddm' 'breeze')
+optdepends=('omnistore-bin: MeoArch application discovery and package management')
+source=()
+sha256sums=()
+
+package() {
+  local workspace="${startdir}/../../.."
+  install -d "${pkgdir}/usr/share/plasma/look-and-feel"
+  cp -a "${workspace}/meo-desktop/themes/look-and-feel/org.meo.desktop" \
+    "${pkgdir}/usr/share/plasma/look-and-feel/"
+  install -Dm644 "${workspace}/assets/wallpapers/installer_background.png" \
+    "${pkgdir}/usr/share/wallpapers/MeoArch/installer_background.png"
+  install -Dm644 "${workspace}/meo-desktop/defaults/kde/kdeglobals" \
+    "${pkgdir}/etc/xdg/kdeglobals"
+  install -Dm644 "${workspace}/meo-desktop/defaults/kwin/kwinrc" \
+    "${pkgdir}/etc/xdg/kwinrc"
+  install -Dm644 "${workspace}/meo-desktop/defaults/plasma/plasmarc" \
+    "${pkgdir}/etc/xdg/plasmarc"
+}

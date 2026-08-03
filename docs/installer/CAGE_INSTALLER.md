@@ -24,11 +24,11 @@ step copies the QML files and shared `assets/` into the live ISO runtime tree.
 | Purpose | Path |
 | --- | --- |
 | Development source | `installer/` |
-| Runtime application | `MeoArch os/airootfs/opt/meoarch-installer/qml/Main.qml` |
-| Runtime assets | `MeoArch os/airootfs/opt/meoarch-installer/assets/` |
-| Application launcher | `MeoArch os/airootfs/usr/local/bin/meoarch-installer` |
-| Cage launcher | `MeoArch os/airootfs/usr/local/bin/meoarch-installer-kiosk` |
-| systemd service | `MeoArch os/airootfs/etc/systemd/system/meoarch-installer.service` |
+| Runtime application | `meoarch-os/airootfs/opt/meoarch-installer/qml/Main.qml` |
+| Runtime assets | `meoarch-os/airootfs/opt/meoarch-installer/assets/` |
+| Application launcher | `meoarch-os/airootfs/usr/local/bin/meoarch-installer` |
+| Cage launcher | `meoarch-os/airootfs/usr/local/bin/meoarch-installer-kiosk` |
+| systemd service | `meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service` |
 
 `scripts/build.sh` runs `scripts/sync-installer-to-airootfs.sh` before calling
 `mkarchiso`, so changes made to the standalone installer source are copied into

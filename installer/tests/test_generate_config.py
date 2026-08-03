@@ -1,12 +1,14 @@
 import importlib.util
 import json
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).parents[1] / "backend" / "generate-config.py"
+sys.path.insert(0, str(MODULE_PATH.parent))
 SPEC = importlib.util.spec_from_file_location("generate_config", MODULE_PATH)
 MODULE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(MODULE)
@@ -45,6 +47,29 @@ class GenerateConfigTests(unittest.TestCase):
         localerc = MODULE.build_plasma_localerc(self.selections)
         self.assertIn("LC_TIME=en_SG.UTF-8", localerc)
         self.assertIn("LC_MEASUREMENT=en_SG.UTF-8", localerc)
+
+    def test_nvidia_plan_is_added_to_archinstall_packages(self):
+        hardware = {
+            "vendors": ["intel", "nvidia"],
+            "packages": ["mesa", "vulkan-intel", "libva-mesa-driver", "nvidia-open", "nvidia-utils"],
+        }
+        config = MODULE.build_user_configuration(self.selections, hardware)
+        self.assertEqual(config["packages"], hardware["packages"])
+        self.assertIn("nvidia-open", config["packages"])
+
+    def test_omnistore_provisioning_is_allowlisted_and_requires_confirmation(self):
+        self.selections["software"]["profiles"] = [
+            "developer", "unknown", "developer", "gaming"
+        ]
+        provisioning = MODULE.build_omnistore_provisioning(self.selections)
+        self.assertEqual(provisioning["profiles"], ["developer", "gaming"])
+        self.assertTrue(provisioning["requiresUserConfirmation"])
+        self.assertTrue(provisioning["launchOnFirstLogin"])
+
+    def test_empty_omnistore_selection_does_not_launch(self):
+        provisioning = MODULE.build_omnistore_provisioning(self.selections)
+        self.assertEqual(provisioning["profiles"], [])
+        self.assertFalse(provisioning["launchOnFirstLogin"])
 
 
 if __name__ == "__main__":

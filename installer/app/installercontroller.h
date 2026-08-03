@@ -22,6 +22,7 @@ class InstallerController final : public QObject
     Q_PROPERTY(QString keyboardLayout READ keyboardLayout NOTIFY selectionsChanged)
     Q_PROPERTY(QString networkState READ networkState NOTIFY networkStateChanged)
     Q_PROPERTY(QString selectedDisk READ selectedDisk NOTIFY selectionsChanged)
+    Q_PROPERTY(QString hardwareSummary READ hardwareSummary CONSTANT)
     Q_PROPERTY(QString installationState READ installationState NOTIFY installationChanged)
     Q_PROPERTY(int installationProgress READ installationProgress NOTIFY installationChanged)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
@@ -45,6 +46,7 @@ public:
     QString keyboardLayout() const;
     QString networkState() const { return m_networkState; }
     QString selectedDisk() const;
+    QString hardwareSummary() const { return m_hardwareSummary; }
     QString installationState() const { return m_installationState; }
     int installationProgress() const { return m_installationProgress; }
     QString errorMessage() const { return m_errorMessage; }
@@ -83,6 +85,7 @@ private:
     void buildTimeZones();
     void buildKeyboardLayouts();
     void detectNetwork();
+    void detectHardware();
     void setError(const QString &message);
     QString sourceRoot() const;
     QVariantMap section(const QString &name) const;
@@ -96,6 +99,7 @@ private:
     QVariantList m_disks;
     QVariantMap m_selections;
     QString m_networkState = QStringLiteral("offline");
+    QString m_hardwareSummary = QStringLiteral("Automatic PCI detection will select graphics drivers.");
     QString m_installationState = QStringLiteral("idle");
     QString m_errorMessage;
     int m_installationProgress = 0;

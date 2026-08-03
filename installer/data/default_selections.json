@@ -11,6 +11,12 @@
     "keyboardLayout": "us"
   },
   "network": { "mode": "networkmanager" },
+  "hardware": { "graphicsDriver": "automatic" },
+  "software": {
+    "provider": "omnistore",
+    "profiles": [],
+    "launchOnFirstLogin": true
+  },
   "privacy": {
     "diagnostics": false,
     "firewall": true,

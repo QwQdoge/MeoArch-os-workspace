@@ -53,6 +53,9 @@ MeoArch_os*.iso
 MeoArch-os*.iso
 # Generated installer payload synced into the archiso tree
 MeoArch\ os/airootfs/opt/meoarch-installer/
+meoarch-os/airootfs/opt/meoarch-installer/
+meoarch-os/airootfs/opt/meo-desktop/
+meoarch-os/airootfs/usr/lib/qt6/qml/MeoUI/
 
 # --- Python Cache & Virtual Environments ---
 __pycache__/
@@ -82,5 +85,4 @@ env/
 .directory
 .DS_Store
 Thumbs.db
-
 
