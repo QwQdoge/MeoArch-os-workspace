@@ -56,7 +56,6 @@ int main(int argc, char *argv[])
 #ifdef MEOUI_QML_BUILD_IMPORT_PATH
     engine.addImportPath(QString::fromUtf8(MEOUI_QML_BUILD_IMPORT_PATH));
 #endif
-    engine.addImportPath(QStringLiteral("/opt/meo-ui/qml"));
     engine.addImportPath(QStringLiteral("/usr/lib/qt6/qml"));
     int initialPage = 0;
     for (const QString &argument : app.arguments()) {
