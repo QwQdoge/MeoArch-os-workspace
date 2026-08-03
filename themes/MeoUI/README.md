@@ -1,6 +1,10 @@
 # MeoUI
 
-MeoUI is the Material Design 3 / MD3 Expressive QML component library used by the MeoArch workspace. The `MeoShowcaseDemo` target launches a finished showcase with token, component, widget, pattern, and layout pages.
+MeoUI is the Material Design 3 / M3 Expressive QML component library used by the MeoArch workspace. The `MeoShowcaseDemo` target launches a finished showcase with token, component, widget, pattern, and layout pages.
+
+The CMake target is a versioned shared runtime (`libmeoui.so.0`) with a
+dynamically loaded QML plugin. Applications import `MeoUI 1.0`; they must not
+embed or maintain private component copies.
 
 Design, token, component, and review rules live in [`DESIGN_SPEC.md`](DESIGN_SPEC.md).
 
@@ -103,6 +107,9 @@ cmake -S . -B out/build/showcase -DCMAKE_BUILD_TYPE=Release
 cmake --build out/build/showcase --target MeoShowcaseDemo
 cmake --install out/build/showcase --prefix out/install/showcase
 ```
+
+The install tree places the shared library under `lib` and the QML plugin,
+type information, and inspectable QML sources under `lib/qt6/qml/MeoUI`.
 
 On multi-config generators such as Visual Studio, add `--config Release` to the build and install commands.
 

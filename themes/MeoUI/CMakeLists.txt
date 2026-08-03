@@ -18,9 +18,11 @@ endif()
 
 set_source_files_properties(MeoTheme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
-# 定义 QML 模块
+# MeoUI is a separately loadable runtime module.  Applications must import it
+# through the QML import path instead of embedding a private static copy.  This
+# keeps installer/Desktop UI fixes in one authoritative library.
 qt_add_qml_module(meoui_module
-    STATIC
+    SHARED
     URI "MeoUI"
     VERSION 1.0
     OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/MeoUI"
@@ -157,13 +159,35 @@ MeoTheme.qml
         assets/fonts/Roboto-Bold.ttf
 )
 
-# 确保链接到 QtQuick
 target_link_libraries(meoui_module PUBLIC Qt6::Core Qt6::Quick Qt6::QuickControls2)
+set_target_properties(meoui_module PROPERTIES
+    OUTPUT_NAME meoui
+    VERSION ${PROJECT_VERSION}
+    SOVERSION 0
+)
 
 install(TARGETS meoui_module
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install(TARGETS meoui_moduleplugin
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/qt6/qml/MeoUI"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_LIBDIR}/qt6/qml/MeoUI"
+)
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/MeoUI/qmldir"
+    "${CMAKE_CURRENT_BINARY_DIR}/MeoUI/meoui_module.qmltypes"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/qt6/qml/MeoUI"
+)
+# Keep source QML beside the plugin for qmllint, IDE tooling, and transparent
+# debugging.  The generated qmldir prefers the compiled qrc payload, so runtime
+# applications still load the versioned shared module.
+install(FILES MeoTheme.qml MeoWindowMetrics.qml
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/qt6/qml/MeoUI"
+)
+install(DIRECTORY components patterns widgets showcase
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/qt6/qml/MeoUI"
+    FILES_MATCHING PATTERN "*.qml"
 )
 
 # 新增 Demo 展示程序可执行目标

@@ -6,6 +6,8 @@ import json
 import os
 from pathlib import Path
 
+from hardware import detect_devices, driver_plan
+
 
 def load_json(path: Path):
     with path.open("r", encoding="utf-8") as handle:
@@ -20,7 +22,7 @@ def write_json(path: Path, payload, mode=0o600):
     temporary.replace(path)
 
 
-def build_user_configuration(selections):
+def build_user_configuration(selections, hardware_plan=None):
     locale = selections.get("locale", {})
     user = selections.get("user", {})
     disk = selections.get("disk", {})
@@ -39,7 +41,10 @@ def build_user_configuration(selections):
         "network_config": {"type": "nm"},
         "ntp": True,
         "offline": False,
-        "packages": [],
+        # The selected packages are derived from PCI IDs by hardware.py.  The
+        # Archinstall profile's generic graphics setting remains in place for
+        # desktop dependencies; this list adds the vendor-specific driver.
+        "packages": (hardware_plan or driver_plan(detect_devices()))["packages"],
         "profile_config": {
             "gfx_driver": "All open-source (default)",
             "greeter": "sddm",
@@ -85,6 +90,22 @@ def build_plasma_localerc(selections):
     ])
 
 
+def build_omnistore_provisioning(selections):
+    software = selections.get("software", {})
+    allowed_profiles = {"productivity", "creative", "developer", "gaming"}
+    profiles = []
+    for profile in software.get("profiles", []):
+        if profile in allowed_profiles and profile not in profiles:
+            profiles.append(profile)
+    return {
+        "schemaVersion": 1,
+        "provider": "omnistore",
+        "profiles": profiles,
+        "requiresUserConfirmation": True,
+        "launchOnFirstLogin": bool(software.get("launchOnFirstLogin", True) and profiles),
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate Archinstall JSON from MeoArch selections.")
     parser.add_argument("--data-dir", default="/opt/meoarch-installer/data")
@@ -102,13 +123,17 @@ def main():
 
     secrets = load_json(Path(args.credentials)) if args.credentials else {}
     output_dir = state_dir / "generated"
-    configuration = build_user_configuration(selections)
+    hardware = driver_plan(detect_devices())
+    configuration = build_user_configuration(selections, hardware)
     credentials = build_user_credentials(selections, secrets)
     write_json(output_dir / "user_configuration.json", configuration, 0o644)
     write_json(output_dir / "user_credentials.json", credentials, 0o600)
+    write_json(output_dir / "hardware.json", hardware, 0o644)
     plasma_path = output_dir / "plasma-localerc"
     plasma_path.write_text(build_plasma_localerc(selections), encoding="utf-8")
     os.chmod(plasma_path, 0o644)
+    provisioning_path = output_dir / "omnistore-provisioning.json"
+    write_json(provisioning_path, build_omnistore_provisioning(selections), 0o644)
 
     disk = selections.get("disk", {})
     ready = bool(configuration.get("disk_config")) and bool(credentials.get("users")) and all(
@@ -123,7 +148,9 @@ def main():
         "files": {
             "user_configuration": str(output_dir / "user_configuration.json"),
             "user_credentials": str(output_dir / "user_credentials.json"),
+            "hardware": str(output_dir / "hardware.json"),
             "plasma_localerc": str(plasma_path),
+            "omnistore_provisioning": str(provisioning_path),
         },
     }
     write_json(state_dir / "config_manifest.json", manifest, 0o644)

@@ -9,11 +9,11 @@ Item {
 
     property var controller: PreviewController
     property int pageIndex: 0
-    property int pageCount: 10
+    property int pageCount: 11
     property string pageTitle: ""
     property string pageSubtitle: ""
     property string primaryLabel: pageIndex === 0 ? "Get Started" : "Continue"
-    property bool showBackButton: pageIndex > 0 && pageIndex < 8
+    property bool showBackButton: pageIndex > 0 && pageIndex < 9
     property bool showPrimaryButton: true
     property bool primaryEnabled: true
     property bool primaryAdvances: true

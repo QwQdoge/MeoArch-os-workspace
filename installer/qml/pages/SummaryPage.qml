@@ -16,7 +16,11 @@ PageFrame {
         { pageIndex: 3, title: "Network", value: controller ? controller.networkState : "" },
         { pageIndex: 4, title: "Privacy & Security", value: "Recommended protections" },
         { pageIndex: 5, title: "Disk", value: controller ? controller.selectedDisk : "" },
-        { pageIndex: 6, title: "User Account", value: InstallerSession.username + " · " + InstallerSession.hostname }
+        { pageIndex: 6, title: "User Account", value: InstallerSession.username + " · " + InstallerSession.hostname },
+        { pageIndex: 7, title: "Optional Apps", value: controller && controller.selection("software", "profiles", []).length
+                                                            ? controller.selection("software", "profiles", []).join(", ")
+                                                            : "None selected" },
+        { pageIndex: 7, title: "Graphics Drivers", value: controller ? controller.hardwareSummary : "Automatic PCI detection" }
     ]
 
     onPrimaryRequested: confirmDialog.open()
@@ -32,7 +36,7 @@ PageFrame {
         }
         MeoCard {
             width: parent.width
-            implicitHeight: page.dp(336)
+            implicitHeight: page.dp(392)
             type: "filled"
             padding: page.dp(12)
 
@@ -74,7 +78,7 @@ PageFrame {
             InfoBanner { width: parent.width; title: "Safe preview"; message: "Passwords, Wi-Fi secrets, and disk passphrases are excluded from this view." }
             MeoText {
                 width: parent.width
-                text: "Bootloader\nGRUB\n\nKernel\nlinux\n\nDesktop\nMeoArch KDE Plasma + SDDM\n\nAudio and network\nPipeWire · NetworkManager\n\nDisk plan\n" + (page.controller ? page.controller.selectedDisk : "Not selected")
+                text: "Bootloader\nGRUB\n\nKernel\nlinux\n\nDesktop\nMeoArch KDE Plasma + SDDM\n\nAudio and network\nPipeWire · NetworkManager\n\nGraphics drivers\n" + (page.controller ? page.controller.hardwareSummary : "Automatic PCI detection") + "\n\nDisk plan\n" + (page.controller ? page.controller.selectedDisk : "Not selected")
                 typeRole: "body"
                 typeSize: "medium"
                 lineHeight: 1.35

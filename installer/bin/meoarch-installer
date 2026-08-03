@@ -4,7 +4,7 @@ set -euo pipefail
 app_dir="${MEOARCH_INSTALLER_DIR:-/opt/meoarch-installer}"
 main_qml="${app_dir}/qml/Main.qml"
 state_dir="${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}"
-meoui_import_path="${MEO_UI_QML_IMPORT_PATH:-/opt/meo-ui/qml}"
+meoui_import_path="${MEO_UI_QML_IMPORT_PATH:-/usr/lib/qt6/qml}"
 enable_archinstall_preflight=0
 qml_args=()
 
@@ -65,12 +65,13 @@ if [ -x "${native_app}" ]; then
   if [ -z "${missing_libraries}" ]; then
     export MEOARCH_INSTALLER_ROOT="${app_dir}"
     export MEOARCH_INSTALLER_QML_ROOT="${app_dir}/qml"
+    export MEO_UI_QML_IMPORT_PATH="${meoui_import_path}"
     exec "${native_app}" "${qml_args[@]}"
   fi
   echo "Native installer host is missing libraries (${missing_libraries}); using the QML runtime." >&2
 fi
 
-export QML2_IMPORT_PATH="${app_dir}/qml:/usr/lib/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
+export QML2_IMPORT_PATH="${app_dir}/qml:${meoui_import_path}:/usr/lib/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
 if command -v qml6 >/dev/null 2>&1; then
   exec qml6 -I "$meoui_import_path" "$main_qml" "${qml_args[@]}"
 elif command -v qml >/dev/null 2>&1; then

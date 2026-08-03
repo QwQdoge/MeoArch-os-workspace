@@ -23,8 +23,9 @@ Window {
         Qt.resolvedUrl("pages/WelcomePage.qml"), Qt.resolvedUrl("pages/LanguageRegionPage.qml"),
         Qt.resolvedUrl("pages/KeyboardLayoutPage.qml"), Qt.resolvedUrl("pages/NetworkPage.qml"),
         Qt.resolvedUrl("pages/PrivacySecurityPage.qml"), Qt.resolvedUrl("pages/DiskSelectionPage.qml"),
-        Qt.resolvedUrl("pages/UserAccountPage.qml"), Qt.resolvedUrl("pages/SummaryPage.qml"),
-        Qt.resolvedUrl("pages/InstallingPage.qml"), Qt.resolvedUrl("pages/FinishPage.qml")
+        Qt.resolvedUrl("pages/UserAccountPage.qml"), Qt.resolvedUrl("pages/SoftwarePage.qml"),
+        Qt.resolvedUrl("pages/SummaryPage.qml"), Qt.resolvedUrl("pages/InstallingPage.qml"),
+        Qt.resolvedUrl("pages/FinishPage.qml")
     ]
 
     Component.onCompleted: {

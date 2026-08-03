@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-profile_dir="${repo_root}/MeoArch os"
+profile_dir="${repo_root}/meoarch-os"
 work_dir="${repo_root}/work"
 out_dir="${repo_root}/out"
 

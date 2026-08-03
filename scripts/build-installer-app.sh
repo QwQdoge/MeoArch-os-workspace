@@ -3,6 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 build_dir="${repo_root}/build/installer-host"
+runtime_root="${repo_root}/build/installer-runtime-root"
 
 if ! command -v cmake >/dev/null 2>&1 \
   || ! command -v ninja >/dev/null 2>&1 \
@@ -16,3 +17,5 @@ fi
 
 cmake -S "${repo_root}/installer" -B "${build_dir}" -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build "${build_dir}"
+rm -rf "${runtime_root}"
+DESTDIR="${runtime_root}" cmake --install "${build_dir}" --prefix /usr

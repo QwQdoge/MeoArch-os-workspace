@@ -22,11 +22,11 @@ UI 源码放在 archiso profile 外面的 `installer/` 中。构建同步步骤�
 | 用途 | 路径 |
 | --- | --- |
 | 开发源码 | `installer/` |
-| 运行时应用 | `MeoArch os/airootfs/opt/meoarch-installer/qml/Main.qml` |
-| 运行时资源 | `MeoArch os/airootfs/opt/meoarch-installer/assets/` |
-| 应用启动器 | `MeoArch os/airootfs/usr/local/bin/meoarch-installer` |
-| Cage 启动器 | `MeoArch os/airootfs/usr/local/bin/meoarch-installer-kiosk` |
-| systemd 服务 | `MeoArch os/airootfs/etc/systemd/system/meoarch-installer.service` |
+| 运行时应用 | `meoarch-os/airootfs/opt/meoarch-installer/qml/Main.qml` |
+| 运行时资源 | `meoarch-os/airootfs/opt/meoarch-installer/assets/` |
+| 应用启动器 | `meoarch-os/airootfs/usr/local/bin/meoarch-installer` |
+| Cage 启动器 | `meoarch-os/airootfs/usr/local/bin/meoarch-installer-kiosk` |
+| systemd 服务 | `meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service` |
 
 `scripts/build.sh` 会在调用 `mkarchiso` 前运行 `scripts/sync-installer-to-airootfs.sh`，因此独立 installer 源码的修改会自动同步进 ISO profile。
 

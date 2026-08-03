@@ -52,6 +52,9 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
                                                {QStringLiteral("timezone"), QStringLiteral("UTC")},
                                                {QStringLiteral("keyboardLayout"), QStringLiteral("us")}}},
         {QStringLiteral("network"), QVariantMap{{QStringLiteral("mode"), QStringLiteral("networkmanager")}}},
+        {QStringLiteral("software"), QVariantMap{{QStringLiteral("provider"), QStringLiteral("omnistore")},
+                                                 {QStringLiteral("profiles"), QVariantList{}},
+                                                 {QStringLiteral("launchOnFirstLogin"), true}}},
         {QStringLiteral("privacy"), QVariantMap{{QStringLiteral("diagnostics"), false},
                                                 {QStringLiteral("firewall"), true},
                                                 {QStringLiteral("securityUpdates"), true},
@@ -69,6 +72,7 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
     buildKeyboardLayouts();
     detectNetwork();
     refreshDisks();
+    detectHardware();
 }
 
 QVariantMap InstallerController::section(const QString &name) const
@@ -286,6 +290,27 @@ void InstallerController::detectNetwork()
 }
 
 void InstallerController::retryNetwork() { detectNetwork(); }
+
+void InstallerController::detectHardware()
+{
+#ifdef Q_OS_LINUX
+    const QString detector = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/hardware.py"));
+    if (!QFileInfo::exists(detector))
+        return;
+    QProcess process;
+    process.start(QStringLiteral("python3"), {detector});
+    if (!process.waitForFinished(6000) || process.exitCode() != 0)
+        return;
+    const QJsonObject result = QJsonDocument::fromJson(process.readAllStandardOutput()).object();
+    const QJsonArray packages = result.value(QStringLiteral("packages")).toArray();
+    QStringList names;
+    for (const QJsonValue &package : packages)
+        names.append(package.toString());
+    if (!names.isEmpty())
+        m_hardwareSummary = result.value(QStringLiteral("summary")).toString().toUpper()
+                           + QStringLiteral(" · ") + names.join(QStringLiteral(", "));
+#endif
+}
 
 void InstallerController::refreshDisks()
 {
