@@ -102,6 +102,33 @@ class GenerateConfigTests(unittest.TestCase):
 
 
 
+    def test_build_user_credentials_happy_path(self):
+        selections = {"user": {"username": "testuser"}}
+        secrets = {
+            "rootPasswordHash": "root_hash",
+            "userPasswordHash": "user_hash",
+            "diskEncryptionPassword": "disk_pass"
+        }
+        payload = MODULE.build_user_credentials(selections, secrets)
+        self.assertEqual(payload["root_enc_password"], "root_hash")
+        self.assertEqual(len(payload["users"]), 1)
+        self.assertEqual(payload["users"][0], {"username": "testuser", "enc_password": "user_hash", "sudo": True})
+        self.assertEqual(payload["encryption_password"], "disk_pass")
+
+    def test_build_user_credentials_missing_username(self):
+        selections = {"user": {}}
+        secrets = {"rootPasswordHash": "root_hash"}
+        payload = MODULE.build_user_credentials(selections, secrets)
+        self.assertEqual(payload["users"], [])
+        self.assertNotIn("encryption_password", payload)
+        self.assertEqual(payload["root_enc_password"], "root_hash")
+
+    def test_build_user_credentials_empty_inputs(self):
+        payload = MODULE.build_user_credentials({}, {})
+        self.assertEqual(payload["users"], [])
+        self.assertEqual(payload["root_enc_password"], "")
+        self.assertNotIn("encryption_password", payload)
+
     def test_load_json_valid_file(self):
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory) / "valid.json"
