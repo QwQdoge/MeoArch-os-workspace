@@ -8,6 +8,152 @@ ShowcaseCategoryPage {
     id: expressivePage
     categoryId: "expressive"
 
+    // 🌟 M3 Expressive FAB Gallery
+    ShowcaseSection {
+        title: "M3 Expressive FAB Gallery"
+        subtitle: "Showcasing modernized Extended FAB sizes, expressive shapes, vibrant colors, outlines, and selection states."
+        width: parent.width
+
+        Column {
+            width: parent.width
+            spacing: MeoTheme.space24
+
+            // Row 1: Extended FAB Size Scale
+            Column {
+                width: parent.width
+                spacing: MeoTheme.space12
+
+                Text {
+                    text: "1. Extended FAB Sizes (Small 56dp, Medium 80dp, Large 96dp)"
+                    font.family: MeoTheme.typefacePlain
+                    font.pixelSize: 14 * MeoTheme.globalScale
+                    font.weight: Font.DemiBold
+                    color: MeoTheme.contentOnSurface
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: MeoTheme.space16
+
+                    MeoFAB {
+                        type: "extended"
+                        size: "small"
+                        text: "Small Extended (56dp)"
+                        icon.name: "add"
+                    }
+
+                    MeoFAB {
+                        type: "extended"
+                        size: "medium"
+                        text: "Medium Extended (80dp)"
+                        icon.name: "palette"
+                    }
+
+                    MeoFAB {
+                        type: "extended"
+                        size: "large"
+                        text: "Large Extended (96dp)"
+                        icon.name: "brush"
+                    }
+                }
+            }
+
+            // Row 2: Expressive Shape library applied to FABs
+            Column {
+                width: parent.width
+                spacing: MeoTheme.space12
+
+                Text {
+                    text: "2. Expressive Shapes (Squircle, Clover, Star, Hexagon)"
+                    font.family: MeoTheme.typefacePlain
+                    font.pixelSize: 14 * MeoTheme.globalScale
+                    font.weight: Font.DemiBold
+                    color: MeoTheme.contentOnSurface
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: MeoTheme.space16
+
+                    MeoFAB {
+                        type: "regular"
+                        shape: "squircle"
+                        icon.name: "auto_awesome"
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Squircle Shape"
+                    }
+
+                    MeoFAB {
+                        type: "regular"
+                        shape: "clover"
+                        icon.name: "favorite"
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Clover Shape"
+                    }
+
+                    MeoFAB {
+                        type: "regular"
+                        shape: "star"
+                        icon.name: "star"
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Star Shape"
+                    }
+
+                    MeoFAB {
+                        type: "regular"
+                        shape: "hexagon"
+                        icon.name: "settings"
+                        ToolTip.visible: hovered
+                        ToolTip.text: "Hexagon Shape"
+                    }
+                }
+            }
+
+            // Row 3: Styling Variants & Toggle States
+            Column {
+                width: parent.width
+                spacing: MeoTheme.space12
+
+                Text {
+                    text: "3. Styling Variants & Toggle/Selected States"
+                    font.family: MeoTheme.typefacePlain
+                    font.pixelSize: 14 * MeoTheme.globalScale
+                    font.weight: Font.DemiBold
+                    color: MeoTheme.contentOnSurface
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: MeoTheme.space16
+
+                    MeoFAB {
+                        type: "extended"
+                        size: "small"
+                        text: "Vibrant Gradient"
+                        icon.name: "bolt"
+                        vibrant: true
+                    }
+
+                    MeoFAB {
+                        type: "extended"
+                        size: "small"
+                        text: "Outlined Style"
+                        icon.name: "edit"
+                        outlined: true
+                    }
+
+                    MeoFAB {
+                        type: "extended"
+                        size: "small"
+                        text: "Toggled / Selected"
+                        icon.name: "check"
+                        selected: true
+                    }
+                }
+            }
+        }
+    }
+
     // 🌟 Sizing scale variants (XS to XL)
     ShowcaseSection {
         title: "Expressive XS-XL Sizing Scale"
