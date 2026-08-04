@@ -231,12 +231,56 @@ Item {
 
     Component {
         id: fabSample
-        Flow {
+        Column {
             spacing: MeoTheme.space24
-            FabColumn { label: "Small"; fabType: "small"; fabIcon: "edit" }
-            FabColumn { label: "Regular"; fabType: "regular"; fabIcon: "add" }
-            FabColumn { label: "Large"; fabType: "large"; fabIcon: "palette" }
-            FabColumn { label: "Extended"; fabType: "extended"; fabIcon: "send"; fabText: "Send" }
+
+            Column {
+                spacing: MeoTheme.space8
+                MeoText { text: "Standard Floating Action Buttons (FAB)"; typeRole: "title"; typeSize: "small"; color: MeoTheme.contentOnSurface }
+                Row {
+                    spacing: MeoTheme.space24
+                    FabColumn { label: "Small (40dp)"; fabSize: "small"; fabIcon: "edit" }
+                    FabColumn { label: "Medium (56dp)"; fabSize: "medium"; fabIcon: "add" }
+                    FabColumn { label: "Medium-Increased (80dp)"; fabSize: "medium-increased"; fabIcon: "palette" }
+                    FabColumn { label: "Large (96dp)"; fabSize: "large"; fabIcon: "star" }
+                    FabColumn { label: "Disabled"; fabSize: "medium"; fabIcon: "add"; fabEnabled: false }
+                }
+            }
+
+            Column {
+                spacing: MeoTheme.space8
+                MeoText { text: "M3 Expressive Extended FABs (with Text & Autoscaling)"; typeRole: "title"; typeSize: "small"; color: MeoTheme.contentOnSurface }
+                Row {
+                    spacing: MeoTheme.space24
+                    FabColumn { label: "Small Ext (56dp)"; fabSize: "small"; fabExtended: true; fabIcon: "send"; fabText: "Small Send" }
+                    FabColumn { label: "Medium Ext (80dp)"; fabSize: "medium"; fabExtended: true; fabIcon: "mail"; fabText: "Compose Mail" }
+                    FabColumn { label: "Large Ext (96dp)"; fabSize: "large"; fabExtended: true; fabIcon: "palette"; fabText: "New Design" }
+                }
+            }
+
+            Column {
+                spacing: MeoTheme.space8
+                MeoText { text: "Expressive Collapsed / Expanded Interactions"; typeRole: "title"; typeSize: "small"; color: MeoTheme.contentOnSurface }
+                Row {
+                    spacing: MeoTheme.space24
+                    verticalAlignment: Qt.AlignVCenter
+
+                    MeoFAB {
+                        id: interactiveFab
+                        size: "medium"
+                        extended: true
+                        icon.name: "favorite"
+                        text: "Interactive Toggle"
+                        collapsed: collapseSwitch.checked
+                    }
+
+                    MeoSwitch {
+                        id: collapseSwitch
+                        label: "Collapsed state"
+                        checked: false
+                    }
+                }
+            }
         }
     }
     Component {
@@ -1058,14 +1102,22 @@ Item {
     component FabColumn: Column {
         property string label: ""
         property string fabType: "regular"
+        property string fabSize: "medium"
         property string fabIcon: "add"
         property string fabText: ""
+        property bool fabExtended: false
+        property bool fabCollapsed: false
+        property bool fabEnabled: true
 
         spacing: MeoTheme.space8
 
         MeoFAB {
             anchors.horizontalCenter: parent.horizontalCenter
             type: parent.fabType
+            size: parent.fabSize
+            extended: parent.fabExtended
+            collapsed: parent.fabCollapsed
+            enabled: parent.fabEnabled
             icon.name: parent.fabIcon
             text: parent.fabText
         }
