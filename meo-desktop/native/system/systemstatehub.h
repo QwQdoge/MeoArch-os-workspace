@@ -63,6 +63,11 @@ Q_SIGNALS:
     void audioChanged();
 
 private:
+
+    void initNetwork();
+    void initBluetooth();
+    void initBattery();
+    void initAudio();
     void refreshBluetoothConnections();
     void refreshBattery();
     void bindAudioSink();
