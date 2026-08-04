@@ -326,8 +326,14 @@ Control {
         y: containerRect.height
         model: {
             let m = []
+            let selMap = {}
+            if (control.selectedIndices) {
+                for (let j = 0; j < control.selectedIndices.length; j++) {
+                    selMap[control.selectedIndices[j]] = true;
+                }
+            }
             for (let i = 0; i < control.model.length; i++) {
-                let isSel = control.selectedIndices && control.selectedIndices.indexOf(i) !== -1;
+                let isSel = selMap[i] === true;
                 m.push({
                     label: control.model[i],
                     icon: isSel ? "check" : "",
