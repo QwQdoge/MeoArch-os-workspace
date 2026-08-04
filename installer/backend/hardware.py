@@ -84,6 +84,7 @@ def detect_devices(sysfs_root: Path = Path("/sys/bus/pci/devices")) -> list[dict
 def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
     """Build a de-duplicated package plan while preserving detected adapters."""
     devices = list(devices)
+    seen_vendors = set()
     vendors: list[str] = []
     seen_vendors = set()
     for device in devices:
@@ -92,6 +93,7 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
             seen_vendors.add(vendor)
             vendors.append(vendor)
 
+    seen_packages = set()
     packages: list[str] = []
     seen_packages = set()
     for vendor in vendors:
