@@ -85,15 +85,19 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
     """Build a de-duplicated package plan while preserving detected adapters."""
     devices = list(devices)
     vendors: list[str] = []
+    seen_vendors = set()
     for device in devices:
         vendor = device.get("vendor", "unknown")
-        if vendor not in vendors:
+        if vendor not in seen_vendors:
+            seen_vendors.add(vendor)
             vendors.append(vendor)
 
     packages: list[str] = []
+    seen_packages = set()
     for vendor in vendors:
         for package in DRIVER_PACKAGES.get(vendor, []):
-            if package not in packages:
+            if package not in seen_packages:
+                seen_packages.add(package)
                 packages.append(package)
     if not packages:
         packages = FALLBACK_PACKAGES.copy()
