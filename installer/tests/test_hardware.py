@@ -1,6 +1,7 @@
 import importlib.util
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 
@@ -34,6 +35,18 @@ class HardwareDetectionTests(unittest.TestCase):
         self.assertFalse(plan["detected"])
         self.assertEqual(plan["packages"], MODULE.FALLBACK_PACKAGES)
 
+
+
+    @unittest.mock.patch("subprocess.run")
+    def test_lspci_missing_command(self, mock_run):
+        mock_run.side_effect = FileNotFoundError()
+        self.assertEqual(MODULE.lspci_devices(), [])
+
+    @unittest.mock.patch("subprocess.run")
+    def test_lspci_timeout(self, mock_run):
+        import subprocess
+        mock_run.side_effect = subprocess.SubprocessError()
+        self.assertEqual(MODULE.lspci_devices(), [])
 
 if __name__ == "__main__":
     unittest.main()
