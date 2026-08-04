@@ -29,21 +29,21 @@ Column {
             indeterminate: !isAllSelected() && isAnySelected()
             onToggled: {
                 let target = !isAllSelected()
-                let newModel = [...control.model]
-                for (let i = 0; i < newModel.length; i++) {
-                    newModel[i].checked = target
+                let m = control.model
+                for (let i = 0; i < m.length; i++) {
+                    m[i].checked = target
                 }
-                control.model = newModel
+                control.modelChanged()
                 control.changed(control.model)
             }
         }
         onClicked: {
             let target = !isAllSelected()
-            let newModel = [...control.model]
-            for (let i = 0; i < newModel.length; i++) {
-                newModel[i].checked = target
+            let m = control.model
+            for (let i = 0; i < m.length; i++) {
+                m[i].checked = target
             }
-            control.model = newModel
+            control.modelChanged()
             control.changed(control.model)
         }
     }
@@ -69,9 +69,9 @@ Column {
                 MeoCheckbox {
                     checked: isChecked
                     onToggled: {
-                        let newModel = [...control.model]
-                        newModel[index].checked = !newModel[index].checked
-                        control.model = newModel
+                        let m = control.model
+                        m[index].checked = !m[index].checked
+                        control.modelChanged()
                         control.changed(control.model)
                     }
                 }
@@ -82,26 +82,26 @@ Column {
                 MeoRadioButton {
                     checked: isChecked
                     onToggled: {
-                        let newModel = [...control.model]
-                        for (let i = 0; i < newModel.length; i++) {
-                            newModel[i].checked = (i === index)
+                        let m = control.model
+                        for (let i = 0; i < m.length; i++) {
+                            m[i].checked = (i === index)
                         }
-                        control.model = newModel
+                        control.modelChanged()
                         control.changed(control.model)
                     }
                 }
             }
 
             onClicked: {
-                let newModel = [...control.model]
+                let m = control.model
                 if (control.type === "radio") {
-                    for (let i = 0; i < newModel.length; i++) {
-                        newModel[i].checked = (i === index)
+                    for (let i = 0; i < m.length; i++) {
+                        m[i].checked = (i === index)
                     }
                 } else {
-                    newModel[index].checked = !newModel[index].checked
+                    m[index].checked = !m[index].checked
                 }
-                control.model = newModel
+                control.modelChanged()
                 control.changed(control.model)
             }
         }
