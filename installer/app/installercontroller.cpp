@@ -376,7 +376,6 @@ bool InstallerController::setAccountPassword(const QString &password)
         setError(QStringLiteral("Password must contain at least 8 characters."));
         return false;
     }
-#ifdef Q_OS_LINUX
     QProcess process;
     process.start(QStringLiteral("openssl"),
                   {QStringLiteral("passwd"), QStringLiteral("-6"), QStringLiteral("-stdin")});
@@ -399,11 +398,6 @@ bool InstallerController::setAccountPassword(const QString &password)
     }
     setError({});
     return true;
-#else
-    Q_UNUSED(password)
-    setError(QStringLiteral("Password hashing is unavailable on this platform."));
-    return false;
-#endif
 }
 
 QString InstallerController::sourceRoot() const
