@@ -14,13 +14,24 @@ SystemStateHub::SystemStateHub(QObject *parent)
     , m_bluetoothManager(this)
     , m_audioContext(PulseAudioQt::Context::instance())
 {
+    initNetwork();
+    initBluetooth();
+    initBattery();
+    initAudio();
+}
+
+void SystemStateHub::initNetwork()
+{
     auto *networkNotifier = NetworkManager::notifier();
     connect(networkNotifier, &NetworkManager::Notifier::statusChanged, this, &SystemStateHub::networkChanged);
     connect(networkNotifier, &NetworkManager::Notifier::wirelessEnabledChanged, this, &SystemStateHub::networkChanged);
     connect(networkNotifier, &NetworkManager::Notifier::wirelessHardwareEnabledChanged, this, &SystemStateHub::networkChanged);
     connect(networkNotifier, &NetworkManager::Notifier::primaryConnectionChanged, this, &SystemStateHub::networkChanged);
     connect(networkNotifier, &NetworkManager::Notifier::connectivityChanged, this, &SystemStateHub::networkChanged);
+}
 
+void SystemStateHub::initBluetooth()
+{
     connect(&m_bluetoothManager, &BluezQt::Manager::operationalChanged, this, [this] {
         refreshBluetoothConnections();
         Q_EMIT bluetoothChanged();
@@ -42,12 +53,18 @@ SystemStateHub::SystemStateHub(QObject *parent)
         refreshBluetoothConnections();
         Q_EMIT bluetoothChanged();
     });
+}
 
+void SystemStateHub::initBattery()
+{
     auto *deviceNotifier = Solid::DeviceNotifier::instance();
     connect(deviceNotifier, &Solid::DeviceNotifier::deviceAdded, this, [this] { refreshBattery(); });
     connect(deviceNotifier, &Solid::DeviceNotifier::deviceRemoved, this, [this] { refreshBattery(); });
     refreshBattery();
+}
 
+void SystemStateHub::initAudio()
+{
     connect(m_audioContext, &PulseAudioQt::Context::stateChanged, this, [this] {
         bindAudioSink();
         Q_EMIT audioChanged();
