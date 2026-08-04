@@ -15,6 +15,7 @@ MeoMotionPopup {
     property string pendingId: selectedId
     property string searchText: ""
     property var filteredModel: []
+    property var _searchHaystacks: []
     signal applied(string id)
     anchors.centerIn: Overlay.overlay
     width: Math.min(720, Overlay.overlay ? Overlay.overlay.width - 64 : 720)
@@ -23,18 +24,34 @@ MeoMotionPopup {
     closePolicy: Popup.CloseOnEscape
     initialFocusItem: search
 
-    function rebuild() {
-        const needle = searchText.trim().toLowerCase()
-        const result = []
+    function updateHaystacks() {
+        const haystacks = new Array(sourceModel.length)
         for (let i = 0; i < sourceModel.length; ++i) {
             const item = sourceModel[i]
-            const haystack = (String(item[labelKey] || "") + " " + String(item[secondaryKey] || "") + " " + String(item[primaryKey] || "") + " " + String(item.alpha2 || "") + " " + String(item.alpha3 || "")).toLowerCase()
-            if (!needle || haystack.indexOf(needle) >= 0)
-                result.push(item)
+            haystacks[i] = (String(item[labelKey] || "") + " " + String(item[secondaryKey] || "") + " " + String(item[primaryKey] || "") + " " + String(item.alpha2 || "") + " " + String(item.alpha3 || "")).toLowerCase()
+        }
+        _searchHaystacks = haystacks
+    }
+
+    function rebuild() {
+        const needle = searchText.trim().toLowerCase()
+        if (!needle) {
+            filteredModel = sourceModel
+            return
+        }
+
+        if (_searchHaystacks.length !== sourceModel.length) {
+            updateHaystacks()
+        }
+
+        const result = []
+        for (let i = 0; i < sourceModel.length; ++i) {
+            if (_searchHaystacks[i] !== undefined && _searchHaystacks[i].indexOf(needle) >= 0)
+                result.push(sourceModel[i])
         }
         filteredModel = result
     }
-    onSourceModelChanged: rebuild()
+    onSourceModelChanged: { updateHaystacks(); rebuild() }
     onSearchTextChanged: rebuild()
     onOpened: { pendingId = selectedId; search.forceActiveFocus(); rebuild(); list.positionViewAtIndex(Math.max(0, list.currentIndex), ListView.Center) }
 
