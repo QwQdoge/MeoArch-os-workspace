@@ -101,5 +101,27 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertFalse(provisioning["launchOnFirstLogin"])
 
 
+
+    def test_load_json_valid_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "valid.json"
+            target.write_text('{"key": "value"}', encoding="utf-8")
+            result = MODULE.load_json(target)
+            self.assertEqual(result, {"key": "value"})
+
+    def test_load_json_bad_json(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "bad.json"
+            target.write_text('{bad json}', encoding="utf-8")
+            with self.assertRaises(json.JSONDecodeError):
+                MODULE.load_json(target)
+
+    def test_load_json_missing_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "missing.json"
+            with self.assertRaises(FileNotFoundError):
+                MODULE.load_json(target)
+
+
 if __name__ == "__main__":
     unittest.main()
