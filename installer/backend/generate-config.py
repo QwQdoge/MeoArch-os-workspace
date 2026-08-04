@@ -99,13 +99,17 @@ def build_default_disk_layout(selections):
     }
 
 
+def build_package_list(hardware_plan=None):
+    hardware_packages = (hardware_plan or driver_plan(detect_devices()))["packages"]
+    return list(dict.fromkeys(hardware_packages + MEO_DESKTOP_PACKAGES))
+
+
 def build_user_configuration(selections, hardware_plan=None):
     locale = selections.get("locale", {})
     user = selections.get("user", {})
     disk = selections.get("disk", {})
     swap_mode = disk.get("swap", "zram")
-    hardware_packages = (hardware_plan or driver_plan(detect_devices()))["packages"]
-    desktop_packages = list(dict.fromkeys(hardware_packages + MEO_DESKTOP_PACKAGES))
+    desktop_packages = build_package_list(hardware_plan)
     config = {
         "archinstall-language": "English",
         "audio_config": {"audio": "pipewire"},
