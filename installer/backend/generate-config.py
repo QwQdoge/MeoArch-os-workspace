@@ -178,8 +178,10 @@ def build_omnistore_provisioning(selections):
     software = selections.get("software", {})
     allowed_profiles = {"productivity", "creative", "developer", "gaming"}
     profiles = []
+    seen = set()
     for profile in software.get("profiles", []):
-        if profile in allowed_profiles and profile not in profiles:
+        if profile in allowed_profiles and profile not in seen:
+            seen.add(profile)
             profiles.append(profile)
     return {
         "schemaVersion": 1,
