@@ -2,6 +2,8 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+projects_root="$(cd "${repo_root}/.." && pwd)"
+meo_kde_src="${projects_root}/meo-kde"
 airootfs="${MEOARCH_AIROOTFS:-${repo_root}/meoarch-os/airootfs}"
 installer_src="${repo_root}/installer"
 installer_dst="${airootfs}/opt/meoarch-installer"
@@ -22,7 +24,7 @@ if [ ! -f "${runtime_root}/lib/libmeoui.so.0" ] \
   exit 1
 fi
 
-cmake -S "${repo_root}/meo-desktop/native/system" -B "${meosystem_build}" \
+cmake -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "${meosystem_build}" --parallel
 
@@ -30,10 +32,10 @@ rm -rf "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem
 install -d "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}" "${airootfs}/usr/lib"
 cp -a "${runtime_root}/lib/libmeoui.so"* "${airootfs}/usr/lib/"
 cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
-cp -a "${repo_root}/meo-desktop/qml/MeoKDE/." "${meokde_qml_dst}/"
+cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
 cp -a "${meosystem_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
-cp -a "${repo_root}/meo-desktop/assets/fonts/"*.ttf "${meokde_fonts_dst}/"
-install -Dm644 "${repo_root}/meo-desktop/defaults/fonts/50-meo-fonts.conf" \
+cp -a "${meo_kde_src}/assets/fonts/"*.ttf "${meokde_fonts_dst}/"
+install -Dm644 "${meo_kde_src}/defaults/fonts/50-meo-fonts.conf" \
   "${airootfs}/etc/fonts/conf.avail/50-meo-fonts.conf"
 install -d "${airootfs}/etc/fonts/conf.d"
 ln -sfn ../conf.avail/50-meo-fonts.conf \
@@ -59,15 +61,15 @@ install -d \
   "${desktop_dst}/branding" \
   "${desktop_dst}/defaults" \
   "${desktop_dst}/wallpaper"
-cp -a "${repo_root}/meo-desktop/themes/look-and-feel/org.meo.desktop" \
+cp -a "${meo_kde_src}/themes/look-and-feel/org.meo.desktop" \
   "${desktop_dst}/themes/look-and-feel/org.meo.desktop"
-cp -a "${repo_root}/meo-desktop/themes/desktoptheme/Meo" \
-  "${desktop_dst}/themes/desktoptheme/Meo"
-cp -a "${repo_root}/meo-desktop/icons/Meo" "${desktop_dst}/icons/Meo"
-if [ -d "${repo_root}/meo-desktop/plasmoids" ]; then
-  cp -a "${repo_root}/meo-desktop/plasmoids/." "${desktop_dst}/plasmoids/"
+cp -a "${meo_kde_src}/themes/desktoptheme/MeoLight" \
+  "${desktop_dst}/themes/desktoptheme/MeoLight"
+cp -a "${meo_kde_src}/icons/Meo" "${desktop_dst}/icons/Meo" 2>/dev/null || true
+if [ -d "${meo_kde_src}/plasmoids" ]; then
+  cp -a "${meo_kde_src}/plasmoids/." "${desktop_dst}/plasmoids/"
 fi
-cp -a "${repo_root}/meo-desktop/defaults/." "${desktop_dst}/defaults/"
+cp -a "${meo_kde_src}/defaults/." "${desktop_dst}/defaults/"
 install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
   "${desktop_dst}/branding/Logo.svg"
 install -Dm644 "${repo_root}/assets/wallpapers/installer_background.png" \
@@ -85,19 +87,16 @@ install -d \
   "${desktop_live_wallpaper}" \
   "${airootfs}/etc/sddm.conf.d" \
   "${airootfs}/etc/xdg"
-cp -a "${repo_root}/meo-desktop/themes/look-and-feel/org.meo.desktop" \
+cp -a "${meo_kde_src}/themes/look-and-feel/org.meo.desktop" \
   "${desktop_live_theme}"
-rm -rf "${airootfs}/usr/share/plasma/desktoptheme/Meo" "${airootfs}/usr/share/icons/Meo"
-cp -a "${repo_root}/meo-desktop/themes/desktoptheme/Meo" \
-  "${airootfs}/usr/share/plasma/desktoptheme/Meo"
-cp -a "${repo_root}/meo-desktop/icons/Meo" "${airootfs}/usr/share/icons/Meo"
-if [ -d "${repo_root}/meo-desktop/plasmoids" ]; then
-  rm -rf "${airootfs}/usr/share/plasma/plasmoids/org.meo.launcher" \
-         "${airootfs}/usr/share/plasma/plasmoids/org.meo.quicksettings"
+if [ -d "${meo_kde_src}/themes/desktoptheme" ]; then
+  cp -a "${meo_kde_src}/themes/desktoptheme/." "${airootfs}/usr/share/plasma/desktoptheme/"
+fi
+if [ -d "${meo_kde_src}/plasmoids" ]; then
   for plasmoid in org.meo.shelf org.meo.topbar; do
-    if [ -d "${repo_root}/meo-desktop/plasmoids/${plasmoid}" ]; then
+    if [ -d "${meo_kde_src}/plasmoids/${plasmoid}" ]; then
       rm -rf "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
-      cp -a "${repo_root}/meo-desktop/plasmoids/${plasmoid}" "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
+      cp -a "${meo_kde_src}/plasmoids/${plasmoid}" "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
     fi
   done
 fi
@@ -107,17 +106,17 @@ install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
   "${airootfs}/usr/share/pixmaps/meoarch-logo.svg"
 install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
   "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg"
-install -Dm644 "${repo_root}/meo-desktop/defaults/sddm/theme.conf.user" \
+install -Dm644 "${meo_kde_src}/defaults/sddm/theme.conf.user" \
   "${airootfs}/usr/share/sddm/themes/breeze/theme.conf.user"
-install -Dm644 "${repo_root}/meo-desktop/defaults/system/os-release" \
+install -Dm644 "${meo_kde_src}/defaults/system/os-release" \
   "${airootfs}/etc/os-release"
-install -Dm644 "${repo_root}/meo-desktop/defaults/kde/kdeglobals" \
+install -Dm644 "${meo_kde_src}/defaults/kde/kdeglobals" \
   "${airootfs}/etc/xdg/kdeglobals"
-install -Dm644 "${repo_root}/meo-desktop/defaults/kwin/kwinrc" \
+install -Dm644 "${meo_kde_src}/defaults/kwin/kwinrc" \
   "${airootfs}/etc/xdg/kwinrc"
-install -Dm644 "${repo_root}/meo-desktop/defaults/plasma/plasmarc" \
+install -Dm644 "${meo_kde_src}/defaults/plasma/plasmarc" \
   "${airootfs}/etc/xdg/plasmarc"
-install -Dm644 "${repo_root}/meo-desktop/defaults/plasma/plasma-welcomerc" \
+install -Dm644 "${meo_kde_src}/defaults/plasma/plasma-welcomerc" \
   "${airootfs}/etc/xdg/plasma-welcomerc"
 
 native_binary="${MEOARCH_INSTALLER_NATIVE_BINARY:-${repo_root}/build/installer-host/meoarch-installer-app}"
