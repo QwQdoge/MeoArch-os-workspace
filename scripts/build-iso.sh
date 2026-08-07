@@ -59,7 +59,7 @@ for required in \
   "${source_profile}/profiledef.sh" \
   "${source_profile}/packages.x86_64" \
   "${repo_root}/installer/CMakeLists.txt" \
-  "${repo_root}/themes/MeoUI/CMakeLists.txt"; do
+  "${projects_root}/meo-ui/CMakeLists.txt"; do
   [ -f "${required}" ] || {
     echo "Required project file is missing: ${required}" >&2
     exit 3

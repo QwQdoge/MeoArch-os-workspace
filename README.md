@@ -38,9 +38,7 @@ MeoArch_os-workspace/
 │   ├── pacman/
 │   ├── zsh/
 │   └── network/
-├── themes/              # UI, GTK, Qt, GRUB, SDDM, and related themes
-│   └── MeoUI/
-├── meo-desktop/         # KDE Plasma profile, UX docs, setup, and packaging
+├── themes/              # Theme configuration & single source of truth reference
 ├── installer/           # Standalone Cage installer source
 │   ├── bin/
 │   └── qml/
