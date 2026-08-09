@@ -16,6 +16,7 @@ meokde_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoKDE"
 meosystem_qml_dst="${airootfs}/usr/lib/qt6/qml/Meo/System"
 meokde_fonts_dst="${airootfs}/usr/share/fonts/meo"
 meosystem_build="${repo_root}/build/meo-system"
+meokde_native_build="${repo_root}/build/meo-kde-native"
 legacy_meoui_dst="${airootfs}/opt/meo-ui"
 
 if [ ! -f "${runtime_root}/lib/libmeoui.so.0" ] \
@@ -27,6 +28,9 @@ fi
 cmake -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "${meosystem_build}" --parallel
+cmake -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build "${meokde_native_build}" --parallel
 
 rm -rf "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}"
 install -d "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}" "${airootfs}/usr/lib"
@@ -84,6 +88,8 @@ install -d \
   "${airootfs}/usr/share/icons/hicolor/scalable/apps" \
   "${airootfs}/usr/share/pixmaps" \
   "${airootfs}/usr/share/sddm/themes/breeze" \
+  "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3" \
+  "${airootfs}/usr/lib/qt6/plugins/kwin/effects/plugins" \
   "${desktop_live_wallpaper}" \
   "${airootfs}/etc/sddm.conf.d" \
   "${airootfs}/etc/xdg"
@@ -118,6 +124,10 @@ install -Dm644 "${meo_kde_src}/defaults/plasma/plasmarc" \
   "${airootfs}/etc/xdg/plasmarc"
 install -Dm644 "${meo_kde_src}/defaults/plasma/plasma-welcomerc" \
   "${airootfs}/etc/xdg/plasma-welcomerc"
+install -Dm755 "${meokde_native_build}/bin/org.kde.kdecoration3/org.meo.decoration.so" \
+  "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3/org.meo.decoration.so"
+install -Dm755 "${meokde_native_build}/bin/kwin/effects/plugins/org.meo.windowcorners.so" \
+  "${airootfs}/usr/lib/qt6/plugins/kwin/effects/plugins/org.meo.windowcorners.so"
 
 native_binary="${MEOARCH_INSTALLER_NATIVE_BINARY:-${repo_root}/build/installer-host/meoarch-installer-app}"
 if [ -x "${native_binary}" ]; then
