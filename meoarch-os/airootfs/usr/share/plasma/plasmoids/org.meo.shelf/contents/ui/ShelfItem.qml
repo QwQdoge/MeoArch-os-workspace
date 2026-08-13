@@ -28,7 +28,9 @@ Item {
         NumberAnimation { duration: MeoMotion.press; easing.type: Easing.OutCubic }
     }
 
-    // Active / Hover background container
+    // Active / hover container.  The launcher itself keeps its Meo logo while
+    // individual applications retain their native brand icon; shell controls
+    // elsewhere use Material Symbols Rounded.
     Rectangle {
         id: bgContainer
 
@@ -62,7 +64,7 @@ Item {
 
             Kirigami.Icon {
                 anchors.fill: parent
-                source: root.isLauncher ? "meoarch-logo"
+                source: root.isLauncher ? Qt.resolvedUrl("../images/meoarch-logo.svg")
                                         : (root.iconName !== "" ? root.iconName
                                                                : (root.iconSource ? root.iconSource : "application-x-executable"))
             }

@@ -87,8 +87,8 @@ Item {
         y: frame.pageMargin
         width: windowMetrics.isExtraLargeWidth ? frame.dp(328) : frame.dp(278)
         height: windowMetrics.isExtraLargeWidth ? frame.dp(56) : frame.dp(48)
-        radius: frame.dp(18)
-        color: Qt.rgba(1, 1, 1, 0.86)
+        radius: MeoTheme.shapeLargeIncreased
+        color: MeoTheme.surfaceContainer
 
         Row {
             anchors.fill: parent
@@ -169,7 +169,7 @@ Item {
                 required property int index
                 width: ListView.view.width
                 height: frame.dp(48)
-                radius: frame.dp(12)
+                radius: MeoTheme.shapeMedium
                 color: frame.controller && frame.controller.uiLanguage === modelData.id
                        ? MeoTheme.primaryContainer : "transparent"
                 activeFocusOnTab: true
@@ -259,8 +259,9 @@ Item {
         y: frame.cardTop
         width: frame.mainCardWidth
         height: frame.mainCardHeight
-        radius: windowMetrics.isExtraLargeWidth ? frame.dp(32) : frame.dp(28)
-        color: Qt.rgba(1, 1, 1, 0.96)
+        radius: windowMetrics.isExtraLargeWidth ? MeoTheme.shapeExtraLargeIncreased
+                                                : MeoTheme.shapeExtraLarge
+        color: MeoTheme.surfaceContainerLowest
         elevation: 3
 
         Flickable {

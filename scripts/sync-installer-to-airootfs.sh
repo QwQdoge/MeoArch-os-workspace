@@ -25,11 +25,11 @@ if [ ! -f "${runtime_root}/lib/libmeoui.so.0" ] \
   exit 1
 fi
 
-cmake -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
+cmake --fresh -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "${meosystem_build}" --parallel
-cmake -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --fresh -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEOUI_SOURCE_DIR="${projects_root}/meo-ui"
 cmake --build "${meokde_native_build}" --parallel
 
 rm -rf "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}"
@@ -89,6 +89,8 @@ install -d \
   "${airootfs}/usr/share/pixmaps" \
   "${airootfs}/usr/share/sddm/themes/breeze" \
   "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3" \
+  "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm" \
+  "${airootfs}/usr/lib/qt6/plugins/styles" \
   "${airootfs}/usr/lib/qt6/plugins/kwin/effects/plugins" \
   "${desktop_live_wallpaper}" \
   "${airootfs}/etc/sddm.conf.d" \
@@ -126,8 +128,13 @@ install -Dm644 "${meo_kde_src}/defaults/plasma/plasma-welcomerc" \
   "${airootfs}/etc/xdg/plasma-welcomerc"
 install -Dm755 "${meokde_native_build}/bin/org.kde.kdecoration3/org.meo.decoration.so" \
   "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3/org.meo.decoration.so"
-install -Dm755 "${meokde_native_build}/bin/kwin/effects/plugins/org.meo.windowcorners.so" \
-  "${airootfs}/usr/lib/qt6/plugins/kwin/effects/plugins/org.meo.windowcorners.so"
+install -Dm755 "${meokde_native_build}/decoration/kcm_meodecoration.so" \
+  "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm/kcm_meodecoration.so"
+install -Dm755 "${meokde_native_build}/qt-plugins/styles/meostyle.so" \
+  "${airootfs}/usr/lib/qt6/plugins/styles/meostyle.so"
+# The old clipping effect is intentionally retired. KWin's maintained shape
+# corners effect and the native decoration now own the window geometry.
+rm -f "${airootfs}/usr/lib/qt6/plugins/kwin/effects/plugins/org.meo.windowcorners.so"
 
 native_binary="${MEOARCH_INSTALLER_NATIVE_BINARY:-${repo_root}/build/installer-host/meoarch-installer-app}"
 if [ -x "${native_binary}" ]; then
