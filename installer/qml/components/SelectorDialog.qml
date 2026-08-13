@@ -69,7 +69,7 @@ MeoMotionPopup {
                     if (String(popup.filteredModel[i][popup.primaryKey]) === popup.pendingId) return i
                 return -1
             }
-            highlight: Rectangle { radius: 16; color: MeoTheme.primaryContainer }
+            highlight: Rectangle { radius: MeoTheme.shapeLarge; color: MeoTheme.primaryContainer }
             highlightFollowsCurrentItem: true
             Keys.onDownPressed: incrementCurrentIndex()
             Keys.onUpPressed: decrementCurrentIndex()
@@ -78,7 +78,7 @@ MeoMotionPopup {
                 id: option
                 required property var modelData
                 required property int index
-                width: ListView.view.width; height: 56; radius: 16; color: "transparent"
+                width: ListView.view.width; height: 56; radius: MeoTheme.shapeLarge; color: "transparent"
                 activeFocusOnTab: true
                 Accessible.role: Accessible.RadioButton
                 Accessible.name: String(option.modelData[popup.labelKey] || option.modelData[popup.primaryKey])

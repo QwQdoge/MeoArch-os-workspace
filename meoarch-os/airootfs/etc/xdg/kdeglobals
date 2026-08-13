@@ -1,5 +1,5 @@
 [General]
-ColorScheme=BreezeLight
+ColorScheme=MeoLight
 Name=Meo Desktop
 font=Roboto,10,-1,5,50,0,0,0,0,0
 menuFont=Roboto,10,-1,5,50,0,0,0,0,0
@@ -12,7 +12,7 @@ SingleClick=false
 ShowDeleteCommand=false
 
 [Icons]
-Theme=Meo
+Theme=MeoSymbols
 
 [Colors:Selection]
 ColorScheme=AccentColor

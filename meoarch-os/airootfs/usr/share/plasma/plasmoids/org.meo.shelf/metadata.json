@@ -14,5 +14,6 @@
         "Version": "0.2.0",
         "Website": ""
     },
-    "KPackageStructure": "Plasma/Applet"
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0"
 }

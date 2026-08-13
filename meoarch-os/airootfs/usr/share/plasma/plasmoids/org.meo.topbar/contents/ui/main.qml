@@ -8,7 +8,7 @@ import org.kde.taskmanager as TaskManager
 import MeoUI 1.0
 import MeoKDE 1.0
 
-Item {
+PlasmoidItem {
     id: root
 
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground

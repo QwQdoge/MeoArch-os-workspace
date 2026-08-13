@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
-import org.kde.kirigami as Kirigami
 import org.kde.plasma.private.sessions 2.0 as Sessions
 import MeoUI 1.0
 import MeoKDE 1.0
@@ -85,12 +84,10 @@ QQC2.Popup {
                     anchors.fill: parent
                     anchors.margins: MeoTheme.space12
                     spacing: MeoTheme.space8
-                    Kirigami.Icon {
-                        source: SystemState.networkConnected
-                                ? "network-wireless-connected-100"
-                                : "network-wireless-disconnected"
-                        implicitWidth: ShellMetrics.statusIconSize
-                        implicitHeight: ShellMetrics.statusIconSize
+                    MeoIcon {
+                        icon: SystemState.networkConnected ? "wifi" : "wifi_off"
+                        size: ShellMetrics.statusIconSize
+                        color: MeoTheme.onSurface
                     }
                     ColumnLayout {
                         Layout.fillWidth: true
@@ -131,10 +128,10 @@ QQC2.Popup {
                     anchors.fill: parent
                     anchors.margins: MeoTheme.space12
                     spacing: MeoTheme.space8
-                    Kirigami.Icon {
-                        source: "bluetooth-active"
-                        implicitWidth: ShellMetrics.statusIconSize
-                        implicitHeight: ShellMetrics.statusIconSize
+                    MeoIcon {
+                        icon: "bluetooth"
+                        size: ShellMetrics.statusIconSize
+                        color: MeoTheme.onSurface
                     }
                     ColumnLayout {
                         Layout.fillWidth: true
@@ -171,10 +168,10 @@ QQC2.Popup {
                 Layout.fillWidth: true
                 spacing: MeoTheme.space12
 
-                Kirigami.Icon {
-                    source: SystemState.audioMuted ? "audio-volume-muted" : "audio-volume-high"
-                    implicitWidth: MeoTheme.iconSizeM
-                    implicitHeight: MeoTheme.iconSizeM
+                MeoIcon {
+                    icon: SystemState.audioMuted ? "volume_off" : "volume_up"
+                    size: MeoTheme.iconSizeM
+                    color: MeoTheme.onSurfaceVariant
 
                     MouseArea {
                         anchors.fill: parent
@@ -217,7 +214,7 @@ QQC2.Popup {
 
             // Settings Action
             MeoIconButton {
-                iconName: "preferences-system"
+                icon.name: "settings"
                 onClicked: {
                     Qt.openUrlExternally("systemsettings:")
                     quickSettingsPopup.close()
@@ -226,7 +223,7 @@ QQC2.Popup {
 
             // Power Action (capabilities come from KDE SessionManagement)
             MeoIconButton {
-                iconName: "system-shutdown"
+                icon.name: "power_settings_new"
                 enabled: sessionManagement.canLogout || sessionManagement.canShutdown || sessionManagement.canReboot
                 onClicked: {
                     powerMenu.popup()

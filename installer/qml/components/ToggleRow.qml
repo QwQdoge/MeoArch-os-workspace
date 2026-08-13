@@ -8,7 +8,7 @@ Rectangle {
     property alias checked: toggle.checked
     signal toggled(bool checked)
     color: "transparent"
-    radius: 12
+    radius: MeoTheme.shapeMedium
     implicitHeight: 58
     activeFocusOnTab: true
     Accessible.name: title

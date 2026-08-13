@@ -7,7 +7,7 @@ import org.kde.taskmanager as TaskManager
 import MeoUI 1.0
 import MeoKDE 1.0
 
-Item {
+PlasmoidItem {
     id: root
 
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
@@ -26,6 +26,7 @@ Item {
     readonly property int stateRevealed: 3
 
     property int currentShelfState: root.stateVisible
+    property int taskRevision: 0
     property bool isEdgeHovered: edgeMouseArea.containsMouse || surfaceContainerMouse.containsMouse
 
     // Edge Reveal Handle (48x4, radius 2, opacity 0.35 -> hover 64x4, opacity 0.7)
@@ -71,8 +72,10 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: ShellMetrics.shelfBottomMargin
 
-        width: Math.max(72 * MeoTheme.globalScale,
-                        Math.min(shelfContent.implicitWidth + 20 * MeoTheme.globalScale, root.width))
+        width: Math.min(root.width - 2 * MeoTheme.space8,
+                        Math.max(72 * MeoTheme.globalScale,
+                                 (tasksRepeater.count + 1) * ShellMetrics.shelfItemSize
+                                 + MeoTheme.space24 + MeoTheme.space8))
         height: ShellMetrics.shelfSurfaceHeight
         radius: height / 2
 
@@ -141,17 +144,30 @@ Item {
 
                 delegate: ShelfItem {
                     required property int index
-                    required property string display
-                    property var icon: null
-                    property var model: null
+                    readonly property var taskIndex: tasksModel.index(index, 0)
+                    readonly property int revision: root.taskRevision
 
-                    title: display || ""
-                    iconName: typeof icon === "string" ? icon : ""
-                    iconSource: typeof icon !== "string" ? icon : null
-                    isActive: model && typeof model.IsActive !== "undefined" ? model.IsActive : (model && typeof model.isActive !== "undefined" ? model.isActive : false)
+                    title: {
+                        revision
+                        return tasksModel.data(taskIndex, 0) || ""
+                    }
+                    iconSource: {
+                        revision
+                        return tasksModel.data(taskIndex, 1)
+                    }
+                    isActive: {
+                        revision
+                        return tasksModel.data(taskIndex, TaskManager.AbstractTasksModel.IsActive) || false
+                    }
                     isRunning: true
-                    winCount: model && typeof model.ChildCount !== "undefined" ? Math.max(1, model.ChildCount) : (model && typeof model.winCount !== "undefined" ? model.winCount : 1)
-                    isPinned: model && typeof model.IsPinned !== "undefined" ? model.IsPinned : false
+                    winCount: {
+                        revision
+                        return Math.max(1, tasksModel.data(taskIndex, TaskManager.AbstractTasksModel.ChildCount) || 1)
+                    }
+                    isPinned: {
+                        revision
+                        return tasksModel.data(taskIndex, TaskManager.AbstractTasksModel.IsLauncher) || false
+                    }
 
                     onClicked: (mouse) => {
                         var modelIndex = tasksModel.index(index, 0)
@@ -171,6 +187,14 @@ Item {
                         taskContextMenu.popup()
                     }
                 }
+            }
+
+            Connections {
+                target: tasksModel
+                function onDataChanged() { root.taskRevision++ }
+                function onModelReset() { root.taskRevision++ }
+                function onRowsInserted() { root.taskRevision++ }
+                function onRowsRemoved() { root.taskRevision++ }
             }
         }
     }
