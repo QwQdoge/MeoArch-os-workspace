@@ -135,6 +135,7 @@ for profile_dir in "${baseline_profile}" "${staged_profile}"; do
 done
 git archive --format=tar HEAD meoarch-os | tar -x -C "${baseline_profile}" --strip-components=1
 cp -a "${baseline_profile}/." "${staged_profile}/"
+sed -i -e "s/iso_version=\".*\"/iso_version=\"$(date -u +%Y.%m.%d-%H%M%S)\"/g" "${staged_profile}/profiledef.sh"
 
 if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
   [ -f "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" ] || {
@@ -173,7 +174,11 @@ for candidate in "${after_isos[@]}"; do
 done
 
 if [ -z "${iso_path}" ]; then
-  echo "mkarchiso returned successfully but no new ISO was found in ${out_dir}." >&2
+  iso_path="$(find "${out_dir}" -maxdepth 1 -type f -name '*.iso' -printf '%T@ %p\n' | sort -n | tail -n 1 | cut -d' ' -f2-)"
+fi
+
+if [ -z "${iso_path}" ]; then
+  echo "mkarchiso returned successfully but no ISO was found in ${out_dir}." >&2
   exit 5
 fi
 

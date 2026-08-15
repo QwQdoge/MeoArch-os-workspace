@@ -161,7 +161,7 @@ install -Dm644 "${meo_kde_src}/defaults/plasma/plasma-welcomerc" \
 
 plymouth_theme_dst="${airootfs}/usr/share/plymouth/themes/meoarch"
 rm -rf "${plymouth_theme_dst}"
-install -d "${plymouth_theme_dst}" "${airootfs}/etc/plymouth"
+install -d "${plymouth_theme_dst}" "${airootfs}/etc/plymouth" "${airootfs}/usr/lib/meoarch" "${airootfs}/usr/bin"
 cp -a "${repo_root}/themes/plymouth/meoarch/." "${plymouth_theme_dst}/"
 cat <<'EOF' >"${airootfs}/etc/plymouth/plymouthd.conf"
 [Daemon]
@@ -169,6 +169,26 @@ Theme=meoarch
 ShowDelay=0
 DeviceTimeout=5
 EOF
+
+install -Dm755 "${installer_src}/bin/meo-boot-status" "${airootfs}/usr/lib/meoarch/meo-boot-status"
+ln -sfn /usr/lib/meoarch/meo-boot-status "${airootfs}/usr/bin/meo-boot-status"
+
+for unit_file in meo-boot-status-failure@.service meo-boot-early.service meo-boot-storage.service meo-boot-services.service; do
+  install -Dm644 "${installer_src}/data/systemd/${unit_file}" "${airootfs}/usr/lib/systemd/system/${unit_file}"
+done
+
+mkdir -p "${airootfs}/etc/systemd/system/sysinit.target.wants" \
+         "${airootfs}/etc/systemd/system/local-fs.target.wants" \
+         "${airootfs}/etc/systemd/system/multi-user.target.wants"
+ln -sfn /usr/lib/systemd/system/meo-boot-early.service "${airootfs}/etc/systemd/system/sysinit.target.wants/meo-boot-early.service"
+ln -sfn /usr/lib/systemd/system/meo-boot-storage.service "${airootfs}/etc/systemd/system/local-fs.target.wants/meo-boot-storage.service"
+ln -sfn /usr/lib/systemd/system/meo-boot-services.service "${airootfs}/etc/systemd/system/multi-user.target.wants/meo-boot-services.service"
+
+for dropin in systemd-udev-settle.service.d NetworkManager.service.d sddm.service.d; do
+  install -d "${airootfs}/usr/lib/systemd/system/${dropin}"
+  install -Dm644 "${installer_src}/data/systemd/dropins/${dropin}/10-meo-boot-status.conf" \
+    "${airootfs}/usr/lib/systemd/system/${dropin}/10-meo-boot-status.conf"
+done
 install -Dm755 "${meokde_native_build}/bin/org.kde.kdecoration3/org.meo.decoration.so" \
   "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3/org.meo.decoration.so"
 install -Dm755 "${meokde_native_build}/decoration/kcm_meodecoration.so" \

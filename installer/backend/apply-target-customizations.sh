@@ -121,7 +121,7 @@ install -Dm644 "${desktop_source}/defaults/plasma/plasma-welcomerc" \
 # Target System Plymouth Theme & Hook Configuration
 target_plymouth_dst="${target_root}/usr/share/plymouth/themes/meoarch"
 rm -rf "${target_plymouth_dst}"
-install -d "${target_plymouth_dst}" "${target_root}/etc/plymouth"
+install -d "${target_plymouth_dst}" "${target_root}/etc/plymouth" "${target_root}/usr/lib/meoarch" "${target_root}/usr/bin"
 if [ -d "/usr/share/plymouth/themes/meoarch" ]; then
   cp -a "/usr/share/plymouth/themes/meoarch/." "${target_plymouth_dst}/"
 fi
@@ -131,6 +131,31 @@ Theme=meoarch
 ShowDelay=0
 DeviceTimeout=5
 EOF
+
+if [ -f "/usr/lib/meoarch/meo-boot-status" ]; then
+  install -Dm755 "/usr/lib/meoarch/meo-boot-status" "${target_root}/usr/lib/meoarch/meo-boot-status"
+  ln -sfn /usr/lib/meoarch/meo-boot-status "${target_root}/usr/bin/meo-boot-status"
+fi
+
+for unit_file in meo-boot-status-failure@.service meo-boot-early.service meo-boot-storage.service meo-boot-services.service; do
+  if [ -f "/usr/lib/systemd/system/${unit_file}" ]; then
+    install -Dm644 "/usr/lib/systemd/system/${unit_file}" "${target_root}/usr/lib/systemd/system/${unit_file}"
+  fi
+done
+
+mkdir -p "${target_root}/etc/systemd/system/sysinit.target.wants" \
+         "${target_root}/etc/systemd/system/local-fs.target.wants" \
+         "${target_root}/etc/systemd/system/multi-user.target.wants"
+ln -sfn /usr/lib/systemd/system/meo-boot-early.service "${target_root}/etc/systemd/system/sysinit.target.wants/meo-boot-early.service"
+ln -sfn /usr/lib/systemd/system/meo-boot-storage.service "${target_root}/etc/systemd/system/local-fs.target.wants/meo-boot-storage.service"
+ln -sfn /usr/lib/systemd/system/meo-boot-services.service "${target_root}/etc/systemd/system/multi-user.target.wants/meo-boot-services.service"
+
+for dropin in systemd-udev-settle.service.d NetworkManager.service.d sddm.service.d; do
+  if [ -d "/usr/lib/systemd/system/${dropin}" ]; then
+    install -d "${target_root}/usr/lib/systemd/system/${dropin}"
+    cp -a "/usr/lib/systemd/system/${dropin}/." "${target_root}/usr/lib/systemd/system/${dropin}/"
+  fi
+done
 
 if [ -f "${target_root}/etc/mkinitcpio.conf" ]; then
   if ! grep -q "plymouth" "${target_root}/etc/mkinitcpio.conf"; then

@@ -1,9 +1,14 @@
 # MeoArch Plymouth Boot Splash Script
-# MD3 Expressive Boot Progress, Step Indicators, Spinner Animation & Error Dialogs
+# Event-Driven Stage Progress, Discrete Progress Weights & Sanitized Error Handler
 
 # Screen Dimensions
 screen_width = Window.GetWidth();
 screen_height = Window.GetHeight();
+
+# State Variables
+target_progress = 0.05;
+anim_progress = 0.05;
+is_error_state = 0;
 
 # Load Background
 bg_image = Image("background.png");
@@ -22,7 +27,7 @@ logo_image = Image("logo.png");
 if (logo_image) {
     logo_sprite = Sprite(logo_image);
     logo_sprite.SetX(screen_width / 2 - logo_image.GetWidth() / 2);
-    logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2 - 60);
+    logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2 - 80);
     logo_sprite.SetZ(10);
 }
 
@@ -31,8 +36,18 @@ spinner_image = Image("spinner.png");
 if (spinner_image) {
     spinner_sprite = Sprite(spinner_image);
     spinner_sprite.SetX(screen_width / 2 - spinner_image.GetWidth() / 2);
-    spinner_sprite.SetY(screen_height / 2 + 40);
+    spinner_sprite.SetY(screen_height / 2 + 20);
     spinner_sprite.SetZ(15);
+}
+
+# Load Warning / Error Icon
+warning_image = Image("warning.png");
+if (warning_image) {
+    warning_sprite = Sprite(warning_image);
+    warning_sprite.SetX(screen_width / 2 - warning_image.GetWidth() / 2);
+    warning_sprite.SetY(screen_height / 2 + 20);
+    warning_sprite.SetZ(15);
+    warning_sprite.SetOpacity(0);
 }
 
 # Progress Bar Containers
@@ -40,7 +55,7 @@ progress_box_image = Image("progress_box.png");
 if (progress_box_image) {
     progress_box_sprite = Sprite(progress_box_image);
     progress_box_sprite.SetX(screen_width / 2 - progress_box_image.GetWidth() / 2);
-    progress_box_sprite.SetY(screen_height / 2 + 100);
+    progress_box_sprite.SetY(screen_height / 2 + 80);
     progress_box_sprite.SetZ(20);
 }
 
@@ -48,74 +63,112 @@ progress_bar_image = Image("progress_bar.png");
 if (progress_bar_image) {
     progress_bar_sprite = Sprite(progress_bar_image);
     progress_bar_sprite.SetX(screen_width / 2 - progress_box_image.GetWidth() / 2 + 4);
-    progress_bar_sprite.SetY(screen_height / 2 + 104);
+    progress_bar_sprite.SetY(screen_height / 2 + 84);
     progress_bar_sprite.SetZ(25);
-    progress_bar_sprite.SetOpacity(0);
+    progress_bar_sprite.SetOpacity(1.0);
 }
 
-# Status Text & Message State
-current_status = "Initializing MeoArch System...";
+# Status & Footer Sprites
 status_sprite = Sprite();
-status_sprite.SetY(screen_height / 2 + 140);
+status_sprite.SetY(screen_height / 2 + 115);
 status_sprite.SetZ(30);
 
-# Error Dialog Overlay State
-error_sprite = Sprite();
-error_sprite.SetZ(100);
+footer_sprite = Sprite();
+footer_sprite.SetY(screen_height - 50);
+footer_sprite.SetZ(30);
 
-fun refresh_status_text(text) {
-    current_status = text;
-    status_image = Image.Text(current_status, 0.9, 0.9, 0.95);
-    if (status_image) {
-        status_sprite.SetImage(status_image);
-        status_sprite.SetX(screen_width / 2 - status_image.GetWidth() / 2);
+fun set_footer_text(text) {
+    if (text != "") {
+        f_img = Image.Text(text, 0.65, 0.65, 0.70);
+        if (f_img) {
+            footer_sprite.SetImage(f_img);
+            footer_sprite.SetX(screen_width / 2 - f_img.GetWidth() / 2);
+        }
+    } else {
+        footer_sprite.SetImage(NULL);
     }
 }
 
-refresh_status_text(current_status);
-
-# Progress Callback (0.0 to 1.0)
-fun progress_callback(duration, progress) {
-    if (spinner_image && spinner_sprite) {
-        # Rotate spinner dynamically
-        angle = progress * 12.566; # 4 * PI
-        spinner_sprite.SetImage(spinner_image.Rotate(angle));
+fun refresh_status_text(text) {
+    if (!is_error_state) {
+        status_image = Image.Text(text, 0.9, 0.9, 0.95);
+        if (status_image) {
+            status_sprite.SetImage(status_image);
+            status_sprite.SetX(screen_width / 2 - status_image.GetWidth() / 2);
+        }
     }
-    if (progress_bar_image && progress_bar_sprite) {
-        target_width = Math.Max(4, Math.Min(progress_box_image.GetWidth() - 8, (progress_box_image.GetWidth() - 8) * progress));
-        scaled_bar = progress_bar_image.Scale(target_width, progress_bar_image.GetHeight());
-        progress_bar_sprite.SetImage(scaled_bar);
-        progress_bar_sprite.SetOpacity(1.0);
+}
+
+refresh_status_text("Starting MeoArch OS...");
+
+# Smooth Progress & Spinner Loop
+angle = 0;
+fun refresh_callback() {
+    if (!is_error_state) {
+        # Target-chasing interpolation towards discrete progress reported by systemd
+        if (anim_progress < target_progress) {
+            anim_progress = anim_progress + (target_progress - anim_progress) * 0.15;
+            if (target_progress - anim_progress < 0.005) {
+                anim_progress = target_progress;
+            }
+        }
+        
+        if (spinner_image && spinner_sprite) {
+            angle = angle + 0.1;
+            spinner_sprite.SetImage(spinner_image.Rotate(angle));
+        }
+        
+        if (progress_bar_image && progress_bar_sprite && progress_box_image) {
+            total_w = progress_box_image.GetWidth() - 8;
+            fill_w = Math.Max(4, Math.Min(total_w, total_w * anim_progress));
+            scaled_bar = progress_bar_image.Scale(fill_w, progress_bar_image.GetHeight());
+            progress_bar_sprite.SetImage(scaled_bar);
+        }
+    }
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+
+# Systemd Progress Callback (0.0 to 1.0)
+fun progress_callback(duration, progress) {
+    if (progress > target_progress && progress <= 1.0) {
+        target_progress = progress;
     }
 }
 
 Plymouth.SetBootProgressFunction(progress_callback);
 
-# Status Update Callback (Dynamic Boot Steps)
-fun status_callback(status) {
-    if (status != "") {
-        refresh_status_text(status);
-    }
-}
-
-Plymouth.SetUpdateStatusFunction(status_callback);
-
-# Message Display Callback (Errors & Prompts)
+# Status Message Callback (Real systemd Stage Updates & Error Handling)
 fun message_callback(text) {
-    if (text != "") {
-        # Friendly error / system message card
-        msg_image = Image.Text("  " + text + "  ", 1.0, 0.35, 0.35);
-        if (msg_image) {
-            error_sprite.SetImage(msg_image);
-            error_sprite.SetX(screen_width / 2 - msg_image.GetWidth() / 2);
-            error_sprite.SetY(screen_height - 80);
+    if (text == "") return;
+
+    if (String(text).SubString(0, 6) == "ERROR:") {
+        # Error Event Format: ERROR:unit:code:title:message
+        is_error_state = 1;
+        if (spinner_sprite) spinner_sprite.SetOpacity(0);
+        if (progress_box_sprite) progress_box_sprite.SetOpacity(0);
+        if (progress_bar_sprite) progress_bar_sprite.SetOpacity(0);
+        if (warning_sprite) warning_sprite.SetOpacity(1.0);
+
+        err_img = Image.Text(text, 1.0, 0.4, 0.4);
+        if (err_img) {
+            status_sprite.SetImage(err_img);
+            status_sprite.SetX(screen_width / 2 - err_img.GetWidth() / 2);
         }
+        set_footer_text("Press Esc for detailed console log");
+    } else if (String(text).SubString(0, 6) == "STAGE:") {
+        # Stage Event Format: STAGE:id:progress:message
+        # We parse update from meo-boot-status
+        refresh_status_text(text);
+    } else {
+        refresh_status_text(text);
     }
 }
 
+Plymouth.SetUpdateStatusFunction(message_callback);
 Plymouth.SetDisplayMessageFunction(message_callback);
 
-# Mode Handling
+# Mode Callback
 fun mode_callback(mode) {
     if (mode == "boot") {
         refresh_status_text("Starting MeoArch OS...");
