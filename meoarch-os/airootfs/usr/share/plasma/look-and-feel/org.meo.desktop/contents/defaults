@@ -29,7 +29,7 @@ theme=Meo Chrome Frame
 
 [kwinrc][Plugins]
 org.meo.windowcornersEnabled=false
-kwin4_effect_shapecornersEnabled=true
+kwin4_effect_shapecornersEnabled=false
 
 [kwinrc][org.meo.decoration]
 TitleBarHeight=32
