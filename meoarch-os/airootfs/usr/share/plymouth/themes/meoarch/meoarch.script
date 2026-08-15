@@ -1,0 +1,129 @@
+# MeoArch Plymouth Boot Splash Script
+# MD3 Expressive Boot Progress, Step Indicators, Spinner Animation & Error Dialogs
+
+# Screen Dimensions
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+# Load Background
+bg_image = Image("background.png");
+if (bg_image) {
+    bg_sprite = Sprite(bg_image);
+    bg_sprite.SetX(screen_width / 2 - bg_image.GetWidth() / 2);
+    bg_sprite.SetY(screen_height / 2 - bg_image.GetHeight() / 2);
+    bg_sprite.SetZ(-100);
+} else {
+    Window.SetBackgroundTopColor(0.08, 0.08, 0.12);
+    Window.SetBackgroundBottomColor(0.04, 0.04, 0.06);
+}
+
+# Load MeoArch Logo
+logo_image = Image("logo.png");
+if (logo_image) {
+    logo_sprite = Sprite(logo_image);
+    logo_sprite.SetX(screen_width / 2 - logo_image.GetWidth() / 2);
+    logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2 - 60);
+    logo_sprite.SetZ(10);
+}
+
+# Load Spinner / Progress Ring
+spinner_image = Image("spinner.png");
+if (spinner_image) {
+    spinner_sprite = Sprite(spinner_image);
+    spinner_sprite.SetX(screen_width / 2 - spinner_image.GetWidth() / 2);
+    spinner_sprite.SetY(screen_height / 2 + 40);
+    spinner_sprite.SetZ(15);
+}
+
+# Progress Bar Containers
+progress_box_image = Image("progress_box.png");
+if (progress_box_image) {
+    progress_box_sprite = Sprite(progress_box_image);
+    progress_box_sprite.SetX(screen_width / 2 - progress_box_image.GetWidth() / 2);
+    progress_box_sprite.SetY(screen_height / 2 + 100);
+    progress_box_sprite.SetZ(20);
+}
+
+progress_bar_image = Image("progress_bar.png");
+if (progress_bar_image) {
+    progress_bar_sprite = Sprite(progress_bar_image);
+    progress_bar_sprite.SetX(screen_width / 2 - progress_box_image.GetWidth() / 2 + 4);
+    progress_bar_sprite.SetY(screen_height / 2 + 104);
+    progress_bar_sprite.SetZ(25);
+    progress_bar_sprite.SetOpacity(0);
+}
+
+# Status Text & Message State
+current_status = "Initializing MeoArch System...";
+status_sprite = Sprite();
+status_sprite.SetY(screen_height / 2 + 140);
+status_sprite.SetZ(30);
+
+# Error Dialog Overlay State
+error_sprite = Sprite();
+error_sprite.SetZ(100);
+
+fun refresh_status_text(text) {
+    current_status = text;
+    status_image = Image.Text(current_status, 0.9, 0.9, 0.95);
+    if (status_image) {
+        status_sprite.SetImage(status_image);
+        status_sprite.SetX(screen_width / 2 - status_image.GetWidth() / 2);
+    }
+}
+
+refresh_status_text(current_status);
+
+# Progress Callback (0.0 to 1.0)
+fun progress_callback(duration, progress) {
+    if (spinner_image && spinner_sprite) {
+        # Rotate spinner dynamically
+        angle = progress * 12.566; # 4 * PI
+        spinner_sprite.SetImage(spinner_image.Rotate(angle));
+    }
+    if (progress_bar_image && progress_bar_sprite) {
+        target_width = Math.Max(4, Math.Min(progress_box_image.GetWidth() - 8, (progress_box_image.GetWidth() - 8) * progress));
+        scaled_bar = progress_bar_image.Scale(target_width, progress_bar_image.GetHeight());
+        progress_bar_sprite.SetImage(scaled_bar);
+        progress_bar_sprite.SetOpacity(1.0);
+    }
+}
+
+Plymouth.SetBootProgressFunction(progress_callback);
+
+# Status Update Callback (Dynamic Boot Steps)
+fun status_callback(status) {
+    if (status != "") {
+        refresh_status_text(status);
+    }
+}
+
+Plymouth.SetUpdateStatusFunction(status_callback);
+
+# Message Display Callback (Errors & Prompts)
+fun message_callback(text) {
+    if (text != "") {
+        # Friendly error / system message card
+        msg_image = Image.Text("  " + text + "  ", 1.0, 0.35, 0.35);
+        if (msg_image) {
+            error_sprite.SetImage(msg_image);
+            error_sprite.SetX(screen_width / 2 - msg_image.GetWidth() / 2);
+            error_sprite.SetY(screen_height - 80);
+        }
+    }
+}
+
+Plymouth.SetDisplayMessageFunction(message_callback);
+
+# Mode Handling
+fun mode_callback(mode) {
+    if (mode == "boot") {
+        refresh_status_text("Starting MeoArch OS...");
+    } else if (mode == "shutdown") {
+        refresh_status_text("Shutting down MeoArch OS...");
+    } else if (mode == "reboot") {
+        refresh_status_text("Restarting MeoArch OS...");
+    }
+}
+
+Plymouth.SetModeFunction(mode_callback);

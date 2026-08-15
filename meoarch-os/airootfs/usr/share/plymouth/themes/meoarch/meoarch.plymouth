@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=MeoArch OS Boot Splash
+Description=MD3 Expressive graphical boot splash for MeoArch OS with animated progress bar, status text, and error dialogs.
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/meoarch
+ScriptFile=/usr/share/plymouth/themes/meoarch/meoarch.script
