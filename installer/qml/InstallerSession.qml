@@ -6,7 +6,5 @@ QtObject {
     property string hostname: "meoarch"
     property string password: ""
     property string passwordConfirmation: ""
-    property string diskPassphrase: ""
-    property string diskPassphraseConfirmation: ""
     property string keyboardTest: ""
 }

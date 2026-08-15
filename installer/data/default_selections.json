@@ -12,17 +12,8 @@
   },
   "network": { "mode": "networkmanager" },
   "hardware": { "graphicsDriver": "automatic" },
-  "software": {
-    "provider": "omnistore",
-    "profiles": [],
-    "launchOnFirstLogin": true
-  },
   "privacy": {
-    "diagnostics": false,
-    "firewall": true,
-    "securityUpdates": true,
-    "diskEncryption": false,
-    "restrictAppPermissions": true
+    "firewall": true
   },
   "disk": { "mode": "erase", "filesystem": "btrfs", "swap": "zram" },
   "user": { "hostname": "meoarch", "username": "meo", "automaticLogin": false }

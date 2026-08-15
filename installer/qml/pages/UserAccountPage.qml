@@ -9,13 +9,17 @@ PageFrame {
     primaryAdvances: false
 
     onPrimaryRequested: {
-        if (controller.validateAccount(InstallerSession.username, InstallerSession.hostname,
-                                       InstallerSession.password, InstallerSession.passwordConfirmation)) {
-            controller.setSelection("user", "fullName", InstallerSession.fullName)
-            controller.setSelection("user", "username", InstallerSession.username)
-            controller.setSelection("user", "hostname", InstallerSession.hostname)
-            if (controller.setAccountPassword(InstallerSession.password))
-                nextRequested()
+        controller.saveAccount(InstallerSession.fullName, InstallerSession.username, InstallerSession.hostname,
+                               InstallerSession.password, InstallerSession.passwordConfirmation)
+    }
+
+    Connections {
+        target: page.controller || null
+        ignoreUnknownSignals: true
+        function onAccountReady() {
+            InstallerSession.password = ""
+            InstallerSession.passwordConfirmation = ""
+            page.nextRequested()
         }
     }
 
@@ -39,7 +43,7 @@ PageFrame {
                 Layout.fillWidth: true
                 type: "outlined"
                 size: "l"
-                label: "Full name"
+                label: qsTr("Full name")
                 text: InstallerSession.fullName
                 onTextChanged: InstallerSession.fullName = text
             }
@@ -47,9 +51,9 @@ PageFrame {
                 Layout.fillWidth: true
                 type: "outlined"
                 size: "l"
-                label: "Username"
+                label: qsTr("Username")
                 text: InstallerSession.username
-                supportingText: "Lowercase letters, numbers, _ and -"
+                supportingText: qsTr("Lowercase letters, numbers, _ and -")
                 onTextChanged: InstallerSession.username = text
             }
             MeoTextField {
@@ -57,7 +61,7 @@ PageFrame {
                 Layout.columnSpan: form.columns
                 type: "outlined"
                 size: "l"
-                label: "Computer name"
+                label: qsTr("Computer name")
                 text: InstallerSession.hostname
                 onTextChanged: InstallerSession.hostname = text
             }
@@ -65,7 +69,7 @@ PageFrame {
                 Layout.fillWidth: true
                 type: "outlined"
                 size: "l"
-                label: "Password"
+                label: qsTr("Password")
                 echoMode: TextInput.Password
                 isPassword: true
                 text: InstallerSession.password
@@ -75,12 +79,12 @@ PageFrame {
                 Layout.fillWidth: true
                 type: "outlined"
                 size: "l"
-                label: "Confirm password"
+                label: qsTr("Confirm password")
                 echoMode: TextInput.Password
                 isPassword: true
                 text: InstallerSession.passwordConfirmation
                 isError: text.length > 0 && text !== InstallerSession.password
-                errorText: "Passwords do not match"
+                errorText: qsTr("Passwords do not match")
                 onTextChanged: InstallerSession.passwordConfirmation = text
             }
         }

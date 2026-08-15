@@ -11,6 +11,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QTextStream>
+#include <QTranslator>
 #include <algorithm>
 #include <memory>
 
@@ -27,8 +28,17 @@ int main(int argc, char *argv[])
     QCoreApplication &app = *application;
     QCoreApplication::setOrganizationName(QStringLiteral("MeoArch"));
     QCoreApplication::setApplicationName(QStringLiteral("MeoArch Installer"));
+    const QStringList arguments = app.arguments();
+    if (arguments.contains(QStringLiteral("--production")) && arguments.contains(QStringLiteral("--preview"))) {
+        QTextStream(stderr) << "--preview cannot be used with --production.\n";
+        return 2;
+    }
 
-    InstallerController controller(app.arguments());
+    InstallerController controller(arguments);
+    for (const QString &argument : arguments) {
+        if (argument.startsWith(QStringLiteral("--language=")))
+            controller.setUiLanguage(argument.mid(11));
+    }
     const int dumpIndex = app.arguments().indexOf(QStringLiteral("--dump-catalog-counts"));
     if (dumpIndex >= 0) {
         const QJsonObject counts{
@@ -50,6 +60,29 @@ int main(int argc, char *argv[])
         return 0;
     }
     QQmlApplicationEngine engine;
+    QTranslator translator;
+    const auto loadLanguage = [&app, &engine, &translator](const QString &language) {
+        app.removeTranslator(&translator);
+        if (language != QStringLiteral("zh_CN")) {
+            engine.retranslate();
+            return;
+        }
+        QStringList paths;
+        const QString configured = qEnvironmentVariable("MEOARCH_INSTALLER_TRANSLATIONS");
+        if (!configured.isEmpty())
+            paths.append(configured);
+        paths.append(QStringLiteral("/opt/meoarch-installer/translations"));
+#ifdef MEOARCH_TRANSLATIONS_BUILD_DIR
+        paths.append(QString::fromUtf8(MEOARCH_TRANSLATIONS_BUILD_DIR));
+#endif
+        for (const QString &path : paths) {
+            if (translator.load(QStringLiteral("meoarch_zh_CN"), path)) {
+                app.installTranslator(&translator);
+                break;
+            }
+        }
+        engine.retranslate();
+    };
     const QString configuredMeoUiPath = qEnvironmentVariable("MEO_UI_QML_IMPORT_PATH");
     if (!configuredMeoUiPath.isEmpty())
         engine.addImportPath(configuredMeoUiPath);
@@ -58,6 +91,7 @@ int main(int argc, char *argv[])
 #endif
     engine.addImportPath(QStringLiteral("/usr/lib/qt6/qml"));
     int initialPage = 0;
+    const bool visualPreview = app.arguments().contains(QStringLiteral("--preview"));
     for (const QString &argument : app.arguments()) {
         if (argument.startsWith(QStringLiteral("--page="))) {
             bool ok = false;
@@ -68,7 +102,8 @@ int main(int argc, char *argv[])
     }
     engine.setInitialProperties({
         {QStringLiteral("installerController"), QVariant::fromValue(&controller)},
-        {QStringLiteral("initialPage"), initialPage}
+        {QStringLiteral("initialPage"), initialPage},
+        {QStringLiteral("visualPreview"), visualPreview}
     });
 
     QString qmlRoot = qEnvironmentVariable("MEOARCH_INSTALLER_QML_ROOT");
@@ -93,6 +128,9 @@ int main(int argc, char *argv[])
     engine.load(QUrl::fromLocalFile(QDir(qmlRoot).absoluteFilePath(QStringLiteral("Main.qml"))));
     if (engine.rootObjects().isEmpty())
         return 1;
+    loadLanguage(controller.uiLanguage());
+    QObject::connect(&controller, &InstallerController::uiLanguageChanged, &engine,
+                     [&controller, &loadLanguage] { loadLanguage(controller.uiLanguage()); });
 
     // Keep visual-regression capture in the C++ host.  QML's asynchronous
     // grab callback can be starved by a busy scene graph on Windows, which

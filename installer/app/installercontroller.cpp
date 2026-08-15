@@ -14,6 +14,7 @@
 #include <QRegularExpression>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QStorageInfo>
 #include <QTextStream>
 #include <QTimeZone>
 #include <QTimer>
@@ -34,12 +35,24 @@ QString utf8LocaleId(QString value)
     value.replace(QStringLiteral(".utf8"), QStringLiteral(".UTF-8"), Qt::CaseInsensitive);
     return value;
 }
+
+bool hasMountedDescendant(const QJsonObject &device)
+{
+    if (!device.value(QStringLiteral("mountpoints")).toArray().isEmpty())
+        return true;
+    for (const QJsonValue &child : device.value(QStringLiteral("children")).toArray()) {
+        if (hasMountedDescendant(child.toObject()))
+            return true;
+    }
+    return false;
+}
 }
 
 InstallerController::InstallerController(const QStringList &arguments, QObject *parent)
     : QObject(parent),
-      m_realInstallEnabled(arguments.contains(QStringLiteral("--enable-real-install"))),
-      m_systemActionsEnabled(arguments.contains(QStringLiteral("--enable-system-actions")))
+      m_productionMode(arguments.contains(QStringLiteral("--production"))),
+      m_realInstallEnabled(m_productionMode && arguments.contains(QStringLiteral("--enable-real-install"))),
+      m_systemActionsEnabled(m_productionMode && arguments.contains(QStringLiteral("--enable-system-actions")))
 {
     m_selections = {
         {QStringLiteral("schemaVersion"), 1},
@@ -52,14 +65,7 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
                                                {QStringLiteral("timezone"), QStringLiteral("UTC")},
                                                {QStringLiteral("keyboardLayout"), QStringLiteral("us")}}},
         {QStringLiteral("network"), QVariantMap{{QStringLiteral("mode"), QStringLiteral("networkmanager")}}},
-        {QStringLiteral("software"), QVariantMap{{QStringLiteral("provider"), QStringLiteral("omnistore")},
-                                                 {QStringLiteral("profiles"), QVariantList{}},
-                                                 {QStringLiteral("launchOnFirstLogin"), true}}},
-        {QStringLiteral("privacy"), QVariantMap{{QStringLiteral("diagnostics"), false},
-                                                {QStringLiteral("firewall"), true},
-                                                {QStringLiteral("securityUpdates"), true},
-                                                {QStringLiteral("diskEncryption"), false},
-                                                {QStringLiteral("restrictAppPermissions"), true}}},
+        {QStringLiteral("privacy"), QVariantMap{{QStringLiteral("firewall"), true}}},
         {QStringLiteral("disk"), QVariantMap{{QStringLiteral("mode"), QStringLiteral("erase")},
                                              {QStringLiteral("filesystem"), QStringLiteral("btrfs")},
                                              {QStringLiteral("swap"), QStringLiteral("zram")}}},
@@ -96,7 +102,11 @@ QString InstallerController::timeZone() const { return section(QStringLiteral("l
 QString InstallerController::keyboardLayout() const { return section(QStringLiteral("locale")).value(QStringLiteral("keyboardLayout")).toString(); }
 QString InstallerController::selectedDisk() const { return section(QStringLiteral("disk")).value(QStringLiteral("stableId")).toString(); }
 
-void InstallerController::setUiLanguage(const QString &id) { writeSelection(QStringLiteral("preferences"), QStringLiteral("uiLanguage"), id); }
+void InstallerController::setUiLanguage(const QString &id)
+{
+    writeSelection(QStringLiteral("preferences"), QStringLiteral("uiLanguage"), id);
+    emit uiLanguageChanged();
+}
 void InstallerController::setSystemLocale(const QString &id)
 {
     writeSelection(QStringLiteral("locale"), QStringLiteral("systemLocale"), id);
@@ -120,8 +130,18 @@ void InstallerController::setSelectedDisk(const QString &id)
     for (const QVariant &entry : m_disks) {
         const QVariantMap disk = entry.toMap();
         if (disk.value(QStringLiteral("id")).toString() == id) {
+            if (!disk.value(QStringLiteral("eligible")).toBool()) {
+                setError(disk.value(QStringLiteral("unavailableReason")).toString());
+                return;
+            }
             writeSelection(QStringLiteral("disk"), QStringLiteral("sizeBytes"),
                            disk.value(QStringLiteral("sizeBytes")));
+            writeSelection(QStringLiteral("disk"), QStringLiteral("devicePath"),
+                           disk.value(QStringLiteral("devicePath")));
+            writeSelection(QStringLiteral("disk"), QStringLiteral("serial"),
+                           disk.value(QStringLiteral("serial")));
+            writeSelection(QStringLiteral("disk"), QStringLiteral("wwn"),
+                           disk.value(QStringLiteral("wwn")));
             break;
         }
     }
@@ -290,10 +310,12 @@ void InstallerController::buildKeyboardLayouts()
 void InstallerController::detectNetwork()
 {
     m_networkState = QStringLiteral("offline");
+    m_networkDetail = tr("Network status is provided by Meo.System / NetworkManager.");
     for (const QNetworkInterface &interface : QNetworkInterface::allInterfaces()) {
         if (interface.flags().testFlag(QNetworkInterface::IsUp) && interface.flags().testFlag(QNetworkInterface::IsRunning)
             && !interface.flags().testFlag(QNetworkInterface::IsLoopBack)) {
-            m_networkState = QStringLiteral("connected");
+            m_networkState = QStringLiteral("link");
+            m_networkDetail = tr("A network interface is active. Internet availability is checked before installation.");
             break;
         }
     }
@@ -308,18 +330,25 @@ void InstallerController::detectHardware()
     const QString detector = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/hardware.py"));
     if (!QFileInfo::exists(detector))
         return;
-    QProcess process;
-    process.start(QStringLiteral("python3"), {detector});
-    if (!process.waitForFinished(6000) || process.exitCode() != 0)
-        return;
-    const QJsonObject result = QJsonDocument::fromJson(process.readAllStandardOutput()).object();
-    const QJsonArray packages = result.value(QStringLiteral("packages")).toArray();
-    QStringList names;
-    for (const QJsonValue &package : packages)
-        names.append(package.toString());
-    if (!names.isEmpty())
-        m_hardwareSummary = result.value(QStringLiteral("summary")).toString().toUpper()
-                           + QStringLiteral(" · ") + names.join(QStringLiteral(", "));
+    m_hardwareDetecting = true;
+    emit hardwareChanged();
+    auto *process = new QProcess(this);
+    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
+        m_hardwareDetecting = false;
+        if (status == QProcess::NormalExit && exitCode == 0) {
+            const QJsonObject result = QJsonDocument::fromJson(process->readAllStandardOutput()).object();
+            const QJsonArray packages = result.value(QStringLiteral("packages")).toArray();
+            QStringList names;
+            for (const QJsonValue &package : packages)
+                names.append(package.toString());
+            if (!names.isEmpty())
+                m_hardwareSummary = result.value(QStringLiteral("summary")).toString().toUpper()
+                                   + QStringLiteral(" · ") + names.join(QStringLiteral(", "));
+        }
+        process->deleteLater();
+        emit hardwareChanged();
+    });
+    process->start(QStringLiteral("python3"), {detector});
 #endif
 }
 
@@ -327,31 +356,67 @@ void InstallerController::refreshDisks()
 {
     m_disks.clear();
 #ifdef Q_OS_LINUX
-    QProcess process;
-    process.start(QStringLiteral("lsblk"), {QStringLiteral("-J"), QStringLiteral("-b"), QStringLiteral("-o"),
-                                            QStringLiteral("NAME,MODEL,SIZE,TYPE,ROTA,RM,MOUNTPOINTS")});
-    process.waitForFinished(5000);
-    const QJsonArray devices = QJsonDocument::fromJson(process.readAllStandardOutput()).object().value(QStringLiteral("blockdevices")).toArray();
+    auto *process = new QProcess(this);
+    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
+        if (status != QProcess::NormalExit || exitCode != 0) {
+            setError(tr("Disk detection failed. No disk can be selected until the scan succeeds."));
+            emit disksChanged();
+        } else {
+            parseDisks(process->readAllStandardOutput());
+        }
+        process->deleteLater();
+    });
+    process->start(QStringLiteral("lsblk"), {QStringLiteral("-J"), QStringLiteral("-b"), QStringLiteral("-o"),
+                                            QStringLiteral("NAME,PATH,MODEL,SERIAL,WWN,SIZE,TYPE,ROTA,RM,HOTPLUG,TRAN,MOUNTPOINTS,FSTYPE,PARTTYPE,PKNAME")});
+#else
+    setError(tr("Disk detection is only available in the Linux installer environment."));
+    emit disksChanged();
+#endif
+}
+
+void InstallerController::parseDisks(const QByteArray &payload)
+{
+    const QJsonDocument document = QJsonDocument::fromJson(payload);
+    if (!document.isObject()) {
+        setError(tr("Disk detection returned invalid data."));
+        emit disksChanged();
+        return;
+    }
+    const QJsonArray devices = document.object().value(QStringLiteral("blockdevices")).toArray();
+    QString runningSource;
+    if (QFile file(QStringLiteral("/proc/self/mountinfo")); file.open(QIODevice::ReadOnly | QIODevice::Text))
+        runningSource = QString::fromUtf8(file.readAll());
     for (const QJsonValue &value : devices) {
         const QJsonObject d = value.toObject();
         if (d.value(QStringLiteral("type")).toString() != QStringLiteral("disk")) continue;
         const QString name = d.value(QStringLiteral("name")).toString();
-        QString stableId = QStringLiteral("/dev/") + name;
+        if (name == QStringLiteral("zram0"))
+            continue;
+        const QString devicePath = d.value(QStringLiteral("path")).toString(
+            QStringLiteral("/dev/") + name);
+        QString stableId = devicePath;
         const QDir byId(QStringLiteral("/dev/disk/by-id"));
         for (const QFileInfo &entry : byId.entryInfoList(QDir::System | QDir::Files | QDir::NoDotAndDotDot)) {
             if (entry.symLinkTarget().endsWith(QLatin1Char('/') + name)) { stableId = entry.absoluteFilePath(); break; }
         }
         const qint64 size = d.value(QStringLiteral("size")).toVariant().toLongLong();
-        m_disks.append(row({{"id", stableId}, {"name", d.value(QStringLiteral("model")).toString().trimmed().isEmpty() ? QStringLiteral("Storage device") : d.value(QStringLiteral("model")).toString().trimmed()},
+        const bool removable = d.value(QStringLiteral("rm")).toInt() != 0 || d.value(QStringLiteral("hotplug")).toInt() != 0;
+        const bool mounted = hasMountedDescendant(d);
+        const bool runningMedia = runningSource.contains(QStringLiteral("/dev/") + name);
+        const bool eligible = !removable && !mounted && !runningMedia;
+        QString reason;
+        if (runningMedia) reason = tr("This device contains the running installer.");
+        else if (removable) reason = tr("Removable media cannot be selected for erase install.");
+        else if (mounted) reason = tr("This device has mounted filesystems.");
+        m_disks.append(row({{"id", stableId}, {"devicePath", devicePath}, {"name", d.value(QStringLiteral("model")).toString().trimmed().isEmpty() ? tr("Storage device") : d.value(QStringLiteral("model")).toString().trimmed()},
                             {"sizeBytes", size},
-                            {"size", QLocale().formattedDataSize(size)}, {"available", QStringLiteral("Capacity ") + QLocale().formattedDataSize(size)},
-                            {"kind", d.value(QStringLiteral("rm")).toInt() ? QStringLiteral("Removable") : (d.value(QStringLiteral("rota")).toInt() ? QStringLiteral("HDD") : QStringLiteral("SSD"))}}));
+                            {"size", QLocale().formattedDataSize(size)}, {"available", tr("Capacity ") + QLocale().formattedDataSize(size)},
+                            {"kind", removable ? tr("Removable") : (d.value(QStringLiteral("rota")).toInt() ? tr("HDD") : tr("SSD"))},
+                            {"serial", d.value(QStringLiteral("serial")).toString()}, {"wwn", d.value(QStringLiteral("wwn")).toString()},
+                            {"transport", d.value(QStringLiteral("tran")).toString()}, {"eligible", eligible}, {"unavailableReason", reason}}));
     }
-#endif
-    if (m_disks.isEmpty()) {
-        m_disks = {row({{"id", "preview-disk-0"}, {"name", "NVMe Solid State Drive"}, {"size", "512 GB"}, {"available", "382 GB available"}, {"kind", "SSD · Preview"}}),
-                   row({{"id", "preview-disk-1"}, {"name", "External Storage"}, {"size", "1 TB"}, {"available", "740 GB available"}, {"kind", "Removable · Preview"}})};
-    }
+    if (m_disks.isEmpty())
+        setError(tr("No eligible installation disk was detected. Preview disks are never shown in production mode."));
     emit disksChanged();
 }
 
@@ -370,34 +435,42 @@ bool InstallerController::validateAccount(const QString &username, const QString
     return true;
 }
 
-bool InstallerController::setAccountPassword(const QString &password)
+void InstallerController::saveAccount(const QString &fullName, const QString &username, const QString &hostname,
+                                      const QString &password, const QString &confirmation)
 {
-    if (password.size() < 8) {
-        setError(QStringLiteral("Password must contain at least 8 characters."));
-        return false;
+    if (!validateAccount(username, hostname, password, confirmation)) {
+        emit accountFailed();
+        return;
     }
-    QProcess process;
-    process.start(QStringLiteral("openssl"),
+    writeSelection(QStringLiteral("user"), QStringLiteral("fullName"), fullName.trimmed());
+    writeSelection(QStringLiteral("user"), QStringLiteral("username"), username);
+    writeSelection(QStringLiteral("user"), QStringLiteral("hostname"), hostname);
+    auto *process = new QProcess(this);
+    connect(process, &QProcess::started, this, [process, password] {
+        process->write(password.toUtf8());
+        process->write("\n");
+        process->closeWriteChannel();
+    });
+    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
+        if (status != QProcess::NormalExit || exitCode != 0) {
+            setError(tr("Could not securely hash the account password."));
+            process->deleteLater();
+            emit accountFailed();
+            return;
+        }
+        m_userPasswordHash = QString::fromUtf8(process->readAllStandardOutput()).trimmed();
+        process->deleteLater();
+        if (!m_userPasswordHash.startsWith(QStringLiteral("$6$"))) {
+            m_userPasswordHash.clear();
+            setError(tr("The password hashing helper returned an invalid result."));
+            emit accountFailed();
+            return;
+        }
+        setError({});
+        emit accountReady();
+    });
+    process->start(QStringLiteral("openssl"),
                   {QStringLiteral("passwd"), QStringLiteral("-6"), QStringLiteral("-stdin")});
-    if (!process.waitForStarted(5000)) {
-        setError(QStringLiteral("Could not start the password hashing helper."));
-        return false;
-    }
-    process.write(password.toUtf8());
-    process.write("\n");
-    process.closeWriteChannel();
-    if (!process.waitForFinished(15000) || process.exitCode() != 0) {
-        setError(QStringLiteral("Could not securely hash the account password."));
-        return false;
-    }
-    m_userPasswordHash = QString::fromUtf8(process.readAllStandardOutput()).trimmed();
-    if (!m_userPasswordHash.startsWith(QStringLiteral("$6$"))) {
-        m_userPasswordHash.clear();
-        setError(QStringLiteral("The password hashing helper returned an invalid result."));
-        return false;
-    }
-    setError({});
-    return true;
 }
 
 QString InstallerController::sourceRoot() const
@@ -407,28 +480,49 @@ QString InstallerController::sourceRoot() const
     return QStringLiteral("/opt/meoarch-installer");
 }
 
-QString InstallerController::generatePreview()
+void InstallerController::persistSelections()
 {
     const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
     QDir().mkpath(directory);
     const QString path = QDir(directory).absoluteFilePath(QStringLiteral("selections.json"));
     QSaveFile file(path);
-    if (!file.open(QIODevice::WriteOnly)) { setError(file.errorString()); return {}; }
+    if (!file.open(QIODevice::WriteOnly)) { setError(file.errorString()); return; }
     file.write(QJsonDocument(QJsonObject::fromVariantMap(m_selections)).toJson(QJsonDocument::Indented));
-    if (!file.commit()) { setError(file.errorString()); return {}; }
+    if (!file.commit()) setError(file.errorString());
+}
+
+void InstallerController::setPreflight(const QString &state, const QString &message)
+{
+    m_preflightState = state;
+    m_preflightMessage = message;
+    emit preflightChanged();
+}
+
+void InstallerController::prepareInstallation()
+{
+    setPreflight(QStringLiteral("checking"), tr("Generating and validating the installation plan…"));
+    persistSelections();
+    if (!m_errorMessage.isEmpty()) {
+        setPreflight(QStringLiteral("failed"), m_errorMessage);
+        return;
+    }
+    const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    const QString path = QDir(directory).absoluteFilePath(QStringLiteral("selections.json"));
 #ifdef Q_OS_LINUX
     const QString generator = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/generate-config.py"));
     if (QFileInfo::exists(generator)) {
         if (m_userPasswordHash.isEmpty()) {
-            setError(QStringLiteral("Set a valid account password before generating the installation plan."));
-            return {};
+            setError(tr("Set a valid account password before generating the installation plan."));
+            setPreflight(QStringLiteral("failed"), m_errorMessage);
+            return;
         }
         const QString credentialsPath = QDir(directory).absoluteFilePath(QStringLiteral("credential-input.json"));
         QSaveFile credentials(credentialsPath);
         credentials.setDirectWriteFallback(false);
         if (!credentials.open(QIODevice::WriteOnly)) {
             setError(credentials.errorString());
-            return {};
+            setPreflight(QStringLiteral("failed"), m_errorMessage);
+            return;
         }
         credentials.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
         credentials.write(QJsonDocument(QJsonObject{
@@ -436,28 +530,68 @@ QString InstallerController::generatePreview()
         }).toJson(QJsonDocument::Compact));
         if (!credentials.commit()) {
             setError(credentials.errorString());
-            return {};
+            setPreflight(QStringLiteral("failed"), m_errorMessage);
+            return;
         }
-        QProcess process;
-        process.start(QStringLiteral("python3"), {generator, QStringLiteral("--data-dir"), QDir(sourceRoot()).absoluteFilePath(QStringLiteral("data")),
+        auto *process = new QProcess(this);
+        connect(process, &QProcess::finished, this, [this, process, credentialsPath](int exitCode, QProcess::ExitStatus status) {
+            QFile::remove(credentialsPath);
+            const QString details = QString::fromUtf8(process->readAllStandardError()).trimmed();
+            process->deleteLater();
+            if (status != QProcess::NormalExit || exitCode != 0) {
+                setError(details.isEmpty() ? tr("Could not generate the Archinstall installation plan.") : details);
+                setPreflight(QStringLiteral("failed"), m_errorMessage);
+                return;
+            }
+            startArchinstallPreflight();
+        });
+        process->start(QStringLiteral("python3"), {generator, QStringLiteral("--data-dir"), QDir(sourceRoot()).absoluteFilePath(QStringLiteral("data")),
                                                  QStringLiteral("--state-dir"), directory, QStringLiteral("--selections"), path,
                                                  QStringLiteral("--credentials"), credentialsPath});
-        const bool finished = process.waitForFinished(15000);
-        QFile::remove(credentialsPath);
-        if (!finished || process.exitCode() != 0) {
-            const QString details = QString::fromUtf8(process.readAllStandardError()).trimmed();
-            setError(details.isEmpty()
-                         ? QStringLiteral("Could not generate the Archinstall preview configuration.")
-                         : details);
-            return {};
-        }
+        return;
     }
 #endif
-    return path;
+    setPreflight(QStringLiteral("failed"), tr("The Linux installation backend is unavailable."));
+}
+
+void InstallerController::startArchinstallPreflight()
+{
+    const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    const QString script = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/archinstall-preflight.sh"));
+    if (!QFileInfo::exists(script)) {
+        setPreflight(QStringLiteral("failed"), tr("The Archinstall preflight helper is missing."));
+        return;
+    }
+    setPreflight(QStringLiteral("checking"), tr("Checking the generated Archinstall configuration…"));
+    auto *process = new QProcess(this);
+    QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+    environment.insert(QStringLiteral("MEOARCH_INSTALLER_STATE_DIR"), directory);
+    process->setProcessEnvironment(environment);
+    connect(process, &QProcess::finished, this, [this, process, directory](int exitCode, QProcess::ExitStatus status) {
+        process->deleteLater();
+        const QFile statusFile(QDir(directory).absoluteFilePath(QStringLiteral("preflight_status.json")));
+        QString message = tr("The generated Archinstall configuration was rejected.");
+        QString state = QStringLiteral("failed");
+        if (status == QProcess::NormalExit && exitCode == 0 && statusFile.exists()) {
+            QFile file(statusFile.fileName());
+            if (file.open(QIODevice::ReadOnly)) {
+                const QJsonObject result = QJsonDocument::fromJson(file.readAll()).object();
+                message = result.value(QStringLiteral("message")).toString(message);
+                if (result.value(QStringLiteral("state")).toString() == QStringLiteral("complete"))
+                    state = QStringLiteral("ready");
+            }
+        }
+        setPreflight(state, message);
+    });
+    process->start(script);
 }
 
 void InstallerController::confirmSummary()
 {
+    if (!readyToInstall()) {
+        setError(tr("The installation plan is not ready. Resolve the preflight result first."));
+        return;
+    }
     m_summaryConfirmed = true;
     const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
     QDir().mkpath(directory);
@@ -468,34 +602,77 @@ void InstallerController::confirmSummary()
 
 void InstallerController::startInstallation()
 {
-    if (!m_summaryConfirmed) { setError(QStringLiteral("Review and confirm the summary before installing.")); return; }
-    m_installationState = QStringLiteral("running");
+    if (!m_summaryConfirmed || !readyToInstall()) { setError(tr("Review and confirm a ready installation plan before installing.")); return; }
     m_installationProgress = 0;
-    emit installationChanged();
+    updateInstallation(QStringLiteral("running"), 0, QStringLiteral("preflight"), tr("Preparing installation."));
     if (!m_realInstallEnabled) {
-        m_installationState = QStringLiteral("failed");
-        setError(QStringLiteral("Real installation is disabled in preview mode."));
-        emit installationChanged();
+        updateInstallation(QStringLiteral("failed"), 0, QStringLiteral("blocked"), tr("Real installation is disabled outside production mode."));
+        setError(m_installationMessage);
         return;
     }
     const QString script = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/run-archinstall.sh"));
     if (!QFileInfo::exists(script)) {
-        setError(QStringLiteral("The Archinstall adapter is missing."));
-        m_installationState = QStringLiteral("failed");
-        emit installationChanged();
+        setError(tr("The Archinstall adapter is missing."));
+        updateInstallation(QStringLiteral("failed"), 0, QStringLiteral("blocked"), m_errorMessage);
         return;
     }
     auto *process = new QProcess(this);
     process->setProcessEnvironment(QProcessEnvironment::systemEnvironment());
+    const QString stateDirectory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    const QString eventsPath = QDir(stateDirectory).absoluteFilePath(QStringLiteral("logs/install-events.jsonl"));
+    if (m_progressTimer) {
+        m_progressTimer->stop();
+        m_progressTimer->deleteLater();
+    }
+    m_progressTimer = new QTimer(this);
+    m_progressTimer->setInterval(350);
+    connect(m_progressTimer, &QTimer::timeout, this, [this, eventsPath] {
+        QFile events(eventsPath);
+        if (!events.open(QIODevice::ReadOnly | QIODevice::Text))
+            return;
+        QByteArray lastLine;
+        while (!events.atEnd()) {
+            const QByteArray line = events.readLine().trimmed();
+            if (!line.isEmpty())
+                lastLine = line;
+        }
+        const QJsonObject event = QJsonDocument::fromJson(lastLine).object();
+        if (event.value(QStringLiteral("event")).toString() != QStringLiteral("stage"))
+            return;
+        const QJsonValue progressValue = event.value(QStringLiteral("progress"));
+        if (!progressValue.isDouble())
+            return;
+        const int progress = progressValue.toInt();
+        updateInstallation(QStringLiteral("running"), progress,
+                           event.value(QStringLiteral("id")).toString(),
+                           event.value(QStringLiteral("message")).toString());
+    });
+    m_progressTimer->start();
     connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
-        m_installationState = status == QProcess::NormalExit && exitCode == 0 ? QStringLiteral("complete") : QStringLiteral("failed");
-        m_installationProgress = m_installationState == QStringLiteral("complete") ? 100 : m_installationProgress;
-        if (m_installationState == QStringLiteral("failed"))
+        if (m_progressTimer) {
+            m_progressTimer->stop();
+            m_progressTimer->deleteLater();
+            m_progressTimer = nullptr;
+        }
+        if (status == QProcess::NormalExit && exitCode == 0)
+            updateInstallation(QStringLiteral("complete"), 100, QStringLiteral("complete"), tr("Installation complete."));
+        else {
+            updateInstallation(QStringLiteral("failed"), m_installationProgress, m_installationStage, tr("Installation stopped."));
             setError(QString::fromUtf8(process->readAllStandardError()).trimmed());
+        }
         process->deleteLater();
         emit installationChanged();
     });
     process->start(script);
+}
+
+void InstallerController::updateInstallation(const QString &state, int progress, const QString &stage, const QString &message)
+{
+    m_installationState = state;
+    m_installationProgress = std::clamp(progress, m_installationProgress, 100);
+    m_installationStage = stage;
+    m_installationMessage = message;
+    emit installationChanged();
 }
 
 void InstallerController::requestRestart()

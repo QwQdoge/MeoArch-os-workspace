@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-run_dir="${MEOARCH_RUN_DIR:-${repo_root}/artifacts/test-runs/$(date -u +%Y%m%dT%H%M%SZ)}"
+run_dir="${MEOARCH_RUN_DIR:-${repo_root}/artifacts/validation/test-runs/$(date -u +%Y%m%dT%H%M%SZ)}"
 evidence_dir="${run_dir}/iso"
 extract_dir="${run_dir}/iso-extract"
 mkdir -p "${evidence_dir}" "${extract_dir}"
@@ -28,6 +28,8 @@ echo "Recorded $(wc -l <"${evidence_dir}/airootfs-files.txt") airootfs entries."
 grep -q 'usr/lib/libmeoui.so.0.3.1' "${evidence_dir}/airootfs-files.txt"
 grep -q 'usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so' "${evidence_dir}/airootfs-files.txt"
 grep -q 'opt/meoarch-installer/qml/Main.qml' "${evidence_dir}/airootfs-files.txt"
+grep -q 'opt/meoarch-installer/translations/meoarch_zh_CN.qm' "${evidence_dir}/airootfs-files.txt"
+grep -q 'usr/lib/qt6/qml/Meo/System/libmeosystemplugin.so' "${evidence_dir}/airootfs-files.txt"
 grep -q 'opt/meo-desktop/themes/look-and-feel/org.meo.desktop/metadata.json' \
   "${evidence_dir}/airootfs-files.txt"
 for package in plasma-desktop plasma-workspace sddm networkmanager; do

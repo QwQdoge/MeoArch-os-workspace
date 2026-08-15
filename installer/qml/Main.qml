@@ -6,6 +6,7 @@ import "." as Installer
 Window {
     id: root
     required property var installerController
+    property bool visualPreview: false
     property int initialPage: 0
     width: 1440
     height: 900
@@ -18,7 +19,7 @@ Window {
     property int currentPage: root.initialPage
     property int navigationDirection: 1
     property string screenshotPath: ""
-    readonly property var controller: root.installerController || Installer.PreviewController
+    readonly property var controller: root.visualPreview ? Installer.PreviewController : root.installerController
     readonly property var pages: [
         Qt.resolvedUrl("pages/WelcomePage.qml"), Qt.resolvedUrl("pages/LanguageRegionPage.qml"),
         Qt.resolvedUrl("pages/KeyboardLayoutPage.qml"), Qt.resolvedUrl("pages/NetworkPage.qml"),

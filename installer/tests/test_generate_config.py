@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 MODULE_PATH = Path(__file__).parents[1] / "backend" / "generate-config.py"
@@ -61,6 +62,7 @@ class GenerateConfigTests(unittest.TestCase):
 
     def test_erase_mode_generates_explicit_safe_disk_layout(self):
         self.selections["disk"]["stableId"] = "/dev/vda"
+        self.selections["disk"]["devicePath"] = "/dev/vda"
         self.selections["disk"]["sizeBytes"] = 64 * 1024 * 1024 * 1024
         config = MODULE.build_user_configuration(self.selections)
         layout = config["disk_config"]
@@ -83,22 +85,63 @@ class GenerateConfigTests(unittest.TestCase):
         for device in ("preview-disk-0", "/dev/disk/by-id/usb-removable", "/dev/sda1", "/tmp/disk"):
             with self.subTest(device=device):
                 self.selections["disk"]["stableId"] = device
+                self.selections["disk"]["devicePath"] = device
                 self.selections["disk"]["sizeBytes"] = 64 * 1024 * 1024 * 1024
                 self.assertNotIn("disk_config", MODULE.build_user_configuration(self.selections))
 
-    def test_omnistore_provisioning_is_allowlisted_and_requires_confirmation(self):
-        self.selections["software"]["profiles"] = [
-            "developer", "unknown", "developer", "gaming"
-        ]
-        provisioning = MODULE.build_omnistore_provisioning(self.selections)
-        self.assertEqual(provisioning["profiles"], ["developer", "gaming"])
-        self.assertTrue(provisioning["requiresUserConfirmation"])
-        self.assertTrue(provisioning["launchOnFirstLogin"])
+    def test_firewall_is_a_real_target_package_when_selected(self):
+        self.selections["privacy"] = {"firewall": True}
+        self.assertIn("firewalld", MODULE.build_user_configuration(self.selections)["packages"])
+        self.selections["privacy"]["firewall"] = False
+        self.assertNotIn("firewalld", MODULE.build_user_configuration(self.selections)["packages"])
 
-    def test_empty_omnistore_selection_does_not_launch(self):
-        provisioning = MODULE.build_omnistore_provisioning(self.selections)
-        self.assertEqual(provisioning["profiles"], [])
-        self.assertFalse(provisioning["launchOnFirstLogin"])
+    def test_by_id_is_revalidated_but_archinstall_receives_kernel_path(self):
+        disk = {
+            "stableId": "/dev/disk/by-id/nvme-MeoArch_Test",
+            "devicePath": "/dev/nvme0n1",
+            "sizeBytes": 64 * 1024 * 1024 * 1024,
+            "mode": "erase",
+            "filesystem": "btrfs",
+        }
+        self.selections["disk"].update(disk)
+        with mock.patch.object(MODULE.os.path, "exists", return_value=True), \
+             mock.patch.object(MODULE.os.path, "islink", return_value=True), \
+             mock.patch.object(MODULE.os.path, "realpath", return_value="/dev/nvme0n1"):
+            self.assertEqual(MODULE.verify_selected_disk_identity(disk), (True, ""))
+        layout = MODULE.build_default_disk_layout(self.selections)
+        self.assertEqual(layout["device_modifications"][0]["device"], "/dev/nvme0n1")
+
+    def test_by_id_resolution_drift_is_rejected(self):
+        disk = {
+            "stableId": "/dev/disk/by-id/nvme-MeoArch_Test",
+            "devicePath": "/dev/nvme0n1",
+        }
+        with mock.patch.object(MODULE.os.path, "exists", return_value=True), \
+             mock.patch.object(MODULE.os.path, "islink", return_value=True), \
+             mock.patch.object(MODULE.os.path, "realpath", return_value="/dev/nvme1n1"):
+            verified, reason = MODULE.verify_selected_disk_identity(disk)
+        self.assertFalse(verified)
+        self.assertIn("another device", reason)
+
+    def test_target_customizations_carry_no_secrets(self):
+        self.selections["user"].update({"fullName": "Meo User", "username": "meo", "automaticLogin": True})
+        self.selections["disk"]["swap"] = "file"
+        payload = MODULE.build_target_customizations(self.selections)
+        self.assertEqual(payload["fullName"], "Meo User")
+        self.assertEqual(payload["sddmSession"], "plasma.desktop")
+        self.assertEqual(payload["swap"], {"mode": "file", "fileSizeMiB": 4096})
+        serialized = json.dumps(payload).lower()
+        self.assertNotIn("password", serialized)
+        self.assertNotIn("passphrase", serialized)
+
+    def test_plan_validation_blocks_manual_and_unimplemented_encryption(self):
+        self.selections["disk"].update({"mode": "manual", "stableId": "/dev/vda", "devicePath": "/dev/vda", "sizeBytes": 64 * 1024 * 1024 * 1024})
+        self.selections["privacy"] = {"diskEncryption": True}
+        config = MODULE.build_user_configuration(self.selections)
+        credentials = {"users": [{"username": "meo", "enc_password": "$6$hash"}]}
+        blockers = MODULE.validate_installation_plan(self.selections, config, credentials)
+        self.assertIn("manual partitioning is unavailable until a validated Archinstall disk plan is implemented", blockers)
+        self.assertIn("disk encryption is unavailable until its tested secret flow is enabled", blockers)
 
 
 
@@ -106,14 +149,13 @@ class GenerateConfigTests(unittest.TestCase):
         selections = {"user": {"username": "testuser"}}
         secrets = {
             "rootPasswordHash": "root_hash",
-            "userPasswordHash": "user_hash",
-            "diskEncryptionPassword": "disk_pass"
+            "userPasswordHash": "user_hash"
         }
         payload = MODULE.build_user_credentials(selections, secrets)
         self.assertEqual(payload["root_enc_password"], "root_hash")
         self.assertEqual(len(payload["users"]), 1)
         self.assertEqual(payload["users"][0], {"username": "testuser", "enc_password": "user_hash", "sudo": True})
-        self.assertEqual(payload["encryption_password"], "disk_pass")
+        self.assertNotIn("encryption_password", payload)
 
     def test_build_user_credentials_missing_username(self):
         selections = {"user": {}}

@@ -16,7 +16,7 @@ enabled.
 Use a separate output directory:
 
 ```bash
-./scripts/build-iso.sh --output out/candidate
+./scripts/build-iso.sh --output artifacts/releases/candidate
 ```
 
 Force a clean component/profile/work rebuild:
@@ -32,7 +32,7 @@ directory.
 
 The script stages the profile below `build/archiso/profile`; it does not mutate
 the authoritative `meoarch-os` source tree. Logs and checksums are retained
-below `artifacts/build-logs/<UTC timestamp>/`.
+below `artifacts/logs/iso/<UTC timestamp>/`.
 
 ## Output
 

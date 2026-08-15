@@ -5,9 +5,27 @@ state_dir="${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}"
 generated_dir="${state_dir}/generated"
 log_dir="${state_dir}/logs"
 log_file="${log_dir}/install.log"
+events_file="${log_dir}/install-events.jsonl"
 confirm_file="${state_dir}/summary_confirmed"
 
 mkdir -p "${log_dir}"
+
+progress() {
+  local id="$1"
+  local percent="$2"
+  local message="$3"
+  printf '{"event":"stage","id":"%s","progress":%s,"message":"%s"}\n' \
+    "${id}" "${percent}" "${message//\"/\\\"}" >>"${events_file}"
+  printf '[%s%%] %s\n' "${percent}" "${message}" | tee -a "${log_file}"
+}
+
+cleanup_secrets() {
+  if [ -f "${generated_dir}/user_credentials.json" ]; then
+    : >"${generated_dir}/user_credentials.json"
+    rm -f "${generated_dir}/user_credentials.json"
+  fi
+}
+trap cleanup_secrets EXIT INT TERM
 
 if [ ! -f "${confirm_file}" ]; then
   echo "Summary has not been confirmed; refusing to call archinstall." | tee -a "${log_file}" >&2
@@ -28,41 +46,19 @@ if [ ! -f "${manifest_file}" ] || ! python3 -c 'import json,sys; sys.exit(0 if j
   exit 5
 fi
 
+preflight_file="${state_dir}/preflight_status.json"
+if ! python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1], encoding="utf-8")).get("state") == "complete" else 1)' "${preflight_file}" 2>/dev/null; then
+  echo "Archinstall preflight has not completed successfully; refusing real installation." | tee -a "${log_file}" >&2
+  exit 6
+fi
+
 if ! command -v archinstall >/dev/null 2>&1; then
   echo "archinstall is not available." | tee -a "${log_file}" >&2
   exit 127
 fi
 
-prepare_package_mirrors() {
-  local mirrorlist="/etc/pacman.d/mirrorlist"
-  local refreshed="${state_dir}/mirrorlist.refreshed"
-
-  # Package downloads happen after the destructive disk step. Refresh and rank
-  # several HTTPS mirrors first so one slow CDN endpoint cannot strand a target
-  # after partitioning. Retain the rest of the ISO's generated mirror list as
-  # fallbacks, except for the Fastly endpoint that repeatedly times out on small
-  # signature files in the acceptance environment.
-  {
-    printf '%s\n' \
-      'Server = https://singapore.mirror.pkgbuild.com/$repo/os/$arch' \
-      'Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch' \
-      'Server = https://mirror.rackspace.com/archlinux/$repo/os/$arch'
-    grep '^Server = ' "${mirrorlist}" \
-      | grep -Ev 'fastly\.mirror\.pkgbuild\.com|singapore\.mirror\.pkgbuild\.com|geo\.mirror\.pkgbuild\.com|mirror\.rackspace\.com'
-  } >"${refreshed}"
-  install -m 0644 "${refreshed}" "${mirrorlist}"
-  echo "Prepared a stable multi-mirror package fallback." | tee -a "${log_file}"
-
-  # Pacman's default low-speed timeout is too aggressive for large firmware
-  # packages on otherwise healthy links. Integrity remains enforced by package
-  # signatures and hashes.
-  sed -i '/^[[:space:]]*DisableDownloadTimeout[[:space:]]*$/d' /etc/pacman.conf
-  sed -i '/^[[:space:]]*ParallelDownloads[[:space:]]*=/a DisableDownloadTimeout' /etc/pacman.conf
-}
-
-prepare_package_mirrors
-
-echo "Starting archinstall with generated MeoArch JSON." | tee -a "${log_file}"
+progress "preparing_disk" 10 "Preparing the selected disk"
+progress "installing_base" 35 "Installing the base system and packages"
 archinstall --silent --config "${config_file}" --creds "${creds_file}" 2>&1 | tee -a "${log_file}"
 
 installer_root="${MEOARCH_INSTALLER_ROOT:-/opt/meoarch-installer}"
@@ -71,7 +67,16 @@ if [ ! -s "${target_root}/etc/fstab" ] \
   || { [ ! -s "${target_root}/boot/grub/grub.cfg" ] \
        && [ ! -d "${target_root}/boot/loader/entries" ]; }; then
   echo "Archinstall did not produce a complete bootable target." | tee -a "${log_file}" >&2
-  exit 6
+  exit 7
 fi
+progress "applying_meo" 82 "Installing Meo Desktop and target settings"
 "${installer_root}/backend/apply-target-customizations.sh" \
   "${target_root}" "/opt/meo-desktop" "${generated_dir}" 2>&1 | tee -a "${log_file}"
+progress "final_validation" 94 "Validating the installed target"
+for path in \
+  "${target_root}/etc/os-release" \
+  "${target_root}/etc/fstab" \
+  "${target_root}/usr/lib/qt6/qml/MeoUI/qmldir"; do
+  [ -e "${path}" ] || { echo "Final validation is missing ${path}." | tee -a "${log_file}" >&2; exit 8; }
+done
+progress "complete" 100 "Installation complete"

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-run_dir="${MEOARCH_RUN_DIR:-${repo_root}/artifacts/test-runs/$(date -u +%Y%m%dT%H%M%SZ)}"
+run_dir="${MEOARCH_RUN_DIR:-${repo_root}/artifacts/validation/test-runs/$(date -u +%Y%m%dT%H%M%SZ)}"
 evidence_dir="${run_dir}/iso"
 output_dir="${MEOARCH_ISO_OUTPUT_DIR:-${run_dir}/iso-image}"
 mkdir -p "${evidence_dir}" "${output_dir}"
