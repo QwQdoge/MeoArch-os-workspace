@@ -68,6 +68,15 @@ classify() {
     airootfs/usr/local/bin/meoarch-installer-live|airootfs/usr/local/bin/meoarch-installer-live-root)
       printf '%s\t%s\t%s' 'Installer' 'this workspace installer source' 'live-session launcher and privilege boundary'
       ;;
+    airootfs/usr/bin/meo-boot-status|airootfs/usr/lib/meoarch/*|airootfs/usr/lib/systemd/system/meo-boot-*|airootfs/usr/lib/systemd/system/*.service.d/*)
+      printf '%s\t%s\t%s' 'Boot Status' 'this workspace boot status bridge' 'systemd milestone and failure bridge'
+      ;;
+    airootfs/usr/share/plymouth/themes/meoarch/*|airootfs/etc/plymouth/*)
+      printf '%s\t%s\t%s' 'Plymouth theme' 'workspace plymouth theme source' 'MeoArch graphical boot splash theme'
+      ;;
+    profiledef.sh)
+      printf '%s\t%s\t%s' 'Profile version' 'ISO build script' 'timestamped ISO versioning'
+      ;;
     *) return 1 ;;
   esac
 }
