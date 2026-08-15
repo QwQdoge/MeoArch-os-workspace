@@ -158,6 +158,17 @@ install -Dm644 "${meo_kde_src}/defaults/plasma/plasmarc" \
   "${airootfs}/etc/xdg/plasmarc"
 install -Dm644 "${meo_kde_src}/defaults/plasma/plasma-welcomerc" \
   "${airootfs}/etc/xdg/plasma-welcomerc"
+
+plymouth_theme_dst="${airootfs}/usr/share/plymouth/themes/meoarch"
+rm -rf "${plymouth_theme_dst}"
+install -d "${plymouth_theme_dst}" "${airootfs}/etc/plymouth"
+cp -a "${repo_root}/themes/plymouth/meoarch/." "${plymouth_theme_dst}/"
+cat <<'EOF' >"${airootfs}/etc/plymouth/plymouthd.conf"
+[Daemon]
+Theme=meoarch
+ShowDelay=0
+DeviceTimeout=5
+EOF
 install -Dm755 "${meokde_native_build}/bin/org.kde.kdecoration3/org.meo.decoration.so" \
   "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3/org.meo.decoration.so"
 install -Dm755 "${meokde_native_build}/decoration/kcm_meodecoration.so" \
