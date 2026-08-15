@@ -9,10 +9,18 @@ QtObject {
     property string timeZone: "UTC"
     property string keyboardLayout: "us"
     property string networkState: "connected"
+    property string networkDetail: "Visual preview backend"
     property string selectedDisk: "preview-disk-0"
     property string hardwareSummary: "Automatic PCI detection will select graphics drivers."
     property string installationState: "idle"
     property int installationProgress: 0
+    property string installationStage: "idle"
+    property string installationMessage: ""
+    property string preflightState: "ready"
+    property string preflightMessage: "Visual preview only — no installation backend is invoked."
+    property bool readyToInstall: true
+    property bool productionMode: false
+    property bool previewMode: true
     property string errorMessage: ""
     property bool realInstallEnabled: false
     property bool systemActionsEnabled: false
@@ -42,8 +50,8 @@ QtObject {
         {id:"de",name:"German"},{id:"fr",name:"French"},{id:"es",name:"Spanish"}
     ]
     readonly property var disks: [
-        {id:"preview-disk-0",name:"NVMe Solid State Drive",size:"512 GB",available:"382 GB available",kind:"SSD · Preview"},
-        {id:"preview-disk-1",name:"External Storage",size:"1 TB",available:"740 GB available",kind:"Removable · Preview"}
+        {id:"preview-disk-0",name:"NVMe Solid State Drive",size:"512 GB",available:"Visual preview disk",kind:"SSD · Preview",eligible:true,unavailableReason:"",serial:"PREVIEW",wwn:""},
+        {id:"preview-disk-1",name:"External Storage",size:"1 TB",available:"Preview media excluded",kind:"Removable · Preview",eligible:false,unavailableReason:"This is preview-only removable media.",serial:"PREVIEW",wwn:""}
     ]
 
     function setUiLanguage(id) { uiLanguage = id }
@@ -55,15 +63,17 @@ QtObject {
     function retryNetwork() { networkState = "connected" }
     function setSelection(section, key, value) { const next = Object.assign({}, values); next[section + "." + key] = value; values = next }
     function selection(section, key, fallback) { const id = section + "." + key; return typeof values[id] === "undefined" ? fallback : values[id] }
-    function validateAccount(username, hostname, password, confirmation) {
-        if (!/^[a-z_][a-z0-9_-]{0,31}$/.test(username)) { errorMessage = "Enter a valid lowercase username."; return false }
-        if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(hostname)) { errorMessage = "Enter a valid computer name."; return false }
-        if (password.length < 8 || password !== confirmation) { errorMessage = "Password must be 8 characters and match."; return false }
-        errorMessage = ""; return true
+    signal accountReady()
+    function saveAccount(fullName, username, hostname, password, confirmation) {
+        if (!/^[a-z_][a-z0-9_-]{0,31}$/.test(username)) { errorMessage = "Enter a valid lowercase username."; return }
+        if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(hostname)) { errorMessage = "Enter a valid computer name."; return }
+        if (password.length < 8 || password !== confirmation) { errorMessage = "Password must be 8 characters and match."; return }
+        setSelection("user", "fullName", fullName); setSelection("user", "username", username); setSelection("user", "hostname", hostname)
+        errorMessage = ""; accountReady()
     }
-    function generatePreview() { return "preview" }
+    function prepareInstallation() { preflightState = "ready"; preflightMessage = "Visual preview only — no installation backend is invoked." }
     function confirmSummary() {}
-    function startInstallation() { installationState = "complete"; installationProgress = 100 }
+    function startInstallation() { installationState = "complete"; installationProgress = 100; installationStage = "complete"; installationMessage = "Visual preview complete." }
     function requestRestart() { errorMessage = "Restart is disabled in preview mode." }
     function requestShutdown() { errorMessage = "Shut down is disabled in preview mode." }
 }

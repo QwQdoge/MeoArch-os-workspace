@@ -5,7 +5,6 @@ app_dir="${MEOARCH_INSTALLER_DIR:-/opt/meoarch-installer}"
 main_qml="${app_dir}/qml/Main.qml"
 state_dir="${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}"
 meoui_import_path="${MEO_UI_QML_IMPORT_PATH:-/usr/lib/qt6/qml}"
-enable_archinstall_preflight=0
 qml_args=()
 
 usage() {
@@ -13,19 +12,19 @@ usage() {
 Usage: meoarch-installer [options] [-- QML_ARGS...]
 
 Options:
-  --enable-archinstall-preflight  Run archinstall --dry-run preflight in the background.
-  --enable-system-actions         Enable QML system-action requests for future native bridge testing.
-  --enable-real-install           Allow the compiled host to call the guarded Archinstall adapter.
+  --production                    Mark an ISO-controlled production launch.
+  --enable-system-actions         Enable power actions only together with --production.
+  --enable-real-install           Allow the guarded Archinstall adapter only together with --production.
   -h, --help                      Show this help.
 
-Defaults are non-destructive: no archinstall preflight and no enabled system actions.
+Defaults are non-destructive. The kiosk launcher is the only ISO entrypoint that supplies production capabilities.
 EOF
 }
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --enable-archinstall-preflight)
-      enable_archinstall_preflight=1
+    --production)
+      qml_args+=("--production")
       shift
       ;;
     --enable-system-actions)
@@ -53,11 +52,6 @@ while [ "$#" -gt 0 ]; do
 done
 
 mkdir -p "${state_dir}"
-
-if [ "${enable_archinstall_preflight}" -eq 1 ] && [ -x "${app_dir}/backend/archinstall-preflight.sh" ]; then
-  MEOARCH_INSTALLER_STATE_DIR="${state_dir}" \
-    "${app_dir}/backend/archinstall-preflight.sh" >/dev/null 2>&1 &
-fi
 
 native_app="${app_dir}/bin/meoarch-installer-app"
 if [ -x "${native_app}" ]; then

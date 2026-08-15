@@ -3,7 +3,7 @@ set -uo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 run_id="${MEOARCH_RUN_ID:-$(date -u +%Y%m%dT%H%M%SZ)}"
-export MEOARCH_RUN_DIR="${repo_root}/artifacts/test-runs/${run_id}"
+export MEOARCH_RUN_DIR="${repo_root}/artifacts/validation/test-runs/${run_id}"
 mkdir -p "${MEOARCH_RUN_DIR}"
 summary="${MEOARCH_RUN_DIR}/summary.md"
 overall=0

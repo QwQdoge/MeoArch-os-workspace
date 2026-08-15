@@ -11,6 +11,9 @@ documentation.
   specification.
 - `CAGE_INSTALLER.zh_cn.md` is the Simplified Chinese version of the Cage runtime
   document.
+- `PRODUCTION_ARCHITECTURE.md` records the production/preview boundary, shared
+  Meo.System dependency, installation-plan flow, disk safety policy, secret
+  lifecycle, and current explicitly unavailable capabilities.
 
 Read `INSTALLER_SPEC.md` first if you are reviewing the installer experience.
 Read `CAGE_INSTALLER.md` first if you are integrating or debugging the live ISO

@@ -3,12 +3,15 @@ set -Eeuo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 projects_root="$(cd "${repo_root}/.." && pwd)"
-outputs_root="${MEOARCH_OUTPUT_ROOT:-${projects_root}/outputs}"
+# Keep MeoArch build products with their source tree.  Cross-project evidence
+# belongs to the owning sibling repository, not a shared Projects/outputs sink.
+outputs_root="${MEOARCH_OUTPUT_ROOT:-${repo_root}/artifacts}"
 source_profile="${repo_root}/meoarch-os"
 build_root="${repo_root}/build/archiso"
 work_dir="${build_root}/work"
 staged_profile="${build_root}/profile"
-out_dir="${outputs_root}/iso"
+baseline_profile="${build_root}/baseline-profile"
+out_dir="${outputs_root}/releases/iso"
 clean=0
 
 usage() {
@@ -48,6 +51,19 @@ case "${out_dir}" in
   *) out_dir="${repo_root}/${out_dir}" ;;
 esac
 
+command -v flock >/dev/null 2>&1 || {
+  echo "Missing required tool: flock" >&2
+  exit 127
+}
+mkdir -p "${repo_root}/build"
+iso_lock_path="${repo_root}/build/.meoarch-iso-build.lock"
+exec {iso_lock_fd}>"${iso_lock_path}"
+if ! flock -n "${iso_lock_fd}"; then
+  echo "Another MeoArch ISO build owns ${iso_lock_path}; refusing concurrent staging/work mutation." >&2
+  exit 75
+fi
+printf 'pid=%s\nstarted_utc=%s\n' "$$" "$(date -u +%FT%TZ)" 1>&"${iso_lock_fd}"
+
 for tool in cmake ninja pkg-config mkarchiso sha256sum stat tee; do
   command -v "${tool}" >/dev/null 2>&1 || {
     echo "Missing required tool: ${tool}" >&2
@@ -65,6 +81,14 @@ for required in \
     exit 3
   }
 done
+
+# The profile itself must be a version-controlled baseline.  Runtime payloads
+# are injected later by sync-installer-to-airootfs.sh and recorded by the
+# provenance gate; ignored leftovers in airootfs must never become ISO input.
+if git status --porcelain --untracked-files=all -- "${source_profile}" | grep -q .; then
+  echo "The ArchISO profile has uncommitted files. Refuse an ambiguous candidate; stage or resolve them first." >&2
+  exit 7
+fi
 
 case "${build_root}" in
   "${repo_root}/build/"*) ;;
@@ -102,12 +126,15 @@ echo "Profile: ${source_profile}"
 echo "Output directory: ${out_dir}"
 echo "Log: ${log_file}"
 
-if [ -e "${staged_profile}" ]; then
-  find "${staged_profile}" -mindepth 1 -delete
-else
-  mkdir -p "${staged_profile}"
-fi
-cp -a "${source_profile}/." "${staged_profile}/"
+for profile_dir in "${baseline_profile}" "${staged_profile}"; do
+  if [ -e "${profile_dir}" ]; then
+    find "${profile_dir}" -mindepth 1 -delete
+  else
+    mkdir -p "${profile_dir}"
+  fi
+done
+git archive --format=tar HEAD meoarch-os | tar -x -C "${baseline_profile}" --strip-components=1
+cp -a "${baseline_profile}/." "${staged_profile}/"
 
 if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
   [ -f "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" ] || {
@@ -123,6 +150,8 @@ fi
 "${repo_root}/scripts/build-installer-app.sh"
 MEOARCH_AIROOTFS="${staged_profile}/airootfs" \
   "${repo_root}/scripts/sync-installer-to-airootfs.sh"
+"${repo_root}/scripts/verify-staging-provenance.sh" \
+  "${baseline_profile}" "${staged_profile}" "${log_dir}/staging-provenance.tsv"
 
 mapfile -t before_isos < <(find "${out_dir}" -maxdepth 1 -type f -name '*.iso' -print)
 mkarchiso -v -w "${work_dir}" -o "${out_dir}" "${staged_profile}"

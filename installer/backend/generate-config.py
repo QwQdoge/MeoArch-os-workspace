@@ -35,17 +35,44 @@ def write_json(path: Path, payload, mode=0o600):
     temporary.replace(path)
 
 
+def selected_install_device(disk):
+    """Return only a canonical kernel block-device path for Archinstall."""
+    stable_id = str(disk.get("stableId", ""))
+    device_path = str(disk.get("devicePath", ""))
+    kernel_device = re.fullmatch(r"/dev/(?:vd[a-z]+|sd[a-z]+|nvme\d+n\d+)", device_path)
+    if not kernel_device:
+        return None
+    if stable_id == device_path:
+        return device_path
+    if not re.fullmatch(r"/dev/disk/by-id/[A-Za-z0-9_.:+-]+", stable_id):
+        return None
+    return device_path
+
+
+def verify_selected_disk_identity(disk):
+    """Re-resolve the stable ID before plan generation and reject drift."""
+    stable_id = str(disk.get("stableId", ""))
+    device_path = selected_install_device(disk)
+    if not device_path:
+        return False, "selected disk has no safe canonical kernel path"
+    if not os.path.exists(device_path):
+        return False, "selected disk is no longer present"
+    if stable_id.startswith("/dev/disk/by-id/"):
+        if not os.path.islink(stable_id):
+            return False, "selected stable disk identity is no longer present"
+        if os.path.realpath(stable_id) != device_path:
+            return False, "selected stable disk identity now resolves to another device"
+    return True, ""
+
+
 def build_default_disk_layout(selections):
     """Build an explicit Archinstall erase-disk layout for the selected device."""
     disk = selections.get("disk", {})
     if disk.get("mode", "erase") != "erase":
         return None
-    device = disk.get("stableId", "")
-    safe_device = re.fullmatch(
-        r"/dev/(?:vd[a-z]+|sd[a-z]+|nvme\d+n\d+|disk/by-id/[A-Za-z0-9_.:+-]+)",
-        device,
-    )
-    if not safe_device or "usb" in device.lower() or "preview" in device.lower():
+    device = selected_install_device(disk)
+    stable_id = str(disk.get("stableId", ""))
+    if not device or "usb" in stable_id.lower() or "preview" in stable_id.lower():
         return None
     filesystem = disk.get("filesystem", "btrfs")
     if filesystem not in {"btrfs", "ext4"}:
@@ -99,9 +126,12 @@ def build_default_disk_layout(selections):
     }
 
 
-def build_package_list(hardware_plan=None):
+def build_package_list(hardware_plan=None, firewall=False):
     hardware_packages = (hardware_plan or driver_plan(detect_devices()))["packages"]
-    return list(dict.fromkeys(hardware_packages + MEO_DESKTOP_PACKAGES))
+    packages = hardware_packages + MEO_DESKTOP_PACKAGES
+    if firewall:
+        packages.append("firewalld")
+    return list(dict.fromkeys(packages))
 
 
 def build_user_configuration(selections, hardware_plan=None):
@@ -109,7 +139,8 @@ def build_user_configuration(selections, hardware_plan=None):
     user = selections.get("user", {})
     disk = selections.get("disk", {})
     swap_mode = disk.get("swap", "zram")
-    desktop_packages = build_package_list(hardware_plan)
+    privacy = selections.get("privacy", {})
+    desktop_packages = build_package_list(hardware_plan, bool(privacy.get("firewall", True)))
     config = {
         "archinstall-language": "English",
         "audio_config": {"audio": "pipewire"},
@@ -135,7 +166,9 @@ def build_user_configuration(selections, hardware_plan=None):
         },
         "script": "guided",
         "silent": True,
-        "swap": {"enabled": swap_mode == "zram", "algorithm": "zstd"} if swap_mode == "zram" else False,
+        # Archinstall owns zram. A file swap is created by the target-side,
+        # idempotent post-install step after the root filesystem exists.
+        "swap": {"enabled": True, "algorithm": "zstd"} if swap_mode == "zram" else False,
         "timezone": locale.get("timezone", "UTC"),
     }
     disk_layout = disk.get("layout") or build_default_disk_layout(selections)
@@ -154,9 +187,6 @@ def build_user_credentials(selections, secrets):
             "enc_password": secrets.get("userPasswordHash", ""),
             "sudo": True,
         })
-    disk_hash = secrets.get("diskEncryptionPassword")
-    if disk_hash:
-        payload["encryption_password"] = disk_hash
     return payload
 
 
@@ -174,22 +204,41 @@ def build_plasma_localerc(selections):
     ])
 
 
-def build_omnistore_provisioning(selections):
-    software = selections.get("software", {})
-    allowed_profiles = {"productivity", "creative", "developer", "gaming"}
-    profiles = []
-    seen = set()
-    for profile in software.get("profiles", []):
-        if profile in allowed_profiles and profile not in seen:
-            seen.add(profile)
-            profiles.append(profile)
+def build_target_customizations(selections):
+    """Return non-secret, target-side actions consumed by the postinstall adapter."""
+    user = selections.get("user", {})
+    disk = selections.get("disk", {})
+    privacy = selections.get("privacy", {})
     return {
         "schemaVersion": 1,
-        "provider": "omnistore",
-        "profiles": profiles,
-        "requiresUserConfirmation": True,
-        "launchOnFirstLogin": bool(software.get("launchOnFirstLogin", True) and profiles),
+        "fullName": user.get("fullName", "").strip(),
+        "username": user.get("username", ""),
+        "automaticLogin": bool(user.get("automaticLogin", False)),
+        # Confirmed from the current Plasma 6 system session inventory.
+        "sddmSession": "plasma.desktop",
+        "firewall": bool(privacy.get("firewall", True)),
+        "swap": {"mode": disk.get("swap", "zram"), "fileSizeMiB": 4096},
     }
+
+
+def validate_installation_plan(selections, configuration, credentials):
+    """Return user-safe blockers; never silently downgrade a production choice."""
+    blockers = []
+    disk = selections.get("disk", {})
+    if disk.get("mode", "erase") != "erase":
+        blockers.append("manual partitioning is unavailable until a validated Archinstall disk plan is implemented")
+    if not configuration.get("disk_config"):
+        blockers.append("disk layout not generated")
+    if disk.get("swap", "zram") not in {"zram", "file", "none"}:
+        blockers.append("unsupported swap mode")
+    if selections.get("privacy", {}).get("diskEncryption", False):
+        blockers.append("disk encryption is unavailable until its tested secret flow is enabled")
+    users = credentials.get("users", [])
+    if not users:
+        blockers.append("user account is missing")
+    elif not all(user.get("enc_password") for user in users):
+        blockers.append("user password hash missing")
+    return blockers
 
 
 def main():
@@ -207,6 +256,10 @@ def main():
     if selections.get("schemaVersion") != 1:
         raise SystemExit("Unsupported selections schemaVersion; expected 1")
 
+    identity_ok, identity_error = verify_selected_disk_identity(selections.get("disk", {}))
+    if not identity_ok:
+        raise SystemExit(identity_error)
+
     secrets = load_json(Path(args.credentials)) if args.credentials else {}
     output_dir = state_dir / "generated"
     hardware = driver_plan(detect_devices())
@@ -218,25 +271,23 @@ def main():
     plasma_path = output_dir / "plasma-localerc"
     plasma_path.write_text(build_plasma_localerc(selections), encoding="utf-8")
     os.chmod(plasma_path, 0o644)
-    provisioning_path = output_dir / "omnistore-provisioning.json"
-    write_json(provisioning_path, build_omnistore_provisioning(selections), 0o644)
+    customization_path = output_dir / "target-customizations.json"
+    write_json(customization_path, build_target_customizations(selections), 0o600)
 
     disk = selections.get("disk", {})
-    ready = bool(configuration.get("disk_config")) and bool(credentials.get("users")) and all(
-        user.get("enc_password") for user in credentials.get("users", [])
-    )
+    blockers = validate_installation_plan(selections, configuration, credentials)
+    ready = not blockers
     manifest = {
         "state": "ready" if ready else "preview",
         "realInstallReady": ready,
-        "blockedReasons": (["disk layout not generated"] if not configuration.get("disk_config") else [])
-        + (["user password hash missing"] if not ready and credentials.get("users") else []),
+        "blockedReasons": blockers,
         "diskMode": disk.get("mode", "erase"),
         "files": {
             "user_configuration": str(output_dir / "user_configuration.json"),
             "user_credentials": str(output_dir / "user_credentials.json"),
             "hardware": str(output_dir / "hardware.json"),
             "plasma_localerc": str(plasma_path),
-            "omnistore_provisioning": str(provisioning_path),
+            "target_customizations": str(customization_path),
         },
     }
     write_json(state_dir / "config_manifest.json", manifest, 0o644)

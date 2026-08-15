@@ -52,6 +52,23 @@ if [ ! -f "${config_file}" ] || [ ! -f "${creds_file}" ]; then
   exit 0
 fi
 
+# A carrier/link-local interface is not proof that Arch packages are reachable.
+# The test is intentionally independent of the UI and runs in this background
+# preflight process, never in the QML GUI thread.
+mirror_probe="https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db"
+if ! getent ahosts geo.mirror.pkgbuild.com >/dev/null 2>&1; then
+  write_status "failed" "DNS cannot resolve an Arch mirror. Connect to the Internet and retry." 20
+  exit 0
+fi
+if ! command -v curl >/dev/null 2>&1; then
+  write_status "missing" "curl is unavailable; Internet reachability cannot be verified safely." 127
+  exit 0
+fi
+if ! curl --fail --silent --show-error --location --max-time 20 --head "${mirror_probe}" >>"${log_file}" 2>&1; then
+  write_status "failed" "An Arch mirror is not reachable. Check the Internet connection and retry." 21
+  exit 0
+fi
+
 write_status "running" "Running a silent archinstall dry-run in the background." 0
 
 set +e

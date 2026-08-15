@@ -7,23 +7,26 @@ import "../components"
 
 PageFrame {
     id: page
-    primaryLabel: "Install Now"
+    primaryLabel: controller && controller.preflightState === "ready" ? qsTr("Install now")
+                  : controller && controller.preflightState === "checking" ? qsTr("Checking installation plan…")
+                  : qsTr("Prepare installation plan")
     primaryAdvances: false
+    primaryEnabled: !(controller && controller.preflightState === "checking")
     property bool riskAccepted: false
     readonly property var summaryRows: [
         { pageIndex: 1, title: "Language & Region", value: controller ? controller.systemLocale + " · " + controller.formatCountry + " · " + controller.timeZone : "" },
         { pageIndex: 2, title: "Keyboard", value: controller ? controller.keyboardLayout : "" },
-        { pageIndex: 3, title: "Network", value: controller ? controller.networkState : "" },
-        { pageIndex: 4, title: "Privacy & Security", value: "Recommended protections" },
+        { pageIndex: 3, title: qsTr("Network"), value: controller ? controller.networkDetail : "" },
+        { pageIndex: 4, title: qsTr("Privacy & Security"), value: controller && controller.selection("privacy", "firewall", true) ? qsTr("Firewall enabled") : qsTr("Firewall not selected") },
         { pageIndex: 5, title: "Disk", value: controller ? controller.selectedDisk : "" },
         { pageIndex: 6, title: "User Account", value: InstallerSession.username + " · " + InstallerSession.hostname },
-        { pageIndex: 7, title: "Optional Apps", value: controller && controller.selection("software", "profiles", []).length
-                                                            ? controller.selection("software", "profiles", []).join(", ")
-                                                            : "None selected" },
-        { pageIndex: 7, title: "Graphics Drivers", value: controller ? controller.hardwareSummary : "Automatic PCI detection" }
+        { pageIndex: -1, title: "Graphics Drivers", value: controller ? controller.hardwareSummary : "Automatic PCI detection" }
     ]
 
-    onPrimaryRequested: confirmDialog.open()
+    onPrimaryRequested: {
+        if (controller && controller.preflightState === "ready") confirmDialog.open()
+        else if (controller) controller.prepareInstallation()
+    }
 
     Column {
         width: parent.width
@@ -31,16 +34,24 @@ PageFrame {
 
         PageHeading {
             width: parent.width
-            title: "Summary"
-            subtitle: "Review every choice before installation begins."
+            title: qsTr("Summary")
+            subtitle: qsTr("Prepare a validated Archinstall plan before any destructive action is enabled.")
+        }
+        InfoBanner {
+            visible: page.controller && page.controller.preflightState !== "ready"
+            width: parent.width
+            title: page.controller && page.controller.preflightState === "failed" ? qsTr("Installation plan blocked") : qsTr("Installation plan not prepared")
+            message: page.controller && page.controller.preflightMessage.length ? page.controller.preflightMessage : qsTr("Select a valid disk and account, then prepare the plan.")
+            tone: page.controller && page.controller.preflightState === "failed" ? "error" : "info"
         }
         MeoCard {
             width: parent.width
-            implicitHeight: page.dp(392)
+            implicitHeight: summaryColumn.implicitHeight + page.dp(24)
             type: "filled"
             padding: page.dp(12)
 
             Column {
+                id: summaryColumn
                 width: parent.width
                 Repeater {
                     model: page.summaryRows
@@ -75,10 +86,10 @@ PageFrame {
         contentItem: Column {
             spacing: page.dp(18)
             MeoText { text: "Installation details"; typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
-            InfoBanner { width: parent.width; title: "Safe preview"; message: "Passwords, Wi-Fi secrets, and disk passphrases are excluded from this view." }
+            InfoBanner { width: parent.width; title: qsTr("Secrets excluded"); message: qsTr("Passwords, Wi-Fi secrets, and disk passphrases are excluded from this view.") }
             MeoText {
                 width: parent.width
-                text: "Bootloader\nGRUB\n\nKernel\nlinux\n\nDesktop\nMeoArch KDE Plasma + SDDM\n\nAudio and network\nPipeWire · NetworkManager\n\nGraphics drivers\n" + (page.controller ? page.controller.hardwareSummary : "Automatic PCI detection") + "\n\nDisk plan\n" + (page.controller ? page.controller.selectedDisk : "Not selected")
+                text: qsTr("Bootloader\nGRUB\n\nKernel\nlinux\n\nDesktop\nMeoArch KDE Plasma + SDDM\n\nAudio and network\nPipeWire · NetworkManager\n\nGraphics drivers\n") + (page.controller ? page.controller.hardwareSummary : qsTr("Detecting hardware…")) + "\n\n" + qsTr("Disk plan\n") + (page.controller ? page.controller.selectedDisk : qsTr("Not selected"))
                 typeRole: "body"
                 typeSize: "medium"
                 lineHeight: 1.35
@@ -101,27 +112,28 @@ PageFrame {
 
         contentItem: Column {
             spacing: page.dp(18)
-            MeoText { width: parent.width; text: "Begin installation?"; typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
-            InfoBanner { width: parent.width; tone: "error"; title: "The selected disk will be erased"; message: "This cannot be undone after disk changes begin." }
+            MeoText { width: parent.width; text: qsTr("Begin installation?"); typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
+            InfoBanner { width: parent.width; tone: "error"; title: qsTr("The selected disk will be erased"); message: qsTr("This cannot be undone after disk changes begin.") }
             MeoCheckbox {
                 id: accept
-                text: "I understand that the selected disk will be erased."
+                text: qsTr("I understand that the selected disk will be erased.")
                 onCheckedChanged: page.riskAccepted = checked
             }
             Row {
                 anchors.right: parent.right
                 spacing: page.dp(8)
-                MeoButton { text: "Cancel"; type: "text"; onClicked: confirmDialog.close() }
+                MeoButton { text: qsTr("Cancel"); type: "text"; onClicked: confirmDialog.close() }
                 MeoButton {
-                    text: "Install"
+                    text: qsTr("Install")
                     type: "filled"
                     enabled: accept.checked
                     onClicked: {
-                        page.controller.generatePreview()
                         page.controller.confirmSummary()
-                        page.controller.startInstallation()
-                        confirmDialog.close()
-                        page.nextRequested()
+                        if (page.controller.readyToInstall) {
+                            page.controller.startInstallation()
+                            confirmDialog.close()
+                            page.nextRequested()
+                        }
                     }
                 }
             }

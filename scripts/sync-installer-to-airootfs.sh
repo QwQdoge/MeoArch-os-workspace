@@ -6,6 +6,7 @@ projects_root="$(cd "${repo_root}/.." && pwd)"
 meo_kde_src="${projects_root}/meo-kde"
 airootfs="${MEOARCH_AIROOTFS:-${repo_root}/meoarch-os/airootfs}"
 installer_src="${repo_root}/installer"
+legacy_live_tools="${repo_root}/meoarch-os/airootfs/usr/local/bin"
 installer_dst="${airootfs}/opt/meoarch-installer"
 desktop_dst="${airootfs}/opt/meo-desktop"
 desktop_live_theme="${airootfs}/usr/share/plasma/look-and-feel/org.meo.desktop"
@@ -51,6 +52,12 @@ cp -a "${installer_src}/qml" "${installer_dst}/qml"
 cp -a "${installer_src}/backend" "${installer_dst}/backend"
 cp -a "${installer_src}/data" "${installer_dst}/data"
 cp -a "${installer_src}/app" "${installer_dst}/app"
+if [ -d "${repo_root}/build/installer-host/translations" ]; then
+  cp -a "${repo_root}/build/installer-host/translations" "${installer_dst}/translations"
+else
+  echo "Installer translations are missing; build the native installer before ISO synchronization." >&2
+  exit 1
+fi
 install -Dm644 "${installer_src}/CMakeLists.txt" "${installer_dst}/CMakeLists.txt"
 cp -a "${repo_root}/assets" "${installer_dst}/assets"
 find "${installer_dst}/backend" -type f \( -name "*.sh" -o -name "*.py" \) -exec chmod 755 {} +
@@ -60,6 +67,8 @@ rm -rf "${desktop_dst}"
 install -d \
   "${desktop_dst}/themes/look-and-feel" \
   "${desktop_dst}/themes/desktoptheme" \
+  "${desktop_dst}/themes/color-schemes" \
+  "${desktop_dst}/themes/icons" \
   "${desktop_dst}/icons" \
   "${desktop_dst}/plasmoids" \
   "${desktop_dst}/branding" \
@@ -67,11 +76,27 @@ install -d \
   "${desktop_dst}/wallpaper"
 cp -a "${meo_kde_src}/themes/look-and-feel/org.meo.desktop" \
   "${desktop_dst}/themes/look-and-feel/org.meo.desktop"
-cp -a "${meo_kde_src}/themes/desktoptheme/MeoLight" \
-  "${desktop_dst}/themes/desktoptheme/MeoLight"
-cp -a "${meo_kde_src}/icons/Meo" "${desktop_dst}/icons/Meo" 2>/dev/null || true
+cp -a "${meo_kde_src}/themes/desktoptheme/." \
+  "${desktop_dst}/themes/desktoptheme/"
+cp -a "${meo_kde_src}/themes/color-schemes/." \
+  "${desktop_dst}/themes/color-schemes/"
+cp -a "${meo_kde_src}/themes/icons/." \
+  "${desktop_dst}/themes/icons/"
+cp -a "${meo_kde_src}/icons/." "${desktop_dst}/icons/"
 if [ -d "${meo_kde_src}/plasmoids" ]; then
-  cp -a "${meo_kde_src}/plasmoids/." "${desktop_dst}/plasmoids/"
+  for plasmoid_dir in "${meo_kde_src}/plasmoids/"*; do
+    [ -d "${plasmoid_dir}" ] || continue
+    plasmoid_name="$(basename "${plasmoid_dir}")"
+    [ "${plasmoid_name}" = "org.meo.topbar" ] && continue
+    cp -a "${plasmoid_dir}" "${desktop_dst}/plasmoids/${plasmoid_name}"
+  done
+fi
+# The target system receives the same committed topbar that belongs to the
+# ArchISO profile. Dirty sibling topbar work must pass its own release gate
+# before it can become Installer input.
+if [ -d "${airootfs}/usr/share/plasma/plasmoids/org.meo.topbar" ]; then
+  cp -a "${airootfs}/usr/share/plasma/plasmoids/org.meo.topbar" \
+    "${desktop_dst}/plasmoids/org.meo.topbar"
 fi
 cp -a "${meo_kde_src}/defaults/." "${desktop_dst}/defaults/"
 install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
@@ -85,6 +110,7 @@ install -d \
   "${airootfs}/usr/share/plasma/desktoptheme" \
   "${airootfs}/usr/share/plasma/plasmoids" \
   "${airootfs}/usr/share/icons" \
+  "${airootfs}/usr/share/color-schemes" \
   "${airootfs}/usr/share/icons/hicolor/scalable/apps" \
   "${airootfs}/usr/share/pixmaps" \
   "${airootfs}/usr/share/sddm/themes/breeze" \
@@ -100,8 +126,14 @@ cp -a "${meo_kde_src}/themes/look-and-feel/org.meo.desktop" \
 if [ -d "${meo_kde_src}/themes/desktoptheme" ]; then
   cp -a "${meo_kde_src}/themes/desktoptheme/." "${airootfs}/usr/share/plasma/desktoptheme/"
 fi
+cp -a "${meo_kde_src}/themes/color-schemes/." "${airootfs}/usr/share/color-schemes/"
+cp -a "${meo_kde_src}/themes/icons/." "${airootfs}/usr/share/icons/"
 if [ -d "${meo_kde_src}/plasmoids" ]; then
-  for plasmoid in org.meo.shelf org.meo.topbar; do
+  # The topbar is not an Installer dependency.  Keep the ArchISO profile's
+  # version intact so a dirty sibling MeoKDE checkout cannot silently alter an
+  # Installer candidate.  The shelf remains a declared live-desktop runtime
+  # dependency and is audited by verify-staging-provenance.sh.
+  for plasmoid in org.meo.shelf; do
     if [ -d "${meo_kde_src}/plasmoids/${plasmoid}" ]; then
       rm -rf "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
       cp -a "${meo_kde_src}/plasmoids/${plasmoid}" "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
@@ -147,3 +179,18 @@ install -Dm755 "${installer_src}/bin/meoarch-installer" \
   "${airootfs}/usr/local/bin/meoarch-installer"
 install -Dm755 "${installer_src}/bin/meoarch-installer-kiosk" \
   "${airootfs}/usr/local/bin/meoarch-installer-kiosk"
+for helper in Installation_guide choose-mirror installer.py livecd-sound; do
+  [ -f "${legacy_live_tools}/${helper}" ] || {
+    echo "Required ArchISO live helper is missing: ${legacy_live_tools}/${helper}" >&2
+    exit 1
+  }
+  if [ "${legacy_live_tools}/${helper}" != "${airootfs}/usr/local/bin/${helper}" ]; then
+    install -Dm755 "${legacy_live_tools}/${helper}" "${airootfs}/usr/local/bin/${helper}"
+  else
+    chmod 755 "${airootfs}/usr/local/bin/${helper}"
+  fi
+done
+install -Dm755 "${installer_src}/bin/meoarch-installer-live" \
+  "${airootfs}/usr/local/bin/meoarch-installer-live"
+install -Dm755 "${installer_src}/bin/meoarch-installer-live-root" \
+  "${airootfs}/usr/local/bin/meoarch-installer-live-root"

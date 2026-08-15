@@ -1,4 +1,3 @@
-pragma ComponentBehavior: Bound
 import QtQuick
 import MeoUI 1.0
 import ".."
@@ -6,47 +5,43 @@ import "../components"
 
 PageFrame {
     id: page
-
     Column {
         width: parent.width
         spacing: page.dp(16)
-
         PageHeading {
             width: parent.width
-            title: "Privacy & Security"
-            subtitle: "Review recommended privacy defaults and security protections."
-        }
-        InfoBanner {
-            width: parent.width
-            height: page.dp(64)
-            title: "Recommended protections are enabled"
-            tone: "info"
+            title: qsTr("Privacy & Security")
+            subtitle: qsTr("Only settings that are applied to the installed system are shown here.")
         }
         MeoCard {
             width: parent.width
-            implicitHeight: page.dp(294)
+            implicitHeight: securityColumn.implicitHeight + page.dp(24)
             type: "filled"
-            padding: page.dp(20)
-
+            padding: page.dp(12)
             Column {
+                id: securityColumn
                 width: parent.width
-                Repeater {
-                    model: [
-                        { key: "diagnostics", title: "Share anonymous diagnostics", value: false },
-                        { key: "firewall", title: "Firewall", value: true },
-                        { key: "securityUpdates", title: "Automatic security updates", value: true },
-                        { key: "diskEncryption", title: "Encrypt installation disk", value: false },
-                        { key: "restrictAppPermissions", title: "Restrict app permissions by default", value: true }
-                    ]
-                    delegate: ToggleRow {
-                        required property var modelData
-                        width: parent.width
-                        checked: page.controller ? page.controller.selection("privacy", modelData.key, modelData.value) : modelData.value
-                        title: modelData.title
-                        onToggled: checked => page.controller.setSelection("privacy", modelData.key, checked)
-                    }
+                spacing: page.dp(8)
+                ToggleRow {
+                    width: parent.width
+                    title: qsTr("Enable firewalld")
+                    subtitle: qsTr("Installs firewalld and enables its service on the installed system.")
+                    checked: page.controller ? page.controller.selection("privacy", "firewall", true) : true
+                    onToggled: checked => page.controller.setSelection("privacy", "firewall", checked)
                 }
             }
+        }
+        InfoBanner {
+            width: parent.width
+            title: qsTr("Disk encryption")
+            message: qsTr("Encryption configuration belongs in Disk Selection. It is unavailable until its tested Archinstall secret flow is enabled.")
+            tone: "info"
+        }
+        InfoBanner {
+            width: parent.width
+            title: qsTr("No telemetry or unattended updates")
+            message: qsTr("MeoArch does not present diagnostics, automatic security updates, or global permission restrictions as switches without a real backend.")
+            tone: "info"
         }
     }
 }
