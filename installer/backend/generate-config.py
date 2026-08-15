@@ -19,6 +19,7 @@ MEO_DESKTOP_PACKAGES = [
     "plasma-pa",
     "powerdevil",
     "bluedevil",
+    "plymouth",
 ]
 
 
@@ -147,6 +148,7 @@ def build_user_configuration(selections, hardware_plan=None):
         "bootloader_config": {"bootloader": "Grub", "uki": False, "removable": False},
         "hostname": user.get("hostname", "meoarch"),
         "kernels": ["linux"],
+        "kernel_extra_args": ["splash", "quiet", "loglevel=3", "rd.udev.log_level=3", "vt.global_cursor_default=0", "plymouth.enable=1"],
         "locale_config": {
             "kb_layout": locale.get("keyboardLayout", "us"),
             "sys_enc": "UTF-8",

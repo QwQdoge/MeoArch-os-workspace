@@ -116,7 +116,30 @@ install -Dm644 "${desktop_source}/defaults/kwin/kwinrc" \
 install -Dm644 "${desktop_source}/defaults/plasma/plasmarc" \
   "${target_root}/etc/xdg/plasmarc"
 install -Dm644 "${desktop_source}/defaults/plasma/plasma-welcomerc" \
-  "${target_root}/etc/xdg/plasma-welcomerc"
+  "${airootfs:-/opt/meoarch-installer}/etc/xdg/plasma-welcomerc" 2>/dev/null || true
+
+# Target System Plymouth Theme & Hook Configuration
+target_plymouth_dst="${target_root}/usr/share/plymouth/themes/meoarch"
+rm -rf "${target_plymouth_dst}"
+install -d "${target_plymouth_dst}" "${target_root}/etc/plymouth"
+if [ -d "/usr/share/plymouth/themes/meoarch" ]; then
+  cp -a "/usr/share/plymouth/themes/meoarch/." "${target_plymouth_dst}/"
+fi
+cat <<'EOF' >"${target_root}/etc/plymouth/plymouthd.conf"
+[Daemon]
+Theme=meoarch
+ShowDelay=0
+DeviceTimeout=5
+EOF
+
+if [ -f "${target_root}/etc/mkinitcpio.conf" ]; then
+  if ! grep -q "plymouth" "${target_root}/etc/mkinitcpio.conf"; then
+    sed -i -e 's/HOOKS=(\(.*\)udev\(.*\))/HOOKS=(\1udev plymouth\2)/g' "${target_root}/etc/mkinitcpio.conf"
+  fi
+  if [ -x "${target_root}/usr/bin/mkinitcpio" ]; then
+    chroot "${target_root}" /usr/bin/mkinitcpio -P 2>/dev/null || true
+  fi
+fi
 
 if [ -f "${generated_dir}/plasma-localerc" ]; then
   install -Dm644 "${generated_dir}/plasma-localerc" \
