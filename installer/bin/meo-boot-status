@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+"""MeoArch Boot Status Bridge.
+
+Connects systemd unit milestones and failures to Plymouth boot splash UI.
+"""
+
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+RUN_STATE_FILE = Path("/run/meoarch/boot-status.json")
+
+STAGES = {
+    "early": {
+        "progress": 5,
+        "message": "Starting MeoArch OS kernel & core services...",
+    },
+    "hardware": {
+        "progress": 18,
+        "message": "Detecting & configuring hardware devices...",
+    },
+    "storage": {
+        "progress": 32,
+        "message": "Preparing storage & mounting file systems...",
+    },
+    "network": {
+        "progress": 48,
+        "message": "Starting NetworkManager & network stack...",
+    },
+    "services": {
+        "progress": 68,
+        "message": "Starting system background services...",
+    },
+    "desktop": {
+        "progress": 86,
+        "message": "Starting desktop environment...",
+    },
+    "installer": {
+        "progress": 95,
+        "message": "Starting MeoArch Kiosk Installer...",
+    },
+    "ready": {
+        "progress": 100,
+        "message": "MeoArch OS is ready.",
+    },
+}
+
+FAILURES = {
+    "meoarch-installer.service": {
+        "title": "Installer Failure",
+        "message": "MeoArch Installer could not be launched.",
+        "code": "ERR_INSTALLER_LAUNCH_FAILED",
+    },
+    "NetworkManager.service": {
+        "title": "Network Service Error",
+        "message": "NetworkManager failed to start during boot.",
+        "code": "ERR_NETWORK_SERVICE_FAILED",
+    },
+    "sddm.service": {
+        "title": "Desktop Session Error",
+        "message": "Display manager failed to initialize.",
+        "code": "ERR_DESKTOP_INIT_FAILED",
+    },
+}
+
+DEFAULT_FAILURE = {
+    "title": "System Service Error",
+    "message": "A critical system service failed to start during boot.",
+    "code": "ERR_SYSTEM_SERVICE_FAILED",
+}
+
+
+def run_plymouth_cmd(*args):
+    """Safely execute a plymouth command if plymouth is running."""
+    try:
+        subprocess.run(["plymouth", *args], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        pass
+
+
+def record_state(payload):
+    try:
+        RUN_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        RUN_STATE_FILE.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    except Exception:
+        pass
+
+
+def handle_stage(stage_id):
+    if stage_id not in STAGES:
+        sys.stderr.write(f"Unknown boot stage: {stage_id}\n")
+        sys.exit(1)
+
+    info = STAGES[stage_id]
+    progress = info["progress"]
+    msg = info["message"]
+
+    # 1. Update Plymouth progress & message
+    run_plymouth_cmd("update", f"--progress={progress}")
+    run_plymouth_cmd("display-message", f"--text={msg}")
+    run_plymouth_cmd("message", f"--text=STAGE:{stage_id}:{progress}:{msg}")
+
+    # 2. Record state for auditing
+    state = {
+        "status": "normal",
+        "stage": stage_id,
+        "progress": progress,
+        "message": msg,
+    }
+    record_state(state)
+
+    if stage_id == "ready":
+        # Quit plymouth cleanly on ready
+        run_plymouth_cmd("quit")
+
+
+def handle_failure(unit_name, safe_code=None):
+    fail_info = FAILURES.get(unit_name, DEFAULT_FAILURE)
+    title = fail_info["title"]
+    message = fail_info["message"]
+    code = safe_code or fail_info["code"]
+
+    display_text = f"ERROR:{unit_name}:{code}:{title}:{message}"
+    run_plymouth_cmd("display-message", f"--text={display_text}")
+    run_plymouth_cmd("message", f"--text={display_text}")
+
+    state = {
+        "status": "failed",
+        "unit": unit_name,
+        "code": code,
+        "title": title,
+        "message": message,
+    }
+    record_state(state)
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: meo-boot-status stage <stage-id> | failure <unit_name> [safe_code]")
+        sys.exit(1)
+
+    action = sys.argv[1]
+    if action == "stage" and len(sys.argv) >= 3:
+        handle_stage(sys.argv[2])
+    elif action == "failure" and len(sys.argv) >= 3:
+        unit_name = sys.argv[2]
+        safe_code = sys.argv[3] if len(sys.argv) >= 4 else None
+        handle_failure(unit_name, safe_code)
+    else:
+        print("Invalid arguments.")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+marker="/run/meoarch-installer-autostarted"
+if [ -e "${marker}" ]; then
+  exit 0
+fi
+install -m 0600 /dev/null "${marker}"
+export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-wayland}"
+exec /usr/local/bin/meoarch-installer \
+  --production \
+  --enable-real-install \
+  --enable-system-actions

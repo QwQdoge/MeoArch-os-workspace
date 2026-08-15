@@ -1,0 +1,10 @@
+[Unit]
+Description=MeoArch Boot Services Stage Milestone
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/meoarch/meo-boot-status stage services
+
+[Install]
+WantedBy=multi-user.target

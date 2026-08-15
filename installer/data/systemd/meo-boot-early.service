@@ -1,0 +1,11 @@
+[Unit]
+Description=MeoArch Boot Early Stage Milestone
+DefaultDependencies=no
+After=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/meoarch/meo-boot-status stage early
+
+[Install]
+WantedBy=sysinit.target

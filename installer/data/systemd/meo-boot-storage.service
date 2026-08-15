@@ -1,0 +1,10 @@
+[Unit]
+Description=MeoArch Boot Storage Stage Milestone
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/meoarch/meo-boot-status stage storage
+
+[Install]
+WantedBy=local-fs.target

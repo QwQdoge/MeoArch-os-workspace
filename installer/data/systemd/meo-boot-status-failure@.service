@@ -1,0 +1,9 @@
+[Unit]
+Description=MeoArch Boot Failure Handler for %i
+After=plymouth-start.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/meoarch/meo-boot-status failure %i
+StandardOutput=journal
+StandardError=journal
