@@ -76,19 +76,14 @@ Item {
         source: frame.asset("fonts/Material_Symbols_Outlined,Material_Symbols_Rounded,Material_Symbols_Sharp/Material_Symbols_Rounded/static/MaterialSymbolsRounded_28pt-Regular.ttf")
     }
 
-    Image {
-        anchors.fill: parent
-        source: frame.asset("wallpapers/installer_background.png")
-        fillMode: Image.PreserveAspectCrop
-    }
-
-    Rectangle {
+    MeoMotionSurface {
         x: frame.pageMargin
         y: frame.pageMargin
         width: windowMetrics.isExtraLargeWidth ? frame.dp(328) : frame.dp(278)
         height: windowMetrics.isExtraLargeWidth ? frame.dp(56) : frame.dp(48)
-        radius: MeoTheme.shapeLargeIncreased
         color: MeoTheme.surfaceContainer
+        radius: MeoTheme.shapeLargeIncreased
+        elevation: 0
 
         Row {
             anchors.fill: parent
@@ -163,16 +158,17 @@ Item {
             keyNavigationEnabled: true
             boundsBehavior: Flickable.StopAtBounds
 
-            delegate: Rectangle {
+            delegate: MeoListItem {
                 id: languageOption
                 required property var modelData
-                required property int index
                 width: ListView.view.width
-                height: frame.dp(48)
-                radius: MeoTheme.shapeMedium
-                color: frame.controller && frame.controller.uiLanguage === modelData.id
-                       ? MeoTheme.primaryContainer : "transparent"
-                activeFocusOnTab: true
+                implicitHeight: frame.dp(48)
+                headline: languageOption.modelData.nativeName
+                interactive: true
+                isDense: true
+                isSegmented: true
+                roundingStrategy: "all"
+                selected: frame.controller && frame.controller.uiLanguage === modelData.id
                 Accessible.role: Accessible.MenuItem
                 Accessible.name: modelData.nativeName
                 Accessible.selected: frame.controller && frame.controller.uiLanguage === modelData.id
@@ -182,42 +178,14 @@ Item {
                     languagePopup.close()
                 }
 
-                MeoStateLayer {
-                    anchors.fill: parent
-                    radius: parent.radius
-                    hovered: languageHover.hovered
-                    pressed: languageTap.pressed
-                    focused: languageOption.activeFocus
-                    color: MeoTheme.contentOnSurface
-                }
-                MeoText {
-                    anchors.left: parent.left
-                    anchors.leftMargin: frame.dp(16)
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: languageOption.modelData.nativeName
-                    typeRole: "body"
-                    typeSize: "medium"
-                    color: MeoTheme.contentOnSurface
-                }
-                MeoIcon {
-                    anchors.right: parent.right
-                    anchors.rightMargin: frame.dp(16)
-                    anchors.verticalCenter: parent.verticalCenter
-                    icon: frame.controller && frame.controller.uiLanguage === languageOption.modelData.id ? "check" : ""
-                    size: 20
-                    color: MeoTheme.primary
-                }
-                HoverHandler { id: languageHover }
-                TapHandler {
-                    id: languageTap
-                    onTapped: {
-                        languageOption.forceActiveFocus(Qt.MouseFocusReason)
-                        languageOption.choose()
+                trailingComponent: Component {
+                    MeoIcon {
+                        icon: languageOption.selected ? "check" : ""
+                        size: 20
+                        color: MeoTheme.contentOnSecondaryContainer
                     }
                 }
-                Keys.onReturnPressed: choose()
-                Keys.onEnterPressed: choose()
-                Keys.onSpacePressed: choose()
+                onClicked: choose()
             }
         }
     }
@@ -279,7 +247,12 @@ Item {
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             interactive: contentHeight > height
-            ScrollBar.vertical: ScrollBar { policy: contentFlick.interactive ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff }
+            // A persistent, narrow affordance is important on the compact
+            // installer window: otherwise a clipped review page looks like a
+            // broken layout instead of content that can be scrolled.
+            ScrollBar.vertical: ScrollBar {
+                policy: contentFlick.interactive ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
+            }
 
             Item {
                 id: bodyHost
@@ -290,13 +263,20 @@ Item {
             }
         }
 
-        Rectangle {
+        Item {
             id: footer
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             height: frame.footerHeight
-            color: "transparent"
+
+            MeoDivider {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                height: Math.max(1, MeoTheme.strokeWidthThin)
+                opacity: 0.72
+            }
 
             MeoButton {
                 visible: frame.showBackButton
@@ -308,13 +288,25 @@ Item {
                 size: "m"
                 onClicked: frame.previousRequested()
             }
-            MeoPageIndicator {
+            Row {
                 anchors.centerIn: parent
-                count: frame.pageCount
-                currentIndex: frame.pageIndex
-                dotSize: frame.dp(6)
-                activeDotWidth: frame.dp(18)
-                spacing: frame.dp(6)
+                spacing: frame.dp(12)
+
+                MeoText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "Step %1 of %2".arg(frame.pageIndex + 1).arg(frame.pageCount)
+                    typeRole: "label"
+                    typeSize: "small"
+                    color: MeoTheme.contentOnSurfaceVariant
+                }
+                MeoPageIndicator {
+                    anchors.verticalCenter: parent.verticalCenter
+                    count: frame.pageCount
+                    currentIndex: frame.pageIndex
+                    dotSize: frame.dp(6)
+                    activeDotWidth: frame.dp(18)
+                    spacing: frame.dp(6)
+                }
             }
             MeoButton {
                 visible: frame.showPrimaryButton
@@ -327,6 +319,7 @@ Item {
                 type: "filled"
                 size: "m"
                 isEmphasized: true
+                Accessible.description: "Continue to the next installation step"
                 onClicked: frame.firePrimary()
             }
         }

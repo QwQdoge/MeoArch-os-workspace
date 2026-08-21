@@ -30,12 +30,30 @@ PageFrame {
 
     Column {
         width: parent.width
-        spacing: page.dp(12)
+        spacing: page.compactHeight ? page.dp(8) : page.dp(12)
 
-        PageHeading {
+        Item {
             width: parent.width
-            title: qsTr("Summary")
-            subtitle: qsTr("Prepare a validated Archinstall plan before any destructive action is enabled.")
+            implicitHeight: Math.max(summaryHeading.implicitHeight, detailsButton.implicitHeight)
+
+            PageHeading {
+                id: summaryHeading
+                anchors.left: parent.left
+                anchors.right: detailsButton.left
+                anchors.rightMargin: page.dp(8)
+                title: qsTr("Summary")
+                subtitle: qsTr("Prepare a validated Archinstall plan before any destructive action is enabled.")
+            }
+            MeoButton {
+                id: detailsButton
+                anchors.top: parent.top
+                anchors.right: parent.right
+                text: qsTr("Details")
+                type: "text"
+                size: "s"
+                Accessible.description: qsTr("Show installation details without secrets")
+                onClicked: detailsSheet.openFrom(this)
+            }
         }
         InfoBanner {
             visible: page.controller && page.controller.preflightState !== "ready"
@@ -46,30 +64,56 @@ PageFrame {
         }
         MeoCard {
             width: parent.width
-            implicitHeight: summaryColumn.implicitHeight + page.dp(24)
+            implicitHeight: summaryColumn.implicitHeight + (page.compactHeight ? page.dp(16) : page.dp(24))
             type: "filled"
-            padding: page.dp(12)
+            padding: page.compactHeight ? page.dp(8) : page.dp(12)
 
             Column {
                 id: summaryColumn
                 width: parent.width
                 Repeater {
                     model: page.summaryRows
-                    delegate: MeoListItem {
+                    delegate: Column {
                         required property var modelData
+                        required property int index
                         width: parent.width
-                        implicitHeight: page.dp(52)
-                        headline: modelData.title
-                        supportingText: modelData.value
-                        trailingComponent: Component {
-                            MeoIcon { icon: "edit"; size: 20; color: MeoTheme.primary }
+                        spacing: 0
+
+                        MeoListItem {
+                            width: parent.width
+                            implicitHeight: page.compactHeight ? page.dp(48) : page.dp(52)
+                            headline: modelData.title
+                            supportingText: modelData.value
+                            interactive: modelData.pageIndex >= 0
+                            isSegmented: true
+                            roundingStrategy: index === 0 ? "top"
+                                              : index === page.summaryRows.length - 1 ? "bottom" : "middle"
+                            Accessible.description: modelData.pageIndex >= 0
+                                                    ? qsTr("Select to edit this choice") : ""
+                            trailingComponent: Component {
+                                MeoIcon {
+                                    visible: modelData.pageIndex >= 0
+                                    icon: "edit"
+                                    size: 20
+                                    color: MeoTheme.primary
+                                }
+                            }
+                            onClicked: {
+                                if (modelData.pageIndex >= 0)
+                                    page.navigateRequested(modelData.pageIndex)
+                            }
                         }
-                        onClicked: page.navigateRequested(modelData.pageIndex)
+                        MeoDivider {
+                            width: parent.width - page.dp(32)
+                            height: Math.max(1, MeoTheme.strokeWidthThin)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            visible: index < page.summaryRows.length - 1
+                            opacity: 0.72
+                        }
                     }
                 }
             }
         }
-        MeoButton { text: "Show Details"; type: "text"; onClicked: detailsSheet.openFrom(this) }
     }
 
     MeoMotionPopup {
@@ -124,9 +168,10 @@ PageFrame {
                 spacing: page.dp(8)
                 MeoButton { text: qsTr("Cancel"); type: "text"; onClicked: confirmDialog.close() }
                 MeoButton {
-                    text: qsTr("Install")
+                    text: qsTr("Erase disk and install")
                     type: "filled"
                     enabled: accept.checked
+                    Accessible.description: qsTr("Starts the confirmed destructive installation")
                     onClicked: {
                         page.controller.confirmSummary()
                         if (page.controller.readyToInstall) {

@@ -16,6 +16,8 @@ Window {
     color: MeoTheme.windowBg
     title: "MeoArch Installer"
 
+    readonly property url assetsRoot: String(Qt.resolvedUrl(".")).indexOf("/opt/meoarch-installer/") >= 0
+                                      ? Qt.resolvedUrl("../assets/") : Qt.resolvedUrl("../../assets/")
     property int currentPage: root.initialPage
     property int navigationDirection: 1
     property string screenshotPath: ""
@@ -45,6 +47,24 @@ Window {
         if (screenshotPath.length) {
             MeoTheme.reduceMotion = true
         }
+    }
+
+    // The wallpaper belongs to the window rather than an individual page so
+    // it remains stable while pages transition and is decoded only once.
+    Image {
+        anchors.fill: parent
+        source: root.assetsRoot + "wallpapers/installer_background.png"
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: false
+        cache: true
+    }
+
+    MeoShape {
+        anchors.fill: parent
+        type: "rect"
+        radius: 0
+        color: MeoTheme.surface
+        opacity: 0.14
     }
 
     MeoPageHost {
