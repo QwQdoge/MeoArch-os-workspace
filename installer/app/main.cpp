@@ -132,9 +132,8 @@ int main(int argc, char *argv[])
     QObject::connect(&controller, &InstallerController::uiLanguageChanged, &engine,
                      [&controller, &loadLanguage] { loadLanguage(controller.uiLanguage()); });
 
-    // Keep visual-regression capture in the C++ host.  QML's asynchronous
-    // grab callback can be starved by a busy scene graph on Windows, which
-    // previously left screenshot runs alive after the image was requested.
+    // Keep visual-regression capture in the C++ host.  Let the source-page
+    // fonts and window-level wallpaper settle before grabbing the first frame.
     QString screenshotPath;
     for (const QString &argument : app.arguments()) {
         if (argument.startsWith(QStringLiteral("--screenshot="))) {
@@ -144,14 +143,14 @@ int main(int argc, char *argv[])
     }
     if (!screenshotPath.isEmpty()) {
         if (auto *quickWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().constFirst())) {
-            QTimer::singleShot(1400, quickWindow, [quickWindow, screenshotPath, &app]() {
+            QTimer::singleShot(2200, quickWindow, [quickWindow, screenshotPath, &app]() {
                 const QImage image = quickWindow->grabWindow();
                 if (image.isNull() || !image.save(screenshotPath))
                     app.exit(2);
                 else
                     app.quit();
             });
-            QTimer::singleShot(6000, &app, [&app]() { app.exit(3); });
+            QTimer::singleShot(8000, &app, [&app]() { app.exit(3); });
         }
     }
     return app.exec();

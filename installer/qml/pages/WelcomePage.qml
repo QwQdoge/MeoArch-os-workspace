@@ -8,15 +8,16 @@ PageFrame {
     showBackButton: false
 
     Column {
+        id: welcomeContent
         anchors.centerIn: parent
-        anchors.verticalCenterOffset: -page.dp(10)
+        anchors.verticalCenterOffset: -page.dp(8)
         width: Math.min(parent.width, page.dp(680))
-        spacing: page.dp(24)
+        spacing: page.dp(16)
 
         Image {
             anchors.horizontalCenter: parent.horizontalCenter
-            width: page.dp(232)
-            height: page.dp(104)
+            width: page.dp(188)
+            height: page.dp(84)
             source: page.asset("icons/Logo.png")
             fillMode: Image.PreserveAspectFit
             Accessible.name: "MeoArch OS"
@@ -33,12 +34,71 @@ PageFrame {
         }
         MeoText {
             width: parent.width
-            text: "A guided installation that keeps powerful Arch options close at hand."
+            text: "A guided setup that keeps each important Arch choice clear and reviewable."
             horizontalAlignment: Text.AlignHCenter
             color: MeoTheme.contentOnSurfaceVariant
             typeRole: "body"
-            typeSize: "big"
+            typeSize: "medium"
             wrapMode: Text.WordWrap
+        }
+
+        MeoCard {
+            width: parent.width
+            type: "filled"
+            padding: page.dp(20)
+            implicitHeight: featureRow.implicitHeight + page.dp(40)
+
+            Row {
+                id: featureRow
+                width: parent.width
+                spacing: page.dp(16)
+
+                Repeater {
+                    model: [
+                        { icon: "edit_note", title: "Guided choices", text: "Language, storage, account, and software in a clear order." },
+                        { icon: "memory", title: "Hardware-aware", text: "Graphics planning is prepared from real PCI hardware detection." },
+                        { icon: "fact_check", title: "Review before install", text: "No destructive action is enabled until the installation plan is checked." }
+                    ]
+
+                    delegate: Column {
+                        required property var modelData
+                        width: (featureRow.width - featureRow.spacing * 2) / 3
+                        spacing: page.dp(6)
+
+                        MeoIcon {
+                            icon: modelData.icon
+                            size: page.dp(24)
+                            color: MeoTheme.primary
+                        }
+                        MeoText {
+                            width: parent.width
+                            text: modelData.title
+                            typeRole: "label"
+                            typeSize: "medium"
+                            emphasized: true
+                            color: MeoTheme.contentOnSurface
+                            wrapMode: Text.WordWrap
+                        }
+                        MeoText {
+                            width: parent.width
+                            text: modelData.text
+                            typeRole: "body"
+                            typeSize: "small"
+                            color: MeoTheme.contentOnSurfaceVariant
+                            wrapMode: Text.WordWrap
+                        }
+                    }
+                }
+            }
+        }
+
+        MeoText {
+            width: parent.width
+            text: "You can review every choice before installation begins."
+            horizontalAlignment: Text.AlignHCenter
+            typeRole: "label"
+            typeSize: "small"
+            color: MeoTheme.contentOnSurfaceVariant
         }
     }
 }

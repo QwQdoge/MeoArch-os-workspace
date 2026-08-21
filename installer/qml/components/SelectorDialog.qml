@@ -69,21 +69,26 @@ MeoMotionPopup {
                     if (String(popup.filteredModel[i][popup.primaryKey]) === popup.pendingId) return i
                 return -1
             }
-            highlight: Rectangle { radius: MeoTheme.shapeLarge; color: MeoTheme.primaryContainer }
+            highlight: MeoShape {
+                type: "rect"
+                radius: MeoTheme.shapeLarge
+                color: MeoTheme.primaryContainer
+            }
             highlightFollowsCurrentItem: true
             Keys.onDownPressed: incrementCurrentIndex()
             Keys.onUpPressed: decrementCurrentIndex()
             ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
-            delegate: Rectangle {
+            delegate: Item {
                 id: option
                 required property var modelData
                 required property int index
-                width: ListView.view.width; height: 56; radius: MeoTheme.shapeLarge; color: "transparent"
+                property real cornerRadius: MeoTheme.shapeLarge
+                width: ListView.view.width; height: 56
                 activeFocusOnTab: true
                 Accessible.role: Accessible.RadioButton
                 Accessible.name: String(option.modelData[popup.labelKey] || option.modelData[popup.primaryKey])
                 Accessible.checked: String(option.modelData[popup.primaryKey]) === popup.pendingId
-                MeoStateLayer { anchors.fill: parent; radius: option.radius; hovered: optionHover.hovered; pressed: optionTap.pressed; focused: option.activeFocus; color: MeoTheme.contentOnSurface }
+                MeoStateLayer { anchors.fill: parent; radius: option.cornerRadius; hovered: optionHover.hovered; pressed: optionTap.pressed; focused: option.activeFocus; color: MeoTheme.contentOnSurface }
                 MeoText { anchors.left: parent.left; anchors.leftMargin: 16; anchors.right: code.left; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.labelKey] || option.modelData[popup.primaryKey]); typeRole: "body"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface; elide: Text.ElideRight }
                 MeoText { id: code; anchors.right: parent.right; anchors.rightMargin: 16; anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.secondaryKey] || option.modelData[popup.primaryKey]); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant }
                 HoverHandler { id: optionHover }

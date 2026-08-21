@@ -15,13 +15,21 @@ PageFrame {
         }
         MeoCard {
             width: parent.width
-            implicitHeight: securityColumn.implicitHeight + page.dp(24)
+            implicitHeight: securityColumn.implicitHeight + page.dp(32)
             type: "filled"
-            padding: page.dp(12)
+            padding: page.dp(16)
             Column {
                 id: securityColumn
                 width: parent.width
-                spacing: page.dp(8)
+                spacing: page.dp(6)
+                MeoText {
+                    width: parent.width
+                    text: qsTr("System protection")
+                    typeRole: "label"
+                    typeSize: "medium"
+                    emphasized: true
+                    color: MeoTheme.contentOnSurfaceVariant
+                }
                 ToggleRow {
                     width: parent.width
                     title: qsTr("Enable firewalld")
@@ -34,13 +42,13 @@ PageFrame {
         InfoBanner {
             width: parent.width
             title: qsTr("Disk encryption")
-            message: qsTr("Encryption configuration belongs in Disk Selection. It is unavailable until its tested Archinstall secret flow is enabled.")
+            message: qsTr("Encryption belongs with disk choices. It will appear here after the tested Archinstall secret flow is available.")
             tone: "info"
         }
         InfoBanner {
             width: parent.width
             title: qsTr("No telemetry or unattended updates")
-            message: qsTr("MeoArch does not present diagnostics, automatic security updates, or global permission restrictions as switches without a real backend.")
+            message: qsTr("MeoArch does not show settings without a real backend. Updates and diagnostics stay under your control.")
             tone: "info"
         }
     }
