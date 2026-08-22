@@ -7,10 +7,16 @@ generated_dir="${3:-${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}/gener
 runtime_source="${MEOARCH_RUNTIME_SOURCE:-/usr}"
 customizations_file="${generated_dir}/target-customizations.json"
 
-if [ "${target_root}" = "/" ] || [ -z "${target_root}" ]; then
+if [ "${target_root}" = "/" ] || [ -z "${target_root}" ] || [ -L "${target_root}" ]; then
   echo "Refusing unsafe target root: ${target_root}" >&2
   exit 2
 fi
+target_root="$(realpath -e -- "${target_root}")"
+if [ "${target_root}" = "/" ]; then
+  echo "Refusing unsafe resolved target root: ${target_root}" >&2
+  exit 2
+fi
+target_desktop_payload="${target_root}/opt/meo-desktop"
 if [ ! -d "${target_root}/etc" ] || [ ! -d "${target_root}/usr" ]; then
   echo "Installed target is not mounted at ${target_root}." >&2
   exit 3
@@ -23,13 +29,32 @@ if [ ! -f "${desktop_source}/themes/look-and-feel/org.meo.desktop/metadata.json"
   echo "Meo Desktop payload is missing from ${desktop_source}." >&2
   exit 4
 fi
+for destructive_target in \
+  "${target_root}/usr/lib/qt6/qml/MeoUI" \
+  "${target_root}/usr/lib/qt6/qml/MeoKDE" \
+  "${target_root}/usr/lib/qt6/qml/Meo/System" \
+  "${target_root}/usr/share/plasma/look-and-feel/org.meo.desktop" \
+  "${target_root}/usr/share/plasma/desktoptheme/MeoLight" \
+  "${target_root}/usr/share/plasma/desktoptheme/MeoDark" \
+  "${target_desktop_payload}"; do
+  if [ -L "${destructive_target}" ]; then
+    echo "Refusing recursive replacement of symlink: ${destructive_target}" >&2
+    exit 2
+  fi
+done
 if [ ! -e "${runtime_source}/lib/libmeoui.so.0" ] \
   || [ ! -f "${runtime_source}/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so" ] \
   || [ ! -f "${runtime_source}/lib/qt6/qml/Meo/System/libmeosystemplugin.so" ] \
-  || [ ! -d "${runtime_source}/lib/qt6/qml/MeoKDE" ]; then
+  || [ ! -d "${runtime_source}/lib/qt6/qml/MeoKDE" ] \
+  || [ ! -x "${runtime_source}/bin/meo-dynamic-colors" ] \
+  || [ ! -x "${runtime_source}/bin/meo-input-method" ]; then
   echo "MeoUI, MeoKDE, or Meo.System runtime is missing from ${runtime_source}." >&2
   exit 5
 fi
+
+install -d "${target_root}/opt"
+rm -rf "${target_desktop_payload}"
+cp -a "${desktop_source}" "${target_desktop_payload}"
 
 install -d \
   "${target_root}/usr/lib" \
@@ -39,7 +64,12 @@ install -d \
   "${target_root}/usr/lib/qt6/plugins/org.kde.kdecoration3" \
   "${target_root}/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm" \
   "${target_root}/usr/lib/qt6/plugins/styles" \
+  "${target_root}/usr/lib/systemd/user/default.target.wants" \
+  "${target_root}/usr/bin" \
   "${target_root}/usr/share/fonts/meo" \
+  "${target_root}/usr/share/fcitx5/themes" \
+  "${target_root}/usr/share/meo-desktop/defaults" \
+  "${target_root}/usr/share/meo-desktop/input-method/ibus" \
   "${target_root}/usr/share/color-schemes" \
   "${target_root}/usr/share/icons" \
   "${target_root}/usr/share/icons/hicolor/scalable/apps" \
@@ -48,8 +78,11 @@ install -d \
   "${target_root}/usr/share/pixmaps" \
   "${target_root}/usr/share/sddm/themes/breeze" \
   "${target_root}/usr/share/wallpapers/MeoArch" \
+  "${target_root}/etc/environment.d" \
+  "${target_root}/etc/fonts/conf.avail" \
+  "${target_root}/etc/fonts/conf.d" \
   "${target_root}/etc/sddm.conf.d" \
-  "${target_root}/etc/xdg"
+  "${target_root}/etc/xdg/fcitx5/conf"
 
 cp -a "${runtime_source}/lib/libmeoui.so"* "${target_root}/usr/lib/"
 rm -rf "${target_root}/usr/lib/qt6/qml/MeoUI"
@@ -72,11 +105,39 @@ for plugin in \
       "${target_root}/usr/lib/qt6/plugins/${plugin}"
   fi
 done
+for helper in meo-dynamic-colors meo-input-method meo-theme-mode meo-desktop-apply meo-desktop-layout; do
+  install -Dm755 "${runtime_source}/bin/${helper}" "${target_root}/usr/bin/${helper}"
+done
+install -Dm644 "${desktop_source}/defaults/kwin/kwinrc" \
+  "${target_root}/usr/share/meo-desktop/defaults/kwinrc"
+install -Dm644 "${desktop_source}/defaults/environment/90-meo-applications.conf" \
+  "${target_root}/etc/environment.d/90-meo-applications.conf"
+install -Dm644 "${desktop_source}/defaults/input-method/fcitx5/conf/classicui.conf" \
+  "${target_root}/etc/xdg/fcitx5/conf/classicui.conf"
+rm -rf "${target_root}/usr/share/fcitx5/themes/MeoInputMethod-Light" \
+  "${target_root}/usr/share/fcitx5/themes/MeoInputMethod-Dark"
+cp -a "${runtime_source}/share/fcitx5/themes/MeoInputMethod-Light" \
+  "${runtime_source}/share/fcitx5/themes/MeoInputMethod-Dark" \
+  "${target_root}/usr/share/fcitx5/themes/"
+cp -a "${runtime_source}/share/meo-desktop/input-method/ibus/." \
+  "${target_root}/usr/share/meo-desktop/input-method/ibus/"
+install -Dm644 "${desktop_source}/defaults/systemd/meo-dynamic-colors.path" \
+  "${target_root}/usr/lib/systemd/user/meo-dynamic-colors.path"
+install -Dm644 "${runtime_source}/lib/systemd/user/meo-dynamic-colors.service" \
+  "${target_root}/usr/lib/systemd/user/meo-dynamic-colors.service"
+ln -sfn ../meo-dynamic-colors.path \
+  "${target_root}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path"
+install -Dm644 "${desktop_source}/defaults/fonts/50-meo-fonts.conf" \
+  "${target_root}/etc/fonts/conf.avail/50-meo-fonts.conf"
+ln -sfn ../conf.avail/50-meo-fonts.conf \
+  "${target_root}/etc/fonts/conf.d/50-meo-fonts.conf"
 
 rm -rf "${target_root}/usr/share/plasma/look-and-feel/org.meo.desktop"
 cp -a "${desktop_source}/themes/look-and-feel/org.meo.desktop" \
   "${target_root}/usr/share/plasma/look-and-feel/org.meo.desktop"
 if [ -d "${desktop_source}/themes/desktoptheme" ]; then
+  rm -rf "${target_root}/usr/share/plasma/desktoptheme/MeoLight" \
+    "${target_root}/usr/share/plasma/desktoptheme/MeoDark"
   cp -a "${desktop_source}/themes/desktoptheme/." \
     "${target_root}/usr/share/plasma/desktoptheme/"
 fi
@@ -89,7 +150,10 @@ if [ -d "${desktop_source}/themes/icons" ]; then
 fi
 
 if [ -d "${desktop_source}/plasmoids" ]; then
-  for plasmoid in org.meo.shelf org.meo.topbar org.meo.launcher org.meo.quicksettings; do
+  for retired_plasmoid in org.meo.shelf org.meo.toptasks org.meo.launcher org.meo.quicksettings; do
+    rm -rf "${target_root}/usr/share/plasma/plasmoids/${retired_plasmoid}"
+  done
+  for plasmoid in org.meo.topbar org.meo.timecenter; do
     if [ -d "${desktop_source}/plasmoids/${plasmoid}" ]; then
       rm -rf "${target_root}/usr/share/plasma/plasmoids/${plasmoid}"
       cp -a "${desktop_source}/plasmoids/${plasmoid}" "${target_root}/usr/share/plasma/plasmoids/${plasmoid}"
@@ -116,7 +180,7 @@ install -Dm644 "${desktop_source}/defaults/kwin/kwinrc" \
 install -Dm644 "${desktop_source}/defaults/plasma/plasmarc" \
   "${target_root}/etc/xdg/plasmarc"
 install -Dm644 "${desktop_source}/defaults/plasma/plasma-welcomerc" \
-  "${airootfs:-/opt/meoarch-installer}/etc/xdg/plasma-welcomerc" 2>/dev/null || true
+  "${target_root}/etc/xdg/plasma-welcomerc"
 
 # Target System Plymouth Theme & Hook Configuration
 target_plymouth_dst="${target_root}/usr/share/plymouth/themes/meoarch"

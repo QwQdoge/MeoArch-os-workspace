@@ -15,12 +15,6 @@ manifest="$3"
   exit 2
 }
 
-topbar="airootfs/usr/share/plasma/plasmoids/org.meo.topbar"
-if ! diff -qr "${baseline}/${topbar}" "${staged}/${topbar}" >/dev/null; then
-  echo "FAIL: Installer ISO staging must not alter ${topbar}." >&2
-  exit 1
-fi
-
 tmp_diff="$(mktemp)"
 trap 'rm -f "${tmp_diff}"' EXIT
 set +e
@@ -44,11 +38,11 @@ classify() {
     airootfs/usr/lib/qt6/qml/Meo/System/*)
       printf '%s\t%s\t%s' 'Meo.System' 'compiled sibling MeoKDE native/system module' 'shared NetworkManager and system-state backend'
       ;;
-    airootfs/opt/meo-desktop/plasmoids/org.meo.topbar/*)
-      printf '%s\t%s\t%s' 'MeoKDE topbar' 'committed ArchISO profile topbar' 'target-system topbar pinned independently of dirty sibling work'
+    airootfs/opt/meo-desktop/*|airootfs/usr/share/plasma/look-and-feel/org.meo.desktop/*|airootfs/usr/share/plasma/desktoptheme/*|airootfs/usr/share/plasma/plasmoids/org.meo.shelf/*|airootfs/usr/share/plasma/plasmoids/org.meo.topbar/*|airootfs/usr/share/plasma/plasmoids/org.meo.timecenter/*|airootfs/usr/share/color-schemes/*|airootfs/usr/share/icons/MeoSymbols*/*)
+      printf '%s\t%s\t%s' 'MeoKDE desktop' 'declared sibling MeoKDE desktop assets' 'live desktop theme, status surfaces, or retired Shelf cleanup'
       ;;
-    airootfs/opt/meo-desktop/*|airootfs/usr/share/plasma/look-and-feel/org.meo.desktop/*|airootfs/usr/share/plasma/desktoptheme/*|airootfs/usr/share/plasma/plasmoids/org.meo.shelf/*|airootfs/usr/share/color-schemes/*|airootfs/usr/share/icons/MeoSymbols*/*)
-      printf '%s\t%s\t%s' 'MeoKDE desktop' 'declared sibling MeoKDE desktop assets' 'live desktop theme or shelf runtime'
+    airootfs/usr/bin/meo-dynamic-colors|airootfs/usr/bin/meo-input-method|airootfs/usr/bin/meo-theme-mode|airootfs/usr/bin/meo-desktop-apply|airootfs/usr/bin/meo-desktop-layout|airootfs/usr/share/meo-desktop/*|airootfs/usr/share/fcitx5/themes/MeoInputMethod-*/*|airootfs/etc/xdg/fcitx5/*|airootfs/etc/environment.d/90-meo-applications.conf|airootfs/usr/lib/systemd/user/meo-dynamic-colors.*|airootfs/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path)
+      printf '%s\t%s\t%s' 'MeoKDE integration' 'declared sibling MeoKDE scripts and defaults' 'dynamic palette, application style, and input-method integration'
       ;;
     airootfs/usr/share/wallpapers/MeoArch/*|airootfs/usr/share/pixmaps/meoarch-logo.svg|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg)
       printf '%s\t%s\t%s' 'MeoArch branding' 'workspace assets' 'live session wallpaper and application branding'

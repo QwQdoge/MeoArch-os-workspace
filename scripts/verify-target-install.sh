@@ -51,4 +51,23 @@ if [ ! -d "${target_root}/opt/meo-desktop" ] || [ ! -f "${target_root}/usr/share
   exit 7
 fi
 
+# 7. Verify cross-application dynamic color and input-method integration.
+if [ ! -x "${target_root}/usr/bin/meo-dynamic-colors" ] \
+  || [ ! -x "${target_root}/usr/bin/meo-input-method" ] \
+  || [ ! -f "${target_root}/etc/environment.d/90-meo-applications.conf" ] \
+  || [ ! -f "${target_root}/usr/lib/systemd/user/meo-dynamic-colors.path" ] \
+  || [ ! -L "${target_root}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path" ] \
+  || [ ! -f "${target_root}/usr/share/fcitx5/themes/MeoInputMethod-Light/theme.conf" ] \
+  || [ ! -f "${target_root}/usr/share/meo-desktop/input-method/ibus/gtk.css.in" ]; then
+  echo "FAIL: Target dynamic color, application, or input-method integration is missing." >&2
+  exit 8
+fi
+
+if [ -d "${target_root}/usr/share/plasma/plasmoids/org.meo.shelf" ] \
+  || [ ! -d "${target_root}/usr/share/plasma/plasmoids/org.meo.topbar" ] \
+  || [ ! -d "${target_root}/usr/share/plasma/plasmoids/org.meo.timecenter" ]; then
+  echo "FAIL: Target Plasma shell payload does not match the native-Dock layout." >&2
+  exit 9
+fi
+
 echo "PASS: All post-install target system validation checks passed successfully for ${target_root}!"

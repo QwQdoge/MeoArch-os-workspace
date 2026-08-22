@@ -5,6 +5,15 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 build_dir="${repo_root}/build/installer-host"
 runtime_root="${repo_root}/build/installer-runtime-root"
 
+case "${runtime_root}" in
+  "${repo_root}/build/"*) ;;
+  *) echo "Refusing unsafe installer runtime root: ${runtime_root}" >&2; exit 2 ;;
+esac
+if [ -L "${runtime_root}" ]; then
+  echo "Refusing recursive replacement of symlink: ${runtime_root}" >&2
+  exit 2
+fi
+
 if ! command -v cmake >/dev/null 2>&1 \
   || ! command -v ninja >/dev/null 2>&1 \
   || ! command -v pkg-config >/dev/null 2>&1 \
