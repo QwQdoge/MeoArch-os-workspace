@@ -17,6 +17,7 @@ required=(
   installer/backend/generate-config.py
   scripts/sync-installer-to-airootfs.sh
   scripts/verify-staging-provenance.sh
+  scripts/verify-target-install.sh
 )
 for path in "${required[@]}"; do
   [ -f "${path}" ] || { echo "Missing ${path}" >&2; exit 1; }
@@ -24,7 +25,8 @@ done
 for path in \
   "${projects_root}/meo-kde/packaging/arch/PKGBUILD" \
   "${projects_root}/meo-kde/native/decoration/metadata.json" \
-  "${projects_root}/meo-kde/native/effects/windowcorners/metadata.json" \
+  "${projects_root}/meo-kde/native/application-style/src/meostyle.cpp" \
+  "${projects_root}/meo-kde/native/dynamic-color/dynamiccolors.cpp" \
   "${projects_root}/meo-ui/CMakeLists.txt"; do
   [ -f "${path}" ] || { echo "Missing external source: ${path}" >&2; exit 1; }
 done
@@ -40,9 +42,13 @@ grep -q '"schemaVersion": 1' installer/data/default_selections.json
 grep -q 'import Meo.System 1.0' installer/qml/pages/NetworkPage.qml
 ! rg -q 'readonly property var wifiNetworks' installer/qml/pages/NetworkPage.qml
 ! rg -q 'preview-disk' installer/app/installercontroller.cpp
-grep -q 'for plasmoid in org.meo.shelf; do' scripts/sync-installer-to-airootfs.sh
+grep -q 'for plasmoid in org.meo.topbar org.meo.timecenter; do' scripts/sync-installer-to-airootfs.sh
+grep -q 'org.kde.plasma.icontasks' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
+grep -q 'meo-dynamic-colors.path' scripts/sync-installer-to-airootfs.sh
+grep -q '90-meo-applications.conf' installer/backend/apply-target-customizations.sh
+grep -q 'Target dynamic color, application, or input-method integration is missing' scripts/verify-target-install.sh
 grep -q 'git archive --format=tar HEAD meoarch-os' scripts/build-iso.sh
-grep -q 'Installer ISO staging must not alter' scripts/verify-staging-provenance.sh
+grep -q 'declared sibling MeoKDE desktop assets' scripts/verify-staging-provenance.sh
 
 duplicates="$(sed '/^[[:space:]]*#/d;/^[[:space:]]*$/d' meoarch-os/packages.x86_64 |
   sort | uniq -d)"

@@ -6,10 +6,21 @@ projects_root="$(cd "${repo_root}/.." && pwd)"
 meo_kde_src="${projects_root}/meo-kde"
 airootfs="${MEOARCH_AIROOTFS:-${repo_root}/meoarch-os/airootfs}"
 installer_src="${repo_root}/installer"
-legacy_live_tools="${repo_root}/meoarch-os/airootfs/usr/local/bin"
+airootfs="$(realpath -m -- "${airootfs}")"
+case "${airootfs}" in
+  "${repo_root}"/*) ;;
+  *) echo "Refusing ISO staging outside the workspace: ${airootfs}" >&2; exit 2 ;;
+esac
+if [ ! -d "${airootfs}" ] || [ -L "${airootfs}" ]; then
+  echo "ISO airootfs must be an existing real directory: ${airootfs}" >&2
+  exit 2
+fi
+legacy_live_tools="${airootfs}/usr/local/bin"
 installer_dst="${airootfs}/opt/meoarch-installer"
 desktop_dst="${airootfs}/opt/meo-desktop"
 desktop_live_theme="${airootfs}/usr/share/plasma/look-and-feel/org.meo.desktop"
+desktop_light_theme="${airootfs}/usr/share/plasma/desktoptheme/MeoLight"
+desktop_dark_theme="${airootfs}/usr/share/plasma/desktoptheme/MeoDark"
 desktop_live_wallpaper="${airootfs}/usr/share/wallpapers/MeoArch"
 runtime_root="${repo_root}/build/installer-runtime-root/usr"
 meoui_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoUI"
@@ -20,11 +31,31 @@ meosystem_build="${repo_root}/build/meo-system"
 meokde_native_build="${repo_root}/build/meo-kde-native"
 legacy_meoui_dst="${airootfs}/opt/meo-ui"
 
+for destructive_target in \
+  "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" \
+  "${meosystem_qml_dst}" "${meokde_fonts_dst}" "${installer_dst}" \
+  "${desktop_dst}" "${desktop_live_theme}" "${desktop_light_theme}" \
+  "${desktop_dark_theme}"; do
+  if [ -L "${destructive_target}" ]; then
+    echo "Refusing recursive replacement of symlink: ${destructive_target}" >&2
+    exit 2
+  fi
+done
+
+"${repo_root}/scripts/build-installer-app.sh"
 if [ ! -f "${runtime_root}/lib/libmeoui.so.0" ] \
   || [ ! -f "${runtime_root}/lib/qt6/qml/MeoUI/qmldir" ]; then
   echo "The compiled MeoUI runtime is missing. Run scripts/build-installer-app.sh first." >&2
   exit 1
 fi
+
+# The ISO must never consume an unvalidated sibling checkout. This gate uses
+# the freshly built MeoUI runtime above and records evidence in MeoKDE's own
+# artifacts tree, preserving project ownership.
+MEO_KDE_VALIDATION_RUN_ID="${MEOARCH_VALIDATION_RUN_ID:-$(date -u +%Y%m%dT%H%M%SZ)-iso-sync}" \
+MEOUI_IMPORT_ROOT="${runtime_root}/lib/qt6/qml" \
+MEOUI_SOURCE_DIR="${projects_root}/meo-ui" \
+  "${meo_kde_src}/scripts/validate.sh"
 
 cmake --fresh -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -34,7 +65,13 @@ cmake --fresh -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
 cmake --build "${meokde_native_build}" --parallel
 
 rm -rf "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}"
-install -d "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}" "${airootfs}/usr/lib"
+install -d "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}" \
+  "${airootfs}/usr/lib" "${airootfs}/usr/bin" \
+  "${airootfs}/usr/share/meo-desktop/defaults" \
+  "${airootfs}/usr/share/meo-desktop/input-method/ibus" \
+  "${airootfs}/usr/share/fcitx5/themes" \
+  "${airootfs}/usr/lib/systemd/user/default.target.wants" \
+  "${airootfs}/etc/environment.d" "${airootfs}/etc/xdg/fcitx5/conf"
 cp -a "${runtime_root}/lib/libmeoui.so"* "${airootfs}/usr/lib/"
 cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
 cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
@@ -45,6 +82,39 @@ install -Dm644 "${meo_kde_src}/defaults/fonts/50-meo-fonts.conf" \
 install -d "${airootfs}/etc/fonts/conf.d"
 ln -sfn ../conf.avail/50-meo-fonts.conf \
   "${airootfs}/etc/fonts/conf.d/50-meo-fonts.conf"
+install -Dm755 "${meokde_native_build}/dynamic-color/meo-dynamic-colors" \
+  "${airootfs}/usr/bin/meo-dynamic-colors"
+install -Dm755 "${meo_kde_src}/tools/input-method/meo-input-method.sh" \
+  "${airootfs}/usr/bin/meo-input-method"
+install -Dm755 "${meo_kde_src}/tools/theme/apply-meo-mode.sh" \
+  "${airootfs}/usr/bin/meo-theme-mode"
+install -Dm755 "${meo_kde_src}/tools/theme/apply-meo-desktop.sh" \
+  "${airootfs}/usr/bin/meo-desktop-apply"
+install -Dm755 "${meo_kde_src}/tools/shell/apply-meo-panel-layout.sh" \
+  "${airootfs}/usr/bin/meo-desktop-layout"
+install -Dm644 "${meo_kde_src}/defaults/kwin/kwinrc" \
+  "${airootfs}/usr/share/meo-desktop/defaults/kwinrc"
+install -Dm644 "${meo_kde_src}/defaults/environment/90-meo-applications.conf" \
+  "${airootfs}/etc/environment.d/90-meo-applications.conf"
+install -Dm644 "${meo_kde_src}/defaults/input-method/fcitx5/conf/classicui.conf" \
+  "${airootfs}/etc/xdg/fcitx5/conf/classicui.conf"
+rm -rf "${airootfs}/usr/share/fcitx5/themes/MeoInputMethod-Light" \
+  "${airootfs}/usr/share/fcitx5/themes/MeoInputMethod-Dark"
+cp -a "${meo_kde_src}/themes/input-method/fcitx5/MeoInputMethod-Light" \
+  "${meo_kde_src}/themes/input-method/fcitx5/MeoInputMethod-Dark" \
+  "${airootfs}/usr/share/fcitx5/themes/"
+install -Dm644 "${meo_kde_src}/themes/input-method/ibus/gtk.css.in" \
+  "${airootfs}/usr/share/meo-desktop/input-method/ibus/gtk.css.in"
+install -Dm644 "${meo_kde_src}/themes/input-method/ibus/index.theme" \
+  "${airootfs}/usr/share/meo-desktop/input-method/ibus/index.theme"
+install -Dm644 "${meo_kde_src}/defaults/systemd/meo-dynamic-colors.path" \
+  "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.path"
+install -Dm644 "${meo_kde_src}/defaults/systemd/meo-dynamic-colors.service" \
+  "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.service"
+sed -i 's|%h/.local/bin/|/usr/bin/|g' \
+  "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.service"
+ln -sfn ../meo-dynamic-colors.path \
+  "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path"
 
 rm -rf "${installer_dst}"
 install -d "${installer_dst}"
@@ -83,21 +153,12 @@ cp -a "${meo_kde_src}/themes/color-schemes/." \
 cp -a "${meo_kde_src}/themes/icons/." \
   "${desktop_dst}/themes/icons/"
 cp -a "${meo_kde_src}/icons/." "${desktop_dst}/icons/"
-if [ -d "${meo_kde_src}/plasmoids" ]; then
-  for plasmoid_dir in "${meo_kde_src}/plasmoids/"*; do
-    [ -d "${plasmoid_dir}" ] || continue
-    plasmoid_name="$(basename "${plasmoid_dir}")"
-    [ "${plasmoid_name}" = "org.meo.topbar" ] && continue
-    cp -a "${plasmoid_dir}" "${desktop_dst}/plasmoids/${plasmoid_name}"
-  done
-fi
-# The target system receives the same committed topbar that belongs to the
-# ArchISO profile. Dirty sibling topbar work must pass its own release gate
-# before it can become Installer input.
-if [ -d "${airootfs}/usr/share/plasma/plasmoids/org.meo.topbar" ]; then
-  cp -a "${airootfs}/usr/share/plasma/plasmoids/org.meo.topbar" \
-    "${desktop_dst}/plasmoids/org.meo.topbar"
-fi
+for plasmoid in org.meo.topbar org.meo.timecenter; do
+  if [ -d "${meo_kde_src}/plasmoids/${plasmoid}" ]; then
+    cp -a "${meo_kde_src}/plasmoids/${plasmoid}" \
+      "${desktop_dst}/plasmoids/${plasmoid}"
+  fi
+done
 cp -a "${meo_kde_src}/defaults/." "${desktop_dst}/defaults/"
 install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
   "${desktop_dst}/branding/Logo.svg"
@@ -124,22 +185,24 @@ install -d \
 cp -a "${meo_kde_src}/themes/look-and-feel/org.meo.desktop" \
   "${desktop_live_theme}"
 if [ -d "${meo_kde_src}/themes/desktoptheme" ]; then
+  rm -rf "${desktop_light_theme}" "${desktop_dark_theme}"
   cp -a "${meo_kde_src}/themes/desktoptheme/." "${airootfs}/usr/share/plasma/desktoptheme/"
 fi
 cp -a "${meo_kde_src}/themes/color-schemes/." "${airootfs}/usr/share/color-schemes/"
 cp -a "${meo_kde_src}/themes/icons/." "${airootfs}/usr/share/icons/"
-if [ -d "${meo_kde_src}/plasmoids" ]; then
-  # The topbar is not an Installer dependency.  Keep the ArchISO profile's
-  # version intact so a dirty sibling MeoKDE checkout cannot silently alter an
-  # Installer candidate.  The shelf remains a declared live-desktop runtime
-  # dependency and is audited by verify-staging-provenance.sh.
-  for plasmoid in org.meo.shelf; do
-    if [ -d "${meo_kde_src}/plasmoids/${plasmoid}" ]; then
-      rm -rf "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
-      cp -a "${meo_kde_src}/plasmoids/${plasmoid}" "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
-    fi
-  done
-fi
+# Meo's current shell consists of the top status surface and time center. The
+# bottom Dock is Plasma's native Icons-Only Task Manager; remove the retired
+# custom Shelf so stale ISO staging cannot shadow that layout.
+for retired_plasmoid in org.meo.shelf org.meo.toptasks org.meo.launcher org.meo.quicksettings; do
+  rm -rf "${airootfs}/usr/share/plasma/plasmoids/${retired_plasmoid}"
+done
+for plasmoid in org.meo.topbar org.meo.timecenter; do
+  if [ -d "${meo_kde_src}/plasmoids/${plasmoid}" ]; then
+    rm -rf "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
+    cp -a "${meo_kde_src}/plasmoids/${plasmoid}" \
+      "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
+  fi
+done
 install -Dm644 "${repo_root}/assets/wallpapers/installer_background.png" \
   "${desktop_live_wallpaper}/installer_background.png"
 install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
