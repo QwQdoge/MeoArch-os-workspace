@@ -2,10 +2,10 @@
 set -euo pipefail
 
 app_dir="${MEOARCH_INSTALLER_DIR:-/opt/meoarch-installer}"
-main_qml="${app_dir}/qml/Main.qml"
 state_dir="${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}"
 meoui_import_path="${MEO_UI_QML_IMPORT_PATH:-/usr/lib/qt6/qml}"
 qml_args=()
+repair_mode=false
 
 usage() {
   cat <<'EOF'
@@ -13,6 +13,7 @@ Usage: meoarch-installer [options] [-- QML_ARGS...]
 
 Options:
   --production                    Mark an ISO-controlled production launch.
+  --repair                        Open the shared Quick Repair app (AI is optional).
   --enable-system-actions         Enable power actions only together with --production.
   --enable-real-install           Allow the guarded Archinstall adapter only together with --production.
   -h, --help                      Show this help.
@@ -25,6 +26,10 @@ while [ "$#" -gt 0 ]; do
   case "$1" in
     --production)
       qml_args+=("--production")
+      shift
+      ;;
+    --repair)
+      repair_mode=true
       shift
       ;;
     --enable-system-actions)
@@ -53,6 +58,15 @@ done
 
 mkdir -p "${state_dir}"
 
+if [ "${repair_mode}" = true ]; then
+  repair_app="${MEOARCH_REPAIR_APP:-/usr/bin/meoarch-repair}"
+  if [ -x "${repair_app}" ]; then
+    exec "${repair_app}" --live
+  fi
+  echo "MeoArch Quick Repair is not installed at ${repair_app}." >&2
+  exit 127
+fi
+
 native_app="${app_dir}/bin/meoarch-installer-app"
 if [ -x "${native_app}" ]; then
   missing_libraries="$(ldd "${native_app}" 2>/dev/null | awk '/not found/ { print $1 }' | paste -sd, -)"
@@ -64,6 +78,8 @@ if [ -x "${native_app}" ]; then
   fi
   echo "Native installer host is missing libraries (${missing_libraries}); using the QML runtime." >&2
 fi
+
+main_qml="${app_dir}/qml/Main.qml"
 
 export QML2_IMPORT_PATH="${app_dir}/qml:${meoui_import_path}:/usr/lib/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
 if command -v qml6 >/dev/null 2>&1; then

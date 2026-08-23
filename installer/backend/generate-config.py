@@ -20,6 +20,9 @@ MEO_DESKTOP_PACKAGES = [
     "powerdevil",
     "bluedevil",
     "plymouth",
+    "qtkeychain-qt6",
+    "lynis",
+    "polkit-kde-agent",
 ]
 
 

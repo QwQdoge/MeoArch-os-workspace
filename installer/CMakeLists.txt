@@ -6,8 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 6.6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Network)
+find_package(Qt6Keychain CONFIG REQUIRED)
 qt_standard_project_setup(REQUIRES 6.6)
 
 set(MEOUI_BUILD_SHOWCASE OFF CACHE BOOL "Build MeoUI showcase" FORCE)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../meo-ui" "${CMAKE_BINARY_DIR}/meoui")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../repair" "${CMAKE_BINARY_DIR}/repair")
 add_subdirectory(app)

@@ -4,4 +4,24 @@ set -euo pipefail
 export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-wayland}"
 export XKB_DEFAULT_LAYOUT="${XKB_DEFAULT_LAYOUT:-us}"
 
-exec /usr/bin/cage -s -- /usr/local/bin/meoarch-installer --production --enable-real-install --enable-system-actions
+boot_mode="install"
+read -r -a kernel_arguments < /proc/cmdline
+for argument in "${kernel_arguments[@]}"; do
+  case "${argument}" in
+    meoarch.mode=install)
+      boot_mode="install"
+      ;;
+    meoarch.mode=repair)
+      boot_mode="repair"
+      ;;
+  esac
+done
+
+case "${boot_mode}" in
+  install)
+    exec /usr/bin/cage -s -- /usr/local/bin/meoarch-installer --production --enable-real-install --enable-system-actions
+    ;;
+  repair)
+    exec /usr/bin/cage -s -- /usr/bin/meoarch-repair --live --kiosk
+    ;;
+esac

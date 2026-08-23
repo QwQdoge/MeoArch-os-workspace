@@ -17,6 +17,7 @@ if [ ! -d "${airootfs}" ] || [ -L "${airootfs}" ]; then
 fi
 legacy_live_tools="${airootfs}/usr/local/bin"
 installer_dst="${airootfs}/opt/meoarch-installer"
+repair_dst="${airootfs}/usr/lib/meoarch-repair"
 desktop_dst="${airootfs}/opt/meo-desktop"
 desktop_live_theme="${airootfs}/usr/share/plasma/look-and-feel/org.meo.desktop"
 desktop_light_theme="${airootfs}/usr/share/plasma/desktoptheme/MeoLight"
@@ -34,6 +35,7 @@ legacy_meoui_dst="${airootfs}/opt/meo-ui"
 for destructive_target in \
   "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" \
   "${meosystem_qml_dst}" "${meokde_fonts_dst}" "${installer_dst}" \
+  "${repair_dst}" \
   "${desktop_dst}" "${desktop_live_theme}" "${desktop_light_theme}" \
   "${desktop_dark_theme}"; do
   if [ -L "${destructive_target}" ]; then
@@ -44,6 +46,8 @@ done
 
 "${repo_root}/scripts/build-installer-app.sh"
 if [ ! -f "${runtime_root}/lib/libmeoui.so.0" ] \
+  || [ ! -x "${runtime_root}/bin/meoarch-repair" ] \
+  || [ ! -f "${runtime_root}/lib/meoarch-repair/qml/Main.qml" ] \
   || [ ! -f "${runtime_root}/lib/qt6/qml/MeoUI/qmldir" ]; then
   echo "The compiled MeoUI runtime is missing. Run scripts/build-installer-app.sh first." >&2
   exit 1
@@ -77,6 +81,15 @@ cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
 cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
 cp -a "${meosystem_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
 cp -a "${meo_kde_src}/assets/fonts/"*.ttf "${meokde_fonts_dst}/"
+
+rm -rf "${repair_dst}"
+cp -a "${runtime_root}/lib/meoarch-repair" "${repair_dst}"
+install -Dm755 "${runtime_root}/bin/meoarch-repair" \
+  "${airootfs}/usr/bin/meoarch-repair"
+install -Dm644 "${runtime_root}/share/applications/org.meo.repair.desktop" \
+  "${airootfs}/usr/share/applications/org.meo.repair.desktop"
+install -Dm644 "${runtime_root}/share/icons/hicolor/scalable/apps/meoarch-ai.svg" \
+  "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
 install -Dm644 "${meo_kde_src}/defaults/fonts/50-meo-fonts.conf" \
   "${airootfs}/etc/fonts/conf.avail/50-meo-fonts.conf"
 install -d "${airootfs}/etc/fonts/conf.d"
@@ -122,6 +135,8 @@ cp -a "${installer_src}/qml" "${installer_dst}/qml"
 cp -a "${installer_src}/backend" "${installer_dst}/backend"
 cp -a "${installer_src}/data" "${installer_dst}/data"
 cp -a "${installer_src}/app" "${installer_dst}/app"
+install -Dm600 "${installer_src}/data/account.env.example" \
+  "${airootfs}/etc/meoarch/account.env"
 if [ -d "${repo_root}/build/installer-host/translations" ]; then
   cp -a "${repo_root}/build/installer-host/translations" "${installer_dst}/translations"
 else

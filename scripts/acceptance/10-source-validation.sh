@@ -12,7 +12,17 @@ cd "${repo_root}"
 required=(
   meoarch-os/profiledef.sh
   meoarch-os/packages.x86_64
+  meoarch-os/grub/themes/meoarch/theme.txt
+  meoarch-os/grub/themes/meoarch/brand.png
+  meoarch-os/grub/themes/meoarch/meoarch-sans-regular-24.pf2
+  meoarch-os/grub/themes/meoarch/meoarch-sans-bold-24.pf2
   installer/qml/Main.qml
+  repair/qml/Main.qml
+  repair/CMakeLists.txt
+  repair/checks/all.sh
+  repair/actions/rebuild-initramfs.sh
+  installer/app/repaircontroller.cpp
+  installer/data/account.env.example
   installer/translations/meoarch_zh_CN.ts
   installer/backend/generate-config.py
   scripts/sync-installer-to-airootfs.sh
@@ -49,6 +59,18 @@ grep -q '90-meo-applications.conf' installer/backend/apply-target-customizations
 grep -q 'Target dynamic color, application, or input-method integration is missing' scripts/verify-target-install.sh
 grep -q 'git archive --format=tar HEAD meoarch-os' scripts/build-iso.sh
 grep -q 'declared sibling MeoKDE desktop assets' scripts/verify-staging-provenance.sh
+grep -q '^lynis$' meoarch-os/packages.x86_64
+grep -q '^qtkeychain-qt6$' meoarch-os/packages.x86_64
+grep -q 'meoarch.mode=repair' meoarch-os/grub/grub.cfg
+grep -q 'themes/meoarch/theme.txt' meoarch-os/grub/grub.cfg
+grep -q 'Repair MeoArch OS' meoarch-os/grub/grub.cfg
+grep -q 'selected_item_pixmap_style = "select_\*.png"' meoarch-os/grub/themes/meoarch/theme.txt
+grep -q 'MeoArch Sans Bold 24' meoarch-os/grub/themes/meoarch/theme.txt
+! rg -q 'AI Repair MeoArch OS|✨' meoarch-os/grub meoarch-os/efiboot meoarch-os/syslinux
+grep -q '/usr/bin/meoarch-repair --live --kiosk' installer/bin/meoarch-installer-kiosk
+grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
+! rg -q 'RepairMain.qml' installer
+grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 
 duplicates="$(sed '/^[[:space:]]*#/d;/^[[:space:]]*$/d' meoarch-os/packages.x86_64 |
   sort | uniq -d)"
@@ -59,7 +81,7 @@ if [ -n "${duplicates}" ]; then
 fi
 
 python -m unittest discover -s installer/tests -v
-find scripts installer -type f -name '*.sh' -print0 |
+find scripts installer repair -type f -name '*.sh' -print0 |
   xargs -0 -n1 bash -n
 python - <<'PY'
 import json

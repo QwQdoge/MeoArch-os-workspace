@@ -33,6 +33,7 @@ for destructive_target in \
   "${target_root}/usr/lib/qt6/qml/MeoUI" \
   "${target_root}/usr/lib/qt6/qml/MeoKDE" \
   "${target_root}/usr/lib/qt6/qml/Meo/System" \
+  "${target_root}/usr/lib/meoarch-repair" \
   "${target_root}/usr/share/plasma/look-and-feel/org.meo.desktop" \
   "${target_root}/usr/share/plasma/desktoptheme/MeoLight" \
   "${target_root}/usr/share/plasma/desktoptheme/MeoDark" \
@@ -49,6 +50,12 @@ if [ ! -e "${runtime_source}/lib/libmeoui.so.0" ] \
   || [ ! -x "${runtime_source}/bin/meo-dynamic-colors" ] \
   || [ ! -x "${runtime_source}/bin/meo-input-method" ]; then
   echo "MeoUI, MeoKDE, or Meo.System runtime is missing from ${runtime_source}." >&2
+  exit 5
+fi
+if [ ! -x "${runtime_source}/bin/meoarch-repair" ] \
+  || [ ! -f "${runtime_source}/lib/meoarch-repair/qml/Main.qml" ] \
+  || [ ! -f "${runtime_source}/share/applications/org.meo.repair.desktop" ]; then
+  echo "MeoArch Quick Repair runtime is missing from ${runtime_source}." >&2
   exit 5
 fi
 
@@ -93,6 +100,15 @@ cp -a "${runtime_source}/lib/qt6/qml/MeoKDE" \
   "${target_root}/usr/lib/qt6/qml/MeoKDE"
 cp -a "${runtime_source}/lib/qt6/qml/Meo/System" \
   "${target_root}/usr/lib/qt6/qml/Meo/System"
+rm -rf "${target_root}/usr/lib/meoarch-repair"
+cp -a "${runtime_source}/lib/meoarch-repair" \
+  "${target_root}/usr/lib/meoarch-repair"
+install -Dm755 "${runtime_source}/bin/meoarch-repair" \
+  "${target_root}/usr/bin/meoarch-repair"
+install -Dm644 "${runtime_source}/share/applications/org.meo.repair.desktop" \
+  "${target_root}/usr/share/applications/org.meo.repair.desktop"
+install -Dm644 "${runtime_source}/share/icons/hicolor/scalable/apps/meoarch-ai.svg" \
+  "${target_root}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
 if [ -d "${runtime_source}/share/fonts/meo" ]; then
   cp -a "${runtime_source}/share/fonts/meo/." "${target_root}/usr/share/fonts/meo/"
 fi
@@ -301,4 +317,4 @@ if [ "${swap_mode}" = "file" ]; then
 fi
 ldconfig -r "${target_root}"
 
-echo "MeoUI runtime and Meo Desktop defaults installed into ${target_root}."
+echo "MeoUI, Meo Desktop, and MeoArch Quick Repair installed into ${target_root}."
