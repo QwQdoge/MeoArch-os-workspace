@@ -29,6 +29,9 @@ classify() {
     airootfs/opt/meoarch-installer/*|airootfs/usr/local/bin/meoarch-installer*)
       printf '%s\t%s\t%s' 'Installer' 'this workspace installer source' 'Installer runtime and kiosk entrypoint'
       ;;
+    airootfs/usr/bin/meoarch-repair|airootfs/usr/lib/meoarch-repair/*|airootfs/usr/share/applications/org.meo.repair.desktop|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg)
+      printf '%s\t%s\t%s' 'Quick Repair' 'this workspace shared repair source' 'system and Live categorized repair application'
+      ;;
     airootfs/usr/lib/libmeoui.so*|airootfs/usr/lib/qt6/qml/MeoUI/*)
       printf '%s\t%s\t%s' 'MeoUI' 'compiled sibling MeoUI runtime' 'shared QML controls and runtime library'
       ;;

@@ -17,6 +17,8 @@ xorriso -indev "${iso_path}" -find / -type f -exec lsdl |
   tee "${evidence_dir}/files.txt"
 grep -Eiq '/EFI/BOOT/BOOTX64\.EFI' "${evidence_dir}/files.txt"
 grep -q '/arch/x86_64/airootfs.sfs' "${evidence_dir}/files.txt"
+grep -q '/boot/grub/themes/meoarch/theme.txt' "${evidence_dir}/files.txt"
+grep -q '/boot/grub/themes/meoarch/brand.png' "${evidence_dir}/files.txt"
 
 xorriso -osirrox on -indev "${iso_path}" \
   -extract /arch/x86_64/airootfs.sfs "${extract_dir}/airootfs.sfs"
@@ -30,15 +32,18 @@ grep -q 'usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so' "${evidence_dir}/airoot
 grep -q 'opt/meoarch-installer/qml/Main.qml' "${evidence_dir}/airootfs-files.txt"
 grep -q 'opt/meoarch-installer/translations/meoarch_zh_CN.qm' "${evidence_dir}/airootfs-files.txt"
 grep -q 'usr/lib/qt6/qml/Meo/System/libmeosystemplugin.so' "${evidence_dir}/airootfs-files.txt"
+grep -q 'usr/lib/meoarch-repair/qml/Main.qml' "${evidence_dir}/airootfs-files.txt"
 grep -q 'opt/meo-desktop/themes/look-and-feel/org.meo.desktop/metadata.json' \
   "${evidence_dir}/airootfs-files.txt"
-for package in plasma-desktop plasma-workspace sddm networkmanager; do
+for package in plasma-desktop plasma-workspace sddm networkmanager qtkeychain-qt6 lynis; do
   grep -q "^${package} " "${evidence_dir}/packages.txt"
 done
 for executable in \
   opt/meoarch-installer/bin/meoarch-installer-app \
   opt/meoarch-installer/backend/generate-config.py \
   opt/meoarch-installer/backend/run-archinstall.sh \
+  usr/bin/meoarch-repair \
+  usr/lib/meoarch-repair/checks/all.sh \
   usr/local/bin/meoarch-installer-live; do
   grep -Eq "^-rwx[^[:space:]]*[[:space:]].*${executable}$" \
     "${evidence_dir}/airootfs-files.txt"

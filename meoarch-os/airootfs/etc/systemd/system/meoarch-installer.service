@@ -16,6 +16,7 @@ Environment=QT_QPA_PLATFORM=wayland
 Environment=MEO_UI_QML_IMPORT_PATH=/usr/lib/qt6/qml
 Environment=QML2_IMPORT_PATH=/opt/meoarch-installer/qml:/usr/lib/qt6/qml
 Environment=XKB_DEFAULT_LAYOUT=us
+EnvironmentFile=-/etc/meoarch/account.env
 ExecStartPre=/usr/lib/meoarch/meo-boot-status stage installer
 ExecStart=/usr/local/bin/meoarch-installer-kiosk
 ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready

@@ -70,4 +70,14 @@ if [ -d "${target_root}/usr/share/plasma/plasmoids/org.meo.shelf" ] \
   exit 9
 fi
 
+# 9. Verify the system and Live repair application share the installed payload.
+if [ ! -x "${target_root}/usr/bin/meoarch-repair" ] \
+  || [ ! -f "${target_root}/usr/lib/meoarch-repair/qml/Main.qml" ] \
+  || [ ! -x "${target_root}/usr/lib/meoarch-repair/checks/all.sh" ] \
+  || [ ! -x "${target_root}/usr/lib/meoarch-repair/actions/rebuild-initramfs.sh" ] \
+  || [ ! -f "${target_root}/usr/share/applications/org.meo.repair.desktop" ]; then
+  echo "FAIL: Target MeoArch Quick Repair payload is missing." >&2
+  exit 10
+fi
+
 echo "PASS: All post-install target system validation checks passed successfully for ${target_root}!"

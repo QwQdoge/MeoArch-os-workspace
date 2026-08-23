@@ -1,0 +1,71 @@
+# MeoArch boot theme. Keep the layout readable down to 1280x720 and avoid
+# firmware-dependent icon fonts: the boot options remain plain text.
+
+desktop-image: "../../splash.png"
+desktop-color: "#E8E2F4"
+title-text: ""
+message-color: "#F7F2FA"
+message-bg-color: "#211A2B"
+
++ image {
+    left = 8%
+    top = 8%
+    width = 520
+    height = 104
+    file = "brand.png"
+}
+
++ boot_menu {
+    left = 8%
+    top = 25%
+    width = 52%
+    height = 52%
+
+    item_color = "#F7F2FA"
+    selected_item_color = "#FFFFFF"
+    item_font = "MeoArch Sans Regular 24"
+    selected_item_font = "MeoArch Sans Bold 24"
+    item_height = 36
+    item_padding = 14
+    item_spacing = 5
+    item_icon_space = 0
+    icon_width = 0
+    icon_height = 0
+
+    menu_pixmap_style = "panel_*.png"
+    selected_item_pixmap_style = "select_*.png"
+    scrollbar = true
+}
+
++ label {
+    id = "__timeout__"
+    left = 8%
+    top = 80%
+    width = 52%
+    align = "left"
+    color = "#322F35"
+    font = "MeoArch Sans Regular 18"
+    text = "Starting the selected option automatically"
+}
+
++ progress_bar {
+    id = "__timeout__"
+    left = 8%
+    top = 84%
+    width = 52%
+    height = 6
+    show_text = false
+    fg_color = "#6750A4"
+    bg_color = "#E8DEF8"
+    border_color = "#79747E"
+}
+
++ label {
+    left = 8%
+    top = 89%
+    width = 84%
+    align = "left"
+    color = "#49454F"
+    font = "MeoArch Sans Regular 18"
+    text = "Up/Down: select    Enter: start    E: edit    C: console"
+}

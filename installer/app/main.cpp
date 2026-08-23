@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QGuiApplication>
 #include <QImage>
+#include <QProcess>
 #include <QQmlApplicationEngine>
 #include <QQuickWindow>
 #include <QTimer>
@@ -18,8 +19,13 @@
 int main(int argc, char *argv[])
 {
     bool dumpRequested = false;
+    bool repairRequested = false;
     for (int index = 1; index < argc; ++index)
-        dumpRequested = dumpRequested || QString::fromLocal8Bit(argv[index]) == QStringLiteral("--dump-catalog-counts");
+    {
+        const QString argument = QString::fromLocal8Bit(argv[index]);
+        dumpRequested = dumpRequested || argument == QStringLiteral("--dump-catalog-counts");
+        repairRequested = repairRequested || argument == QStringLiteral("--repair");
+    }
     std::unique_ptr<QCoreApplication> application;
     if (dumpRequested)
         application = std::make_unique<QCoreApplication>(argc, argv);
@@ -27,11 +33,34 @@ int main(int argc, char *argv[])
         application = std::make_unique<QGuiApplication>(argc, argv);
     QCoreApplication &app = *application;
     QCoreApplication::setOrganizationName(QStringLiteral("MeoArch"));
-    QCoreApplication::setApplicationName(QStringLiteral("MeoArch Installer"));
+    QCoreApplication::setApplicationName(repairRequested
+                                             ? QStringLiteral("MeoArch Repair")
+                                             : QStringLiteral("MeoArch Installer"));
     const QStringList arguments = app.arguments();
     if (arguments.contains(QStringLiteral("--production")) && arguments.contains(QStringLiteral("--preview"))) {
         QTextStream(stderr) << "--preview cannot be used with --production.\n";
         return 2;
+    }
+
+    if (repairRequested) {
+        QString repairProgram = qEnvironmentVariable("MEOARCH_REPAIR_APP");
+        if (repairProgram.isEmpty())
+            repairProgram = QStringLiteral("/usr/bin/meoarch-repair");
+        if (!QFileInfo(repairProgram).isExecutable()) {
+            const QString sibling = QDir(QCoreApplication::applicationDirPath())
+                                        .absoluteFilePath(QStringLiteral("meoarch-repair"));
+            if (QFileInfo(sibling).isExecutable())
+                repairProgram = sibling;
+        }
+        if (!QFileInfo(repairProgram).isExecutable()) {
+            QTextStream(stderr) << "MeoArch Quick Repair is not installed.\n";
+            return 127;
+        }
+        QStringList forwarded = arguments.mid(1);
+        forwarded.removeAll(QStringLiteral("--repair"));
+        if (!forwarded.contains(QStringLiteral("--live")))
+            forwarded.prepend(QStringLiteral("--live"));
+        return QProcess::execute(repairProgram, forwarded);
     }
 
     InstallerController controller(arguments);
@@ -117,15 +146,17 @@ int main(int argc, char *argv[])
         const QString development = QDir(QCoreApplication::applicationDirPath())
                                         .absoluteFilePath(QStringLiteral("../../installer/qml"));
 #endif
-        if (QFileInfo::exists(installed + QStringLiteral("/Main.qml")))
+        const QString qmlFile = QStringLiteral("/Main.qml");
+        if (QFileInfo::exists(installed + qmlFile))
             qmlRoot = installed;
-        else if (QFileInfo::exists(bundled + QStringLiteral("/Main.qml")))
+        else if (QFileInfo::exists(bundled + qmlFile))
             qmlRoot = bundled;
         else
             qmlRoot = development;
     }
     engine.addImportPath(qmlRoot);
-    engine.load(QUrl::fromLocalFile(QDir(qmlRoot).absoluteFilePath(QStringLiteral("Main.qml"))));
+    const QString rootQml = QStringLiteral("Main.qml");
+    engine.load(QUrl::fromLocalFile(QDir(qmlRoot).absoluteFilePath(rootQml)));
     if (engine.rootObjects().isEmpty())
         return 1;
     loadLanguage(controller.uiLanguage());

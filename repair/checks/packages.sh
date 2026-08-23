@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -u -o pipefail
+
+run_package_checks() {
+  local prefix=("$@")
+  "${prefix[@]}" /usr/bin/pacman -Dk 2>&1 || {
+    echo "MEO_FINDING|warning|packages.database_inconsistent|The package database consistency check reported a problem."
+  }
+  timeout 120 "${prefix[@]}" /usr/bin/pacman -Qk 2>&1 | sed -n '1,400p' || {
+    echo "MEO_FINDING|warning|packages.files_inconsistent|Package file verification reported missing or altered files."
+  }
+}
+
+echo "[packages] current environment"
+if [ -x /usr/bin/pacman ]; then
+  run_package_checks
+else
+  echo "MEO_FINDING|warning|packages.pacman_missing|pacman is not installed in the current environment."
+fi
+
+if [ "${MEOARCH_REPAIR_SCOPE:-system}" = "live" ] && [ -x /usr/bin/arch-chroot ] \
+   && [ -d /mnt/etc ] && [ -x /mnt/usr/bin/pacman ]; then
+  echo "[packages] mounted target"
+  run_package_checks /usr/bin/arch-chroot /mnt
+fi
