@@ -1,15 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+Usage: scripts/acceptance/65-capture-step.sh STEP_LABEL [QMP_SOCKET]
+
+Capture an installer checkpoint. The retained PNG is stored beneath
+validation/<UTC-run-id>/screenshots/; the intermediate PPM is disposable and
+stored beneath tmp/<UTC-run-id>/.
+EOF
+}
+
+case "${1:-}" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+esac
+[ "$#" -le 2 ] || { usage >&2; exit 2; }
+
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-run_dir="${MEOARCH_RUN_DIR:-${repo_root}/artifacts/validation/test-runs/$(date -u +%Y%m%dT%H%M%SZ)}"
+projects_root="$(cd "${repo_root}/.." && pwd)"
+default_outputs_root="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace"
+outputs_root="${MEOARCH_OUTPUT_ROOT:-${default_outputs_root}}"
+if [ -n "${MEOARCH_RUN_DIR:-}" ]; then
+  run_dir="${MEOARCH_RUN_DIR}"
+  run_id="${MEOARCH_RUN_ID:-$(basename "${run_dir}")}"
+else
+  run_id="${MEOARCH_RUN_ID:-$(date -u +%Y-%m-%dT%H%M%SZ)-acceptance}"
+  run_dir="${outputs_root}/validation/${run_id}"
+fi
+tmp_dir="${MEOARCH_TMP_DIR:-${outputs_root}/tmp/${run_id}}"
+evidence_dir="${run_dir}/vm"
 label="${1:-}"
 qmp_socket="${2:-}"
 
-if [ -z "${qmp_socket}" ] && [ -f "${run_dir}/vm/qmp-path.txt" ]; then
-  qmp_socket="$(<"${run_dir}/vm/qmp-path.txt")"
+if [ -z "${qmp_socket}" ] && [ -f "${evidence_dir}/qmp-path.txt" ]; then
+  qmp_socket="$(<"${evidence_dir}/qmp-path.txt")"
 fi
-qmp_socket="${qmp_socket:-${run_dir}/vm/qmp.sock}"
+qmp_socket="${qmp_socket:-${tmp_dir}/q/live/q}"
 
 [ -n "${label}" ] || { echo "Usage: $0 STEP_LABEL [QMP_SOCKET]" >&2; exit 2; }
 [ -S "${qmp_socket}" ] || { echo "QMP socket not found: ${qmp_socket}" >&2; exit 2; }
@@ -20,10 +49,11 @@ safe_label="${safe_label%-}"
 [ -n "${safe_label}" ] || { echo "Step label contains no safe filename characters." >&2; exit 2; }
 
 screenshot_dir="${run_dir}/screenshots/installer"
-mkdir -p "${screenshot_dir}"
+capture_dir="${tmp_dir}/capture"
+mkdir -p "${screenshot_dir}" "${capture_dir}"
 sequence="$(find "${screenshot_dir}" -maxdepth 1 -type f -name '*.png' | wc -l)"
 sequence="$(printf '%02d' "$((sequence + 1))")"
-ppm_path="${screenshot_dir}/${sequence}-${safe_label}.ppm"
+ppm_path="${capture_dir}/${sequence}-${safe_label}.ppm"
 png_path="${screenshot_dir}/${sequence}-${safe_label}.png"
 
 python3 - "${qmp_socket}" "${ppm_path}" <<'PY'
