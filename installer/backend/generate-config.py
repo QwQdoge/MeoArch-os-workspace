@@ -231,7 +231,7 @@ def build_meo_install_config(selections):
     software = selections.get("software", {})
     return {
         "schemaVersion": 2,
-        "channel": software.get("channel", "stable"),
+        "channel": software.get("channel", "beta"),
         "mirror": software.get("mirror", "automatic"),
         "profile": software.get("profile", "recommended"),
         "components": software.get("components", []),

@@ -22,8 +22,12 @@ def main():
     args = parser.parse_args()
     if args.config:
         config = load_config(args.config)
+    elif args.print_plan:
+        # A diagnostic invocation must never block on stdin. The same beta
+        # trial default is used by the GUI when no user selection exists.
+        config = {"schemaVersion": 2, "channel": "beta", "mirror": "automatic", "profile": "recommended", "components": []}
     else:
-        channel = choose("Select MeoArch update channel", ["stable", "beta"], "stable")
+        channel = choose("Select MeoArch update channel", ["stable", "beta"], "beta")
         if channel == "beta":
             print("Beta receives newer Meo components before Stable and may be less tested.")
             if input("Enable Beta? [y/N]: ").strip().lower() not in {"y", "yes"}:

@@ -21,7 +21,7 @@ PageFrame {
         { pageIndex: 5, title: "Disk", value: controller ? controller.selectedDisk : "" },
         { pageIndex: 6, title: "User Account", value: InstallerSession.username + " · " + InstallerSession.hostname },
         { pageIndex: 7, title: qsTr("Software"), value: controller ? controller.selection("software", "profile", "recommended") : "" },
-        { pageIndex: 8, title: qsTr("Meo channel"), value: controller ? controller.selection("software", "channel", "stable") : "" },
+        { pageIndex: 8, title: qsTr("Meo channel"), value: controller ? controller.selection("software", "channel", "beta") : "" },
         { pageIndex: -1, title: "Graphics Drivers", value: controller ? controller.hardwareSummary : "Automatic PCI detection" }
     ]
 
