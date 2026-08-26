@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""Interactive/non-interactive CLI frontend for the shared Installer plan."""
+import argparse
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "backend"))
+from install_plan import PlanError, build_install_plan, catalog_from, load_config, plan_as_dict
+
+def choose(prompt, values, default):
+    answer = input(f"{prompt} ({'/'.join(values)}) [{default}]: ").strip() or default
+    if answer not in values:
+        raise PlanError(f"invalid choice: {answer}")
+    return answer
+
+def main():
+    parser = argparse.ArgumentParser(description="Create a MeoArch installation package plan.")
+    parser.add_argument("--config", help="InstallConfig JSON or YAML file")
+    parser.add_argument("--print-plan", action="store_true", help="print resolved plan and exit")
+    args = parser.parse_args()
+    if args.config:
+        config = load_config(args.config)
+    else:
+        channel = choose("Select MeoArch update channel", ["stable", "beta"], "stable")
+        if channel == "beta":
+            print("Beta receives newer Meo components before Stable and may be less tested.")
+            if input("Enable Beta? [y/N]: ").strip().lower() not in {"y", "yes"}:
+                channel = "stable"
+        profile = choose("Select software profile", ["recommended", "minimal", "custom"], "recommended")
+        components = []
+        if profile == "custom":
+            components = ["meo-desktop"]
+            for name in ("meo-settings", "omnistore-bin"):
+                if input(f"Install {name}? [y/N]: ").strip().lower() in {"y", "yes"}:
+                    components.append(name)
+        config = {"schemaVersion": 2, "channel": channel, "mirror": "automatic", "profile": profile, "components": components}
+    plan = build_install_plan(config, catalog_from(ROOT / "data/package-catalog.json"))
+    print(json.dumps(plan_as_dict(plan), indent=2, ensure_ascii=False))
+    return 0
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except PlanError as error:
+        print(f"Installation plan blocked: {error}", file=sys.stderr)
+        raise SystemExit(2)

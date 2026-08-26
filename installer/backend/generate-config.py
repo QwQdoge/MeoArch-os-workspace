@@ -9,6 +9,7 @@ import uuid
 from pathlib import Path
 
 from hardware import detect_devices, driver_plan
+from install_plan import PlanError, build_install_plan, catalog_from, plan_as_dict, write_json_atomic
 
 
 MEO_DESKTOP_PACKAGES = [
@@ -226,6 +227,17 @@ def build_target_customizations(selections):
     }
 
 
+def build_meo_install_config(selections):
+    software = selections.get("software", {})
+    return {
+        "schemaVersion": 2,
+        "channel": software.get("channel", "stable"),
+        "mirror": software.get("mirror", "automatic"),
+        "profile": software.get("profile", "recommended"),
+        "components": software.get("components", []),
+    }
+
+
 def validate_installation_plan(selections, configuration, credentials):
     """Return user-safe blockers; never silently downgrade a production choice."""
     blockers = []
@@ -243,6 +255,10 @@ def validate_installation_plan(selections, configuration, credentials):
         blockers.append("user account is missing")
     elif not all(user.get("enc_password") for user in users):
         blockers.append("user password hash missing")
+    try:
+        build_install_plan(build_meo_install_config(selections), catalog_from(Path(__file__).parents[1] / "data" / "package-catalog.json"))
+    except PlanError as error:
+        blockers.append(f"Meo package plan is invalid: {error}")
     return blockers
 
 
@@ -278,6 +294,12 @@ def main():
     os.chmod(plasma_path, 0o644)
     customization_path = output_dir / "target-customizations.json"
     write_json(customization_path, build_target_customizations(selections), 0o600)
+    try:
+        install_plan = build_install_plan(build_meo_install_config(selections), catalog_from(data_dir / "package-catalog.json"))
+    except PlanError as error:
+        raise SystemExit(f"Meo package plan is invalid: {error}") from error
+    install_plan_path = output_dir / "install-plan.json"
+    write_json_atomic(install_plan_path, plan_as_dict(install_plan), 0o600)
 
     disk = selections.get("disk", {})
     blockers = validate_installation_plan(selections, configuration, credentials)
@@ -293,6 +315,7 @@ def main():
             "hardware": str(output_dir / "hardware.json"),
             "plasma_localerc": str(plasma_path),
             "target_customizations": str(customization_path),
+            "install_plan": str(install_plan_path),
         },
     }
     write_json(state_dir / "config_manifest.json", manifest, 0o644)

@@ -15,6 +15,12 @@
   "privacy": {
     "firewall": true
   },
+  "software": {
+    "profile": "recommended",
+    "channel": "stable",
+    "mirror": "automatic",
+    "components": []
+  },
   "disk": { "mode": "erase", "filesystem": "btrfs", "swap": "zram" },
   "user": { "hostname": "meoarch", "username": "meo", "automaticLogin": false }
 }

@@ -134,6 +134,18 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertNotIn("password", serialized)
         self.assertNotIn("passphrase", serialized)
 
+    def test_generated_plan_uses_signed_package_channel_model(self):
+        self.selections["software"] = {"profile": "minimal", "channel": "beta", "mirror": "automatic", "components": []}
+        config = MODULE.build_meo_install_config(self.selections)
+        plan = MODULE.build_install_plan(config, MODULE.catalog_from(Path(__file__).parents[1] / "data" / "package-catalog.json"))
+        self.assertEqual(plan.repository.repositories, ("meo-beta", "meo"))
+        self.assertNotIn("meo-settings", plan.package.packages)
+
+    def test_real_runner_preflights_signed_meo_metadata_before_archinstall(self):
+        runner = (Path(__file__).parents[2] / "installer/backend/run-archinstall.sh").read_text(encoding="utf-8")
+        self.assertIn("preflight-meo-repository.sh", runner)
+        self.assertLess(runner.index("preflight-meo-repository.sh"), runner.index("archinstall --silent"))
+
     def test_plan_validation_blocks_manual_and_unimplemented_encryption(self):
         self.selections["disk"].update({"mode": "manual", "stableId": "/dev/vda", "devicePath": "/dev/vda", "sizeBytes": 64 * 1024 * 1024 * 1024})
         self.selections["privacy"] = {"diskEncryption": True}
