@@ -1,5 +1,7 @@
 import json
+import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -55,14 +57,12 @@ class InstallPlanTests(unittest.TestCase):
             build_install_plan({"schemaVersion": 2, "mirror": "untrusted"}, self.catalog)
 
     def test_catalog_generation_and_hash_contract_is_enforced(self):
-        catalog = ROOT / "data/package-catalog.json"
-        contract = catalog.with_name("package-catalog.contract.json")
-        self.assertTrue(contract.is_file())
-        self.assertEqual(catalog_from(catalog)["generation"], "2026.08-beta.1")
-        original = contract.read_text(encoding="utf-8")
-        try:
+        with tempfile.TemporaryDirectory() as directory:
+            catalog = Path(directory) / "package-catalog.json"
+            contract = Path(directory) / "package-catalog.contract.json"
+            shutil.copy2(ROOT / "data/package-catalog.json", catalog)
+            shutil.copy2(ROOT / "data/package-catalog.contract.json", contract)
+            self.assertEqual(catalog_from(catalog)["generation"], "2026.08-beta.1")
             contract.write_text('{"schemaVersion": 1}\n', encoding="utf-8")
             with self.assertRaises(PlanError):
                 catalog_from(catalog)
-        finally:
-            contract.write_text(original, encoding="utf-8")
