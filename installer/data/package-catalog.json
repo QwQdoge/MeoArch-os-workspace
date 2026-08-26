@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "architecture": "x86_64",
+  "repositoryBaseUrl": "https://packages.meoarch.org",
+  "bootstrapPackages": ["meo-keyring", "meo-mirrorlist"],
+  "channelPackages": {"stable": "meo-channel-stable", "beta": "meo-channel-beta"},
+  "packages": {
+    "meoui-qml": {"profiles": ["recommended", "minimal"]},
+    "meo-icons": {"profiles": ["recommended", "minimal"]},
+    "meo-desktop": {"profiles": ["recommended", "minimal"], "requires": ["meoui-qml", "meo-icons"]},
+    "meo-settings": {"profiles": ["recommended"], "requires": ["meoui-qml", "meo-desktop"]},
+    "omnistore-bin": {"profiles": ["recommended"]}
+  }
+}

@@ -57,11 +57,17 @@ if ! command -v archinstall >/dev/null 2>&1; then
   exit 127
 fi
 
+installer_root="${MEOARCH_INSTALLER_ROOT:-/opt/meoarch-installer}"
+install_plan="${generated_dir}/install-plan.json"
+[ -f "${install_plan}" ] || { echo "Generated Meo install plan is missing." | tee -a "${log_file}" >&2; exit 8; }
+progress "preflighting_meo_repository" 5 "Verifying signed Meo repository metadata and selected packages"
+"${installer_root}/backend/preflight-meo-repository.sh" \
+  "${install_plan}" "${installer_root}/bootstrap" 2>&1 | tee -a "${log_file}"
+
 progress "preparing_disk" 10 "Preparing the selected disk"
 progress "installing_base" 35 "Installing the base system and packages"
 archinstall --silent --config "${config_file}" --creds "${creds_file}" 2>&1 | tee -a "${log_file}"
 
-installer_root="${MEOARCH_INSTALLER_ROOT:-/opt/meoarch-installer}"
 target_root="${MEOARCH_TARGET_ROOT:-/mnt}"
 if [ ! -s "${target_root}/etc/fstab" ] \
   || { [ ! -s "${target_root}/boot/grub/grub.cfg" ] \
@@ -69,7 +75,20 @@ if [ ! -s "${target_root}/etc/fstab" ] \
   echo "Archinstall did not produce a complete bootable target." | tee -a "${log_file}" >&2
   exit 7
 fi
-progress "applying_meo" 82 "Installing Meo Desktop and target settings"
+progress "configuring_meo_repository" 70 "Configuring the selected signed Meo repository"
+"${installer_root}/backend/configure-meo-repository.sh" \
+  "${target_root}" "${generated_dir}" "${installer_root}/bootstrap" 2>&1 | tee -a "${log_file}"
+mapfile -t meo_packages < <(python3 - "${install_plan}" <<'PY'
+import json,sys
+payload=json.load(open(sys.argv[1], encoding='utf-8'))
+for package in payload['package']['packages']:
+    print(package)
+PY
+)
+[ "${#meo_packages[@]}" -gt 0 ] || { echo "Resolved Meo package set is empty." | tee -a "${log_file}" >&2; exit 9; }
+progress "installing_meo_packages" 82 "Installing selected MeoArch packages"
+arch-chroot "${target_root}" pacman -S --needed --noconfirm "${meo_packages[@]}" 2>&1 | tee -a "${log_file}"
+progress "applying_meo" 89 "Applying target settings"
 "${installer_root}/backend/apply-target-customizations.sh" \
   "${target_root}" "/opt/meo-desktop" "${generated_dir}" 2>&1 | tee -a "${log_file}"
 progress "final_validation" 94 "Validating the installed target"

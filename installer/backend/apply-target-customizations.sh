@@ -25,6 +25,7 @@ if [ ! -f "${customizations_file}" ]; then
   echo "Generated target customizations are missing." >&2
   exit 6
 fi
+if [ "${MEOARCH_PACKAGE_MANAGED:-1}" != "1" ]; then
 if [ ! -f "${desktop_source}/themes/look-and-feel/org.meo.desktop/metadata.json" ]; then
   echo "Meo Desktop payload is missing from ${desktop_source}." >&2
   exit 4
@@ -197,6 +198,7 @@ install -Dm644 "${desktop_source}/defaults/plasma/plasmarc" \
   "${target_root}/etc/xdg/plasmarc"
 install -Dm644 "${desktop_source}/defaults/plasma/plasma-welcomerc" \
   "${target_root}/etc/xdg/plasma-welcomerc"
+fi
 
 # Target System Plymouth Theme & Hook Configuration
 target_plymouth_dst="${target_root}/usr/share/plymouth/themes/meoarch"
@@ -317,4 +319,4 @@ if [ "${swap_mode}" = "file" ]; then
 fi
 ldconfig -r "${target_root}"
 
-echo "MeoUI, Meo Desktop, and MeoArch Quick Repair installed into ${target_root}."
+echo "Package-managed Meo components and target customizations applied to ${target_root}."

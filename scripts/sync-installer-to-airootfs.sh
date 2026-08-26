@@ -134,6 +134,9 @@ install -d "${installer_dst}"
 cp -a "${installer_src}/qml" "${installer_dst}/qml"
 cp -a "${installer_src}/backend" "${installer_dst}/backend"
 cp -a "${installer_src}/data" "${installer_dst}/data"
+if [ -d "${installer_src}/bootstrap" ]; then
+  cp -a "${installer_src}/bootstrap" "${installer_dst}/bootstrap"
+fi
 cp -a "${installer_src}/app" "${installer_dst}/app"
 install -Dm600 "${installer_src}/data/account.env.example" \
   "${airootfs}/etc/meoarch/account.env"
@@ -288,6 +291,10 @@ install -Dm755 "${installer_src}/bin/meoarch-installer" \
   "${airootfs}/usr/local/bin/meoarch-installer"
 install -Dm755 "${installer_src}/bin/meoarch-installer-kiosk" \
   "${airootfs}/usr/local/bin/meoarch-installer-kiosk"
+install -Dm755 "${installer_src}/bin/meoarch-install" \
+  "${airootfs}/usr/local/bin/meoarch-install"
+install -Dm755 "${installer_src}/backend/preflight-meo-repository.sh" \
+  "${installer_dst}/backend/preflight-meo-repository.sh"
 for helper in Installation_guide choose-mirror installer.py livecd-sound; do
   [ -f "${legacy_live_tools}/${helper}" ] || {
     echo "Required ArchISO live helper is missing: ${legacy_live_tools}/${helper}" >&2

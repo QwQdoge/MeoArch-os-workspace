@@ -11,6 +11,7 @@ final live image is assembled.
 ## Current Status
 
 - The existing archiso profile is kept at `meoarch-os/`.
+- Meo component selection and Stable/Beta setup share one package-managed GUI/CLI plan backend.
 - A compiled Qt 6/C++ host and eleven-step M3 Expressive Qt Quick installer are present.
 - MeoUI is a versioned shared QML module; the installer does not embed a private static copy.
 - Meo Desktop provides KDE Plasma look-and-feel, shelf defaults, packaging, and safe apply/reset tooling.
