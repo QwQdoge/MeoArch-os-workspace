@@ -1,10 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+Usage: scripts/acceptance/40-inspect-iso.sh [ISO_PATH]
+
+Inspect an ISO and retain evidence in validation/<UTC-run-id>/iso. Extracted
+SquashFS content is disposable and defaults to tmp/<UTC-run-id>/iso-inspect.
+EOF
+}
+
+case "${1:-}" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+esac
+
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-run_dir="${MEOARCH_RUN_DIR:-${repo_root}/artifacts/validation/test-runs/$(date -u +%Y%m%dT%H%M%SZ)}"
+projects_root="$(cd "${repo_root}/.." && pwd)"
+default_outputs_root="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace"
+outputs_root="${MEOARCH_OUTPUT_ROOT:-${default_outputs_root}}"
+if [ -n "${MEOARCH_RUN_DIR:-}" ]; then
+  run_dir="${MEOARCH_RUN_DIR}"
+  run_id="${MEOARCH_RUN_ID:-$(basename "${run_dir}")}"
+else
+  run_id="${MEOARCH_RUN_ID:-$(date -u +%Y-%m-%dT%H%M%SZ)-acceptance}"
+  run_dir="${outputs_root}/validation/${run_id}"
+fi
+tmp_dir="${MEOARCH_TMP_DIR:-${outputs_root}/tmp/${run_id}}"
 evidence_dir="${run_dir}/iso"
-extract_dir="${run_dir}/iso-extract"
+extract_dir="${MEOARCH_ISO_EXTRACT_DIR:-${tmp_dir}/iso-inspect}"
 mkdir -p "${evidence_dir}" "${extract_dir}"
 
 iso_path="${1:-}"

@@ -3,15 +3,16 @@ set -Eeuo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 projects_root="$(cd "${repo_root}/.." && pwd)"
-# Keep MeoArch build products with their source tree.  Cross-project evidence
-# belongs to the owning sibling repository, not a shared Projects/outputs sink.
-outputs_root="${MEOARCH_OUTPUT_ROOT:-${repo_root}/artifacts}"
+# Persistent releases and validation evidence are centralized by project.
+# Reproducible ArchISO working state still stays under this checkout's build/.
+default_outputs_root="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace"
+outputs_root="${MEOARCH_OUTPUT_ROOT:-${default_outputs_root}}"
 source_profile="${repo_root}/meoarch-os"
 build_root="${repo_root}/build/archiso"
 work_dir="${build_root}/work"
 staged_profile="${build_root}/profile"
 baseline_profile="${build_root}/baseline-profile"
-out_dir="${outputs_root}/releases/iso"
+out_dir="${outputs_root}/packages/iso"
 clean=0
 
 usage() {
@@ -114,8 +115,8 @@ if [ "${clean}" -eq 1 ] && [ -d "${build_root}" ]; then
   fi
 fi
 
-run_id="$(date -u +%Y%m%dT%H%M%SZ)"
-log_dir="${outputs_root}/logs/iso/${run_id}"
+run_id="$(date -u +%Y-%m-%dT%H%M%SZ)-iso-build"
+log_dir="${outputs_root}/validation/${run_id}/logs"
 mkdir -p "${log_dir}" "${build_root}" "${out_dir}"
 log_file="${log_dir}/build-iso.log"
 exec > >(tee -a "${log_file}") 2>&1

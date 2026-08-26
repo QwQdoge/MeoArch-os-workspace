@@ -1,26 +1,71 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-run_dir="${MEOARCH_RUN_DIR:-${repo_root}/artifacts/validation/test-runs/$(date -u +%Y%m%dT%H%M%SZ)}"
-vm_dir="${run_dir}/vm"
-iso_path="${1:-}"
-disk_path="${2:-${vm_dir}/meoarch-test.qcow2}"
-display_mode="${MEOARCH_QEMU_DISPLAY:-gtk}"
-mkdir -p "${vm_dir}"
+usage() {
+  cat <<'EOF'
+Usage: scripts/acceptance/60-boot-live.sh [ISO_PATH] [DISK_PATH]
 
-# AF_UNIX paths are limited to roughly 108 bytes. Artifact directories are
-# intentionally descriptive and can exceed that limit, so keep only the
-# transient control sockets in a short runtime directory and record their
-# locations beside the persistent VM artifacts.
-run_tag="$(basename "${run_dir}")"
-run_tag="${run_tag: -8}"
-socket_dir="${MEOARCH_QEMU_SOCKET_DIR:-/tmp/meo-${run_tag}-live}"
+Boot an ISO in the acceptance VM. Temporary qcow2, OVMF, and QMP state
+defaults to tmp/<UTC-run-id>/vm; validation records remain under
+validation/<UTC-run-id>/vm. Set MEOARCH_VM_HANDOFF=1 (or
+MEOARCH_INSTALL_DIR) only when a bootable VM handoff must be retained.
+EOF
+}
+
+case "${1:-}" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+esac
+[ "$#" -le 2 ] || { usage >&2; exit 2; }
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+projects_root="$(cd "${repo_root}/.." && pwd)"
+default_outputs_root="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace"
+outputs_root="${MEOARCH_OUTPUT_ROOT:-${default_outputs_root}}"
+if [ -n "${MEOARCH_RUN_DIR:-}" ]; then
+  run_dir="${MEOARCH_RUN_DIR}"
+  run_id="${MEOARCH_RUN_ID:-$(basename "${run_dir}")}"
+else
+  run_id="${MEOARCH_RUN_ID:-$(date -u +%Y-%m-%dT%H%M%SZ)-acceptance}"
+  run_dir="${outputs_root}/validation/${run_id}"
+fi
+tmp_dir="${MEOARCH_TMP_DIR:-${outputs_root}/tmp/${run_id}}"
+if [ -n "${MEOARCH_VM_DIR:-}" ]; then
+  vm_dir="${MEOARCH_VM_DIR}"
+elif [ -n "${MEOARCH_INSTALL_DIR:-}" ] || [ "${MEOARCH_VM_HANDOFF:-0}" = "1" ]; then
+  vm_dir="${MEOARCH_INSTALL_DIR:-${outputs_root}/install/${run_id}}"
+else
+  vm_dir="${tmp_dir}/vm"
+fi
+evidence_dir="${run_dir}/vm"
+iso_path="${1:-}"
+if [ -z "${iso_path}" ] && [ -f "${run_dir}/iso/iso-path.txt" ]; then
+  iso_path="$(<"${run_dir}/iso/iso-path.txt")"
+fi
+if [ -n "${2:-}" ]; then
+  disk_path="$2"
+elif [ -f "${evidence_dir}/disk-path.txt" ]; then
+  disk_path="$(<"${evidence_dir}/disk-path.txt")"
+else
+  disk_path="${vm_dir}/meoarch-test.qcow2"
+fi
+display_mode="${MEOARCH_QEMU_DISPLAY:-gtk}"
+mkdir -p "${vm_dir}" "${evidence_dir}"
+
+# Keep QMP state alongside the temporary VM. The deliberately short leaf paths
+# keep normal UTC run identifiers within the AF_UNIX socket length limit.
+socket_dir="${MEOARCH_QEMU_SOCKET_DIR:-${tmp_dir}/q/live}"
 mkdir -p "${socket_dir}"
-qmp_socket="${socket_dir}/qmp.sock"
-monitor_socket="${socket_dir}/monitor.sock"
-printf '%s\n' "${qmp_socket}" >"${vm_dir}/qmp-path.txt"
-printf '%s\n' "${monitor_socket}" >"${vm_dir}/monitor-path.txt"
+qmp_socket="${socket_dir}/q"
+monitor_socket="${socket_dir}/m"
+[ "${#qmp_socket}" -lt 104 ] && [ "${#monitor_socket}" -lt 104 ] || {
+  echo "QMP socket path is too long; set MEOARCH_QEMU_SOCKET_DIR to a shorter temporary directory." >&2
+  exit 2
+}
+printf '%s\n' "${qmp_socket}" >"${evidence_dir}/qmp-path.txt"
+printf '%s\n' "${monitor_socket}" >"${evidence_dir}/monitor-path.txt"
 
 [ -f "${iso_path}" ] || { echo "ISO not found: ${iso_path}" >&2; exit 2; }
 [ -f "${disk_path}" ] || { echo "VM disk not found: ${disk_path}" >&2; exit 2; }
@@ -47,7 +92,7 @@ if [ "${display_mode}" = "none" ]; then
   display_args=(-device virtio-vga -display none)
 fi
 
-cat >"${vm_dir}/vm-config.txt" <<EOF
+cat >"${evidence_dir}/vm-config.txt" <<EOF
 firmware=UEFI OVMF
 cpus=4
 memory=8192 MiB
@@ -74,6 +119,6 @@ exec qemu-system-x86_64 \
   -device usb-tablet \
   -qmp "unix:${qmp_socket},server=on,wait=off" \
   -monitor "unix:${monitor_socket},server=on,wait=off" \
-  -serial "file:${vm_dir}/serial.log" \
+  -serial "file:${evidence_dir}/live-serial.log" \
   -boot menu=on,order=d \
   -name "MeoArch Acceptance"

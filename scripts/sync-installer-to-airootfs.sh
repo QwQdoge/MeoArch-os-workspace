@@ -55,8 +55,8 @@ fi
 
 # The ISO must never consume an unvalidated sibling checkout. This gate uses
 # the freshly built MeoUI runtime above and records evidence in MeoKDE's own
-# artifacts tree, preserving project ownership.
-MEO_KDE_VALIDATION_RUN_ID="${MEOARCH_VALIDATION_RUN_ID:-$(date -u +%Y%m%dT%H%M%SZ)-iso-sync}" \
+# global output subtree, preserving project ownership.
+MEO_KDE_VALIDATION_RUN_ID="${MEOARCH_VALIDATION_RUN_ID:-$(date -u +%Y-%m-%dT%H%M%SZ)-iso-sync}" \
 MEOUI_IMPORT_ROOT="${runtime_root}/lib/qt6/qml" \
 MEOUI_SOURCE_DIR="${projects_root}/meo-ui" \
   "${meo_kde_src}/scripts/validate.sh"

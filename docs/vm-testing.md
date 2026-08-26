@@ -5,24 +5,52 @@ qcow2-backed virtual NVMe disk with a fixed serial, user-mode NAT and a virtio
 virtual GPU. KVM is used when available;
 QEMU TCG is the fallback.
 
-Create a disposable disk below the test-run artifacts directory:
+## Run layout
+
+Create one explicit UTC run identifier in the global MeoArch output tree. The
+default layout keeps retained evidence separate from disposable VM state:
 
 ```bash
-export MEOARCH_RUN_DIR="$PWD/artifacts/validation/test-runs/manual"
+run_id="$(date -u +%Y-%m-%dT%H%M%SZ)-manual-vm"
+export MEOARCH_OUTPUT_ROOT="$HOME/Projects/outputs/meo-arch-os-workspace"
+export MEOARCH_RUN_ID="${run_id}"
+export MEOARCH_RUN_DIR="${MEOARCH_OUTPUT_ROOT}/validation/${run_id}"
+export MEOARCH_TMP_DIR="${MEOARCH_OUTPUT_ROOT}/tmp/${run_id}"
+```
+
+- `validation/<run-id>/` retains logs, status files, hashes, VM configuration,
+  serial logs, and installer screenshots.
+- `packages/iso/<run-id>/` holds the candidate ISO. The ISO build stage records
+  its exact path in `validation/<run-id>/iso/iso-path.txt`.
+- `tmp/<run-id>/` holds the disposable qcow2 disk, writable OVMF variables,
+  QMP sockets, unpacked ISO data, and screenshot intermediates.
+- `install/<run-id>/` is used only when a bootable VM must be handed to another
+  operator; enable that deliberately with `MEOARCH_VM_HANDOFF=1` before the
+  disk is created.
+
+`MEOARCH_RUN_DIR`, `MEOARCH_TMP_DIR`, `MEOARCH_ISO_OUTPUT_DIR`,
+`MEOARCH_INSTALL_DIR`, and `MEOARCH_QEMU_SOCKET_DIR` remain explicit overrides;
+an explicit path always takes precedence over the defaults.
+
+## Create and boot a disposable VM
+
+Create a disposable disk:
+
+```bash
 ./scripts/acceptance/50-create-vm.sh
 ```
 
-Boot a generated ISO:
+Build an ISO in the matching package run, then boot it. The live-boot helper
+uses the recorded ISO and disk paths when arguments are omitted:
 
 ```bash
-./scripts/acceptance/60-boot-live.sh \
-  "$PWD/artifacts/releases/candidates/meoarch-os-YYYY.MM.DD-x86_64.iso" \
-  "$MEOARCH_RUN_DIR/vm/meoarch-test.qcow2"
+./scripts/acceptance/30-build-iso.sh
+./scripts/acceptance/60-boot-live.sh
 ```
 
-The script rejects `/dev/*` targets and disks outside the repository-controlled
-`artifacts` directory. It creates a writable copy of OVMF variables and records
-the exact VM configuration and serial console output.
+The disk creator rejects `/dev/*` and paths outside the designated VM directory.
+It creates a writable OVMF copy in the disposable VM directory and records the
+exact VM configuration and serial console output in the validation directory.
 
 For automated acceptance, set `MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY` while building
 the ISO. The build copies that public key only into its staged profile; it does
@@ -30,7 +58,8 @@ not alter the source ArchISO profile. Guest SSH is forwarded to
 `127.0.0.1:2222`.
 
 Capture each visible Installer checkpoint through QMP. The helper numbers the
-PNG files and stores them inside the active run directory:
+PNG files in the active validation run while keeping the temporary PPM files in
+the matching `tmp/` run:
 
 ```bash
 ./scripts/acceptance/65-capture-step.sh 01-language
@@ -43,6 +72,19 @@ shutdown, boot the same disk without the ISO and record proof that the installed
 root and bootloader are used. Do not inspect a disk read-write while QEMU is
 running.
 
+To retain a bootable disk for handoff instead of treating it as disposable, set
+the flag before creating it, then use the same run variables for live and
+installed boots:
+
+```bash
+export MEOARCH_VM_HANDOFF=1
+./scripts/acceptance/50-create-vm.sh
+./scripts/acceptance/60-boot-live.sh
+# Complete installation in the controlled VM, shut it down, then:
+./scripts/acceptance/70-boot-installed.sh
+```
+
 Store screenshots, installer logs, package logs, partition/fstab output,
-first-login observations and performance measurements below the same run
-directory. A visible Live ISO is not evidence of an installed-system boot.
+first-login observations and performance measurements under the matching
+`validation/<run-id>/` directory. A visible Live ISO is not evidence of an
+installed-system boot.

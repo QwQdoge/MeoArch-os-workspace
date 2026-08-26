@@ -1,188 +1,83 @@
 # MeoArch OS Workspace
 
-MeoArch OS Workspace is the main repository for assembling the MeoArch live ISO.
-It contains the existing archiso profile, installer framework, system assets,
-themes, build scripts, and project documentation.
+This is the MeoArch ISO integration worktree. It owns the ArchISO profile,
+installer, repair tool, ISO-facing configuration, branding assets, and the
+scripts that assemble and validate a candidate image. Shared UI primitives do
+not belong here: reusable QML belongs in the sibling MeoUI project, while
+Plasma-specific integration belongs in MeoKDE.
 
-This repository is the ISO integration point. Reusable components can later move
-to dedicated repositories, but this workspace should remain the place where the
-final live image is assembled.
+## What is in this repository
 
-## Current Status
+| Path | Purpose |
+| --- | --- |
+| meoarch-os/ | The retained ArchISO profile, including airootfs, boot configuration, and package lists. |
+| installer/ | Installer application source, QML, backend code, tests, translations, and installer-specific documentation. |
+| repair/ | MeoArch repair application source and repair checks/actions. |
+| themes/ | ISO-owned theme staging/configuration and its local documentation. |
+| assets/ | Versioned fonts, icons, logos, and wallpapers used by the ISO. |
+| configs/ | ISO/system configuration inputs. |
+| scripts/ | Build, staging, kiosk, and acceptance entry points. |
+| docs/ | Code- and operations-bound documentation for the installer and ISO workflow. |
 
-- The existing archiso profile is kept at `meoarch-os/`.
-- Meo component selection and Stable/Beta setup share one package-managed GUI/CLI plan backend.
-- A compiled Qt 6/C++ host and eleven-step M3 Expressive Qt Quick installer are present.
-- MeoUI is a versioned shared QML module; the installer does not embed a private static copy.
-- Meo Desktop provides KDE Plasma look-and-feel, shelf defaults, packaging, and safe apply/reset tooling.
-- Optional software profiles are recorded as confirmation-required OmniStore provisioning intent.
-- Runtime locale, ISO 3166-1 country, IANA time-zone, and XKB catalogs are available.
-- Archinstall and KDE configuration adapters are implemented behind explicit safety gates.
-- The installer detects PCI display adapters and adds the matching Arch driver packages to the generated Archinstall configuration.
-- The default installer mode is non-destructive and simulates progress.
-- Installer documentation is available in English and Simplified Chinese.
+The root README and AGENTS files are orientation and operating rules. Root-level
+configuration files and source-owned build metadata remain where their tools
+require them. Do not add ad-hoc reports, screenshots, plans, or architecture
+notes to the root.
 
-## Repository Layout
+## Working with the ISO
 
-```text
-MeoArch_os-workspace/
-├── meoarch-os/          # Existing archiso profile; keep this directory name
-│   ├── profiledef.sh
-│   ├── packages.x86_64
-│   ├── pacman.conf
-│   ├── efiboot/
-│   ├── grub/
-│   ├── syslinux/
-│   └── airootfs/
-├── configs/             # System configuration staged outside airootfs
-│   ├── systemd/
-│   ├── pacman/
-│   ├── zsh/
-│   └── network/
-├── themes/              # Theme configuration & single source of truth reference
-├── installer/           # Standalone Cage installer source
-│   ├── bin/
-│   └── qml/
-├── scripts/             # Build, installer, and sync entrypoints
-│   ├── build.sh
-│   ├── install.sh
-│   ├── firstboot.sh
-│   ├── postinstall.sh
-│   ├── run-installer-kiosk.sh
-│   └── sync-installer-to-airootfs.sh
-├── assets/              # Wallpapers, icons, logos, and fonts
-│   ├── wallpapers/
-│   ├── icons/
-│   └── fonts/
-├── docs/
-│   └── installer/
-└── README.md
-```
+Edit the authoritative source first, then use the maintained workflow:
 
-`build/` and `.vscode/` may exist locally during development. They are not part
-of the source layout.
+1. Change installer code under installer/, ISO inputs under meoarch-os/, or
+   ISO-owned assets/configuration in their existing folders.
+2. Use scripts/sync-installer-to-airootfs.sh for installer staging; do not
+   scatter manual copies into airootfs.
+3. Use the build and acceptance scripts only when the task authorizes a build
+   or test. A source/static result, a staged ISO, a live-ISO boot, and an
+   installed-system boot are separate levels of evidence.
 
-## Installer Documentation
+The existing build/ and artifacts/ directories are retained because current
+tools use them. They are not places for new hand-written evidence or scratch
+documents. Do not rewrite scripts merely to reorganize their existing outputs.
 
-Start here if you are reviewing or implementing the installer:
+## Filing rule for new material
 
-- English product specification:
-  `docs/installer/INSTALLER_SPEC.md`
-- English Cage runtime mapping:
-  `docs/installer/CAGE_INSTALLER.md`
-- Simplified Chinese product specification:
-  `docs/installer/INSTALLER_SPEC.zh_cn.md`
-- Simplified Chinese Cage runtime mapping:
-  `docs/installer/CAGE_INSTALLER.zh_cn.md`
+Use the following locations for all new material. This rule prevents the
+repository root from becoming a notebook or a download folder.
 
-The product specification describes the user flow, page requirements, safety
-rules, and future backend boundaries. The Cage runtime document explains how the
-current framework starts inside the live ISO.
+| Material | Required location |
+| --- | --- |
+| Source, tests, or versioned assets | Their existing owning source directory in this repository. |
+| A contract tied to code or an operator workflow | docs/ or the code component's existing documentation directory. |
+| Plans, audits, decisions, agent journals, meeting notes, and historical reports | $HOME/Documents/Obsidian Vault/MeoArch/Projects/meo-arch-os-workspace/ |
+| Reproducible build work | $HOME/Projects/outputs/meo-arch-os-workspace/build/ |
+| Install/VM handoff material | $HOME/Projects/outputs/meo-arch-os-workspace/install/ |
+| Validation evidence | $HOME/Projects/outputs/meo-arch-os-workspace/validation/<UTC-run-id>/ |
+| Candidate ISOs and package-like deliverables | $HOME/Projects/outputs/meo-arch-os-workspace/packages/ |
+| Disposable generated work | $HOME/Projects/outputs/meo-arch-os-workspace/tmp/ |
 
-## Graphical Installer Framework
+Use a UTC run identifier in the form YYYY-MM-DDTHHMMSSZ-short-label, such as
+2026-08-26T143015Z-installer-smoke, for every
+validation directory. In the Obsidian project folder, file incoming material in
+00-inbox, overview material in 01-overview, decisions in 02-decisions, work
+notes in 03-work, validation summaries in 04-validation, and superseded
+records in 99-archive.
 
-The current installer starts as:
+Existing root documents, artifacts, builds, ISO workspaces, and historical
+files are deliberately retained by this organization pass. Do not delete,
+rename, or move them as routine cleanup. A future migration needs its own
+reviewed task and a recovery plan.
 
-```text
-systemd
-  -> meoarch-installer.service
-  -> meoarch-installer-kiosk
-  -> cage
-  -> meoarch-installer
-  -> meoarch-installer-app
-  -> QML installer UI
-```
+## Safety and release boundary
 
-Runtime files are staged under:
+- Never delete or rename meoarch-os/, installer/, repair/, versioned ISO assets,
+  package lists, or a checked-out worktree to make the tree look cleaner.
+- Do not run a destructive clean, publish an ISO, modify a live system, or
+  deploy any component without explicit authorization.
+- Do not treat a generated ISO, screenshot, log, or static check as proof of a
+  successful installation. Record the exact level of validation in Obsidian.
+- Keep credentials, user data, disk images containing user data, and secrets
+  out of source control and shared evidence folders.
 
-```text
-installer/
-meoarch-os/airootfs/opt/meoarch-installer/
-meoarch-os/airootfs/usr/local/bin/
-meoarch-os/airootfs/etc/systemd/system/
-```
-
-The framework is intentionally safe. It can write preview artifacts under:
-
-```text
-/tmp/meoarch-installer/
-```
-
-It will not call Archinstall unless real-install mode is enabled, Summary is
-confirmed, disk geometry is present, and the separate credentials artifact is ready.
-
-## Building The ISO
-
-Builds should be run on Arch Linux with `archiso` installed:
-
-```sh
-./scripts/build.sh
-```
-
-The build script synchronizes the installer source into `airootfs` before
-calling `mkarchiso`. A development machine without Qt 6 headers can still build
-the ISO: the optional C++ host is skipped and the live image runs the same QML
-views with `qml6`. The live image itself always installs `qt6-base`,
-`qt6-declarative`, `qt6-svg`, and `qt6-wayland` from the Arch repositories.
-The build installs `libmeoui.so.0` and its QML plugin into the image from the
-same `themes/MeoUI` source used by the installer build.
-
-## Meo Desktop and OmniStore
-
-The installed system uses Archinstall's KDE Plasma profile, then applies the
-Meo Desktop look-and-feel, shelf layout, wallpaper, and global defaults to the
-mounted target. The desktop intentionally reuses KDE's NetworkManager, BlueZ,
-PipeWire, PowerDevil, notification, overview, and session actions.
-
-The software page does not silently install optional apps. It writes an
-allowlisted `omnistore-provisioning.json` with the selected workflow profiles
-and `requiresUserConfirmation: true`. The target receives that file under
-`/var/lib/omnistore/`. A signed or repository-resolvable OmniStore package is
-still required before first-login execution can be enabled.
-
-## Graphics Driver Detection
-
-Pacman is only a package transaction tool: it does not probe PCI hardware or
-choose a graphics driver.  Before it generates the Archinstall configuration,
-MeoArch reads the Live ISO PCI display devices and records
-`generated/hardware.json` alongside the generated configuration.  The detected
-vendor packages are added to `user_configuration.json` and are installed by
-Archinstall during the normal package phase:
-
-- AMD: Mesa, Radeon Vulkan, and VA-API Mesa support
-- Intel: Mesa, Intel Vulkan, and VA-API Mesa support
-- NVIDIA: `nvidia-open` and `nvidia-utils`
-- Unknown/no detectable adapter: a safe Mesa/Vulkan fallback
-
-Hybrid systems receive both applicable sets.  The detector never downloads
-packages on its own and never enables a legacy third-party NVIDIA driver; those
-remain explicit post-install choices.
-
-- `installer/backend/hardware.py` contains the vendor-ID mapping and is covered
-  by unit tests.
-- `installer/backend/generate-config.py` writes the audited plan to
-  `/tmp/meoarch-installer/generated/hardware.json` in the Live ISO.
-
-## Development Notes
-
-- Keep `meoarch-os/` as the archiso profile path. Do not rename it unless the
-  project intentionally migrates the profile directory.
-- Edit installer source in `installer/`.
-- Use `scripts/sync-installer-to-airootfs.sh` to copy installer changes into the
-  ISO profile without running a full build.
-- Keep generated files, build output, ISO images, and local IDE state out of git.
-
-## Split Repository Rule
-
-Only split code or assets into another repository when they can be reused
-independently from this ISO workspace.
-
-Likely future split candidates:
-
-- `MeoUI` from `themes/MeoUI`
-- logos and fonts from `assets/`
-- installer documentation from `docs/installer`
-- installer source once it becomes a standalone application
-- package definitions once they are reused outside this ISO
-
-The main workspace should stay focused on assembling the live ISO.
+For detailed build, installer, and release contracts, use the documents already
+under docs/ and installer/.

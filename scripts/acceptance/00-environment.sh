@@ -1,8 +1,38 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+usage() {
+  cat <<'EOF'
+Usage: scripts/acceptance/00-environment.sh
+
+Record host prerequisites in validation/<UTC-run-id>/environment. By default
+the run is stored beneath the global MeoArch output directory.
+EOF
+}
+
+case "${1:-}" in
+  -h|--help)
+    usage
+    exit 0
+    ;;
+  "")
+    ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac
+
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-run_dir="${MEOARCH_RUN_DIR:-${repo_root}/artifacts/validation/test-runs/$(date -u +%Y%m%dT%H%M%SZ)}"
+projects_root="$(cd "${repo_root}/.." && pwd)"
+default_outputs_root="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace"
+outputs_root="${MEOARCH_OUTPUT_ROOT:-${default_outputs_root}}"
+if [ -n "${MEOARCH_RUN_DIR:-}" ]; then
+  run_dir="${MEOARCH_RUN_DIR}"
+else
+  run_id="${MEOARCH_RUN_ID:-$(date -u +%Y-%m-%dT%H%M%SZ)-acceptance}"
+  run_dir="${outputs_root}/validation/${run_id}"
+fi
 evidence_dir="${run_dir}/environment"
 mkdir -p "${evidence_dir}"
 report="${evidence_dir}/environment.txt"

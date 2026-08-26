@@ -1,42 +1,65 @@
-# MeoArch Workspace Guidance
+# MeoArch OS Workspace agent rules
 
-This repository assembles the MeoArch ISO. Read this file before creating,
-moving, or validating project material.
+This repository is the ISO integration worktree. Make the smallest
+source-owned change that satisfies the task, and preserve the ISO profile,
+existing worktrees, package inputs, builds, and historical material.
 
-## Source ownership
+## Ownership
 
-- Shared QML design tokens and generic motion/components belong in
-  `$HOME/Projects/meo-ui`.
-- KDE/Plasma-specific integration and `Meo.System` belong in
-  `$HOME/Projects/meo-kde`.
-- ISO staging, the installer, Archinstall integration, and release validation
-  belong in this workspace.
-- Do not copy sibling-project historical evidence into this repository.
+- Shared QML components, tokens, and reusable showcase behavior belong in
+  $HOME/Projects/meo-ui.
+- Plasma/KWin-specific integration and Meo.System belong in
+  $HOME/Projects/meo-kde.
+- ArchISO assembly, installer code, repair tooling, and ISO staging belong
+  here.
+- Do not copy a sibling project into this worktree or create an untracked
+  replacement of a sibling component.
 
-## Where generated material goes
+## Repository filing rules
 
-All MeoArch-generated output is Git-ignored and must stay below `artifacts/`:
+- Keep source, tests, assets, and tool configuration in their existing owning
+  directories.
+- Put code-bound design, deployment, build, and operating contracts in docs/
+  or the component documentation directory that already owns them.
+- Do not create root-level plan files, audit reports, architecture drafts,
+  agent journals, screenshots, logs, or one-off notes.
+- Put plans, decisions, audit reports, work journals, and historical evidence
+  under $HOME/Documents/Obsidian Vault/MeoArch/Projects/meo-arch-os-workspace/.
+  Use its numbered folders: 00-inbox, 01-overview, 02-decisions, 03-work,
+  04-validation, and 99-archive.
 
-| Material | Required path |
+## Output rules
+
+New durable output belongs only under
+$HOME/Projects/outputs/meo-arch-os-workspace/:
+
+| Kind | Path |
 | --- | --- |
-| Candidate or release ISO | `artifacts/releases/iso/` or `artifacts/releases/candidates/` |
-| ISO build log, checksum, staging provenance | `artifacts/logs/iso/<UTC timestamp>/` |
-| Installer screenshots | `artifacts/screenshots/installer/<capture-name>/` |
-| VM disks, ISO extracts, test evidence | `artifacts/validation/test-runs/<run-id>/` |
-| Historical validation evidence | `artifacts/validation/<release-id>/` |
-| Recovery/provenance snapshots | `artifacts/provenance/<run-id>/` |
+| Reproducible build work | build/ |
+| Install or VM handoff | install/ |
+| Validation evidence | validation/<UTC-run-id>/ |
+| ISO/package deliverables | packages/ |
+| Disposable work | tmp/ |
 
-Use `build/` only for reproducible compiler and ArchISO work space. Do not put
-release images, screenshots, or validation evidence in `build/`, the project
-root, or `$HOME/Projects/outputs`.
+Use a UTC run identifier in the form YYYY-MM-DDTHHMMSSZ-short-label. Existing
+script-managed build/ and artifacts/ material is retained; do not move it,
+delete it, or change scripts solely to enforce this filing rule.
 
-`scripts/build-iso.sh` defaults to `artifacts/releases/iso/` and
-`artifacts/logs/iso/`; retain those defaults unless a task explicitly requests
-an isolated output location.
+## ISO integrity and validation
 
-## Safety
+- Keep meoarch-os/ as the source ArchISO profile. Do not delete, rename, or
+  replace it with a copied profile.
+- Stage installer changes only with scripts/sync-installer-to-airootfs.sh.
+  Manual airootfs copying produces unverifiable state.
+- Keep package lists, boot configuration, versioned assets, and ISO package
+  sources intact. Do not use git reset, git clean, blanket deletion, or an
+  unreviewed recursive command to tidy them.
+- Distinguish source validation, staging provenance, live-ISO boot, and
+  installed-system acceptance in the validation record. None implies the next.
 
-- Preserve unrelated dirty work and never reset, delete, or overwrite it.
-- A live ISO or static check is not proof of an installed-system boot.
-- Use `scripts/sync-installer-to-airootfs.sh` for ISO staging; do not scatter
-  manual copies into `meoarch-os/airootfs`.
+## Authorization boundary
+
+Do not publish an ISO, alter a live device, write a disk, modify a remote
+release, or run destructive deployment/recovery commands unless the user has
+explicitly authorized that exact action. Preserve dirty work and report it
+rather than overwriting it.
