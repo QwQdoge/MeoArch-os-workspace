@@ -8,8 +8,7 @@ PageFrame {
     readonly property string profile: controller ? controller.selection("software", "profile", "recommended") : "recommended"
     function selectProfile(value) {
         controller.setSelection("software", "profile", value)
-        if (value !== "custom")
-            controller.setSelection("software", "components", [])
+        controller.setSelection("software", "components", value === "custom" ? ["meo-desktop"] : [])
     }
     function setComponent(name, enabled) {
         let next = controller.selection("software", "components", []).slice()
@@ -53,7 +52,11 @@ PageFrame {
                 id: customColumn
                 width: parent.width
                 spacing: page.dp(8)
+                MeoText { text: qsTr("Core"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
                 MeoCheckbox { text: qsTr("Meo Desktop (Required)"); checked: true; enabled: false }
+                MeoCheckbox { text: qsTr("MeoUI runtime (Required)"); checked: true; enabled: false }
+                MeoCheckbox { text: qsTr("Meo Icons (Required)"); checked: true; enabled: false }
+                MeoText { text: qsTr("Applications"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
                 MeoCheckbox {
                     text: qsTr("Meo Settings")
                     checked: controller && controller.selection("software", "components", []).indexOf("meo-settings") >= 0
@@ -64,6 +67,9 @@ PageFrame {
                     checked: controller && controller.selection("software", "components", []).indexOf("omnistore-bin") >= 0
                     onToggled: checked => page.setComponent("omnistore-bin", checked)
                 }
+                MeoText { text: qsTr("System"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
+                MeoCheckbox { text: qsTr("Signed Meo repository integration (Required)"); checked: true; enabled: false }
+                MeoCheckbox { text: qsTr("Meo release compatibility metadata (Required)"); checked: true; enabled: false }
             }
         }
     }

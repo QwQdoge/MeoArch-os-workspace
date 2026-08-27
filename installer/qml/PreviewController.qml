@@ -25,6 +25,12 @@ QtObject {
     property bool realInstallEnabled: false
     property bool systemActionsEnabled: false
     property var values: ({})
+    property var installPlan: ({
+        schemaVersion: 2,
+        architecture: "x86_64",
+        repository: {channel: "stable", mirror: "automatic", repositories: ["meo"]},
+        package: {profile: "recommended", packages: ["meo-desktop", "meo-icons", "meo-release", "meo-settings", "meoui-qml", "omnistore-bin"]}
+    })
     readonly property var uiLanguages: [
         {id:"en",nativeName:"English"},{id:"zh_CN",nativeName:"简体中文"},{id:"zh_TW",nativeName:"繁體中文"},
         {id:"ja",nativeName:"日本語"},{id:"ko",nativeName:"한국어"},{id:"es",nativeName:"Español"},

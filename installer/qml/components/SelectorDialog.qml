@@ -6,7 +6,7 @@ import MeoUI 1.0
 MeoMotionPopup {
     id: popup
     presentation: MeoMotionPopup.Dialog
-    property string title: "Select"
+    property string title: qsTr("Select")
     property var sourceModel: []
     property string primaryKey: "id"
     property string labelKey: "name"
@@ -58,7 +58,7 @@ MeoMotionPopup {
     contentItem: Column {
         spacing: 16
         MeoText { width: parent.width; text: popup.title + " · " + popup.filteredModel.length; typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
-        MeoTextField { id: search; width: parent.width; type: "outlined"; size: "l"; label: "Search"; placeholder: "Type a name or code"; onTextChanged: popup.searchText = text }
+        MeoTextField { id: search; width: parent.width; type: "outlined"; size: "l"; label: qsTr("Search"); placeholder: qsTr("Type a name or code"); onTextChanged: popup.searchText = text }
         ListView {
             id: list
             width: parent.width; height: parent.height - 150; clip: true; model: popup.filteredModel
@@ -98,8 +98,8 @@ MeoMotionPopup {
         }
         Row {
             anchors.right: parent.right; spacing: 8
-            MeoButton { text: "Cancel"; type: "text"; onClicked: popup.close() }
-            MeoButton { text: "Apply"; type: "filled"; enabled: popup.pendingId.length > 0; onClicked: { popup.applied(popup.pendingId); popup.close() } }
+            MeoButton { text: qsTr("Cancel"); type: "text"; onClicked: popup.close() }
+            MeoButton { text: qsTr("Apply"); type: "filled"; enabled: popup.pendingId.length > 0; onClicked: { popup.applied(popup.pendingId); popup.close() } }
         }
     }
 }

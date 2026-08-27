@@ -4,6 +4,10 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 projects_root="$(cd "${repo_root}/.." && pwd)"
 meo_kde_src="${projects_root}/meo-kde"
+meoui_source="${MEOUI_SOURCE_DIR:-${projects_root}/meo-ui}"
+if [ ! -f "${meoui_source}/CMakeLists.txt" ] && [ -f "${projects_root}/MeoUI/CMakeLists.txt" ]; then
+  meoui_source="${projects_root}/MeoUI"
+fi
 airootfs="${MEOARCH_AIROOTFS:-${repo_root}/meoarch-os/airootfs}"
 installer_src="${repo_root}/installer"
 airootfs="$(realpath -m -- "${airootfs}")"
@@ -58,14 +62,14 @@ fi
 # global output subtree, preserving project ownership.
 MEO_KDE_VALIDATION_RUN_ID="${MEOARCH_VALIDATION_RUN_ID:-$(date -u +%Y-%m-%dT%H%M%SZ)-iso-sync}" \
 MEOUI_IMPORT_ROOT="${runtime_root}/lib/qt6/qml" \
-MEOUI_SOURCE_DIR="${projects_root}/meo-ui" \
+MEOUI_SOURCE_DIR="${meoui_source}" \
   "${meo_kde_src}/scripts/validate.sh"
 
 cmake --fresh -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "${meosystem_build}" --parallel
 cmake --fresh -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEOUI_SOURCE_DIR="${projects_root}/meo-ui"
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEOUI_SOURCE_DIR="${meoui_source}"
 cmake --build "${meokde_native_build}" --parallel
 
 rm -rf "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}"
