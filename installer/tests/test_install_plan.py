@@ -12,6 +12,10 @@ class InstallPlanTests(unittest.TestCase):
     def setUp(self):
         self.catalog = catalog_from(ROOT / "data/package-catalog.json")
 
+    def test_catalog_is_bound_to_release_generation_and_repository_names(self):
+        self.assertEqual(self.catalog["generation"], "2026.08")
+        self.assertEqual(self.catalog["repositoryNames"], {"stable": "meo", "beta": "meo-beta"})
+
     def test_recommended_stable_has_complete_package_set(self):
         plan = build_install_plan({"schemaVersion": 2, "profile": "recommended", "channel": "stable"}, self.catalog)
         self.assertEqual(plan.repository.repositories, ("meo",))
@@ -31,6 +35,11 @@ class InstallPlanTests(unittest.TestCase):
         fragment = pacman_channel_fragment(plan)
         self.assertLess(fragment.index("[meo-beta]"), fragment.index("[meo]"))
 
+    def test_target_repository_configuration_validates_resolved_channel_order(self):
+        script = (ROOT / "backend/configure-meo-repository.sh").read_text(encoding="utf-8")
+        self.assertIn('actual != expected', script)
+        self.assertIn('pacman-conf --repo-list', script)
+
     def test_custom_forces_desktop_dependencies(self):
         plan = build_install_plan({"schemaVersion": 2, "profile": "custom", "channel": "stable", "components": ["meo-desktop", "omnistore-bin"]}, self.catalog)
         self.assertTrue({"meo-desktop", "meoui-qml", "meo-icons", "omnistore-bin"}.issubset(plan.package.packages))
@@ -44,4 +53,3 @@ class InstallPlanTests(unittest.TestCase):
             build_install_plan({"schemaVersion": 2}, self.catalog, "aarch64")
         with self.assertRaises(PlanError):
             build_install_plan({"schemaVersion": 2, "mirror": "untrusted"}, self.catalog)
-

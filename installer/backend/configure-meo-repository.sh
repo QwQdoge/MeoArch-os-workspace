@@ -48,6 +48,15 @@ PY
 )"
 arch-chroot "$target_root" pacman -S --needed --noconfirm meo-keyring meo-mirrorlist "$channel"
 arch-chroot "$target_root" pacman -Syy --noconfirm
-arch-chroot "$target_root" pacman-conf --repo-list | grep -qx meo
+repository_output="$(arch-chroot "$target_root" pacman-conf --repo-list)"
+python3 - "$plan_file" "$repository_output" <<'PY'
+import json, sys
+plan = json.load(open(sys.argv[1], encoding="utf-8"))
+expected = plan["repository"]["repositories"]
+actual = [name.strip() for name in sys.argv[2].splitlines()
+          if name.strip() in {"meo", "meo-beta"}]
+if actual != expected:
+    raise SystemExit(f"installed Meo repository order is {actual!r}, expected {expected!r}")
+PY
 rm -f -- "$backup_conf"
 trap - EXIT
