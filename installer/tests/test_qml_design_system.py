@@ -28,6 +28,22 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("MeoMotionSurface", source)
         self.assertIn("MeoDivider", source)
 
+    def test_custom_profile_persists_required_desktop_and_review_shows_resolved_plan(self):
+        software = (QML_ROOT / "pages/SoftwarePage.qml").read_text(encoding="utf-8")
+        summary = (QML_ROOT / "pages/SummaryPage.qml").read_text(encoding="utf-8")
+        self.assertIn('value === "custom" ? ["meo-desktop"] : []', software)
+        self.assertIn("controller.installPlan.repository", summary)
+        self.assertIn("controller.installPlan.package", summary)
+        self.assertIn("Validated Meo package plan", summary)
+
+    def test_user_visible_static_strings_are_translation_eligible(self):
+        offenders = []
+        literal = re.compile(r'^\s*(?:text|title|subtitle|label|placeholder):\s*"', re.MULTILINE)
+        for qml_file in sorted(QML_ROOT.rglob("*.qml")):
+            if literal.search(qml_file.read_text(encoding="utf-8")):
+                offenders.append(str(qml_file.relative_to(QML_ROOT)))
+        self.assertEqual(offenders, [], "Wrap user-visible QML strings with qsTr().")
+
 
 if __name__ == "__main__":
     unittest.main()

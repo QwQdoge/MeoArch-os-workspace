@@ -3,6 +3,10 @@ set -Eeuo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 projects_root="$(cd "${repo_root}/.." && pwd)"
+meoui_source="${MEOUI_SOURCE_DIR:-${projects_root}/meo-ui}"
+if [ ! -f "${meoui_source}/CMakeLists.txt" ] && [ -f "${projects_root}/MeoUI/CMakeLists.txt" ]; then
+  meoui_source="${projects_root}/MeoUI"
+fi
 # Persistent releases and validation evidence are centralized by project.
 # Reproducible ArchISO working state still stays under this checkout's build/.
 default_outputs_root="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace"
@@ -76,7 +80,7 @@ for required in \
   "${source_profile}/profiledef.sh" \
   "${source_profile}/packages.x86_64" \
   "${repo_root}/installer/CMakeLists.txt" \
-  "${projects_root}/meo-ui/CMakeLists.txt"; do
+  "${meoui_source}/CMakeLists.txt"; do
   [ -f "${required}" ] || {
     echo "Required project file is missing: ${required}" >&2
     exit 3

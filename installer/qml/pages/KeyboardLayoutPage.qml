@@ -21,8 +21,8 @@ PageFrame {
 
         PageHeading {
             width: parent.width
-            title: "Keyboard Layout"
-            subtitle: "Select a keyboard layout and test it before continuing."
+            title: qsTr("Keyboard Layout")
+            subtitle: qsTr("Select a keyboard layout and test it before continuing.")
         }
         GridLayout {
             width: parent.width
@@ -52,17 +52,17 @@ PageFrame {
                 Layout.fillWidth: true
                 type: "outlined"
                 size: "l"
-                placeholder: "Type here to test your keyboard"
+                placeholder: qsTr("Type here to test your keyboard")
                 text: InstallerSession.keyboardTest
                 onTextChanged: InstallerSession.keyboardTest = text
             }
             MeoButton {
-                text: "All layouts"
+                text: qsTr("All layouts")
                 type: "tonal"
                 onClicked: allDialog.openFrom(this)
             }
             MeoButton {
-                text: "Advanced"
+                text: qsTr("Advanced")
                 type: "text"
                 onClicked: advanced.openFrom(this)
             }
@@ -71,7 +71,7 @@ PageFrame {
 
     SelectorDialog {
         id: allDialog
-        title: "All keyboard layouts"
+        title: qsTr("All keyboard layouts")
         sourceModel: page.controller ? page.controller.keyboardLayouts : []
         primaryKey: "id"
         labelKey: "name"
@@ -96,16 +96,16 @@ PageFrame {
 
             MeoText {
                 width: parent.width
-                text: "Advanced keyboard settings"
+                text: qsTr("Advanced keyboard settings")
                 typeRole: "title"
                 typeSize: "medium"
                 emphasized: true
                 color: MeoTheme.contentOnSurface
             }
-            MeoTextField { width: parent.width; type: "outlined"; size: "l"; label: "Variant"; placeholder: "Default"; onTextChanged: page.controller.setSelection("locale", "keyboardVariant", text) }
-            MeoTextField { width: parent.width; type: "outlined"; size: "l"; label: "Model"; placeholder: "Generic 105-key PC"; onTextChanged: page.controller.setSelection("locale", "keyboardModel", text) }
-            MeoTextField { width: parent.width; type: "outlined"; size: "l"; label: "Compose Key"; placeholder: "Disabled"; onTextChanged: page.controller.setSelection("locale", "composeKey", text) }
-            MeoButton { anchors.right: parent.right; text: "Done"; type: "filled"; onClicked: advanced.close() }
+            MeoTextField { width: parent.width; type: "outlined"; size: "l"; label: qsTr("Variant"); placeholder: qsTr("Default"); onTextChanged: page.controller.setSelection("locale", "keyboardVariant", text) }
+            MeoTextField { width: parent.width; type: "outlined"; size: "l"; label: qsTr("Model"); placeholder: qsTr("Generic 105-key PC"); onTextChanged: page.controller.setSelection("locale", "keyboardModel", text) }
+            MeoTextField { width: parent.width; type: "outlined"; size: "l"; label: qsTr("Compose Key"); placeholder: qsTr("Disabled"); onTextChanged: page.controller.setSelection("locale", "composeKey", text) }
+            MeoButton { anchors.right: parent.right; text: qsTr("Done"); type: "filled"; onClicked: advanced.close() }
         }
     }
 }
