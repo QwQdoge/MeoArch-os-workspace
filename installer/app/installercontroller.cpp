@@ -69,10 +69,13 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
         {QStringLiteral("software"), QVariantMap{{QStringLiteral("profile"), QStringLiteral("recommended")},
                                                    {QStringLiteral("channel"), QStringLiteral("stable")},
                                                    {QStringLiteral("mirror"), QStringLiteral("automatic")},
-                                                   {QStringLiteral("components"), QVariantList{}}}},
+                                                   {QStringLiteral("components"), QVariantList{}},
+                                                   {QStringLiteral("applications"), QVariantList{}}}},
         {QStringLiteral("disk"), QVariantMap{{QStringLiteral("mode"), QStringLiteral("erase")},
                                              {QStringLiteral("filesystem"), QStringLiteral("btrfs")},
-                                             {QStringLiteral("swap"), QStringLiteral("zram")}}},
+                                             {QStringLiteral("swap"), QStringLiteral("zram")},
+                                             {QStringLiteral("separateHome"), true},
+                                             {QStringLiteral("rootSizeGiB"), 32}}},
         {QStringLiteral("user"), QVariantMap{{QStringLiteral("automaticLogin"), false}}}
     };
     buildUiLanguages();
@@ -80,6 +83,7 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
     buildCountries();
     buildTimeZones();
     buildKeyboardLayouts();
+    loadSoftwareCatalog();
     detectNetwork();
     refreshDisks();
     detectHardware();
@@ -161,6 +165,32 @@ void InstallerController::setSelectedDisk(const QString &id)
 }
 void InstallerController::setSelection(const QString &s, const QString &key, const QVariant &value) { writeSelection(s, key, value); }
 QVariant InstallerController::selection(const QString &s, const QString &key, const QVariant &fallback) const { return section(s).value(key, fallback); }
+
+void InstallerController::loadSoftwareCatalog()
+{
+    QFile file(QDir(sourceRoot()).absoluteFilePath(QStringLiteral("data/application-catalog.json")));
+    if (!file.open(QIODevice::ReadOnly))
+        return;
+    QJsonParseError parseError;
+    const QJsonObject root = QJsonDocument::fromJson(file.readAll(), &parseError).object();
+    if (parseError.error != QJsonParseError::NoError || root.value(QStringLiteral("schemaVersion")).toInt() != 1)
+        return;
+    for (const QJsonValue &value : root.value(QStringLiteral("applications")).toArray()) {
+        const QJsonObject application = value.toObject();
+        const QJsonObject installer = application.value(QStringLiteral("installer")).toObject();
+        if (installer.value(QStringLiteral("source")).toString() != QStringLiteral("arch-official"))
+            continue;
+        m_softwareCatalog.append(QVariantMap{
+            {QStringLiteral("id"), application.value(QStringLiteral("id")).toString()},
+            {QStringLiteral("name"), application.value(QStringLiteral("name")).toString()},
+            {QStringLiteral("summary"), application.value(QStringLiteral("summary")).toString()},
+            {QStringLiteral("category"), application.value(QStringLiteral("category")).toString()},
+            {QStringLiteral("package"), installer.value(QStringLiteral("package")).toString()},
+            {QStringLiteral("tier"), installer.value(QStringLiteral("tier")).toString()},
+            {QStringLiteral("profiles"), installer.value(QStringLiteral("profiles")).toArray().toVariantList()},
+        });
+    }
+}
 
 void InstallerController::buildUiLanguages()
 {
@@ -527,9 +557,11 @@ bool InstallerController::loadGeneratedInstallPlan(const QString &directory)
     const QVariantMap plan = document.object().toVariantMap();
     const QVariantMap repository = plan.value(QStringLiteral("repository")).toMap();
     const QVariantMap package = plan.value(QStringLiteral("package")).toMap();
+    const QVariantMap applications = plan.value(QStringLiteral("applications")).toMap();
     if (plan.value(QStringLiteral("schemaVersion")).toInt() != 2
         || repository.value(QStringLiteral("repositories")).toList().isEmpty()
-        || package.value(QStringLiteral("packages")).toList().isEmpty()) {
+        || package.value(QStringLiteral("packages")).toList().isEmpty()
+        || applications.value(QStringLiteral("source")).toString() != QStringLiteral("arch-official")) {
         setError(tr("The generated Meo package plan is incomplete."));
         return false;
     }

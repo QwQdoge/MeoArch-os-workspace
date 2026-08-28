@@ -88,6 +88,25 @@ PY
 [ "${#meo_packages[@]}" -gt 0 ] || { echo "Resolved Meo package set is empty." | tee -a "${log_file}" >&2; exit 9; }
 progress "installing_meo_packages" 82 "Installing selected MeoArch packages"
 arch-chroot "${target_root}" pacman -S --needed --noconfirm "${meo_packages[@]}" 2>&1 | tee -a "${log_file}"
+for package in "${meo_packages[@]}"; do
+  arch-chroot "${target_root}" pacman -Q "${package}" >/dev/null || {
+    echo "Selected Meo package was not installed: ${package}" | tee -a "${log_file}" >&2
+    exit 10
+  }
+done
+mapfile -t application_packages < <(python3 - "${install_plan}" <<'PY'
+import json,sys
+payload=json.load(open(sys.argv[1], encoding='utf-8'))
+for package in payload.get('applications', {}).get('nativePackages', []):
+    print(package)
+PY
+)
+for package in "${application_packages[@]}"; do
+  arch-chroot "${target_root}" pacman -Q "${package}" >/dev/null || {
+    echo "Selected application package was not installed: ${package}" | tee -a "${log_file}" >&2
+    exit 11
+  }
+done
 progress "applying_meo" 89 "Applying target settings"
 "${installer_root}/backend/apply-target-customizations.sh" \
   "${target_root}" "/opt/meo-desktop" "${generated_dir}" 2>&1 | tee -a "${log_file}"
@@ -98,4 +117,12 @@ for path in \
   "${target_root}/usr/lib/qt6/qml/MeoUI/qmldir"; do
   [ -e "${path}" ] || { echo "Final validation is missing ${path}." | tee -a "${log_file}" >&2; exit 8; }
 done
+if printf '%s\n' "${meo_packages[@]}" | grep -qx 'omnistore-bin'; then
+  for command_path in usr/bin/omnistore usr/bin/omnistore-cli usr/bin/omnistore-apps-export; do
+    [ -x "${target_root}/${command_path}" ] || {
+      echo "OmniStore integration is missing ${command_path}." | tee -a "${log_file}" >&2
+      exit 12
+    }
+  done
+fi
 progress "complete" 100 "Installation complete"

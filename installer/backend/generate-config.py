@@ -9,7 +9,8 @@ import uuid
 from pathlib import Path
 
 from hardware import detect_devices, driver_plan
-from install_plan import PlanError, build_install_plan, catalog_from, plan_as_dict, write_json_atomic
+from install_plan import (PlanError, application_catalog_from, build_install_plan,
+                          catalog_from, plan_as_dict, write_json_atomic)
 
 
 MEO_DESKTOP_PACKAGES = [
@@ -71,9 +72,10 @@ def verify_selected_disk_identity(disk):
 
 
 def build_default_disk_layout(selections):
-    """Build an explicit Archinstall erase-disk layout for the selected device."""
+    """Build an explicit Archinstall layout for automatic or guided full-disk installation."""
     disk = selections.get("disk", {})
-    if disk.get("mode", "erase") != "erase":
+    mode = disk.get("mode", "erase")
+    if mode not in {"erase", "guided"}:
         return None
     device = selected_install_device(disk)
     stable_id = str(disk.get("stableId", ""))
@@ -88,64 +90,89 @@ def build_default_disk_layout(selections):
         return None
     if total_mib < 8192:
         return None
-    root_size_mib = total_mib - 1027
+    allocatable_mib = total_mib - 1027
+    separate_home = mode == "guided" and bool(disk.get("separateHome", True))
+    if separate_home:
+        try:
+            root_size_mib = int(disk.get("rootSizeGiB", 32)) * 1024
+        except (TypeError, ValueError):
+            return None
+        if root_size_mib < 16 * 1024 or allocatable_mib - root_size_mib < 8 * 1024:
+            return None
+    else:
+        root_size_mib = allocatable_mib
 
     def object_id(label):
         return str(uuid.uuid5(uuid.NAMESPACE_URL, f"meoarch:{device}:{label}"))
 
     sector_size = {"unit": "B", "value": 512}
+    partitions = [
+        {
+            "btrfs": [],
+            "dev_path": None,
+            "flags": ["boot", "esp"],
+            "fs_type": "fat32",
+            "mount_options": [],
+            "mountpoint": "/boot",
+            "obj_id": object_id("efi"),
+            "size": {"sector_size": sector_size, "unit": "MiB", "value": 1024},
+            "start": {"sector_size": sector_size, "unit": "MiB", "value": 1},
+            "status": "create",
+            "type": "primary",
+        },
+        {
+            "btrfs": [],
+            "dev_path": None,
+            "flags": [],
+            "fs_type": filesystem,
+            "mount_options": ["compress=zstd"] if filesystem == "btrfs" else [],
+            "mountpoint": "/",
+            "obj_id": object_id("root"),
+            "size": {"sector_size": sector_size, "unit": "MiB", "value": root_size_mib},
+            "start": {"sector_size": sector_size, "unit": "MiB", "value": 1025},
+            "status": "create",
+            "type": "primary",
+        },
+    ]
+    if separate_home:
+        partitions.append({
+            "btrfs": [],
+            "dev_path": None,
+            "flags": [],
+            "fs_type": filesystem,
+            "mount_options": ["compress=zstd"] if filesystem == "btrfs" else [],
+            "mountpoint": "/home",
+            "obj_id": object_id("home"),
+            "size": {"sector_size": sector_size, "unit": "MiB", "value": allocatable_mib - root_size_mib},
+            "start": {"sector_size": sector_size, "unit": "MiB", "value": 1025 + root_size_mib},
+            "status": "create",
+            "type": "primary",
+        })
     return {
         "config_type": "default_layout",
         "device_modifications": [{
             "device": device,
             "wipe": True,
-            "partitions": [
-                {
-                    "btrfs": [],
-                    "dev_path": None,
-                    "flags": ["boot", "esp"],
-                    "fs_type": "fat32",
-                    "mount_options": [],
-                    "mountpoint": "/boot",
-                    "obj_id": object_id("efi"),
-                    "size": {"sector_size": sector_size, "unit": "MiB", "value": 1024},
-                    "start": {"sector_size": sector_size, "unit": "MiB", "value": 1},
-                    "status": "create",
-                    "type": "primary",
-                },
-                {
-                    "btrfs": [],
-                    "dev_path": None,
-                    "flags": [],
-                    "fs_type": filesystem,
-                    "mount_options": ["compress=zstd"] if filesystem == "btrfs" else [],
-                    "mountpoint": "/",
-                    "obj_id": object_id("root"),
-                    "size": {"sector_size": sector_size, "unit": "MiB", "value": root_size_mib},
-                    "start": {"sector_size": sector_size, "unit": "MiB", "value": 1025},
-                    "status": "create",
-                    "type": "primary",
-                },
-            ],
+            "partitions": partitions,
         }],
     }
 
 
-def build_package_list(hardware_plan=None, firewall=False):
+def build_package_list(hardware_plan=None, firewall=False, application_packages=()):
     hardware_packages = (hardware_plan or driver_plan(detect_devices()))["packages"]
-    packages = hardware_packages + MEO_DESKTOP_PACKAGES
+    packages = hardware_packages + MEO_DESKTOP_PACKAGES + list(application_packages)
     if firewall:
         packages.append("firewalld")
     return list(dict.fromkeys(packages))
 
 
-def build_user_configuration(selections, hardware_plan=None):
+def build_user_configuration(selections, hardware_plan=None, application_packages=()):
     locale = selections.get("locale", {})
     user = selections.get("user", {})
     disk = selections.get("disk", {})
     swap_mode = disk.get("swap", "zram")
     privacy = selections.get("privacy", {})
-    desktop_packages = build_package_list(hardware_plan, bool(privacy.get("firewall", True)))
+    desktop_packages = build_package_list(hardware_plan, bool(privacy.get("firewall", True)), application_packages)
     config = {
         "archinstall-language": "English",
         "audio_config": {"audio": "pipewire"},
@@ -235,6 +262,7 @@ def build_meo_install_config(selections):
         "mirror": software.get("mirror", "automatic"),
         "profile": software.get("profile", "recommended"),
         "components": software.get("components", []),
+        "applications": software.get("applications", []),
     }
 
 
@@ -242,8 +270,8 @@ def validate_installation_plan(selections, configuration, credentials):
     """Return user-safe blockers; never silently downgrade a production choice."""
     blockers = []
     disk = selections.get("disk", {})
-    if disk.get("mode", "erase") != "erase":
-        blockers.append("manual partitioning is unavailable until a validated Archinstall disk plan is implemented")
+    if disk.get("mode", "erase") not in {"erase", "guided"}:
+        blockers.append("unsupported disk layout mode")
     if not configuration.get("disk_config"):
         blockers.append("disk layout not generated")
     if disk.get("swap", "zram") not in {"zram", "file", "none"}:
@@ -256,7 +284,13 @@ def validate_installation_plan(selections, configuration, credentials):
     elif not all(user.get("enc_password") for user in users):
         blockers.append("user password hash missing")
     try:
-        build_install_plan(build_meo_install_config(selections), catalog_from(Path(__file__).parents[1] / "data" / "package-catalog.json"))
+        package_catalog = catalog_from(Path(__file__).parents[1] / "data" / "package-catalog.json")
+        app_catalog = application_catalog_from(
+            Path(__file__).parents[1] / "data" / "application-catalog.json",
+            package_catalog["generation"],
+        )
+        build_install_plan(build_meo_install_config(selections), package_catalog,
+                           application_catalog=app_catalog)
     except PlanError as error:
         blockers.append(f"Meo package plan is invalid: {error}")
     return blockers
@@ -284,7 +318,14 @@ def main():
     secrets = load_json(Path(args.credentials)) if args.credentials else {}
     output_dir = state_dir / "generated"
     hardware = driver_plan(detect_devices())
-    configuration = build_user_configuration(selections, hardware)
+    package_catalog = catalog_from(data_dir / "package-catalog.json")
+    app_catalog = application_catalog_from(data_dir / "application-catalog.json", package_catalog["generation"])
+    try:
+        install_plan = build_install_plan(build_meo_install_config(selections), package_catalog,
+                                          application_catalog=app_catalog)
+    except PlanError as error:
+        raise SystemExit(f"Meo package plan is invalid: {error}") from error
+    configuration = build_user_configuration(selections, hardware, install_plan.applications.native_packages)
     credentials = build_user_credentials(selections, secrets)
     write_json(output_dir / "user_configuration.json", configuration, 0o644)
     write_json(output_dir / "user_credentials.json", credentials, 0o600)
@@ -294,10 +335,6 @@ def main():
     os.chmod(plasma_path, 0o644)
     customization_path = output_dir / "target-customizations.json"
     write_json(customization_path, build_target_customizations(selections), 0o600)
-    try:
-        install_plan = build_install_plan(build_meo_install_config(selections), catalog_from(data_dir / "package-catalog.json"))
-    except PlanError as error:
-        raise SystemExit(f"Meo package plan is invalid: {error}") from error
     install_plan_path = output_dir / "install-plan.json"
     write_json_atomic(install_plan_path, plan_as_dict(install_plan), 0o600)
 

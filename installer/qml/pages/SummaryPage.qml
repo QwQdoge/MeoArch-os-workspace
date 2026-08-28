@@ -17,6 +17,8 @@ PageFrame {
                                               ? controller.installPlan.repository : ({})
     readonly property var resolvedPackage: controller && controller.installPlan.package
                                            ? controller.installPlan.package : ({})
+    readonly property var resolvedApplications: controller && controller.installPlan.applications
+                                                ? controller.installPlan.applications : ({})
     function profileLabel(profile) {
         if (profile === "minimal") return qsTr("Minimal")
         if (profile === "custom") return qsTr("Custom")
@@ -108,6 +110,14 @@ PageFrame {
                 }
                 MeoText {
                     width: parent.width
+                    text: qsTr("System application packages: %1").arg(page.joined(page.resolvedApplications.nativePackages, ", ", qsTr("None")))
+                    typeRole: "body"
+                    typeSize: "medium"
+                    color: MeoTheme.contentOnSurfaceVariant
+                    wrapMode: Text.WordWrap
+                }
+                MeoText {
+                    width: parent.width
                     text: qsTr("Meo packages: %1").arg(page.joined(page.resolvedPackage.packages, ", ", qsTr("Not prepared")))
                     typeRole: "body"
                     typeSize: "medium"
@@ -191,6 +201,7 @@ PageFrame {
                       + "\n\n" + qsTr("Disk plan\n") + (page.controller ? page.controller.selectedDisk : qsTr("Not selected"))
                       + "\n\n" + qsTr("Meo repositories\n") + page.joined(page.resolvedRepository.repositories, " → ", qsTr("Prepare the installation plan to resolve repositories."))
                       + "\n\n" + qsTr("Meo packages\n") + page.joined(page.resolvedPackage.packages, "\n", qsTr("Prepare the installation plan to resolve packages."))
+                      + "\n\n" + qsTr("System application packages\n") + page.joined(page.resolvedApplications.nativePackages, "\n", qsTr("None"))
                 typeRole: "body"
                 typeSize: "medium"
                 lineHeight: 1.35

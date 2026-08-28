@@ -266,7 +266,7 @@ Show:
 Default choices:
 
 - `Erase disk and install`
-- `Manual partitioning / Advanced`
+- `Custom full-disk layout / Advanced`
 
 Do not show by default:
 
@@ -395,7 +395,7 @@ failed.
 | Network | Conditional | Keep weak if already connected |
 | Privacy settings | Required | Matches project focus |
 | Disk selection | Required | High-risk operation |
-| Manual partitioning | Advanced only | Normal users do not need it |
+| Custom full-disk layout | Advanced only | Adjusts root and separate home without leaving Cage |
 | User account | Required | Needed for login after install |
 | Bootloader | Hidden by default | Too technical |
 | Filesystem choice | Hidden by default | Too technical |

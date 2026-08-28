@@ -5,12 +5,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
-from install_plan import PlanError, build_install_plan, catalog_from, pacman_channel_fragment
+from install_plan import (PlanError, application_catalog_from, build_install_plan,
+                          catalog_from, pacman_channel_fragment)
 
 
 class InstallPlanTests(unittest.TestCase):
     def setUp(self):
         self.catalog = catalog_from(ROOT / "data/package-catalog.json")
+        self.application_catalog = application_catalog_from(
+            ROOT / "data/application-catalog.json", self.catalog["generation"]
+        )
 
     def test_catalog_is_bound_to_release_generation_and_repository_names(self):
         self.assertEqual(self.catalog["generation"], "2026.08")
@@ -20,6 +24,7 @@ class InstallPlanTests(unittest.TestCase):
         plan = build_install_plan({"schemaVersion": 2, "profile": "recommended", "channel": "stable"}, self.catalog)
         self.assertEqual(plan.repository.repositories, ("meo",))
         self.assertIn("meo-settings", plan.package.packages)
+        self.assertIn("meo-account", plan.package.packages)
         self.assertIn("omnistore-bin", plan.package.packages)
         self.assertIn("meo-release", plan.package.packages)
 
@@ -53,3 +58,29 @@ class InstallPlanTests(unittest.TestCase):
             build_install_plan({"schemaVersion": 2}, self.catalog, "aarch64")
         with self.assertRaises(PlanError):
             build_install_plan({"schemaVersion": 2, "mirror": "untrusted"}, self.catalog)
+
+    def test_recommended_profile_adds_system_apps_but_not_third_party(self):
+        plan = build_install_plan(
+            {"schemaVersion": 2, "profile": "recommended"}, self.catalog,
+            application_catalog=self.application_catalog,
+        )
+        self.assertIn("ark", plan.applications.native_packages)
+        self.assertIn("spectacle", plan.applications.native_packages)
+        self.assertNotIn("gimp", plan.applications.native_packages)
+        self.assertNotIn("firefox", plan.applications.native_packages)
+
+    def test_selected_recommended_and_third_party_apps_are_catalog_resolved(self):
+        plan = build_install_plan(
+            {"schemaVersion": 2, "profile": "minimal",
+             "applications": ["org.mozilla.firefox", "org.gimp.GIMP"]},
+            self.catalog, application_catalog=self.application_catalog,
+        )
+        self.assertEqual(plan.applications.native_packages, ("firefox", "gimp"))
+        self.assertEqual(plan.applications.source, "arch-official")
+
+    def test_unknown_application_is_rejected(self):
+        with self.assertRaises(PlanError):
+            build_install_plan(
+                {"schemaVersion": 2, "applications": ["invalid.app"]}, self.catalog,
+                application_catalog=self.application_catalog,
+            )

@@ -64,6 +64,8 @@ required=(
   repair/actions/rebuild-initramfs.sh
   installer/app/repaircontroller.cpp
   installer/data/account.env.example
+  installer/data/application-catalog.json
+  installer/data/package-catalog.json
   installer/translations/meoarch_zh_CN.ts
   installer/backend/generate-config.py
   scripts/sync-installer-to-airootfs.sh
