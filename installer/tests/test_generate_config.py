@@ -81,6 +81,32 @@ class GenerateConfigTests(unittest.TestCase):
             {"unit": "B", "value": 512},
         )
 
+    def test_guided_layout_creates_adjustable_root_and_separate_home(self):
+        self.selections["disk"].update({
+            "mode": "guided",
+            "stableId": "/dev/vda",
+            "devicePath": "/dev/vda",
+            "sizeBytes": 64 * 1024 * 1024 * 1024,
+            "rootSizeGiB": 32,
+            "separateHome": True,
+        })
+        layout = MODULE.build_default_disk_layout(self.selections)
+        partitions = layout["device_modifications"][0]["partitions"]
+        self.assertEqual([partition["mountpoint"] for partition in partitions], ["/boot", "/", "/home"])
+        self.assertEqual(partitions[1]["size"]["value"], 32 * 1024)
+        self.assertGreaterEqual(partitions[2]["size"]["value"], 8 * 1024)
+        self.assertEqual(partitions[2]["start"]["value"], 1025 + 32 * 1024)
+
+    def test_guided_layout_rejects_too_small_root_or_home(self):
+        self.selections["disk"].update({
+            "mode": "guided", "stableId": "/dev/vda", "devicePath": "/dev/vda",
+            "sizeBytes": 32 * 1024 * 1024 * 1024, "separateHome": True,
+        })
+        for root_size in (8, 28):
+            with self.subTest(root_size=root_size):
+                self.selections["disk"]["rootSizeGiB"] = root_size
+                self.assertIsNone(MODULE.build_default_disk_layout(self.selections))
+
     def test_unsafe_or_preview_disk_never_generates_layout(self):
         for device in ("preview-disk-0", "/dev/disk/by-id/usb-removable", "/dev/sda1", "/tmp/disk"):
             with self.subTest(device=device):
@@ -94,6 +120,13 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("firewalld", MODULE.build_user_configuration(self.selections)["packages"])
         self.selections["privacy"]["firewall"] = False
         self.assertNotIn("firewalld", MODULE.build_user_configuration(self.selections)["packages"])
+
+    def test_catalog_application_packages_are_added_to_archinstall(self):
+        config = MODULE.build_user_configuration(
+            self.selections, application_packages=("firefox", "libreoffice-fresh")
+        )
+        self.assertIn("firefox", config["packages"])
+        self.assertIn("libreoffice-fresh", config["packages"])
 
     def test_by_id_is_revalidated_but_archinstall_receives_kernel_path(self):
         disk = {
@@ -152,7 +185,7 @@ class GenerateConfigTests(unittest.TestCase):
         config = MODULE.build_user_configuration(self.selections)
         credentials = {"users": [{"username": "meo", "enc_password": "$6$hash"}]}
         blockers = MODULE.validate_installation_plan(self.selections, config, credentials)
-        self.assertIn("manual partitioning is unavailable until a validated Archinstall disk plan is implemented", blockers)
+        self.assertIn("unsupported disk layout mode", blockers)
         self.assertIn("disk encryption is unavailable until its tested secret flow is enabled", blockers)
 
 

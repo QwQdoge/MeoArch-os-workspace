@@ -34,7 +34,21 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('value === "custom" ? ["meo-desktop"] : []', software)
         self.assertIn("controller.installPlan.repository", summary)
         self.assertIn("controller.installPlan.package", summary)
+        self.assertIn("controller.installPlan.applications", summary)
         self.assertIn("Validated Meo package plan", summary)
+
+    def test_software_page_exposes_system_recommended_and_opt_in_third_party_tiers(self):
+        software = (QML_ROOT / "pages/SoftwarePage.qml").read_text(encoding="utf-8")
+        self.assertIn('applicationsForTier("system")', software)
+        self.assertIn('applicationsForTier("recommended")', software)
+        self.assertIn('applicationsForTier("third-party")', software)
+        self.assertIn("Always opt-in", software)
+
+    def test_disk_page_keeps_partition_planning_inside_the_cage_client(self):
+        disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
+        self.assertIn("Integrated partition plan", disk)
+        self.assertIn('setSelection("disk", "rootSizeGiB"', disk)
+        self.assertNotIn("gparted", disk.casefold())
 
     def test_user_visible_static_strings_are_translation_eligible(self):
         offenders = []

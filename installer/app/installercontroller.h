@@ -14,6 +14,7 @@ class InstallerController final : public QObject
     Q_PROPERTY(QVariantList countries READ countries CONSTANT)
     Q_PROPERTY(QVariantList timeZones READ timeZones CONSTANT)
     Q_PROPERTY(QVariantList keyboardLayouts READ keyboardLayouts CONSTANT)
+    Q_PROPERTY(QVariantList softwareCatalog READ softwareCatalog CONSTANT)
     Q_PROPERTY(QVariantList disks READ disks NOTIFY disksChanged)
     Q_PROPERTY(QString uiLanguage READ uiLanguage NOTIFY selectionsChanged)
     Q_PROPERTY(QString systemLocale READ systemLocale NOTIFY selectionsChanged)
@@ -48,6 +49,7 @@ public:
     QVariantList countries() const { return m_countries; }
     QVariantList timeZones() const { return m_timeZones; }
     QVariantList keyboardLayouts() const { return m_keyboardLayouts; }
+    QVariantList softwareCatalog() const { return m_softwareCatalog; }
     QVariantList disks() const { return m_disks; }
     QString uiLanguage() const;
     QString systemLocale() const;
@@ -112,6 +114,7 @@ private:
     void buildCountries();
     void buildTimeZones();
     void buildKeyboardLayouts();
+    void loadSoftwareCatalog();
     void detectNetwork();
     void detectHardware();
     void parseDisks(const QByteArray &payload);
@@ -130,6 +133,7 @@ private:
     QVariantList m_countries;
     QVariantList m_timeZones;
     QVariantList m_keyboardLayouts;
+    QVariantList m_softwareCatalog;
     QVariantList m_disks;
     QVariantMap m_selections;
     QString m_networkState = QStringLiteral("offline");
