@@ -28,6 +28,12 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("MeoMotionSurface", source)
         self.assertIn("MeoDivider", source)
 
+    def test_software_selection_uses_only_catalog_backed_official_applications(self):
+        source = (QML_ROOT / "pages" / "SoftwarePage.qml").read_text(encoding="utf-8")
+        self.assertIn('setApplication("firefox", checked)', source)
+        self.assertIn('setApplication("kdenlive", checked)', source)
+        self.assertNotIn("AUR", source)
+
 
 if __name__ == "__main__":
     unittest.main()

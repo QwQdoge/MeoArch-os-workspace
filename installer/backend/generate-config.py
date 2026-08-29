@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 
 from hardware import detect_devices, driver_plan
-from install_plan import PlanError, build_install_plan, catalog_from, plan_as_dict, write_json_atomic
+from install_plan import PlanError, application_catalog_from, build_install_plan, catalog_from, plan_as_dict, write_json_atomic
 
 
 MEO_DESKTOP_PACKAGES = [
@@ -235,6 +235,7 @@ def build_meo_install_config(selections):
         "mirror": software.get("mirror", "automatic"),
         "profile": software.get("profile", "recommended"),
         "components": software.get("components", []),
+        "applications": software.get("applications", []),
     }
 
 
@@ -256,7 +257,8 @@ def validate_installation_plan(selections, configuration, credentials):
     elif not all(user.get("enc_password") for user in users):
         blockers.append("user password hash missing")
     try:
-        build_install_plan(build_meo_install_config(selections), catalog_from(Path(__file__).parents[1] / "data" / "package-catalog.json"))
+        data_dir = Path(__file__).parents[1] / "data"
+        build_install_plan(build_meo_install_config(selections), catalog_from(data_dir / "package-catalog.json"), application_catalog=application_catalog_from(data_dir / "application-catalog.json"))
     except PlanError as error:
         blockers.append(f"Meo package plan is invalid: {error}")
     return blockers
@@ -295,7 +297,7 @@ def main():
     customization_path = output_dir / "target-customizations.json"
     write_json(customization_path, build_target_customizations(selections), 0o600)
     try:
-        install_plan = build_install_plan(build_meo_install_config(selections), catalog_from(data_dir / "package-catalog.json"))
+        install_plan = build_install_plan(build_meo_install_config(selections), catalog_from(data_dir / "package-catalog.json"), application_catalog=application_catalog_from(data_dir / "application-catalog.json"))
     except PlanError as error:
         raise SystemExit(f"Meo package plan is invalid: {error}") from error
     install_plan_path = output_dir / "install-plan.json"
