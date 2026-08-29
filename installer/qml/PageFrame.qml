@@ -99,7 +99,7 @@ Item {
             }
             MeoText {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "MeoArch Installer"
+                text: qsTr("MeoArch Installer")
                 typeRole: "title"
                 typeSize: "small"
                 emphasized: true
@@ -120,15 +120,15 @@ Item {
             icon.name: "help"
             size: "l"
             type: "tonal"
-            Accessible.name: "Help"
-            onClicked: frame.statusMessage = "Documentation is available in the installer guide."
+            Accessible.name: qsTr("Help")
+            onClicked: frame.statusMessage = qsTr("Documentation is available in the installer guide.")
         }
         MeoIconButton {
             id: languageButton
             icon.name: "language"
             size: "l"
             type: "tonal"
-            Accessible.name: "Installer language"
+            Accessible.name: qsTr("Installer language")
             onClicked: languagePopup.openFrom(languageButton)
         }
         MeoIconButton {
@@ -136,7 +136,7 @@ Item {
             icon.name: "power_settings_new"
             size: "l"
             type: "tonal"
-            Accessible.name: "Power"
+            Accessible.name: qsTr("Power")
             onClicked: powerPopup.openFrom(powerButton)
         }
     }
@@ -202,8 +202,8 @@ Item {
         contentItem: Column {
             Repeater {
                 model: [
-                    { label: "Restart", icon: "restart_alt", action: "restart" },
-                    { label: "Shut down", icon: "power_settings_new", action: "shutdown" }
+                    { label: qsTr("Restart"), icon: "restart_alt", action: "restart" },
+                    { label: qsTr("Shut down"), icon: "power_settings_new", action: "shutdown" }
                 ]
                 delegate: MeoListItem {
                     required property var modelData
@@ -283,7 +283,7 @@ Item {
                 anchors.left: parent.left
                 anchors.leftMargin: frame.dp(24)
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Back"
+                text: qsTr("Back")
                 type: "text"
                 size: "m"
                 onClicked: frame.previousRequested()
@@ -294,7 +294,7 @@ Item {
 
                 MeoText {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "Step %1 of %2".arg(frame.pageIndex + 1).arg(frame.pageCount)
+                    text: qsTr("Step %1 of %2").arg(frame.pageIndex + 1).arg(frame.pageCount)
                     typeRole: "label"
                     typeSize: "small"
                     color: MeoTheme.contentOnSurfaceVariant
@@ -319,7 +319,7 @@ Item {
                 type: "filled"
                 size: "m"
                 isEmphasized: true
-                Accessible.description: "Continue to the next installation step"
+                Accessible.description: qsTr("Continue to the next installation step")
                 onClicked: frame.firePrimary()
             }
         }

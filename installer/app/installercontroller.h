@@ -14,6 +14,7 @@ class InstallerController final : public QObject
     Q_PROPERTY(QVariantList countries READ countries CONSTANT)
     Q_PROPERTY(QVariantList timeZones READ timeZones CONSTANT)
     Q_PROPERTY(QVariantList keyboardLayouts READ keyboardLayouts CONSTANT)
+    Q_PROPERTY(QVariantList softwareCatalog READ softwareCatalog CONSTANT)
     Q_PROPERTY(QVariantList disks READ disks NOTIFY disksChanged)
     Q_PROPERTY(QString uiLanguage READ uiLanguage NOTIFY selectionsChanged)
     Q_PROPERTY(QString systemLocale READ systemLocale NOTIFY selectionsChanged)
@@ -32,6 +33,7 @@ class InstallerController final : public QObject
     Q_PROPERTY(QString installationMessage READ installationMessage NOTIFY installationChanged)
     Q_PROPERTY(QString preflightState READ preflightState NOTIFY preflightChanged)
     Q_PROPERTY(QString preflightMessage READ preflightMessage NOTIFY preflightChanged)
+    Q_PROPERTY(QVariantMap installPlan READ installPlan NOTIFY preflightChanged)
     Q_PROPERTY(bool readyToInstall READ readyToInstall NOTIFY preflightChanged)
     Q_PROPERTY(bool productionMode READ productionMode CONSTANT)
     Q_PROPERTY(bool previewMode READ previewMode CONSTANT)
@@ -47,6 +49,7 @@ public:
     QVariantList countries() const { return m_countries; }
     QVariantList timeZones() const { return m_timeZones; }
     QVariantList keyboardLayouts() const { return m_keyboardLayouts; }
+    QVariantList softwareCatalog() const { return m_softwareCatalog; }
     QVariantList disks() const { return m_disks; }
     QString uiLanguage() const;
     QString systemLocale() const;
@@ -65,6 +68,7 @@ public:
     QString installationMessage() const { return m_installationMessage; }
     QString preflightState() const { return m_preflightState; }
     QString preflightMessage() const { return m_preflightMessage; }
+    QVariantMap installPlan() const { return m_installPlan; }
     bool readyToInstall() const { return m_preflightState == QStringLiteral("ready"); }
     QString errorMessage() const { return m_errorMessage; }
     bool realInstallEnabled() const { return m_realInstallEnabled; }
@@ -110,12 +114,14 @@ private:
     void buildCountries();
     void buildTimeZones();
     void buildKeyboardLayouts();
+    void loadSoftwareCatalog();
     void detectNetwork();
     void detectHardware();
     void parseDisks(const QByteArray &payload);
     void persistSelections();
     void startArchinstallPreflight();
     void setPreflight(const QString &state, const QString &message);
+    bool loadGeneratedInstallPlan(const QString &directory);
     void updateInstallation(const QString &state, int progress, const QString &stage, const QString &message);
     void setError(const QString &message);
     QString sourceRoot() const;
@@ -127,6 +133,7 @@ private:
     QVariantList m_countries;
     QVariantList m_timeZones;
     QVariantList m_keyboardLayouts;
+    QVariantList m_softwareCatalog;
     QVariantList m_disks;
     QVariantMap m_selections;
     QString m_networkState = QStringLiteral("offline");
@@ -140,6 +147,7 @@ private:
     QString m_installationMessage;
     QString m_preflightState = QStringLiteral("idle");
     QString m_preflightMessage;
+    QVariantMap m_installPlan;
     bool m_productionMode = false;
     bool m_realInstallEnabled = false;
     bool m_systemActionsEnabled = false;

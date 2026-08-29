@@ -250,7 +250,7 @@ Choose where to install the system
 默认选项：
 
 - `Erase disk and install`
-- `Manual partitioning / Advanced`
+- `自定义全盘布局 / 高级`
 
 默认不要显示：
 
@@ -378,7 +378,7 @@ You can now restart your computer.
 | Network | 条件显示 | 已联网时弱化 |
 | Privacy settings | 必须 | 符合项目重点 |
 | Disk selection | 必须 | 高风险操作 |
-| Manual partitioning | 仅 Advanced | 普通用户不需要 |
+| 自定义全盘布局 | 仅高级设置 | 不离开 Cage 即可调整根分区与独立 home 分区 |
 | User account | 必须 | 安装后登录需要 |
 | Bootloader | 默认隐藏 | 太技术化 |
 | Filesystem choice | 默认隐藏 | 太技术化 |

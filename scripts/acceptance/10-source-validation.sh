@@ -25,6 +25,10 @@ esac
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 projects_root="$(cd "${repo_root}/.." && pwd)"
+meoui_source="${MEOUI_SOURCE_DIR:-${projects_root}/meo-ui}"
+if [ ! -f "${meoui_source}/CMakeLists.txt" ] && [ -f "${projects_root}/MeoUI/CMakeLists.txt" ]; then
+  meoui_source="${projects_root}/MeoUI"
+fi
 default_outputs_root="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace"
 outputs_root="${MEOARCH_OUTPUT_ROOT:-${default_outputs_root}}"
 if [ -n "${MEOARCH_RUN_DIR:-}" ]; then
@@ -37,6 +41,14 @@ evidence_dir="${run_dir}/source"
 mkdir -p "${evidence_dir}"
 exec > >(tee "${evidence_dir}/source-validation.log") 2>&1
 cd "${repo_root}"
+python_command=""
+for candidate in python3 python; do
+  if command -v "${candidate}" >/dev/null 2>&1; then
+    python_command="${candidate}"
+    break
+  fi
+done
+[ -n "${python_command}" ] || { echo "Missing Python 3 interpreter." >&2; exit 127; }
 
 required=(
   meoarch-os/profiledef.sh
@@ -52,6 +64,8 @@ required=(
   repair/actions/rebuild-initramfs.sh
   installer/app/repaircontroller.cpp
   installer/data/account.env.example
+  installer/data/application-catalog.json
+  installer/data/package-catalog.json
   installer/translations/meoarch_zh_CN.ts
   installer/backend/generate-config.py
   scripts/sync-installer-to-airootfs.sh
@@ -66,7 +80,7 @@ for path in \
   "${projects_root}/meo-kde/native/decoration/metadata.json" \
   "${projects_root}/meo-kde/native/application-style/src/meostyle.cpp" \
   "${projects_root}/meo-kde/native/dynamic-color/dynamiccolors.cpp" \
-  "${projects_root}/meo-ui/CMakeLists.txt"; do
+  "${meoui_source}/CMakeLists.txt"; do
   [ -f "${path}" ] || { echo "Missing external source: ${path}" >&2; exit 1; }
 done
 
@@ -74,9 +88,9 @@ if find meoarch-os/airootfs -path '*/opt/meo-ui*' -print -quit | grep -q .; then
   echo "Obsolete /opt/meo-ui payload exists." >&2
   exit 1
 fi
-grep -q 'qt_add_qml_module(meoui_module' "${projects_root}/meo-ui/CMakeLists.txt"
-grep -A5 'qt_add_qml_module(meoui_module' "${projects_root}/meo-ui/CMakeLists.txt" | grep -q 'SHARED'
-grep -q 'SOVERSION 0' "${projects_root}/meo-ui/CMakeLists.txt"
+grep -q 'qt_add_qml_module(meoui_module' "${meoui_source}/CMakeLists.txt"
+grep -A5 'qt_add_qml_module(meoui_module' "${meoui_source}/CMakeLists.txt" | grep -q 'SHARED'
+grep -q 'SOVERSION 0' "${meoui_source}/CMakeLists.txt"
 grep -q '"schemaVersion": 1' installer/data/default_selections.json
 grep -q 'import Meo.System 1.0' installer/qml/pages/NetworkPage.qml
 ! rg -q 'readonly property var wifiNetworks' installer/qml/pages/NetworkPage.qml
@@ -109,10 +123,10 @@ if [ -n "${duplicates}" ]; then
   exit 1
 fi
 
-python -m unittest discover -s installer/tests -v
+"${python_command}" -m unittest discover -s installer/tests -v
 find scripts installer repair -type f -name '*.sh' -print0 |
   xargs -0 -n1 bash -n
-python - <<'PY'
+"${python_command}" - <<'PY'
 import json
 from pathlib import Path
 for root in ("installer", "meoarch-os"):

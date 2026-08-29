@@ -29,8 +29,8 @@ PageFrame {
 
         PageHeading {
             width: parent.width
-            title: "User Account"
-            subtitle: "Create the account you will use to sign in to MeoArch."
+            title: qsTr("User Account")
+            subtitle: qsTr("Create the account you will use to sign in to MeoArch.")
         }
         GridLayout {
             id: form
@@ -90,8 +90,8 @@ PageFrame {
         }
         ToggleRow {
             width: parent.width
-            title: "Automatic login"
-            subtitle: "Skip the sign-in screen after startup"
+            title: qsTr("Automatic login")
+            subtitle: qsTr("Skip the sign-in screen after startup")
             checked: page.controller ? page.controller.selection("user", "automaticLogin", false) : false
             onToggled: checked => page.controller.setSelection("user", "automaticLogin", checked)
         }

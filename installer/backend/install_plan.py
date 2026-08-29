@@ -10,13 +10,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
 SUPPORTED_ARCHITECTURE = "x86_64"
 PROFILES = {"recommended", "minimal", "custom"}
 CHANNELS = {"stable", "beta"}
-PACKAGE_NAME = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@._+:-")
+PACKAGE_NAME = re.compile(r"^[A-Za-z0-9@._+:-]{1,128}$")
 
 class PlanError(ValueError):
     pass
@@ -34,7 +35,12 @@ class PackagePlan:
     profile: str
     packages: tuple[str, ...]
     required: tuple[str, ...]
-    system_packages: tuple[str, ...]
+
+@dataclass(frozen=True)
+class ApplicationPlan:
+    selected: tuple[str, ...]
+    native_packages: tuple[str, ...]
+    source: str
 
 @dataclass(frozen=True)
 class InstallPlan:
@@ -42,6 +48,7 @@ class InstallPlan:
     architecture: str
     repository: RepositoryPlan
     package: PackagePlan
+    applications: ApplicationPlan
 
 def load_json(path: str | Path) -> dict[str, Any]:
     with Path(path).open(encoding="utf-8") as handle:
@@ -71,32 +78,50 @@ def catalog_from(path: str | Path) -> dict[str, Any]:
         raise PlanError("package catalog does not support x86_64")
     return catalog
 
-def application_catalog_from(path: str | Path) -> dict[str, Any]:
+def application_catalog_from(path: str | Path, generation: str | None = None) -> dict[str, Any]:
     catalog = load_json(path)
+    if catalog.get("schemaVersion") != 1 or catalog.get("architecture") != SUPPORTED_ARCHITECTURE:
+        raise PlanError("unsupported application catalog")
+    if generation is not None and catalog.get("generation") != generation:
+        raise PlanError("application and package catalogs have different generations")
     applications = catalog.get("applications")
-    if catalog.get("schemaVersion") != 1 or not isinstance(applications, dict):
-        raise PlanError("unsupported application catalog schema")
-    for app_id, metadata in applications.items():
-        package = metadata.get("package") if isinstance(metadata, dict) else None
-        if (not isinstance(app_id, str) or not app_id or not isinstance(package, str) or not package
-                or any(char not in PACKAGE_NAME for char in package)):
-            raise PlanError("application catalog contains an invalid official package")
+    if not isinstance(applications, list) or not applications:
+        raise PlanError("application catalog is empty")
+    seen: set[str] = set()
+    for application in applications:
+        if not isinstance(application, dict):
+            raise PlanError("application catalog entry must be an object")
+        app_id = application.get("id")
+        installer = application.get("installer")
+        if not isinstance(app_id, str) or not app_id or app_id in seen:
+            raise PlanError("application catalog contains an invalid or duplicate id")
+        seen.add(app_id)
+        if not isinstance(installer, dict) or installer.get("source") != "arch-official":
+            raise PlanError(f"application {app_id} has an unsupported installer source")
+        package = installer.get("package")
+        if not isinstance(package, str) or not PACKAGE_NAME.fullmatch(package):
+            raise PlanError(f"application {app_id} has an invalid package name")
+        profiles = installer.get("profiles", [])
+        if not isinstance(profiles, list) or any(profile not in PROFILES for profile in profiles):
+            raise PlanError(f"application {app_id} has invalid profile defaults")
+        if installer.get("tier") == "third-party" and profiles:
+            raise PlanError(f"third-party application {app_id} must be opt-in")
     return catalog
 
-def _system_packages(config: dict[str, Any], application_catalog: dict[str, Any] | None, profile: str) -> tuple[str, ...]:
-    if application_catalog is None:
-        if config.get("applications"):
-            raise PlanError("application selections require the official application catalog")
-        return ()
-    applications = application_catalog["applications"]
-    selected = set(str(value) for value in config.get("applications", []))
-    if profile == "recommended":
-        selected.update(app_id for app_id, metadata in applications.items()
-                        if metadata.get("defaultProfile") == "recommended")
-    unknown = selected - set(applications)
+def resolve_applications(config: dict[str, Any], catalog: dict[str, Any], profile: str) -> ApplicationPlan:
+    by_id = {application["id"]: application for application in catalog["applications"]}
+    requested = config.get("applications", [])
+    if not isinstance(requested, list) or any(not isinstance(app_id, str) for app_id in requested):
+        raise PlanError("applications must be a list of catalog ids")
+    unknown = sorted(set(requested) - set(by_id))
     if unknown:
-        raise PlanError("unknown or non-official installer application selection")
-    return tuple(sorted({applications[app_id]["package"] for app_id in selected}))
+        raise PlanError(f"unknown application selection: {unknown[0]}")
+    selected = set(requested)
+    for app_id, application in by_id.items():
+        if profile in application["installer"].get("profiles", []):
+            selected.add(app_id)
+    native_packages = {by_id[app_id]["installer"]["package"] for app_id in selected}
+    return ApplicationPlan(tuple(sorted(selected)), tuple(sorted(native_packages)), "arch-official")
 
 def _closure(selected: set[str], catalog: dict[str, Any]) -> set[str]:
     packages = catalog.get("packages", {})
@@ -111,12 +136,8 @@ def _closure(selected: set[str], catalog: dict[str, Any]) -> set[str]:
                 pending.append(dependency)
     return selected
 
-def build_install_plan(
-    config: dict[str, Any],
-    catalog: dict[str, Any],
-    architecture: str = SUPPORTED_ARCHITECTURE,
-    application_catalog: dict[str, Any] | None = None,
-) -> InstallPlan:
+def build_install_plan(config: dict[str, Any], catalog: dict[str, Any], architecture: str = SUPPORTED_ARCHITECTURE,
+                       application_catalog: dict[str, Any] | None = None) -> InstallPlan:
     if architecture != SUPPORTED_ARCHITECTURE:
         raise PlanError(f"MeoArch package installation is unsupported on {architecture}")
     if config.get("schemaVersion", 2) != 2:
@@ -142,13 +163,10 @@ def build_install_plan(
     repos = ("meo",) if channel == "stable" else ("meo-beta", "meo")
     channel_package = catalog["channelPackages"][channel]
     repository = RepositoryPlan(channel, mirror, repos, tuple(catalog["bootstrapPackages"]), channel_package)
-    package = PackagePlan(
-        profile,
-        tuple(sorted(selected | {"meo-release"})),
-        tuple(sorted(required)),
-        _system_packages(config, application_catalog, profile),
-    )
-    return InstallPlan(2, architecture, repository, package)
+    package = PackagePlan(profile, tuple(sorted(selected | {"meo-release"})), tuple(sorted(required)))
+    applications = (resolve_applications(config, application_catalog, profile)
+                    if application_catalog is not None else ApplicationPlan((), (), "arch-official"))
+    return InstallPlan(2, architecture, repository, package, applications)
 
 def plan_as_dict(plan: InstallPlan) -> dict[str, Any]:
     return {
@@ -159,7 +177,10 @@ def plan_as_dict(plan: InstallPlan) -> dict[str, Any]:
                        "bootstrapPackages": list(plan.repository.bootstrap_packages),
                        "channelPackage": plan.repository.channel_package},
         "package": {"profile": plan.package.profile, "packages": list(plan.package.packages),
-                    "required": list(plan.package.required), "systemPackages": list(plan.package.system_packages)}
+                    "required": list(plan.package.required)},
+        "applications": {"selected": list(plan.applications.selected),
+                         "nativePackages": list(plan.applications.native_packages),
+                         "source": plan.applications.source}
     }
 
 def pacman_channel_fragment(plan: InstallPlan) -> str:

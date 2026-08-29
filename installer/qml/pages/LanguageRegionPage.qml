@@ -4,7 +4,7 @@ import "../components"
 
 PageFrame {
     id: page
-    pageTitle: "Language & Region"
+    pageTitle: qsTr("Language & Region")
 
     Column {
         width: parent.width
@@ -13,7 +13,7 @@ PageFrame {
         PageHeading {
             width: parent.width
             title: page.pageTitle
-            subtitle: "These settings control the language, formats, and time zone used by KDE after installation."
+            subtitle: qsTr("These settings control the language, formats, and time zone used by KDE after installation.")
         }
         Column {
             width: parent.width
@@ -22,21 +22,21 @@ PageFrame {
             SelectionCard {
                 width: parent.width
                 iconText: "translate"
-                title: "System Language"
+                title: qsTr("System Language")
                 value: page.controller ? page.controller.systemLocale : ""
                 onClicked: localeDialog.openFrom(this)
             }
             SelectionCard {
                 width: parent.width
                 iconText: "public"
-                title: "Country or Region"
+                title: qsTr("Country or Region")
                 value: page.controller ? page.controller.formatCountry + " · " + page.controller.formatLocale : ""
                 onClicked: countryDialog.openFrom(this)
             }
             SelectionCard {
                 width: parent.width
                 iconText: "schedule"
-                title: "Time Zone"
+                title: qsTr("Time Zone")
                 value: page.controller ? page.controller.timeZone : ""
                 onClicked: zoneDialog.openFrom(this)
             }
@@ -45,7 +45,7 @@ PageFrame {
 
     SelectorDialog {
         id: localeDialog
-        title: "System languages"
+        title: qsTr("System languages")
         sourceModel: page.controller ? page.controller.systemLocales : []
         primaryKey: "id"
         labelKey: "nativeName"
@@ -55,7 +55,7 @@ PageFrame {
     }
     SelectorDialog {
         id: countryDialog
-        title: "Countries and regions"
+        title: qsTr("Countries and regions")
         sourceModel: page.controller ? page.controller.countries : []
         primaryKey: "alpha2"
         labelKey: "name"
@@ -65,7 +65,7 @@ PageFrame {
     }
     SelectorDialog {
         id: zoneDialog
-        title: "Time zones"
+        title: qsTr("Time zones")
         sourceModel: page.controller ? page.controller.timeZones : []
         primaryKey: "id"
         labelKey: "label"

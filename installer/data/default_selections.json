@@ -19,8 +19,9 @@
     "profile": "recommended",
     "channel": "stable",
     "mirror": "automatic",
-    "components": []
+    "components": [],
+    "applications": []
   },
-  "disk": { "mode": "erase", "filesystem": "btrfs", "swap": "zram" },
+  "disk": { "mode": "erase", "filesystem": "btrfs", "swap": "zram", "separateHome": true, "rootSizeGiB": 32 },
   "user": { "hostname": "meoarch", "username": "meo", "automaticLogin": false }
 }
