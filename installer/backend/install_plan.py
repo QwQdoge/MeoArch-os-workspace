@@ -16,6 +16,7 @@ from typing import Any
 SUPPORTED_ARCHITECTURE = "x86_64"
 PROFILES = {"recommended", "minimal", "custom"}
 CHANNELS = {"stable", "beta"}
+PACKAGE_NAME = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@._+:-")
 
 class PlanError(ValueError):
     pass
@@ -33,6 +34,7 @@ class PackagePlan:
     profile: str
     packages: tuple[str, ...]
     required: tuple[str, ...]
+    system_packages: tuple[str, ...]
 
 @dataclass(frozen=True)
 class InstallPlan:
@@ -69,6 +71,33 @@ def catalog_from(path: str | Path) -> dict[str, Any]:
         raise PlanError("package catalog does not support x86_64")
     return catalog
 
+def application_catalog_from(path: str | Path) -> dict[str, Any]:
+    catalog = load_json(path)
+    applications = catalog.get("applications")
+    if catalog.get("schemaVersion") != 1 or not isinstance(applications, dict):
+        raise PlanError("unsupported application catalog schema")
+    for app_id, metadata in applications.items():
+        package = metadata.get("package") if isinstance(metadata, dict) else None
+        if (not isinstance(app_id, str) or not app_id or not isinstance(package, str) or not package
+                or any(char not in PACKAGE_NAME for char in package)):
+            raise PlanError("application catalog contains an invalid official package")
+    return catalog
+
+def _system_packages(config: dict[str, Any], application_catalog: dict[str, Any] | None, profile: str) -> tuple[str, ...]:
+    if application_catalog is None:
+        if config.get("applications"):
+            raise PlanError("application selections require the official application catalog")
+        return ()
+    applications = application_catalog["applications"]
+    selected = set(str(value) for value in config.get("applications", []))
+    if profile == "recommended":
+        selected.update(app_id for app_id, metadata in applications.items()
+                        if metadata.get("defaultProfile") == "recommended")
+    unknown = selected - set(applications)
+    if unknown:
+        raise PlanError("unknown or non-official installer application selection")
+    return tuple(sorted({applications[app_id]["package"] for app_id in selected}))
+
 def _closure(selected: set[str], catalog: dict[str, Any]) -> set[str]:
     packages = catalog.get("packages", {})
     pending = list(selected)
@@ -82,7 +111,12 @@ def _closure(selected: set[str], catalog: dict[str, Any]) -> set[str]:
                 pending.append(dependency)
     return selected
 
-def build_install_plan(config: dict[str, Any], catalog: dict[str, Any], architecture: str = SUPPORTED_ARCHITECTURE) -> InstallPlan:
+def build_install_plan(
+    config: dict[str, Any],
+    catalog: dict[str, Any],
+    architecture: str = SUPPORTED_ARCHITECTURE,
+    application_catalog: dict[str, Any] | None = None,
+) -> InstallPlan:
     if architecture != SUPPORTED_ARCHITECTURE:
         raise PlanError(f"MeoArch package installation is unsupported on {architecture}")
     if config.get("schemaVersion", 2) != 2:
@@ -108,7 +142,12 @@ def build_install_plan(config: dict[str, Any], catalog: dict[str, Any], architec
     repos = ("meo",) if channel == "stable" else ("meo-beta", "meo")
     channel_package = catalog["channelPackages"][channel]
     repository = RepositoryPlan(channel, mirror, repos, tuple(catalog["bootstrapPackages"]), channel_package)
-    package = PackagePlan(profile, tuple(sorted(selected | {"meo-release"})), tuple(sorted(required)))
+    package = PackagePlan(
+        profile,
+        tuple(sorted(selected | {"meo-release"})),
+        tuple(sorted(required)),
+        _system_packages(config, application_catalog, profile),
+    )
     return InstallPlan(2, architecture, repository, package)
 
 def plan_as_dict(plan: InstallPlan) -> dict[str, Any]:
@@ -120,7 +159,7 @@ def plan_as_dict(plan: InstallPlan) -> dict[str, Any]:
                        "bootstrapPackages": list(plan.repository.bootstrap_packages),
                        "channelPackage": plan.repository.channel_package},
         "package": {"profile": plan.package.profile, "packages": list(plan.package.packages),
-                    "required": list(plan.package.required)}
+                    "required": list(plan.package.required), "systemPackages": list(plan.package.system_packages)}
     }
 
 def pacman_channel_fragment(plan: InstallPlan) -> str:

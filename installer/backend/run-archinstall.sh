@@ -81,7 +81,7 @@ progress "configuring_meo_repository" 70 "Configuring the selected signed Meo re
 mapfile -t meo_packages < <(python3 - "${install_plan}" <<'PY'
 import json,sys
 payload=json.load(open(sys.argv[1], encoding='utf-8'))
-for package in payload['package']['packages']:
+for package in payload['package']['packages'] + payload['package'].get('systemPackages', []):
     print(package)
 PY
 )
