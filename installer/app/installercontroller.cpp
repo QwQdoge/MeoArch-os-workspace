@@ -69,10 +69,13 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
         {QStringLiteral("software"), QVariantMap{{QStringLiteral("profile"), QStringLiteral("recommended")},
                                                    {QStringLiteral("channel"), QStringLiteral("stable")},
                                                    {QStringLiteral("mirror"), QStringLiteral("automatic")},
-                                                   {QStringLiteral("components"), QVariantList{}}}},
+                                                   {QStringLiteral("components"), QVariantList{}},
+                                                   {QStringLiteral("applications"), QVariantList{}}}},
         {QStringLiteral("disk"), QVariantMap{{QStringLiteral("mode"), QStringLiteral("erase")},
                                              {QStringLiteral("filesystem"), QStringLiteral("btrfs")},
-                                             {QStringLiteral("swap"), QStringLiteral("zram")}}},
+                                             {QStringLiteral("swap"), QStringLiteral("zram")},
+                                             {QStringLiteral("separateHome"), true},
+                                             {QStringLiteral("rootSizeGiB"), 32}}},
         {QStringLiteral("user"), QVariantMap{{QStringLiteral("automaticLogin"), false}}}
     };
     buildUiLanguages();
@@ -80,6 +83,7 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
     buildCountries();
     buildTimeZones();
     buildKeyboardLayouts();
+    loadSoftwareCatalog();
     detectNetwork();
     refreshDisks();
     detectHardware();
@@ -93,8 +97,17 @@ QVariantMap InstallerController::section(const QString &name) const
 void InstallerController::writeSelection(const QString &sectionName, const QString &key, const QVariant &value)
 {
     QVariantMap data = section(sectionName);
+    if (data.value(key) == value)
+        return;
     data.insert(key, value);
     m_selections.insert(sectionName, data);
+    if (m_preflightState != QStringLiteral("idle") || !m_installPlan.isEmpty()) {
+        m_preflightState = QStringLiteral("idle");
+        m_preflightMessage = tr("Choices changed. Prepare the installation plan again.");
+        m_installPlan.clear();
+        m_summaryConfirmed = false;
+        emit preflightChanged();
+    }
     emit selectionsChanged();
 }
 
@@ -152,6 +165,32 @@ void InstallerController::setSelectedDisk(const QString &id)
 }
 void InstallerController::setSelection(const QString &s, const QString &key, const QVariant &value) { writeSelection(s, key, value); }
 QVariant InstallerController::selection(const QString &s, const QString &key, const QVariant &fallback) const { return section(s).value(key, fallback); }
+
+void InstallerController::loadSoftwareCatalog()
+{
+    QFile file(QDir(sourceRoot()).absoluteFilePath(QStringLiteral("data/application-catalog.json")));
+    if (!file.open(QIODevice::ReadOnly))
+        return;
+    QJsonParseError parseError;
+    const QJsonObject root = QJsonDocument::fromJson(file.readAll(), &parseError).object();
+    if (parseError.error != QJsonParseError::NoError || root.value(QStringLiteral("schemaVersion")).toInt() != 1)
+        return;
+    for (const QJsonValue &value : root.value(QStringLiteral("applications")).toArray()) {
+        const QJsonObject application = value.toObject();
+        const QJsonObject installer = application.value(QStringLiteral("installer")).toObject();
+        if (installer.value(QStringLiteral("source")).toString() != QStringLiteral("arch-official"))
+            continue;
+        m_softwareCatalog.append(QVariantMap{
+            {QStringLiteral("id"), application.value(QStringLiteral("id")).toString()},
+            {QStringLiteral("name"), application.value(QStringLiteral("name")).toString()},
+            {QStringLiteral("summary"), application.value(QStringLiteral("summary")).toString()},
+            {QStringLiteral("category"), application.value(QStringLiteral("category")).toString()},
+            {QStringLiteral("package"), installer.value(QStringLiteral("package")).toString()},
+            {QStringLiteral("tier"), installer.value(QStringLiteral("tier")).toString()},
+            {QStringLiteral("profiles"), installer.value(QStringLiteral("profiles")).toArray().toVariantList()},
+        });
+    }
+}
 
 void InstallerController::buildUiLanguages()
 {
@@ -502,8 +541,39 @@ void InstallerController::setPreflight(const QString &state, const QString &mess
     emit preflightChanged();
 }
 
+bool InstallerController::loadGeneratedInstallPlan(const QString &directory)
+{
+    QFile file(QDir(directory).absoluteFilePath(QStringLiteral("generated/install-plan.json")));
+    if (!file.open(QIODevice::ReadOnly)) {
+        setError(tr("The generated Meo package plan is missing."));
+        return false;
+    }
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &parseError);
+    if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
+        setError(tr("The generated Meo package plan is invalid."));
+        return false;
+    }
+    const QVariantMap plan = document.object().toVariantMap();
+    const QVariantMap repository = plan.value(QStringLiteral("repository")).toMap();
+    const QVariantMap package = plan.value(QStringLiteral("package")).toMap();
+    const QVariantMap applications = plan.value(QStringLiteral("applications")).toMap();
+    if (plan.value(QStringLiteral("schemaVersion")).toInt() != 2
+        || repository.value(QStringLiteral("repositories")).toList().isEmpty()
+        || package.value(QStringLiteral("packages")).toList().isEmpty()
+        || applications.value(QStringLiteral("source")).toString() != QStringLiteral("arch-official")) {
+        setError(tr("The generated Meo package plan is incomplete."));
+        return false;
+    }
+    m_installPlan = plan;
+    emit preflightChanged();
+    return true;
+}
+
 void InstallerController::prepareInstallation()
 {
+    m_installPlan.clear();
+    m_summaryConfirmed = false;
     setPreflight(QStringLiteral("checking"), tr("Generating and validating the installation plan…"));
     persistSelections();
     if (!m_errorMessage.isEmpty()) {
@@ -538,12 +608,16 @@ void InstallerController::prepareInstallation()
             return;
         }
         auto *process = new QProcess(this);
-        connect(process, &QProcess::finished, this, [this, process, credentialsPath](int exitCode, QProcess::ExitStatus status) {
+        connect(process, &QProcess::finished, this, [this, process, credentialsPath, directory](int exitCode, QProcess::ExitStatus status) {
             QFile::remove(credentialsPath);
             const QString details = QString::fromUtf8(process->readAllStandardError()).trimmed();
             process->deleteLater();
             if (status != QProcess::NormalExit || exitCode != 0) {
                 setError(details.isEmpty() ? tr("Could not generate the Archinstall installation plan.") : details);
+                setPreflight(QStringLiteral("failed"), m_errorMessage);
+                return;
+            }
+            if (!loadGeneratedInstallPlan(directory)) {
                 setPreflight(QStringLiteral("failed"), m_errorMessage);
                 return;
             }

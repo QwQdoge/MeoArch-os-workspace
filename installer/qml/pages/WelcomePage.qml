@@ -4,7 +4,7 @@ import ".."
 
 PageFrame {
     id: page
-    primaryLabel: "Get Started"
+    primaryLabel: qsTr("Get Started")
     showBackButton: false
 
     Column {
@@ -20,11 +20,11 @@ PageFrame {
             height: page.dp(84)
             source: page.asset("icons/Logo.png")
             fillMode: Image.PreserveAspectFit
-            Accessible.name: "MeoArch OS"
+            Accessible.name: qsTr("MeoArch OS")
         }
         MeoText {
             width: parent.width
-            text: "Welcome to MeoArch OS"
+            text: qsTr("Welcome to MeoArch OS")
             horizontalAlignment: Text.AlignHCenter
             color: MeoTheme.contentOnSurface
             typeRole: "title"
@@ -34,7 +34,7 @@ PageFrame {
         }
         MeoText {
             width: parent.width
-            text: "A guided setup that keeps each important Arch choice clear and reviewable."
+            text: qsTr("A guided setup that keeps each important Arch choice clear and reviewable.")
             horizontalAlignment: Text.AlignHCenter
             color: MeoTheme.contentOnSurfaceVariant
             typeRole: "body"
@@ -55,9 +55,9 @@ PageFrame {
 
                 Repeater {
                     model: [
-                        { icon: "edit_note", title: "Guided choices", text: "Language, storage, account, and software in a clear order." },
-                        { icon: "memory", title: "Hardware-aware", text: "Graphics planning is prepared from real PCI hardware detection." },
-                        { icon: "fact_check", title: "Review before install", text: "No destructive action is enabled until the installation plan is checked." }
+                        { icon: "edit_note", title: qsTr("Guided choices"), text: qsTr("Language, storage, account, and software in a clear order.") },
+                        { icon: "memory", title: qsTr("Hardware-aware"), text: qsTr("Graphics planning is prepared from real PCI hardware detection.") },
+                        { icon: "fact_check", title: qsTr("Review before install"), text: qsTr("No destructive action is enabled until the installation plan is checked.") }
                     ]
 
                     delegate: Column {
@@ -94,7 +94,7 @@ PageFrame {
 
         MeoText {
             width: parent.width
-            text: "You can review every choice before installation begins."
+            text: qsTr("You can review every choice before installation begins.")
             horizontalAlignment: Text.AlignHCenter
             typeRole: "label"
             typeSize: "small"

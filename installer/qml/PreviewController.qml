@@ -25,6 +25,26 @@ QtObject {
     property bool realInstallEnabled: false
     property bool systemActionsEnabled: false
     property var values: ({})
+    property var installPlan: ({
+        schemaVersion: 2,
+        architecture: "x86_64",
+        repository: {channel: "stable", mirror: "automatic", repositories: ["meo"]},
+        package: {profile: "recommended", packages: ["meo-core-meta", "meo-desktop", "meo-icons", "meo-release", "meo-settings", "meoui-qml", "omnistore-bin"]},
+        applications: {selected: ["org.kde.ark", "org.kde.kate", "org.kde.okular", "org.kde.spectacle"], nativePackages: ["ark", "kate", "okular", "spectacle"], source: "arch-official"}
+    })
+    readonly property var softwareCatalog: [
+        {id:"org.kde.ark",name:"Ark",summary:"Open and create compressed archives.",category:"System",package:"ark",tier:"system",profiles:["recommended"]},
+        {id:"org.kde.okular",name:"Okular",summary:"Read PDF documents and ebooks.",category:"System",package:"okular",tier:"system",profiles:["recommended"]},
+        {id:"org.kde.kate",name:"Kate",summary:"Edit text and source code.",category:"System",package:"kate",tier:"system",profiles:["recommended"]},
+        {id:"org.kde.spectacle",name:"Spectacle",summary:"Capture and annotate screenshots.",category:"System",package:"spectacle",tier:"system",profiles:["recommended"]},
+        {id:"org.mozilla.firefox",name:"Firefox",summary:"Fast, private web browsing.",category:"Internet",package:"firefox",tier:"recommended",profiles:[]},
+        {id:"org.libreoffice.LibreOffice",name:"LibreOffice",summary:"A complete, free office suite.",category:"Office",package:"libreoffice-fresh",tier:"recommended",profiles:[]},
+        {id:"org.videolan.VLC",name:"VLC",summary:"Play almost any media format.",category:"Audio & Video",package:"vlc",tier:"recommended",profiles:[]},
+        {id:"org.gimp.GIMP",name:"GIMP",summary:"Create and edit raster images.",category:"Creative",package:"gimp",tier:"third-party",profiles:[]},
+        {id:"org.kde.krita",name:"Krita",summary:"Digital painting and illustration tools.",category:"Creative",package:"krita",tier:"third-party",profiles:[]},
+        {id:"org.kde.kdenlive",name:"Kdenlive",summary:"Non-linear video editing.",category:"Creative",package:"kdenlive",tier:"third-party",profiles:[]},
+        {id:"com.obsproject.Studio",name:"OBS Studio",summary:"Record and stream video.",category:"Creative",package:"obs-studio",tier:"third-party",profiles:[]}
+    ]
     readonly property var uiLanguages: [
         {id:"en",nativeName:"English"},{id:"zh_CN",nativeName:"简体中文"},{id:"zh_TW",nativeName:"繁體中文"},
         {id:"ja",nativeName:"日本語"},{id:"ko",nativeName:"한국어"},{id:"es",nativeName:"Español"},

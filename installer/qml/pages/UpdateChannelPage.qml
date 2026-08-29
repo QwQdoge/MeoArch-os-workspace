@@ -29,6 +29,13 @@ PageFrame {
             onClicked: controller.setSelection("software", "channel", "beta")
         }
         InfoBanner {
+            visible: page.channel === "beta"
+            width: parent.width
+            title: qsTr("Beta is opt-in")
+            message: qsTr("Beta is not recommended for critical systems. Beta packages take priority; Stable remains available as fallback.")
+            tone: "warning"
+        }
+        InfoBanner {
             width: parent.width
             title: qsTr("Official mirror")
             message: qsTr("Automatic uses packages.meoarch.org. Mirrors change download location, not update channel.")

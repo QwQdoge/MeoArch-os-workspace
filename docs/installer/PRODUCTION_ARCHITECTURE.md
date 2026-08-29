@@ -50,11 +50,13 @@ adds preview disks. It records stable `/dev/disk/by-id` identity where
 available, model, serial, WWN, transport, and capacity. Removable, mounted, and
 running-media disks are ineligible for erase install.
 
-Only the tested erase-disk plan is enabled at present: GPT, a 1 GiB EFI system
-partition, and Btrfs or ext4 root. Manual partitioning is explicitly
-unavailable until it can produce and validate the current Archinstall disk
-schema. Disk encryption is likewise unavailable: no passphrase is collected
-until a reviewed Archinstall credential/cleanup path exists.
+Two tested full-disk plans are available. Automatic creates GPT, a 1 GiB EFI
+system partition, and a Btrfs or ext4 root. The integrated custom layout uses
+the same validated Archinstall schema and adds an adjustable root plus a
+separate `/home`, enforcing at least 16 GiB for root and 8 GiB for home. Both
+plans erase the selected disk. Reusing or resizing existing partitions remains
+unavailable. Disk encryption is likewise unavailable: no passphrase is
+collected until a reviewed Archinstall credential/cleanup path exists.
 
 Swap choices are real: Archinstall configures zram; the target customizations
 create an idempotent 4 GiB swap file only when selected; `none` creates neither.
@@ -66,9 +68,12 @@ autologin (`plasma.desktop`), optional `firewalld` package/service, swap-file
 setup, MeoUI, and Meo Desktop defaults. Final validation checks target
 `os-release`, `fstab`, and the MeoUI QML runtime before reporting success.
 
-The Apps page is intentionally unavailable until an OmniStore runtime and a
-tested first-login provisioning consumer are packaged into the target. The
-installer does not write an orphaned provisioning intent.
+Software selection resolves only versioned catalog IDs. Recommended system
+applications become Archinstall packages from the signed Arch repositories;
+third-party recommendations remain opt-in. Meo components and meta packages
+are installed from the selected signed Meo repository. The completed target
+must contain the OmniStore GUI, `omnistore-cli`, and the read-only settings
+export command whenever `omnistore-bin` is selected.
 
 ## Translation and validation
 

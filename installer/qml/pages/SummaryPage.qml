@@ -13,16 +13,33 @@ PageFrame {
     primaryAdvances: false
     primaryEnabled: !(controller && controller.preflightState === "checking")
     property bool riskAccepted: false
+    readonly property var resolvedRepository: controller && controller.installPlan.repository
+                                              ? controller.installPlan.repository : ({})
+    readonly property var resolvedPackage: controller && controller.installPlan.package
+                                           ? controller.installPlan.package : ({})
+    readonly property var resolvedApplications: controller && controller.installPlan.applications
+                                                ? controller.installPlan.applications : ({})
+    function profileLabel(profile) {
+        if (profile === "minimal") return qsTr("Minimal")
+        if (profile === "custom") return qsTr("Custom")
+        return qsTr("Recommended")
+    }
+    function channelLabel(channel) {
+        return channel === "beta" ? qsTr("Beta") : qsTr("Stable")
+    }
+    function joined(values, separator, fallback) {
+        return values && values.length ? Array.from(values).join(separator) : fallback
+    }
     readonly property var summaryRows: [
-        { pageIndex: 1, title: "Language & Region", value: controller ? controller.systemLocale + " · " + controller.formatCountry + " · " + controller.timeZone : "" },
-        { pageIndex: 2, title: "Keyboard", value: controller ? controller.keyboardLayout : "" },
+        { pageIndex: 1, title: qsTr("Language & Region"), value: controller ? controller.systemLocale + " · " + controller.formatCountry + " · " + controller.timeZone : "" },
+        { pageIndex: 2, title: qsTr("Keyboard"), value: controller ? controller.keyboardLayout : "" },
         { pageIndex: 3, title: qsTr("Network"), value: controller ? controller.networkDetail : "" },
         { pageIndex: 4, title: qsTr("Privacy & Security"), value: controller && controller.selection("privacy", "firewall", true) ? qsTr("Firewall enabled") : qsTr("Firewall not selected") },
-        { pageIndex: 5, title: "Disk", value: controller ? controller.selectedDisk : "" },
-        { pageIndex: 6, title: "User Account", value: InstallerSession.username + " · " + InstallerSession.hostname },
-        { pageIndex: 7, title: qsTr("Software"), value: controller ? controller.selection("software", "profile", "recommended") : "" },
-        { pageIndex: 8, title: qsTr("Meo channel"), value: controller ? controller.selection("software", "channel", "stable") : "" },
-        { pageIndex: -1, title: "Graphics Drivers", value: controller ? controller.hardwareSummary : "Automatic PCI detection" }
+        { pageIndex: 5, title: qsTr("Disk"), value: controller ? controller.selectedDisk : "" },
+        { pageIndex: 6, title: qsTr("User Account"), value: InstallerSession.username + " · " + InstallerSession.hostname },
+        { pageIndex: 7, title: qsTr("Software"), value: controller ? page.profileLabel(controller.selection("software", "profile", "recommended")) : "" },
+        { pageIndex: 8, title: qsTr("Meo channel"), value: controller ? page.channelLabel(controller.selection("software", "channel", "stable")) : "" },
+        { pageIndex: -1, title: qsTr("Graphics Drivers"), value: controller ? controller.hardwareSummary : qsTr("Automatic PCI detection") }
     ]
 
     onPrimaryRequested: {
@@ -63,6 +80,51 @@ PageFrame {
             title: page.controller && page.controller.preflightState === "failed" ? qsTr("Installation plan blocked") : qsTr("Installation plan not prepared")
             message: page.controller && page.controller.preflightMessage.length ? page.controller.preflightMessage : qsTr("Select a valid disk and account, then prepare the plan.")
             tone: page.controller && page.controller.preflightState === "failed" ? "error" : "info"
+        }
+        MeoCard {
+            visible: page.resolvedPackage.packages && page.resolvedPackage.packages.length > 0
+            width: parent.width
+            type: "outlined"
+            padding: page.dp(16)
+            implicitHeight: resolvedPlanColumn.implicitHeight + page.dp(32)
+
+            Column {
+                id: resolvedPlanColumn
+                width: parent.width
+                spacing: page.dp(8)
+                MeoText {
+                    width: parent.width
+                    text: qsTr("Validated Meo package plan")
+                    typeRole: "title"
+                    typeSize: "small"
+                    emphasized: true
+                    color: MeoTheme.contentOnSurface
+                }
+                MeoText {
+                    width: parent.width
+                    text: qsTr("Repositories: %1").arg(page.joined(page.resolvedRepository.repositories, " → ", qsTr("Not prepared")))
+                    typeRole: "body"
+                    typeSize: "medium"
+                    color: MeoTheme.contentOnSurfaceVariant
+                    wrapMode: Text.WordWrap
+                }
+                MeoText {
+                    width: parent.width
+                    text: qsTr("System application packages: %1").arg(page.joined(page.resolvedApplications.nativePackages, ", ", qsTr("None")))
+                    typeRole: "body"
+                    typeSize: "medium"
+                    color: MeoTheme.contentOnSurfaceVariant
+                    wrapMode: Text.WordWrap
+                }
+                MeoText {
+                    width: parent.width
+                    text: qsTr("Meo packages: %1").arg(page.joined(page.resolvedPackage.packages, ", ", qsTr("Not prepared")))
+                    typeRole: "body"
+                    typeSize: "medium"
+                    color: MeoTheme.contentOnSurfaceVariant
+                    wrapMode: Text.WordWrap
+                }
+            }
         }
         MeoCard {
             width: parent.width
@@ -131,17 +193,21 @@ PageFrame {
 
         contentItem: Column {
             spacing: page.dp(18)
-            MeoText { text: "Installation details"; typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
+            MeoText { text: qsTr("Installation details"); typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
             InfoBanner { width: parent.width; title: qsTr("Secrets excluded"); message: qsTr("Passwords, Wi-Fi secrets, and disk passphrases are excluded from this view.") }
             MeoText {
                 width: parent.width
-                text: qsTr("Bootloader\nGRUB\n\nKernel\nlinux\n\nDesktop\nMeoArch KDE Plasma + SDDM\n\nAudio and network\nPipeWire · NetworkManager\n\nGraphics drivers\n") + (page.controller ? page.controller.hardwareSummary : qsTr("Detecting hardware…")) + "\n\n" + qsTr("Disk plan\n") + (page.controller ? page.controller.selectedDisk : qsTr("Not selected"))
+                text: qsTr("Bootloader\nGRUB\n\nKernel\nlinux\n\nDesktop\nMeoArch KDE Plasma + SDDM\n\nAudio and network\nPipeWire · NetworkManager\n\nGraphics drivers\n") + (page.controller ? page.controller.hardwareSummary : qsTr("Detecting hardware…"))
+                      + "\n\n" + qsTr("Disk plan\n") + (page.controller ? page.controller.selectedDisk : qsTr("Not selected"))
+                      + "\n\n" + qsTr("Meo repositories\n") + page.joined(page.resolvedRepository.repositories, " → ", qsTr("Prepare the installation plan to resolve repositories."))
+                      + "\n\n" + qsTr("Meo packages\n") + page.joined(page.resolvedPackage.packages, "\n", qsTr("Prepare the installation plan to resolve packages."))
+                      + "\n\n" + qsTr("System application packages\n") + page.joined(page.resolvedApplications.nativePackages, "\n", qsTr("None"))
                 typeRole: "body"
                 typeSize: "medium"
                 lineHeight: 1.35
                 color: MeoTheme.contentOnSurface
             }
-            MeoButton { anchors.right: parent.right; text: "Done"; type: "filled"; onClicked: detailsSheet.close() }
+            MeoButton { anchors.right: parent.right; text: qsTr("Done"); type: "filled"; onClicked: detailsSheet.close() }
         }
     }
 

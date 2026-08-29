@@ -7,7 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
-from install_plan import PlanError, build_install_plan, catalog_from, load_config, plan_as_dict
+from install_plan import (PlanError, application_catalog_from, build_install_plan,
+                          catalog_from, load_config, plan_as_dict)
 
 def choose(prompt, values, default):
     answer = input(f"{prompt} ({'/'.join(values)}) [{default}]: ").strip() or default
@@ -35,8 +36,11 @@ def main():
             for name in ("meo-settings", "omnistore-bin"):
                 if input(f"Install {name}? [y/N]: ").strip().lower() in {"y", "yes"}:
                     components.append(name)
-        config = {"schemaVersion": 2, "channel": channel, "mirror": "automatic", "profile": profile, "components": components}
-    plan = build_install_plan(config, catalog_from(ROOT / "data/package-catalog.json"))
+        config = {"schemaVersion": 2, "channel": channel, "mirror": "automatic", "profile": profile,
+                  "components": components, "applications": []}
+    package_catalog = catalog_from(ROOT / "data/package-catalog.json")
+    app_catalog = application_catalog_from(ROOT / "data/application-catalog.json", package_catalog["generation"])
+    plan = build_install_plan(config, package_catalog, application_catalog=app_catalog)
     print(json.dumps(plan_as_dict(plan), indent=2, ensure_ascii=False))
     return 0
 
