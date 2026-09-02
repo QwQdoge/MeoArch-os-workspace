@@ -72,8 +72,9 @@ Software selection resolves only versioned catalog IDs. Recommended system
 applications become Archinstall packages from the signed Arch repositories;
 third-party recommendations remain opt-in. Meo components and meta packages
 are installed from the selected signed Meo repository. The completed target
-must contain the OmniStore GUI, `omnistore-cli`, and the read-only settings
-export command whenever `omnistore-bin` is selected.
+must contain the OmniStore GUI, `omnistore-cli`, the read-only settings export
+command, the `meo-update` orchestrator, its narrow repository helper, and its
+package-owned systemd user timer whenever `omnistore-bin` is selected.
 
 ## Translation and validation
 

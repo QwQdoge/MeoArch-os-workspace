@@ -118,9 +118,18 @@ for path in \
   [ -e "${path}" ] || { echo "Final validation is missing ${path}." | tee -a "${log_file}" >&2; exit 8; }
 done
 if printf '%s\n' "${meo_packages[@]}" | grep -qx 'omnistore-bin'; then
-  for command_path in usr/bin/omnistore usr/bin/omnistore-cli usr/bin/omnistore-apps-export; do
+  for command_path in usr/bin/omnistore usr/bin/omnistore-cli usr/bin/omnistore-apps-export usr/bin/meo-update; do
     [ -x "${target_root}/${command_path}" ] || {
       echo "OmniStore integration is missing ${command_path}." | tee -a "${log_file}" >&2
+      exit 12
+    }
+  done
+  for integration_path in \
+    usr/lib/omnistore/meo-repository-helper.py \
+    usr/lib/systemd/user/omnistore-update.service \
+    usr/lib/systemd/user/omnistore-update.timer; do
+    [ -e "${target_root}/${integration_path}" ] || {
+      echo "Unified update integration is missing ${integration_path}." | tee -a "${log_file}" >&2
       exit 12
     }
   done
