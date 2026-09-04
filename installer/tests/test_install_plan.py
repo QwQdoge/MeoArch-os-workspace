@@ -45,6 +45,12 @@ class InstallPlanTests(unittest.TestCase):
         self.assertIn('actual != expected', script)
         self.assertIn('pacman-conf --repo-list', script)
 
+    def test_repository_preflight_covers_bootstrap_channel_and_profile_packages(self):
+        script = (ROOT / "backend/preflight-meo-repository.sh").read_text(encoding="utf-8")
+        self.assertIn('bootstrap_packages = repository.get("bootstrapPackages")', script)
+        self.assertIn('channel_package = repository.get("channelPackage")', script)
+        self.assertIn('transaction_packages = list(dict.fromkeys(', script)
+
     def test_custom_forces_desktop_dependencies(self):
         plan = build_install_plan({"schemaVersion": 2, "profile": "custom", "channel": "stable", "components": ["meo-desktop", "omnistore-bin"]}, self.catalog)
         self.assertTrue({"meo-desktop", "meoui-qml", "meo-icons", "omnistore-bin"}.issubset(plan.package.packages))

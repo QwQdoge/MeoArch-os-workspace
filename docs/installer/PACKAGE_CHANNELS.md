@@ -19,7 +19,7 @@ before the keyring.
 
 The current ISO is online-install only. Preflight validates `x86_64`, downloads
 and verifies each selected repository DB signature with the ISO public key,
-and confirms every selected package is present before archinstall writes a
+and confirms every Meo transaction package is present before archinstall writes a
 target. A release ISO must provide a versioned, audited
 public bootstrap payload in `installer/bootstrap/`; its absence is a deliberate
 fail-closed error, not an unsigned fallback.
