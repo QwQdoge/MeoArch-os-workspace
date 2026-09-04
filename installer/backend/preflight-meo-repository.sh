@@ -22,12 +22,20 @@ repos, channel = repository.get("repositories"), repository.get("channel")
 if (channel == "stable" and repos != ["meo"]) or (channel == "beta" and repos != ["meo-beta", "meo"]):
     raise SystemExit("invalid Meo channel repository order")
 packages = plan.get("package", {}).get("packages", [])
-if not packages or any(not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9@._+:-]{1,128}", name) for name in packages):
+bootstrap_packages = repository.get("bootstrapPackages")
+channel_package = repository.get("channelPackage")
+if (not packages
+        or not isinstance(bootstrap_packages, list)
+        or not bootstrap_packages
+        or not isinstance(channel_package, str)
+        or any(not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9@._+:-]{1,128}", name)
+               for name in [*packages, *bootstrap_packages, channel_package])):
     raise SystemExit("invalid Meo package plan")
+transaction_packages = list(dict.fromkeys([*bootstrap_packages, channel_package, *packages]))
 print("https://packages.meoarch.org")
 print(*repos, sep="\n")
 print("--packages--")
-print(*packages, sep="\n")
+print(*transaction_packages, sep="\n")
 PY
 )
 

@@ -179,6 +179,11 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("preflight-meo-repository.sh", runner)
         self.assertLess(runner.index("preflight-meo-repository.sh"), runner.index("archinstall --silent"))
 
+    def test_selection_change_invalidates_persisted_confirmation_and_preflight(self):
+        controller = (Path(__file__).parents[2] / "installer/app/installercontroller.cpp").read_text(encoding="utf-8")
+        self.assertIn('QFile::remove(QDir(directory).absoluteFilePath(QStringLiteral("summary_confirmed")))', controller)
+        self.assertIn('QFile::remove(QDir(directory).absoluteFilePath(QStringLiteral("preflight_status.json")))', controller)
+
     def test_plan_validation_blocks_manual_and_unimplemented_encryption(self):
         self.selections["disk"].update({"mode": "manual", "stableId": "/dev/vda", "devicePath": "/dev/vda", "sizeBytes": 64 * 1024 * 1024 * 1024})
         self.selections["privacy"] = {"diskEncryption": True}

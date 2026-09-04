@@ -106,6 +106,9 @@ void InstallerController::writeSelection(const QString &sectionName, const QStri
         m_preflightMessage = tr("Choices changed. Prepare the installation plan again.");
         m_installPlan.clear();
         m_summaryConfirmed = false;
+        const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+        QFile::remove(QDir(directory).absoluteFilePath(QStringLiteral("summary_confirmed")));
+        QFile::remove(QDir(directory).absoluteFilePath(QStringLiteral("preflight_status.json")));
         emit preflightChanged();
     }
     emit selectionsChanged();
