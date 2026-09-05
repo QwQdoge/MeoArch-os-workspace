@@ -3,8 +3,8 @@ Description=MeoArch graphical installer kiosk
 # This Live-only kiosk owns tty1. The profile statically masks
 # getty@tty1.service, so systemd never arbitrates a runtime tty conflict
 # between a login prompt and Cage. Networking is requested in parallel.
-After=systemd-user-sessions.service systemd-logind.service
-Wants=NetworkManager.service
+After=systemd-user-sessions.service systemd-logind.service seatd.service
+Wants=NetworkManager.service seatd.service
 Conflicts=systemd-networkd.service systemd-networkd.socket
 OnFailure=meo-boot-status-failure@meoarch-installer.service
 
