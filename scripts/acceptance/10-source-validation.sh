@@ -96,7 +96,9 @@ grep -q 'import Meo.System 1.0' installer/qml/pages/NetworkPage.qml
 ! rg -q 'readonly property var wifiNetworks' installer/qml/pages/NetworkPage.qml
 ! rg -q 'preview-disk' installer/app/installercontroller.cpp
 grep -q 'for plasmoid in org.meo.topbar org.meo.timecenter; do' scripts/sync-installer-to-airootfs.sh
-grep -q 'org.kde.plasma.icontasks' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
+# The installed desktop owns the floating Meo Dock; it superseded the old
+# hard-coded Icons-Only Task Manager layout checked here previously.
+grep -q 'org.meo.dock starts as an independent Layer Shell surface' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
 grep -q 'meo-dynamic-colors.path' scripts/sync-installer-to-airootfs.sh
 grep -q '90-meo-applications.conf' installer/backend/apply-target-customizations.sh
 grep -q 'Target dynamic color, application, or input-method integration is missing' scripts/verify-target-install.sh
@@ -114,6 +116,12 @@ grep -q '/usr/bin/meoarch-repair --live --kiosk' installer/bin/meoarch-installer
 grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
 ! rg -q 'RepairMain.qml' installer
 grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^After=systemd-user-sessions.service systemd-logind.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^Wants=NetworkManager.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+! rg -q '^sddm$|^plasma-(desktop|workspace)$|^kwin$' meoarch-os/packages.x86_64
+! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
+test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
+test "$(readlink meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
 
 duplicates="$(sed '/^[[:space:]]*#/d;/^[[:space:]]*$/d' meoarch-os/packages.x86_64 |
   sort | uniq -d)"

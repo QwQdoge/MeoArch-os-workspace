@@ -52,6 +52,11 @@ else
   disk_path="${vm_dir}/meoarch-test.qcow2"
 fi
 display_mode="${MEOARCH_QEMU_DISPLAY:-gtk}"
+virtio_rng="${MEOARCH_VM_VIRTIO_RNG:-0}"
+case "${virtio_rng}" in
+  0|1) ;;
+  *) echo "MEOARCH_VM_VIRTIO_RNG must be 0 or 1." >&2; exit 2 ;;
+esac
 mkdir -p "${vm_dir}" "${evidence_dir}"
 
 # Keep QMP state alongside the temporary VM. The deliberately short leaf paths
@@ -92,6 +97,11 @@ if [ "${display_mode}" = "none" ]; then
   display_args=(-device virtio-vga -display none)
 fi
 
+rng_args=()
+if [ "${virtio_rng}" = "1" ]; then
+  rng_args=(-object rng-random,id=rng0,filename=/dev/urandom -device virtio-rng-pci,rng=rng0)
+fi
+
 cat >"${evidence_dir}/vm-config.txt" <<EOF
 firmware=UEFI OVMF
 cpus=4
@@ -100,6 +110,7 @@ disk=${disk_path}
 iso=${iso_path}
 network=user/NAT hostfwd tcp 127.0.0.1:2222 to guest 22
 display=${display_mode}
+virtio_rng=${virtio_rng}
 EOF
 
 exec qemu-system-x86_64 \
@@ -113,6 +124,7 @@ exec qemu-system-x86_64 \
   -device "nvme,drive=install_disk,serial=MEOARCH-ACC-0001" \
   -drive "file=${iso_path},media=cdrom,readonly=on" \
   "${display_args[@]}" \
+  "${rng_args[@]}" \
   -device virtio-net-pci,netdev=net0 \
   -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 \
   -device qemu-xhci \

@@ -26,10 +26,6 @@ profile_live_tools="${repo_root}/meoarch-os/airootfs/usr/local/bin"
 installer_dst="${airootfs}/opt/meoarch-installer"
 repair_dst="${airootfs}/usr/lib/meoarch-repair"
 desktop_dst="${airootfs}/opt/meo-desktop"
-desktop_live_theme="${airootfs}/usr/share/plasma/look-and-feel/org.meo.desktop"
-desktop_light_theme="${airootfs}/usr/share/plasma/desktoptheme/MeoLight"
-desktop_dark_theme="${airootfs}/usr/share/plasma/desktoptheme/MeoDark"
-desktop_live_wallpaper="${airootfs}/usr/share/wallpapers/MeoArch"
 runtime_root="${repo_root}/build/installer-runtime-root/usr"
 meoui_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoUI"
 meokde_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoKDE"
@@ -42,9 +38,7 @@ legacy_meoui_dst="${airootfs}/opt/meo-ui"
 for destructive_target in \
   "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" \
   "${meosystem_qml_dst}" "${meokde_fonts_dst}" "${installer_dst}" \
-  "${repair_dst}" \
-  "${desktop_dst}" "${desktop_live_theme}" "${desktop_light_theme}" \
-  "${desktop_dark_theme}"; do
+  "${repair_dst}" "${desktop_dst}"; do
   if [ -L "${destructive_target}" ]; then
     echo "Refusing recursive replacement of symlink: ${destructive_target}" >&2
     exit 2
@@ -190,62 +184,12 @@ install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
 install -Dm644 "${repo_root}/assets/wallpapers/installer_background.png" \
   "${desktop_dst}/wallpaper/installer_background.png"
 
-rm -rf "${desktop_live_theme}"
-install -d \
-  "${airootfs}/usr/share/plasma/look-and-feel" \
-  "${airootfs}/usr/share/plasma/desktoptheme" \
-  "${airootfs}/usr/share/plasma/plasmoids" \
-  "${airootfs}/usr/share/icons" \
-  "${airootfs}/usr/share/color-schemes" \
-  "${airootfs}/usr/share/icons/hicolor/scalable/apps" \
-  "${airootfs}/usr/share/pixmaps" \
-  "${airootfs}/usr/share/sddm/themes/breeze" \
-  "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3" \
-  "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm" \
-  "${airootfs}/usr/lib/qt6/plugins/styles" \
-  "${airootfs}/usr/lib/qt6/plugins/kwin/effects/plugins" \
-  "${desktop_live_wallpaper}" \
-  "${airootfs}/etc/sddm.conf.d" \
-  "${airootfs}/etc/xdg"
-cp -a "${meo_kde_src}/themes/look-and-feel/org.meo.desktop" \
-  "${desktop_live_theme}"
-if [ -d "${meo_kde_src}/themes/desktoptheme" ]; then
-  rm -rf "${desktop_light_theme}" "${desktop_dark_theme}"
-  cp -a "${meo_kde_src}/themes/desktoptheme/." "${airootfs}/usr/share/plasma/desktoptheme/"
-fi
-cp -a "${meo_kde_src}/themes/color-schemes/." "${airootfs}/usr/share/color-schemes/"
-cp -a "${meo_kde_src}/themes/icons/." "${airootfs}/usr/share/icons/"
-# Meo's current shell consists of the top status surface and time center. The
-# bottom Dock is Plasma's native Icons-Only Task Manager; remove the retired
-# custom Shelf so stale ISO staging cannot shadow that layout.
-for retired_plasmoid in org.meo.shelf org.meo.toptasks org.meo.launcher org.meo.quicksettings; do
-  rm -rf "${airootfs}/usr/share/plasma/plasmoids/${retired_plasmoid}"
-done
-for plasmoid in org.meo.topbar org.meo.timecenter; do
-  if [ -d "${meo_kde_src}/plasmoids/${plasmoid}" ]; then
-    rm -rf "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
-    cp -a "${meo_kde_src}/plasmoids/${plasmoid}" \
-      "${airootfs}/usr/share/plasma/plasmoids/${plasmoid}"
-  fi
-done
-install -Dm644 "${repo_root}/assets/wallpapers/installer_background.png" \
-  "${desktop_live_wallpaper}/installer_background.png"
-install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
-  "${airootfs}/usr/share/pixmaps/meoarch-logo.svg"
-install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
-  "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg"
-install -Dm644 "${meo_kde_src}/defaults/sddm/theme.conf.user" \
-  "${airootfs}/usr/share/sddm/themes/breeze/theme.conf.user"
+# Keep the target desktop payload under /opt/meo-desktop for the installer,
+# but do not stage Plasma, KWin, or SDDM files into the Live root.  Cage is the
+# only Live compositor; target customisation installs these assets after the
+# disk installation has succeeded.
 install -Dm644 "${meo_kde_src}/defaults/system/os-release" \
   "${airootfs}/etc/os-release"
-install -Dm644 "${meo_kde_src}/defaults/kde/kdeglobals" \
-  "${airootfs}/etc/xdg/kdeglobals"
-install -Dm644 "${meo_kde_src}/defaults/kwin/kwinrc" \
-  "${airootfs}/etc/xdg/kwinrc"
-install -Dm644 "${meo_kde_src}/defaults/plasma/plasmarc" \
-  "${airootfs}/etc/xdg/plasmarc"
-install -Dm644 "${meo_kde_src}/defaults/plasma/plasma-welcomerc" \
-  "${airootfs}/etc/xdg/plasma-welcomerc"
 
 plymouth_theme_dst="${airootfs}/usr/share/plymouth/themes/meoarch"
 rm -rf "${plymouth_theme_dst}"
@@ -272,7 +216,7 @@ ln -sfn /usr/lib/systemd/system/meo-boot-early.service "${airootfs}/etc/systemd/
 ln -sfn /usr/lib/systemd/system/meo-boot-storage.service "${airootfs}/etc/systemd/system/local-fs.target.wants/meo-boot-storage.service"
 ln -sfn /usr/lib/systemd/system/meo-boot-services.service "${airootfs}/etc/systemd/system/multi-user.target.wants/meo-boot-services.service"
 
-for dropin in systemd-udev-settle.service.d NetworkManager.service.d sddm.service.d; do
+for dropin in systemd-udev-settle.service.d NetworkManager.service.d; do
   install -d "${airootfs}/usr/lib/systemd/system/${dropin}"
   install -Dm644 "${installer_src}/data/systemd/dropins/${dropin}/10-meo-boot-status.conf" \
     "${airootfs}/usr/lib/systemd/system/${dropin}/10-meo-boot-status.conf"
