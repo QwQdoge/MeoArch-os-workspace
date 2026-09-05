@@ -43,8 +43,10 @@ xorriso -indev "${iso_path}" -find / -type f -exec lsdl |
   tee "${evidence_dir}/files.txt"
 grep -Eiq '/EFI/BOOT/BOOTX64\.EFI' "${evidence_dir}/files.txt"
 grep -q '/arch/x86_64/airootfs.sfs' "${evidence_dir}/files.txt"
-grep -q '/boot/grub/themes/meoarch/theme.txt' "${evidence_dir}/files.txt"
-grep -q '/boot/grub/themes/meoarch/brand.png' "${evidence_dir}/files.txt"
+# The Live ISO is intentionally UEFI systemd-boot based.  The repository still
+# retains GRUB theme assets for other targets, but they are not ISO payload.
+grep -q '/loader/entries/01-archiso-linux.conf' "${evidence_dir}/files.txt"
+grep -q '/loader/entries/02-archiso-repair-linux.conf' "${evidence_dir}/files.txt"
 
 xorriso -osirrox on -indev "${iso_path}" \
   -extract /arch/x86_64/airootfs.sfs "${extract_dir}/airootfs.sfs"
