@@ -200,13 +200,28 @@ install -Dm644 "${desktop_source}/defaults/plasma/plasma-welcomerc" \
   "${target_root}/etc/xdg/plasma-welcomerc"
 fi
 
+# Apply the signed package's branding template without dereferencing Arch's
+# /etc/os-release symlink (which may otherwise point outside this host view).
+if [ "${MEOARCH_PACKAGE_MANAGED:-1}" = "1" ]; then
+  os_release_template="${target_root}/usr/share/meo-desktop/os-release"
+  [ -s "$os_release_template" ] && [ ! -L "$os_release_template" ] || {
+    echo "Packaged target os-release template is missing." >&2; exit 13;
+  }
+  os_release_stage="$(mktemp "${target_root}/etc/.meo-os-release.XXXXXX")"
+  install -m644 "$os_release_template" "$os_release_stage"
+  mv -T -- "$os_release_stage" "${target_root}/etc/os-release"
+fi
+
 # Target System Plymouth Theme & Hook Configuration
 target_plymouth_dst="${target_root}/usr/share/plymouth/themes/meoarch"
-rm -rf "${target_plymouth_dst}"
+[ ! -L "$target_plymouth_dst" ] || { echo "Refusing symlinked target Plymouth theme." >&2; exit 13; }
+for theme_file in meoarch.plymouth meoarch.script background.png logo.png spinner.png warning.png progress_box.png progress_bar.png; do
+  [ -s "${runtime_source}/share/plymouth/themes/meoarch/$theme_file" ] || {
+    echo "Required live Plymouth asset is missing: $theme_file" >&2; exit 13;
+  }
+done
 install -d "${target_plymouth_dst}" "${target_root}/etc/plymouth" "${target_root}/usr/lib/meoarch" "${target_root}/usr/bin"
-if [ -d "/usr/share/plymouth/themes/meoarch" ]; then
-  cp -a "/usr/share/plymouth/themes/meoarch/." "${target_plymouth_dst}/"
-fi
+cp -a "${runtime_source}/share/plymouth/themes/meoarch/." "${target_plymouth_dst}/"
 cat <<'EOF' >"${target_root}/etc/plymouth/plymouthd.conf"
 [Daemon]
 Theme=meoarch
@@ -214,14 +229,14 @@ ShowDelay=0
 DeviceTimeout=5
 EOF
 
-if [ -f "/usr/lib/meoarch/meo-boot-status" ]; then
-  install -Dm755 "/usr/lib/meoarch/meo-boot-status" "${target_root}/usr/lib/meoarch/meo-boot-status"
+if [ -f "${runtime_source}/lib/meoarch/meo-boot-status" ]; then
+  install -Dm755 "${runtime_source}/lib/meoarch/meo-boot-status" "${target_root}/usr/lib/meoarch/meo-boot-status"
   ln -sfn /usr/lib/meoarch/meo-boot-status "${target_root}/usr/bin/meo-boot-status"
 fi
 
 for unit_file in meo-boot-status-failure@.service meo-boot-early.service meo-boot-storage.service meo-boot-services.service; do
-  if [ -f "/usr/lib/systemd/system/${unit_file}" ]; then
-    install -Dm644 "/usr/lib/systemd/system/${unit_file}" "${target_root}/usr/lib/systemd/system/${unit_file}"
+  if [ -f "${runtime_source}/lib/systemd/system/${unit_file}" ]; then
+    install -Dm644 "${runtime_source}/lib/systemd/system/${unit_file}" "${target_root}/usr/lib/systemd/system/${unit_file}"
   fi
 done
 
@@ -233,20 +248,17 @@ ln -sfn /usr/lib/systemd/system/meo-boot-storage.service "${target_root}/etc/sys
 ln -sfn /usr/lib/systemd/system/meo-boot-services.service "${target_root}/etc/systemd/system/multi-user.target.wants/meo-boot-services.service"
 
 for dropin in systemd-udev-settle.service.d NetworkManager.service.d sddm.service.d; do
-  if [ -d "/usr/lib/systemd/system/${dropin}" ]; then
+  if [ -d "${runtime_source}/lib/systemd/system/${dropin}" ]; then
     install -d "${target_root}/usr/lib/systemd/system/${dropin}"
-    cp -a "/usr/lib/systemd/system/${dropin}/." "${target_root}/usr/lib/systemd/system/${dropin}/"
+    cp -a "${runtime_source}/lib/systemd/system/${dropin}/." "${target_root}/usr/lib/systemd/system/${dropin}/"
   fi
 done
 
-if [ -f "${target_root}/etc/mkinitcpio.conf" ]; then
-  if ! grep -q "plymouth" "${target_root}/etc/mkinitcpio.conf"; then
-    sed -i -e 's/HOOKS=(\(.*\)udev\(.*\))/HOOKS=(\1udev plymouth\2)/g' "${target_root}/etc/mkinitcpio.conf"
-  fi
-  if [ -x "${target_root}/usr/bin/mkinitcpio" ]; then
-    chroot "${target_root}" /usr/bin/mkinitcpio -P 2>/dev/null || true
-  fi
-fi
+python3 "$(dirname -- "${BASH_SOURCE[0]}")/configure-plymouth-hooks.py" "${target_root}/etc/mkinitcpio.conf"
+[ -x "${target_root}/usr/bin/mkinitcpio" ] || { echo "Target mkinitcpio is missing." >&2; exit 13; }
+arch-chroot "${target_root}" /usr/bin/mkinitcpio -P
+# A later mkinitcpio.conf.d override must not silently remove Plymouth.
+arch-chroot "${target_root}" /usr/bin/lsinitcpio /boot/initramfs-linux.img | grep -E '(^|/)plymouthd$' >/dev/null
 
 if [ -f "${generated_dir}/plasma-localerc" ]; then
   install -Dm644 "${generated_dir}/plasma-localerc" \
