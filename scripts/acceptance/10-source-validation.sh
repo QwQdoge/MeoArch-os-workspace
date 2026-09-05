@@ -118,6 +118,7 @@ grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
 grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^After=systemd-user-sessions.service systemd-logind.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Wants=NetworkManager.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^Before=getty@tty1.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 ! rg -q '^sddm$|^plasma-(desktop|workspace)$|^kwin$' meoarch-os/packages.x86_64
 ! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
