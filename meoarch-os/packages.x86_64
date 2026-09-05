@@ -15,20 +15,6 @@ qt6-declarative
 qt6-svg
 qt6-wayland
 qtkeychain-qt6
-plasma-desktop
-plasma-workspace
-plasma-nm
-plasma-pa
-powerdevil
-bluedevil
-systemsettings
-dolphin
-konsole
-sddm
-breeze
-kwin
-kscreen
-xdg-desktop-portal-kde
 b43-fwcutter
 base
 bcachefs-tools
@@ -165,5 +151,6 @@ mesa
 # 如果用 startx 手动启动图形界面，才保留
 xorg-xinit
 
-# Cage remains available as a recovery installer session.  The normal live
-# environment is the Meo Desktop Plasma session started by SDDM.
+# Cage is the normal Live graphical session.  KDE Plasma and SDDM are installed
+# into the target by the graphical installer; they are not part of the Live
+# startup path.

@@ -1,7 +1,10 @@
 [Unit]
 Description=MeoArch graphical installer kiosk
-After=systemd-user-sessions.service systemd-logind.service NetworkManager.service network.target
-Wants=NetworkManager.service network.target
+# The kiosk must be available before network readiness and Pacman keyring
+# preparation.  Networking is still requested in parallel for pages that need
+# it, but it is not a prerequisite for showing the installer.
+After=systemd-user-sessions.service systemd-logind.service
+Wants=NetworkManager.service
 Conflicts=getty@tty1.service systemd-networkd.service systemd-networkd.socket
 OnFailure=meo-boot-status-failure@meoarch-installer.service
 
