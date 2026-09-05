@@ -53,7 +53,7 @@ xorriso -osirrox on -indev "${iso_path}" \
 unsquashfs -ll "${extract_dir}/airootfs.sfs" >"${evidence_dir}/airootfs-files.txt"
 echo "Recorded $(wc -l <"${evidence_dir}/airootfs-files.txt") airootfs entries."
 
-grep -q 'usr/lib/libmeoui.so.0.3.1' "${evidence_dir}/airootfs-files.txt"
+grep -Eq 'usr/lib/libmeoui\.so\.0(\.[0-9]+)*$' "${evidence_dir}/airootfs-files.txt"
 grep -q 'usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so' "${evidence_dir}/airootfs-files.txt"
 grep -q 'opt/meoarch-installer/qml/Main.qml' "${evidence_dir}/airootfs-files.txt"
 grep -q 'opt/meoarch-installer/translations/meoarch_zh_CN.qm' "${evidence_dir}/airootfs-files.txt"
@@ -80,12 +80,12 @@ if grep -q 'opt/meo-ui/' "${evidence_dir}/airootfs-files.txt"; then
 fi
 
 for path in \
-  usr/lib/libmeoui.so.0.3.1 \
+  usr/lib/libmeoui.so.0 \
   usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so; do
   destination="${extract_dir}/$(basename "${path}")"
   unsquashfs -cat "${extract_dir}/airootfs.sfs" "${path}" >"${destination}"
 done
-readelf -d "${extract_dir}/libmeoui.so.0.3.1" |
+readelf -d "${extract_dir}/libmeoui.so.0" |
   tee "${evidence_dir}/libmeoui-readelf.txt"
 readelf -d "${extract_dir}/libmeoui_moduleplugin.so" |
   tee "${evidence_dir}/plugin-readelf.txt"

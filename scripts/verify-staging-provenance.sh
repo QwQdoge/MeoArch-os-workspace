@@ -26,7 +26,7 @@ set -e
 classify() {
   local path="$1"
   case "${path}" in
-    airootfs/opt/meoarch-installer/*|airootfs/usr/local/bin/meoarch-installer*)
+    airootfs/opt/meoarch-installer/*|airootfs/usr/local/bin/meoarch-installer*|airootfs/usr/local/bin/meoarch-install)
       printf '%s\t%s\t%s' 'Installer' 'this workspace installer source' 'Installer runtime and kiosk entrypoint'
       ;;
     airootfs/usr/bin/meoarch-repair|airootfs/usr/lib/meoarch-repair/*|airootfs/usr/share/applications/org.meo.repair.desktop|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg)
