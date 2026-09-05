@@ -118,7 +118,9 @@ grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
 grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^After=systemd-user-sessions.service systemd-logind.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Wants=NetworkManager.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-grep -q '^Before=getty@tty1.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^WantedBy=graphical.target$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+! rg -q '^Before=getty@tty1.service$|^Conflicts=.*getty@tty1.service' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+test "$(readlink meoarch-os/airootfs/etc/systemd/system/getty@tty1.service)" = '/dev/null'
 grep -q '^PLYMOUTH_COMMAND_TIMEOUT_SECONDS = 1$' installer/bin/meo-boot-status
 for milestone in early storage services; do
   grep -q '^TimeoutStartSec=5s$' "installer/data/systemd/meo-boot-${milestone}.service"
@@ -126,7 +128,7 @@ done
 ! rg -q '^sddm$|^plasma-(desktop|workspace)$|^kwin$' meoarch-os/packages.x86_64
 ! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
-test "$(readlink meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
+! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
 
 duplicates="$(sed '/^[[:space:]]*#/d;/^[[:space:]]*$/d' meoarch-os/packages.x86_64 |
   sort | uniq -d)"

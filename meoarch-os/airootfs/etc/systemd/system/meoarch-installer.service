@@ -1,15 +1,11 @@
 [Unit]
 Description=MeoArch graphical installer kiosk
-# The kiosk must be available before network readiness and Pacman keyring
-# preparation.  Networking is still requested in parallel for pages that need
-# it, but it is not a prerequisite for showing the installer.
+# This Live-only kiosk owns tty1. The profile statically masks
+# getty@tty1.service, so systemd never arbitrates a runtime tty conflict
+# between a login prompt and Cage. Networking is requested in parallel.
 After=systemd-user-sessions.service systemd-logind.service
 Wants=NetworkManager.service
-# graphical.target also pulls in the console getty.  Make the kiosk win this
-# deliberate TTY1 conflict deterministically rather than leaving both jobs
-# unordered during the Live boot transaction.
-Before=getty@tty1.service
-Conflicts=getty@tty1.service systemd-networkd.service systemd-networkd.socket
+Conflicts=systemd-networkd.service systemd-networkd.socket
 OnFailure=meo-boot-status-failure@meoarch-installer.service
 
 [Service]
@@ -31,4 +27,4 @@ Restart=on-failure
 RestartSec=2
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target
