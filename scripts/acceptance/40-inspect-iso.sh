@@ -61,9 +61,24 @@ grep -q 'usr/lib/qt6/qml/Meo/System/libmeosystemplugin.so' "${evidence_dir}/airo
 grep -q 'usr/lib/meoarch-repair/qml/Main.qml' "${evidence_dir}/airootfs-files.txt"
 grep -q 'opt/meo-desktop/themes/look-and-feel/org.meo.desktop/metadata.json' \
   "${evidence_dir}/airootfs-files.txt"
-for package in plasma-desktop plasma-workspace sddm networkmanager qtkeychain-qt6 lynis; do
+for package in cage networkmanager qtkeychain-qt6 lynis; do
   grep -q "^${package} " "${evidence_dir}/packages.txt"
 done
+for excluded_package in plasma-desktop plasma-workspace sddm kwin; do
+  if grep -q "^${excluded_package} " "${evidence_dir}/packages.txt"; then
+    echo "Cage-only Live ISO unexpectedly includes ${excluded_package}." >&2
+    exit 1
+  fi
+done
+grep -q 'etc/systemd/system/graphical.target.wants/meoarch-installer.service' \
+  "${evidence_dir}/airootfs-files.txt"
+grep -q 'etc/systemd/system/multi-user.target.wants/meoarch-installer.service' \
+  "${evidence_dir}/airootfs-files.txt"
+if grep -q 'etc/systemd/system/display-manager.service\|etc/sddm.conf.d/10-meoarch-live.conf' \
+  "${evidence_dir}/airootfs-files.txt"; then
+  echo "Cage-only Live ISO still contains an SDDM launch path." >&2
+  exit 1
+fi
 for executable in \
   opt/meoarch-installer/bin/meoarch-installer-app \
   opt/meoarch-installer/backend/generate-config.py \
