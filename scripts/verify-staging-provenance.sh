@@ -56,7 +56,7 @@ classify() {
     airootfs/usr/lib/qt6/plugins/org.kde.kdecoration3/org.meo.decoration.so|airootfs/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm/kcm_meodecoration.so|airootfs/usr/lib/qt6/plugins/styles/meostyle.so|airootfs/usr/lib/qt6/plugins/kwin/effects/plugins/org.meo.windowcorners.so)
       printf '%s\t%s\t%s' 'MeoKDE native' 'compiled sibling MeoKDE native targets' 'window decoration, KCM, style, and retired-plugin cleanup'
       ;;
-    airootfs/root/.ssh/authorized_keys)
+    airootfs/home/live/.ssh/authorized_keys)
       printf '%s\t%s\t%s' 'Acceptance harness' 'MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY' 'ephemeral VM-only SSH access for post-install evidence collection'
       ;;
     airootfs/usr/local/bin/Installation_guide|airootfs/usr/local/bin/choose-mirror|airootfs/usr/local/bin/installer.py|airootfs/usr/local/bin/livecd-sound)
