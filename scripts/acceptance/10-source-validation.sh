@@ -118,9 +118,15 @@ grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
 grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^After=systemd-user-sessions.service systemd-logind.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Wants=NetworkManager.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^Environment=XDG_RUNTIME_DIR=/run/meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^RuntimeDirectory=meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^RuntimeDirectoryMode=0700$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^WantedBy=graphical.target$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 ! rg -q '^Before=getty@tty1.service$|^Conflicts=.*getty@tty1.service' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/getty@tty1.service)" = '/dev/null'
+for unit in systemd-networkd.service systemd-networkd.socket systemd-networkd-varlink.socket systemd-networkd-varlink-metrics.socket systemd-networkd-resolve-hook.socket; do
+  test "$(readlink "meoarch-os/airootfs/etc/systemd/system/${unit}")" = '/dev/null'
+done
 grep -q '^PLYMOUTH_COMMAND_TIMEOUT_SECONDS = 1$' installer/bin/meo-boot-status
 for milestone in early storage services; do
   grep -q '^TimeoutStartSec=5s$' "installer/data/systemd/meo-boot-${milestone}.service"

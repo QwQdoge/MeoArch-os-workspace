@@ -16,10 +16,15 @@ StandardInput=tty
 StandardOutput=journal
 StandardError=journal
 Environment=QT_QPA_PLATFORM=wayland
+# Cage is started by PID 1 rather than a logged-in desktop session. Give it a
+# private, systemd-managed XDG runtime directory for its Wayland socket.
+Environment=XDG_RUNTIME_DIR=/run/meoarch-installer
 Environment=MEO_UI_QML_IMPORT_PATH=/usr/lib/qt6/qml
 Environment=QML2_IMPORT_PATH=/opt/meoarch-installer/qml:/usr/lib/qt6/qml
 Environment=XKB_DEFAULT_LAYOUT=us
 EnvironmentFile=-/etc/meoarch/account.env
+RuntimeDirectory=meoarch-installer
+RuntimeDirectoryMode=0700
 ExecStartPre=/usr/lib/meoarch/meo-boot-status stage installer
 ExecStart=/usr/local/bin/meoarch-installer-kiosk
 ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready
