@@ -29,6 +29,7 @@ file_permissions=(
   ["/usr/local/bin/meoarch-installer-live"]="0:0:755"
   ["/usr/local/bin/meoarch-installer-live-root"]="0:0:755"
   ["/usr/bin/meoarch-repair"]="0:0:755"
+  ["/usr/lib/meoarch/meo-boot-status"]="0:0:755"
   ["/usr/lib/meoarch-repair/checks/all.sh"]="0:0:755"
   ["/usr/lib/meoarch-repair/checks/network.sh"]="0:0:755"
   ["/usr/lib/meoarch-repair/checks/boot.sh"]="0:0:755"
