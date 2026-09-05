@@ -13,7 +13,6 @@ default_outputs_root="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-w
 outputs_root="${MEOARCH_OUTPUT_ROOT:-${default_outputs_root}}"
 source_profile="${repo_root}/meoarch-os"
 build_root="${repo_root}/build/archiso"
-work_dir="${build_root}/work"
 staged_profile="${build_root}/profile"
 baseline_profile="${build_root}/baseline-profile"
 out_dir="${outputs_root}/packages/iso"
@@ -120,8 +119,9 @@ if [ "${clean}" -eq 1 ] && [ -d "${build_root}" ]; then
 fi
 
 run_id="$(date -u +%Y-%m-%dT%H%M%SZ)-iso-build"
+work_dir="${MEOARCH_ARCHISO_WORK_DIR:-${outputs_root}/tmp/${run_id}/archiso-work}"
 log_dir="${outputs_root}/validation/${run_id}/logs"
-mkdir -p "${log_dir}" "${build_root}" "${out_dir}"
+mkdir -p "${log_dir}" "${build_root}" "${work_dir}" "${out_dir}"
 log_file="${log_dir}/build-iso.log"
 exec > >(tee -a "${log_file}") 2>&1
 
