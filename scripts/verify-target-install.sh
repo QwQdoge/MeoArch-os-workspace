@@ -5,6 +5,10 @@ set -euo pipefail
 
 target_root="${1:-/mnt}"
 
+if [ "${MEOARCH_PACKAGE_MANAGED:-1}" = 1 ]; then
+  exec python3 "$(dirname -- "${BASH_SOURCE[0]}")/../installer/backend/verify-target.py" "$target_root"
+fi
+
 echo "Validating MeoArch OS installation at ${target_root}..."
 
 if [ ! -d "${target_root}/etc" ] || [ ! -d "${target_root}/usr" ]; then

@@ -111,12 +111,7 @@ progress "applying_meo" 89 "Applying target settings"
 "${installer_root}/backend/apply-target-customizations.sh" \
   "${target_root}" "/opt/meo-desktop" "${generated_dir}" 2>&1 | tee -a "${log_file}"
 progress "final_validation" 94 "Validating the installed target"
-for path in \
-  "${target_root}/etc/os-release" \
-  "${target_root}/etc/fstab" \
-  "${target_root}/usr/lib/qt6/qml/MeoUI/qmldir"; do
-  [ -e "${path}" ] || { echo "Final validation is missing ${path}." | tee -a "${log_file}" >&2; exit 8; }
-done
+python3 "${installer_root}/backend/verify-target.py" "${target_root}" 2>&1 | tee -a "${log_file}"
 if printf '%s\n' "${meo_packages[@]}" | grep -qx 'omnistore-bin'; then
   for command_path in usr/bin/omnistore usr/bin/omnistore-cli usr/bin/omnistore-apps-export usr/bin/meo-update; do
     [ -x "${target_root}/${command_path}" ] || {
