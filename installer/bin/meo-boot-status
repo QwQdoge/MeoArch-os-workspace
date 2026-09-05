@@ -11,6 +11,10 @@ import sys
 from pathlib import Path
 
 RUN_STATE_FILE = Path("/run/meoarch/boot-status.json")
+# Plymouth is a presentation layer, not a boot dependency.  In particular, a
+# stalled Plymouth daemon/socket must never hold a systemd boot milestone (and
+# therefore the Live installer) hostage.
+PLYMOUTH_COMMAND_TIMEOUT_SECONDS = 1
 
 STAGES = {
     "early": {
@@ -75,8 +79,14 @@ DEFAULT_FAILURE = {
 def run_plymouth_cmd(*args):
     """Safely execute a plymouth command if plymouth is running."""
     try:
-        subprocess.run(["plymouth", *args], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    except Exception:
+        subprocess.run(
+            ["plymouth", *args],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=PLYMOUTH_COMMAND_TIMEOUT_SECONDS,
+        )
+    except (OSError, subprocess.TimeoutExpired):
         pass
 
 

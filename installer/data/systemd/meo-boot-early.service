@@ -5,6 +5,9 @@ After=sysinit.target
 
 [Service]
 Type=oneshot
+# Boot-status is cosmetic.  Keep an independent circuit breaker even if its
+# helper regresses, so it cannot delay the Live installer.
+TimeoutStartSec=5s
 ExecStart=/usr/lib/meoarch/meo-boot-status stage early
 
 [Install]
