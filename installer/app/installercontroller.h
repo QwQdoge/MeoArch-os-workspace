@@ -127,6 +127,7 @@ private:
     QString sourceRoot() const;
     QVariantMap section(const QString &name) const;
     void writeSelection(const QString &section, const QString &key, const QVariant &value);
+    void discardGeneratedPlan();
 
     QVariantList m_uiLanguages;
     QVariantList m_systemLocales;
@@ -152,6 +153,8 @@ private:
     bool m_realInstallEnabled = false;
     bool m_systemActionsEnabled = false;
     bool m_summaryConfirmed = false;
+    quint64 m_planRevision = 0;
+    bool m_preparationRunning = false;
     QString m_userPasswordHash;
     QTimer *m_progressTimer = nullptr;
 };

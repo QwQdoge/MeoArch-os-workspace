@@ -14,39 +14,55 @@ pacman_conf="$target_root/etc/pacman.conf"
 [ -f "$pacman_conf" ] || { echo "Target pacman configuration is missing" >&2; exit 3; }
 backup_conf="$target_root/etc/pacman.conf.meo-bootstrap-backup"
 cp -- "$pacman_conf" "$backup_conf"
+# arch-chroot mounts over /run and /tmp. Keep these public, short-lived inputs
+# under /etc so every chroot invocation sees the same bootstrap configuration.
+bootstrap_work="$(mktemp -d "$target_root/etc/meo-bootstrap.XXXXXX")"
+chroot_bootstrap="${bootstrap_work#"$target_root"}"
 restore_on_error() {
   status=$?
   if [ "$status" -ne 0 ] && [ -f "$backup_conf" ]; then
     mv -f -- "$backup_conf" "$pacman_conf"
-    rm -f -- "$target_root/etc/pacman.d/meo-channel.conf" "$target_root/etc/pacman.d/meo-mirrorlist"
   fi
+  rm -rf -- "$bootstrap_work"
   exit "$status"
 }
 trap restore_on_error EXIT
-install -d "$target_root/etc/pacman.d"
-install -Dm644 /dev/stdin "$target_root/etc/pacman.d/meo-mirrorlist" <<'EOF'
-Server = https://packages.meoarch.org/$repo/os/$arch
-EOF
-install -Dm644 /dev/stdin "$target_root/etc/pacman.d/meo-channel.conf" <<'EOF'
+cp -- "$pacman_conf" "$bootstrap_work/pacman.conf"
+# Temporary bootstrap files must not occupy paths owned by the packages about
+# to be installed. Otherwise pacman rejects the transaction as file conflicts.
+cat >>"$bootstrap_work/pacman.conf" <<'EOF'
+
 [meo]
 SigLevel = Required TrustedOnly
-Include = /etc/pacman.d/meo-mirrorlist
+Server = https://packages.meoarch.org/$repo/os/$arch
 EOF
-printf '\n# Managed by MeoArch bootstrap; meo-channel-* owns the included file.\nInclude = /etc/pacman.d/meo-channel.conf\n' >>"$pacman_conf"
 for file in meo.gpg meo-trusted meo-revoked; do
   [ -s "$bootstrap_dir/$file" ] || { echo "Missing ISO keyring bootstrap file: $file" >&2; exit 4; }
-  install -Dm644 "$bootstrap_dir/$file" "$target_root/usr/share/pacman/keyrings/$file"
+  install -Dm644 "$bootstrap_dir/$file" "$bootstrap_work/keyrings/$file"
 done
 arch-chroot "$target_root" pacman-key --init
-arch-chroot "$target_root" pacman-key --populate archlinux meo
+arch-chroot "$target_root" pacman-key --populate archlinux
+arch-chroot "$target_root" pacman-key --populate-from "$chroot_bootstrap/keyrings" --populate meo
 # The channel package is deliberately first fetched only from [meo], which the
 # ISO bootstrap configuration exposes.  It owns the final Include file.
 channel="$(python3 - "$plan_file" <<'PY'
 import json,sys
-print(json.load(open(sys.argv[1]))['repository']['channelPackage'])
+repository = json.load(open(sys.argv[1]))['repository']
+channel = repository.get('channel')
+expected = {'stable': ['meo'], 'beta': ['meo-beta', 'meo']}
+if (channel not in expected or repository.get('repositories') != expected[channel]
+        or repository.get('channelPackage') != f'meo-channel-{channel}'):
+    raise SystemExit('invalid Meo channel plan')
+print(repository['channelPackage'])
 PY
 )"
-arch-chroot "$target_root" pacman -S --needed --noconfirm meo-keyring meo-mirrorlist "$channel"
+# A freshly installed target has never synchronized [meo]. Sync it before the
+# first package lookup; after the channel package changes the file, sync again
+# so the Beta overlay (if selected) is also available.
+arch-chroot "$target_root" pacman --config "$chroot_bootstrap/pacman.conf" -Sy --noconfirm
+arch-chroot "$target_root" pacman --config "$chroot_bootstrap/pacman.conf" -S --needed --noconfirm \
+  meo/meo-keyring meo/meo-mirrorlist "meo/$channel"
+printf '\n# Managed by MeoArch bootstrap; meo-channel-* owns the included file.\nInclude = /etc/pacman.d/meo-channel.conf\n' >>"$pacman_conf"
 arch-chroot "$target_root" pacman -Syy --noconfirm
 repository_output="$(arch-chroot "$target_root" pacman-conf --repo-list)"
 python3 - "$plan_file" "$repository_output" <<'PY'
@@ -59,4 +75,3 @@ if actual != expected:
     raise SystemExit(f"installed Meo repository order is {actual!r}, expected {expected!r}")
 PY
 rm -f -- "$backup_conf"
-trap - EXIT

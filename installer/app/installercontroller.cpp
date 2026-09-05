@@ -96,22 +96,38 @@ QVariantMap InstallerController::section(const QString &name) const
 
 void InstallerController::writeSelection(const QString &sectionName, const QString &key, const QVariant &value)
 {
+    if (m_installationState == QStringLiteral("running"))
+        return;
     QVariantMap data = section(sectionName);
     if (data.value(key) == value)
         return;
     data.insert(key, value);
     m_selections.insert(sectionName, data);
+    ++m_planRevision;
+    discardGeneratedPlan();
     if (m_preflightState != QStringLiteral("idle") || !m_installPlan.isEmpty()) {
         m_preflightState = QStringLiteral("idle");
         m_preflightMessage = tr("Choices changed. Prepare the installation plan again.");
         m_installPlan.clear();
         m_summaryConfirmed = false;
-        const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
-        QFile::remove(QDir(directory).absoluteFilePath(QStringLiteral("summary_confirmed")));
-        QFile::remove(QDir(directory).absoluteFilePath(QStringLiteral("preflight_status.json")));
         emit preflightChanged();
     }
     emit selectionsChanged();
+}
+
+void InstallerController::discardGeneratedPlan()
+{
+    const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    QFile::remove(QDir(directory).absoluteFilePath(QStringLiteral("summary_confirmed")));
+    QFile::remove(QDir(directory).absoluteFilePath(QStringLiteral("preflight_status.json")));
+    // These are inputs to the destructive backend, not historical logs. A stale
+    // asynchronous writer is drained before another preparation may start, and
+    // its completion callback removes any files it recreated after invalidation.
+    for (const QString &name : {QStringLiteral("config_manifest.json"),
+                               QStringLiteral("generated/install-plan.json"),
+                               QStringLiteral("generated/user_configuration.json"),
+                               QStringLiteral("generated/user_credentials.json")})
+        QFile::remove(QDir(directory).absoluteFilePath(name));
 }
 
 QString InstallerController::uiLanguage() const { return section(QStringLiteral("preferences")).value(QStringLiteral("uiLanguage")).toString(); }
@@ -575,6 +591,15 @@ bool InstallerController::loadGeneratedInstallPlan(const QString &directory)
 
 void InstallerController::prepareInstallation()
 {
+    if (m_installationState == QStringLiteral("running"))
+        return;
+    if (m_preparationRunning) {
+        setError(tr("The previous preparation is still finishing. Please retry shortly."));
+        return;
+    }
+    ++m_planRevision;
+    discardGeneratedPlan();
+    setError({});
     m_installPlan.clear();
     m_summaryConfirmed = false;
     setPreflight(QStringLiteral("checking"), tr("Generating and validating the installation plan…"));
@@ -611,10 +636,27 @@ void InstallerController::prepareInstallation()
             return;
         }
         auto *process = new QProcess(this);
-        connect(process, &QProcess::finished, this, [this, process, credentialsPath, directory](int exitCode, QProcess::ExitStatus status) {
+        m_preparationRunning = true;
+        const quint64 revision = m_planRevision;
+        connect(process, &QProcess::errorOccurred, this, [this, process, credentialsPath, revision](QProcess::ProcessError error) {
+            if (error != QProcess::FailedToStart)
+                return;
+            m_preparationRunning = false;
+            QFile::remove(credentialsPath);
+            process->deleteLater();
+            discardGeneratedPlan();
+            if (revision == m_planRevision)
+                setPreflight(QStringLiteral("failed"), tr("Could not start the configuration generator."));
+        });
+        connect(process, &QProcess::finished, this, [this, process, credentialsPath, directory, revision](int exitCode, QProcess::ExitStatus status) {
+            m_preparationRunning = false;
             QFile::remove(credentialsPath);
             const QString details = QString::fromUtf8(process->readAllStandardError()).trimmed();
             process->deleteLater();
+            if (revision != m_planRevision) {
+                discardGeneratedPlan();
+                return;
+            }
             if (status != QProcess::NormalExit || exitCode != 0) {
                 setError(details.isEmpty() ? tr("Could not generate the Archinstall installation plan.") : details);
                 setPreflight(QStringLiteral("failed"), m_errorMessage);
@@ -645,11 +687,27 @@ void InstallerController::startArchinstallPreflight()
     }
     setPreflight(QStringLiteral("checking"), tr("Checking the generated Archinstall configuration…"));
     auto *process = new QProcess(this);
+    m_preparationRunning = true;
+    const quint64 revision = m_planRevision;
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     environment.insert(QStringLiteral("MEOARCH_INSTALLER_STATE_DIR"), directory);
     process->setProcessEnvironment(environment);
-    connect(process, &QProcess::finished, this, [this, process, directory](int exitCode, QProcess::ExitStatus status) {
+    connect(process, &QProcess::errorOccurred, this, [this, process, revision](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart)
+            return;
+        m_preparationRunning = false;
         process->deleteLater();
+        discardGeneratedPlan();
+        if (revision == m_planRevision)
+            setPreflight(QStringLiteral("failed"), tr("Could not start the Archinstall preflight."));
+    });
+    connect(process, &QProcess::finished, this, [this, process, directory, revision](int exitCode, QProcess::ExitStatus status) {
+        m_preparationRunning = false;
+        process->deleteLater();
+        if (revision != m_planRevision) {
+            discardGeneratedPlan();
+            return;
+        }
         const QFile statusFile(QDir(directory).absoluteFilePath(QStringLiteral("preflight_status.json")));
         QString message = tr("The generated Archinstall configuration was rejected.");
         QString state = QStringLiteral("failed");
