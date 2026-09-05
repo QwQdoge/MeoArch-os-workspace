@@ -147,9 +147,12 @@ if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
     echo "Acceptance SSH public key not found: ${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" >&2
     exit 6
   }
-  install -d -m 700 "${staged_profile}/airootfs/root/.ssh"
+  # The ArchISO profile deliberately disallows root SSH.  Keep acceptance
+  # access scoped to the locked-down live account and only when an explicit,
+  # ephemeral public key was supplied by the test harness.
+  install -d -m 700 "${staged_profile}/airootfs/home/live/.ssh"
   install -m 600 "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" \
-    "${staged_profile}/airootfs/root/.ssh/authorized_keys"
+    "${staged_profile}/airootfs/home/live/.ssh/authorized_keys"
   echo "Injected an ephemeral acceptance-only SSH public key into the staged profile."
 fi
 
