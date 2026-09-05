@@ -5,6 +5,10 @@ Description=MeoArch graphical installer kiosk
 # it, but it is not a prerequisite for showing the installer.
 After=systemd-user-sessions.service systemd-logind.service
 Wants=NetworkManager.service
+# graphical.target also pulls in the console getty.  Make the kiosk win this
+# deliberate TTY1 conflict deterministically rather than leaving both jobs
+# unordered during the Live boot transaction.
+Before=getty@tty1.service
 Conflicts=getty@tty1.service systemd-networkd.service systemd-networkd.socket
 OnFailure=meo-boot-status-failure@meoarch-installer.service
 
