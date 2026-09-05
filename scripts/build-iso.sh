@@ -153,6 +153,9 @@ if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
   install -d -m 700 "${staged_profile}/airootfs/home/live/.ssh"
   install -m 600 "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" \
     "${staged_profile}/airootfs/home/live/.ssh/authorized_keys"
+  install -d "${staged_profile}/airootfs/etc/systemd/system/sysinit.target.wants"
+  ln -sfn /usr/lib/systemd/system/debug-shell.service \
+    "${staged_profile}/airootfs/etc/systemd/system/sysinit.target.wants/debug-shell.service"
   echo "Injected an ephemeral acceptance-only SSH public key into the staged profile."
 fi
 

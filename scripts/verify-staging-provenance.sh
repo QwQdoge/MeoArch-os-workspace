@@ -59,6 +59,9 @@ classify() {
     airootfs/home/live/.ssh/authorized_keys)
       printf '%s\t%s\t%s' 'Acceptance harness' 'MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY' 'ephemeral VM-only SSH access for post-install evidence collection'
       ;;
+    airootfs/etc/systemd/system/sysinit.target.wants/debug-shell.service)
+      printf '%s\t%s\t%s' 'Acceptance harness' 'MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY' 'ephemeral VM-only tty9 diagnostic shell'
+      ;;
     airootfs/usr/local/bin/Installation_guide|airootfs/usr/local/bin/choose-mirror|airootfs/usr/local/bin/installer.py|airootfs/usr/local/bin/livecd-sound)
       printf '%s\t%s\t%s' 'ArchISO live helpers' 'explicit MeoArch profile helper source' 'services declared by the ArchISO profile'
       ;;
