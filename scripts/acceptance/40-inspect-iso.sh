@@ -55,7 +55,8 @@ xorriso -osirrox on -indev "${iso_path}" \
 unsquashfs -ll "${extract_dir}/airootfs.sfs" >"${evidence_dir}/airootfs-files.txt"
 echo "Recorded $(wc -l <"${evidence_dir}/airootfs-files.txt") airootfs entries."
 
-grep -Eq 'usr/lib/libmeoui\.so\.0(\.[0-9]+)*$' "${evidence_dir}/airootfs-files.txt"
+# libmeoui.so.0 is the ABI SONAME symlink; its implementation file is versioned.
+grep -Eq 'usr/lib/libmeoui\.so\.0( -> libmeoui\.so\.[0-9.]+)?$' "${evidence_dir}/airootfs-files.txt"
 grep -q 'usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so' "${evidence_dir}/airootfs-files.txt"
 grep -q 'opt/meoarch-installer/qml/Main.qml' "${evidence_dir}/airootfs-files.txt"
 grep -q 'opt/meoarch-installer/translations/meoarch_zh_CN.qm' "${evidence_dir}/airootfs-files.txt"
