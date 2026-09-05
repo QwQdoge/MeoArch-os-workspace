@@ -116,8 +116,8 @@ grep -q '/usr/bin/meoarch-repair --live --kiosk' installer/bin/meoarch-installer
 grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
 ! rg -q 'RepairMain.qml' installer
 grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-grep -q '^After=systemd-user-sessions.service systemd-logind.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-grep -q '^Wants=NetworkManager.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^After=systemd-user-sessions.service systemd-logind.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^Wants=NetworkManager.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Environment=XDG_RUNTIME_DIR=/run/meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^RuntimeDirectory=meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^RuntimeDirectoryMode=0700$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
@@ -132,6 +132,7 @@ for milestone in early storage services; do
   grep -q '^TimeoutStartSec=5s$' "installer/data/systemd/meo-boot-${milestone}.service"
 done
 ! rg -q '^sddm$|^plasma-(desktop|workspace)$|^kwin$' meoarch-os/packages.x86_64
+grep -q '^seatd$' meoarch-os/packages.x86_64
 ! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
 ! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service

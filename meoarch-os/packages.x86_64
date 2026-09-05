@@ -23,6 +23,7 @@ bolt
 brltty
 btrfs-progs
 cage
+seatd
 clonezilla
 cloud-init
 cryptsetup
