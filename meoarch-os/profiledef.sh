@@ -25,6 +25,7 @@ file_permissions=(
   ["/usr/local/bin/livecd-sound"]="0:0:755"
   ["/usr/local/bin/meoarch-installer"]="0:0:755"
   ["/usr/local/bin/meoarch-installer-kiosk"]="0:0:755"
+  ["/usr/local/bin/meoarch-install"]="0:0:755"
   ["/usr/local/bin/meoarch-installer-live"]="0:0:755"
   ["/usr/local/bin/meoarch-installer-live-root"]="0:0:755"
   ["/usr/bin/meoarch-repair"]="0:0:755"

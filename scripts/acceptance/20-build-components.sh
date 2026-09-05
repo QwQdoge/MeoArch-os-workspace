@@ -42,7 +42,7 @@ cmake --fresh -S "${repo_root}/../meo-kde/native/system" -B "${repo_root}/build/
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "${repo_root}/build/meo-system" --parallel
 runtime="${repo_root}/build/installer-runtime-root/usr"
-library="${runtime}/lib/libmeoui.so.0.3.1"
+library="${runtime}/lib/libmeoui.so.0"
 plugin="${runtime}/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so"
 
 [ -f "${library}" ]

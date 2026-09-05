@@ -19,7 +19,10 @@ if [ ! -d "${airootfs}" ] || [ -L "${airootfs}" ]; then
   echo "ISO airootfs must be an existing real directory: ${airootfs}" >&2
   exit 2
 fi
-legacy_live_tools="${airootfs}/usr/local/bin"
+# ArchISO builds synchronize into a generated profile copy.  The upstream live
+# helpers must always come from the versioned source profile, never from the
+# generated destination (which is intentionally empty before synchronization).
+profile_live_tools="${repo_root}/meoarch-os/airootfs/usr/local/bin"
 installer_dst="${airootfs}/opt/meoarch-installer"
 repair_dst="${airootfs}/usr/lib/meoarch-repair"
 desktop_dst="${airootfs}/opt/meo-desktop"
@@ -300,14 +303,16 @@ install -Dm755 "${installer_src}/bin/meoarch-install" \
 install -Dm755 "${installer_src}/backend/preflight-meo-repository.sh" \
   "${installer_dst}/backend/preflight-meo-repository.sh"
 for helper in Installation_guide choose-mirror installer.py livecd-sound; do
-  [ -f "${legacy_live_tools}/${helper}" ] || {
-    echo "Required ArchISO live helper is missing: ${legacy_live_tools}/${helper}" >&2
+  helper_source="${profile_live_tools}/${helper}"
+  helper_destination="${airootfs}/usr/local/bin/${helper}"
+  [ -f "${helper_source}" ] || {
+    echo "Required ArchISO live helper is missing: ${helper_source}" >&2
     exit 1
   }
-  if [ "${legacy_live_tools}/${helper}" != "${airootfs}/usr/local/bin/${helper}" ]; then
-    install -Dm755 "${legacy_live_tools}/${helper}" "${airootfs}/usr/local/bin/${helper}"
+  if [ "${helper_source}" != "${helper_destination}" ]; then
+    install -Dm755 "${helper_source}" "${helper_destination}"
   else
-    chmod 755 "${airootfs}/usr/local/bin/${helper}"
+    chmod 755 "${helper_destination}"
   fi
 done
 install -Dm755 "${installer_src}/bin/meoarch-installer-live" \
