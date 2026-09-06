@@ -126,7 +126,10 @@ int main(int argc, char *argv[])
             bool ok = false;
             const int requested = argument.mid(7).toInt(&ok);
             if (ok)
-                initialPage = std::clamp(requested, 0, 10);
+                // Keep visual preview capable of opening every page, including
+                // the completion screen at index 11. This affects preview
+                // selection only; normal installer navigation is QML-owned.
+                initialPage = std::clamp(requested, 0, 11);
         }
     }
     engine.setInitialProperties({

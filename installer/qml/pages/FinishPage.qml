@@ -14,12 +14,12 @@ PageFrame {
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -page.dp(12)
         width: Math.min(parent.width, page.dp(680))
-        spacing: page.dp(20)
+        spacing: page.compactHeight ? page.dp(12) : page.dp(20)
 
         MeoShape {
             anchors.horizontalCenter: parent.horizontalCenter
-            width: page.dp(96)
-            height: page.dp(96)
+            width: page.compactHeight ? page.dp(72) : page.dp(96)
+            height: width
             radius: width / 2
             color: MeoTheme.primaryContainer
             MeoIcon { anchors.centerIn: parent; icon: page.completed ? "check" : "info"; size: 48; color: MeoTheme.contentOnPrimaryContainer }
@@ -29,7 +29,7 @@ PageFrame {
             horizontalAlignment: Text.AlignHCenter
             text: page.completed ? qsTr("Installation complete") : qsTr("Installation has not completed")
             typeRole: "title"
-            typeSize: "big"
+            typeSize: page.compactHeight ? "large" : "big"
             emphasized: true
             color: MeoTheme.contentOnSurface
         }
@@ -37,8 +37,8 @@ PageFrame {
             visible: page.completed
             width: parent.width
             spacing: page.dp(12)
-            SelectionCard { width: (parent.width - page.dp(12)) / 2; height: page.dp(80); iconText: "eject"; title: "Remove installation media"; value: "Before restarting" }
-            SelectionCard { width: (parent.width - page.dp(12)) / 2; height: page.dp(80); iconText: "description"; title: "Session log saved"; value: "Secrets excluded" }
+            SelectionCard { width: (parent.width - page.dp(12)) / 2; height: page.compactHeight ? page.dp(68) : page.dp(80); iconText: "eject"; title: qsTr("Remove installation media"); value: qsTr("Before restarting"); actionable: false; trailingIcon: "" }
+            SelectionCard { width: (parent.width - page.dp(12)) / 2; height: page.compactHeight ? page.dp(68) : page.dp(80); iconText: "description"; title: qsTr("Session log saved"); value: qsTr("Secrets excluded"); actionable: false; trailingIcon: "" }
         }
         InfoBanner {
             visible: !page.completed || (page.controller && !page.controller.systemActionsEnabled)
@@ -51,8 +51,8 @@ PageFrame {
             visible: page.completed
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: page.dp(12)
-            MeoButton { text: "Restart Now"; type: "filled"; implicitWidth: page.dp(150); onClicked: page.controller.requestRestart() }
-            MeoButton { text: "Shut Down"; type: "outlined"; implicitWidth: page.dp(140); onClicked: page.controller.requestShutdown() }
+            MeoButton { text: qsTr("Restart Now"); type: "filled"; implicitWidth: page.dp(150); onClicked: page.controller.requestRestart() }
+            MeoButton { text: qsTr("Shut Down"); type: "outlined"; implicitWidth: page.dp(140); onClicked: page.controller.requestShutdown() }
         }
     }
 }

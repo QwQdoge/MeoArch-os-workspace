@@ -41,7 +41,8 @@ PageFrame {
             iconText: "lan"
             title: SystemState.networkName.length ? SystemState.networkName : qsTr("Active connection")
             value: SystemState.networkStatus
-            enabled: false
+            actionable: false
+            trailingIcon: ""
         }
         Item {
             width: parent.width
@@ -114,6 +115,7 @@ PageFrame {
                        : modelData.saved ? qsTr("Saved · %1").arg(modelData.securityLabel)
                        : modelData.securityLabel
                 selected: modelData.connected
+                selectionIndicator: true
                 enabled: !SystemState.networkBusy
                 onClicked: {
                     SystemState.clearOperationError()

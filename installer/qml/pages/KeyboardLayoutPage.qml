@@ -40,6 +40,7 @@ PageFrame {
                     title: modelData.name
                     value: modelData.id
                     selected: page.controller && page.controller.keyboardLayout === modelData.id
+                    selectionIndicator: true
                     onClicked: page.controller.setKeyboardLayout(modelData.id)
                 }
             }

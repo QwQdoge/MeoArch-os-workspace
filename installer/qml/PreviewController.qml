@@ -2,6 +2,8 @@ pragma Singleton
 import QtQuick
 
 QtObject {
+    readonly property bool previewInstalling: Qt.application.arguments.indexOf("--preview-installing") >= 0
+    readonly property bool previewComplete: Qt.application.arguments.indexOf("--preview-complete") >= 0
     property string uiLanguage: "en"
     property string systemLocale: "en_US.UTF-8"
     property string formatCountry: "US"
@@ -12,10 +14,11 @@ QtObject {
     property string networkDetail: "Visual preview backend"
     property string selectedDisk: "preview-disk-0"
     property string hardwareSummary: "Automatic PCI detection will select graphics drivers."
-    property string installationState: "idle"
-    property int installationProgress: 0
-    property string installationStage: "idle"
-    property string installationMessage: ""
+    property string installationState: previewComplete ? "complete" : previewInstalling ? "running" : "idle"
+    property int installationProgress: previewComplete ? 100 : previewInstalling ? 35 : 0
+    property string installationStage: previewComplete ? "complete" : previewInstalling ? "installing_base" : "idle"
+    property string installationMessage: previewComplete ? qsTr("Installation complete.")
+                                                       : previewInstalling ? qsTr("Installing the base system and packages") : ""
     property string preflightState: "ready"
     property string preflightMessage: "Visual preview only — no installation backend is invoked."
     property bool readyToInstall: true
