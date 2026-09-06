@@ -7,20 +7,29 @@ MeoCard {
     property string iconFont: "Roboto"
     property string title: ""
     property string value: ""
+    // A selection card represents one option in a mutually exclusive choice;
+    // a navigation card opens another view. Keeping that distinction explicit
+    // prevents a right-facing chevron from implying navigation on radio-like
+    // installer choices such as disks and software profiles.
+    property bool selectionIndicator: false
+    property bool actionable: true
+    property string trailingIcon: "chevron_right"
     type: "outlined"
-    interactive: true
+    interactive: actionable
     padding: 0
     implicitHeight: 84 * MeoTheme.globalScale
     radius: MeoTheme.shapeLarge
-    activeFocusOnTab: true
+    activeFocusOnTab: actionable
     Accessible.name: title + (value.length ? ", " + value : "")
-    Accessible.role: Accessible.Button
+    Accessible.role: selectionIndicator ? Accessible.RadioButton
+                                         : actionable ? Accessible.Button : Accessible.Pane
+    Accessible.checked: selectionIndicator && selected
 
     // MeoCard's visual background owns its hover state, but controls place
     // background items behind their content item. A root-level handler keeps
     // the complete card reliably actionable in the installer.
     TapHandler {
-        enabled: card.enabled
+        enabled: card.enabled && card.actionable
         onTapped: {
             card.forceActiveFocus(Qt.MouseFocusReason)
             card.clicked()
@@ -39,7 +48,7 @@ MeoCard {
     Column {
         anchors.left: leadingIcon.right
         anchors.leftMargin: 16 * MeoTheme.globalScale
-        anchors.right: chevron.left
+        anchors.right: trailing.left
         anchors.rightMargin: 12 * MeoTheme.globalScale
         anchors.verticalCenter: parent.verticalCenter
         spacing: 2 * MeoTheme.globalScale
@@ -47,11 +56,13 @@ MeoCard {
         MeoText { width: parent.width; text: card.value; typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant; elide: Text.ElideRight }
     }
     MeoIcon {
-        id: chevron
+        id: trailing
         anchors.right: parent.right
         anchors.rightMargin: 20 * MeoTheme.globalScale
         anchors.verticalCenter: parent.verticalCenter
-        icon: "chevron_right"
+        visible: card.selectionIndicator || card.trailingIcon.length > 0
+        icon: card.selectionIndicator ? (card.selected ? "check_circle" : "radio_button_unchecked")
+                                      : card.trailingIcon
         size: 24
         color: card.selected ? MeoTheme.primary : MeoTheme.contentOnSurfaceVariant
     }

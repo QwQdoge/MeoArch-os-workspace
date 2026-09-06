@@ -19,6 +19,7 @@ PageFrame {
             title: qsTr("Stable")
             value: qsTr("Recommended for most users. Receives fully tested MeoArch release trains. Repository: meo")
             selected: page.channel === "stable"
+            selectionIndicator: true
             onClicked: controller.setSelection("software", "channel", "stable")
         }
         SelectionCard {
@@ -26,6 +27,7 @@ PageFrame {
             title: qsTr("Beta")
             value: qsTr("Receives newer Meo components before Stable and may be less tested. Repositories: meo-beta, then meo fallback.")
             selected: page.channel === "beta"
+            selectionIndicator: true
             onClicked: controller.setSelection("software", "channel", "beta")
         }
         InfoBanner {

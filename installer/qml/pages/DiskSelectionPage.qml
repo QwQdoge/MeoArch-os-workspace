@@ -57,6 +57,7 @@ PageFrame {
                 value: modelData.eligible ? modelData.kind + " · " + modelData.id
                                          : modelData.unavailableReason
                 selected: page.controller && page.controller.selectedDisk === modelData.id
+                selectionIndicator: true
                 enabled: modelData.eligible
                 Accessible.description: modelData.serial.length || modelData.wwn.length
                                         ? qsTr("Serial: %1  WWN: %2").arg(modelData.serial).arg(modelData.wwn) : ""
@@ -75,6 +76,7 @@ PageFrame {
                 title: qsTr("Erase disk and install")
                 value: qsTr("Creates GPT, EFI and a root filesystem")
                 selected: page.controller && page.controller.selection("disk", "mode", "erase") === "erase"
+                selectionIndicator: true
                 onClicked: page.selectDiskMode("erase")
             }
             SelectionCard {
@@ -84,6 +86,7 @@ PageFrame {
                 title: qsTr("Custom full-disk layout")
                 value: qsTr("Adjust the root partition and create a separate home partition")
                 selected: page.controller && page.controller.selection("disk", "mode", "erase") === "guided"
+                selectionIndicator: true
                 enabled: page.diskSizeGiB >= 26
                 onClicked: page.selectDiskMode("guided")
                 Accessible.description: value
@@ -200,7 +203,7 @@ PageFrame {
                 MeoText { text: qsTr("Swap"); typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface }
                 Repeater {
                     model: [{ id: "zram", name: qsTr("Automatic ZRAM"), detail: qsTr("Compressed memory swap") }, { id: "file", name: qsTr("Swap file"), detail: qsTr("Creates a 4 GiB target swap file") }, { id: "none", name: qsTr("None"), detail: qsTr("No swap configured") }]
-                    delegate: SelectionCard { required property var modelData; width: parent.width; height: page.dp(60); iconText: "swap_horiz"; title: modelData.name; value: modelData.detail; selected: page.controller && page.controller.selection("disk", "swap", "zram") === modelData.id; onClicked: page.controller.setSelection("disk", "swap", modelData.id) }
+                    delegate: SelectionCard { required property var modelData; width: parent.width; height: page.dp(60); iconText: "swap_horiz"; title: modelData.name; value: modelData.detail; selected: page.controller && page.controller.selection("disk", "swap", "zram") === modelData.id; selectionIndicator: true; onClicked: page.controller.setSelection("disk", "swap", modelData.id) }
                 }
                 InfoBanner { width: parent.width; title: qsTr("Disk encryption unavailable"); message: qsTr("Encryption remains disabled until a tested Archinstall credential and cleanup path is available. No passphrase is collected."); tone: "error" }
                 MeoButton { anchors.right: parent.right; text: qsTr("Done"); type: "filled"; onClicked: advanced.close() }

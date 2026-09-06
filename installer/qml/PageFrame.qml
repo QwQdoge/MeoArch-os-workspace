@@ -17,6 +17,7 @@ Item {
     property bool showPrimaryButton: true
     property bool primaryEnabled: true
     property bool primaryAdvances: true
+    property string primaryAccessibleDescription: qsTr("Continue to the next installation step")
     property string statusMessage: ""
     default property alias content: bodyHost.data
 
@@ -33,7 +34,9 @@ Item {
     readonly property real mainCardHeight: Math.min(height - pageMargin * 2,
                                                      reserveTopBar ? height - cardTop - pageMargin : Number.MAX_VALUE,
                                                      windowMetrics.isExtraLargeWidth ? dp(736)
-                                                                                    : windowMetrics.isLargeWidth ? dp(612) : dp(520))
+                                                                                    : windowMetrics.isLargeWidth
+                                                                                      ? (windowMetrics.isExpandedHeight ? dp(680) : dp(612))
+                                                                                      : dp(520))
     readonly property real footerHeight: compactHeight ? dp(64)
                                                         : windowMetrics.isExtraLargeWidth ? dp(96)
                                                                                           : windowMetrics.isLargeWidth ? dp(80) : dp(72)
@@ -319,7 +322,7 @@ Item {
                 type: "filled"
                 size: "m"
                 isEmphasized: true
-                Accessible.description: qsTr("Continue to the next installation step")
+                Accessible.description: frame.primaryAccessibleDescription
                 onClicked: frame.firePrimary()
             }
         }

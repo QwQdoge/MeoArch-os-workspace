@@ -12,6 +12,9 @@ PageFrame {
                   : qsTr("Prepare installation plan")
     primaryAdvances: false
     primaryEnabled: !(controller && controller.preflightState === "checking")
+    primaryAccessibleDescription: controller && controller.preflightState === "ready"
+                                  ? qsTr("Opens a final confirmation before installation can begin")
+                                  : qsTr("Validates the installation plan without writing the selected disk")
     property bool riskAccepted: false
     readonly property var resolvedRepository: controller && controller.installPlan.repository
                                               ? controller.installPlan.repository : ({})
@@ -75,11 +78,17 @@ PageFrame {
             }
         }
         InfoBanner {
-            visible: page.controller && page.controller.preflightState !== "ready"
+            visible: page.controller
             width: parent.width
-            title: page.controller && page.controller.preflightState === "failed" ? qsTr("Installation plan blocked") : qsTr("Installation plan not prepared")
-            message: page.controller && page.controller.preflightMessage.length ? page.controller.preflightMessage : qsTr("Select a valid disk and account, then prepare the plan.")
-            tone: page.controller && page.controller.preflightState === "failed" ? "error" : "info"
+            title: page.controller.preflightState === "ready" ? qsTr("Installation plan ready")
+                   : page.controller.preflightState === "failed" ? qsTr("Installation plan blocked")
+                   : qsTr("Installation plan not prepared")
+            message: page.controller.preflightState === "ready"
+                     ? qsTr("Review the selected disk and settings. Install now opens one final erase confirmation.")
+                     : page.controller.preflightMessage.length ? page.controller.preflightMessage
+                                                               : qsTr("Select a valid disk and account, then prepare the plan.")
+            tone: page.controller.preflightState === "ready" ? "success"
+                  : page.controller.preflightState === "failed" ? "error" : "info"
         }
         MeoCard {
             visible: page.resolvedPackage.packages && page.resolvedPackage.packages.length > 0

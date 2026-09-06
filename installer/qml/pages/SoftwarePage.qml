@@ -61,6 +61,7 @@ PageFrame {
                 title: modelData.title
                 value: modelData.detail
                 selected: page.profile === modelData.id
+                selectionIndicator: true
                 onClicked: page.selectProfile(modelData.id)
             }
         }

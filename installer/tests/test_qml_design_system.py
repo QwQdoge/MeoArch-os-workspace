@@ -50,6 +50,29 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('setSelection("disk", "rootSizeGiB"', disk)
         self.assertNotIn("gparted", disk.casefold())
 
+    def test_choice_cards_expose_selection_semantics_without_turning_status_cards_into_buttons(self):
+        card = (QML_ROOT / "components/SelectionCard.qml").read_text(encoding="utf-8")
+        disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
+        summary = (QML_ROOT / "pages/SummaryPage.qml").read_text(encoding="utf-8")
+        self.assertIn("property bool selectionIndicator: false", card)
+        self.assertIn("Accessible.RadioButton", card)
+        self.assertIn("selectionIndicator: true", disk)
+        self.assertIn("Installation plan ready", summary)
+        self.assertIn("final erase confirmation", summary)
+
+    def test_installing_page_explains_verified_progress_and_maps_backend_stage_ids(self):
+        installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")
+        self.assertIn('stage === "installing_base"', installing)
+        self.assertIn("Progress updates at verified stages", installing)
+        self.assertIn("same percentage", installing)
+
+    def test_minimum_window_uses_compact_install_and_finish_layouts(self):
+        installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")
+        finish = (QML_ROOT / "pages/FinishPage.qml").read_text(encoding="utf-8")
+        self.assertIn("page.compactHeight ? page.dp(138)", installing)
+        self.assertIn("page.compactHeight ? page.dp(72)", finish)
+        self.assertIn("page.compactHeight ? page.dp(68)", finish)
+
     def test_user_visible_static_strings_are_translation_eligible(self):
         offenders = []
         literal = re.compile(r'^\s*(?:text|title|subtitle|label|placeholder):\s*"', re.MULTILINE)
