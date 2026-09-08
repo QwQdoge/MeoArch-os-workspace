@@ -10,8 +10,20 @@ QtObject {
     property string formatLocale: "en_US.UTF-8"
     property string timeZone: "UTC"
     property string keyboardLayout: "us"
-    property string networkState: "connected"
+    property var regionRecommendation: ({ country: formatCountry, systemLocale: systemLocale, formatLocale: formatLocale, timeZone: timeZone, keyboardLayout: keyboardLayout, automatic: true, hasPreset: true })
+    readonly property var calendarCapabilities: [
+        {id:"none",name:"No secondary calendar",description:"Gregorian calendar only",state:"ready"},
+        {id:"buddhist",name:"Buddhist Era",description:"Local display only",state:"ready"},
+        {id:"islamic-civil",name:"Islamic Civil calendar",description:"Local Qt calendar display",state:"ready"},
+        {id:"hebcal",name:"Hebrew calendar and holidays",description:"Optional online data after installation",state:"needs-online-setup"}
+    ]
+    property string networkState: "online"
     property string networkDetail: "Visual preview backend"
+    property string networkHandoffState: "ready"
+    property string networkHandoffMessage: "This current network can be remembered after installation."
+    property bool networkHandoffEnabled: true
+    property bool debugTerminalAvailable: true
+    property string debugTerminalMessage: "Preview only"
     property string selectedDisk: "preview-disk-0"
     property string hardwareSummary: "Automatic PCI detection will select graphics drivers."
     property string installationState: previewComplete ? "complete" : previewInstalling ? "running" : "idle"
@@ -27,7 +39,14 @@ QtObject {
     property string errorMessage: ""
     property bool realInstallEnabled: false
     property bool systemActionsEnabled: false
-    property var values: ({})
+    // The visual preview must exercise the same numeric layout path as a
+    // detected disk. Never render a zero-sized or invented partition chart.
+    property var values: ({
+        "disk.sizeBytes": 549755813888,
+        "disk.mode": "erase",
+        "disk.separateHome": false,
+        "disk.rootSizeGiB": 32
+    })
     property var installPlan: ({
         schemaVersion: 2,
         architecture: "x86_64",
@@ -49,10 +68,7 @@ QtObject {
         {id:"com.obsproject.Studio",name:"OBS Studio",summary:"Record and stream video.",category:"Creative",package:"obs-studio",tier:"third-party",profiles:[]}
     ]
     readonly property var uiLanguages: [
-        {id:"en",nativeName:"English"},{id:"zh_CN",nativeName:"简体中文"},{id:"zh_TW",nativeName:"繁體中文"},
-        {id:"ja",nativeName:"日本語"},{id:"ko",nativeName:"한국어"},{id:"es",nativeName:"Español"},
-        {id:"fr",nativeName:"Français"},{id:"de",nativeName:"Deutsch"},{id:"pt_BR",nativeName:"Português (Brasil)"},
-        {id:"ru",nativeName:"Русский"},{id:"it",nativeName:"Italiano"}
+        {id:"en",nativeName:"English"}
     ]
     readonly property var systemLocales: [
         {id:"en_US.UTF-8",nativeName:"English",code:"en_US.UTF-8"},
@@ -73,17 +89,44 @@ QtObject {
         {id:"de",name:"German"},{id:"fr",name:"French"},{id:"es",name:"Spanish"}
     ]
     readonly property var disks: [
-        {id:"preview-disk-0",name:"NVMe Solid State Drive",size:"512 GB",available:"Visual preview disk",kind:"SSD · Preview",eligible:true,unavailableReason:"",serial:"PREVIEW",wwn:""},
-        {id:"preview-disk-1",name:"External Storage",size:"1 TB",available:"Preview media excluded",kind:"Removable · Preview",eligible:false,unavailableReason:"This is preview-only removable media.",serial:"PREVIEW",wwn:""}
+        {id:"preview-disk-0",devicePath:"/dev/nvme0n1",name:"NVMe Solid State Drive",size:"512 GB",sizeBytes:549755813888,available:"Visual preview disk",kind:"SSD · Preview",eligible:true,unavailableReason:"",partitionInstallEligible:true,partitionUnavailableReason:"",serial:"PREVIEW",wwn:"",
+         partitions:[
+             {name:"nvme0n1p1",path:"/dev/nvme0n1p1",size:"512 MB",sizeBytes:536870912,startSectors:2048,sizeSectors:1048576,logicalSectorSize:512,parttype:"c12a7328-f81f-11d2-ba4b-00a0c93ec93b",fstype:"vfat",isEfi:true,eligibleRoot:false,eligibleEfi:true,unavailableReason:"EFI System Partition — preserved"},
+             {name:"nvme0n1p4",path:"/dev/nvme0n1p4",size:"64 GB",sizeBytes:68719476736,startSectors:2099200,sizeSectors:134217728,logicalSectorSize:512,parttype:"0fc63daf-8483-4772-8e79-3d69d8477de4",fstype:"ext4",isEfi:false,eligibleRoot:true,eligibleEfi:false,unavailableReason:""}
+         ]},
+        {id:"preview-disk-1",devicePath:"/dev/sdb",name:"External Storage",size:"1 TB",sizeBytes:1099511627776,available:"Preview media excluded",kind:"Removable · Preview",eligible:false,unavailableReason:"This is preview-only removable media.",partitionInstallEligible:false,partitionUnavailableReason:"Removable media cannot be selected.",serial:"PREVIEW",wwn:"",partitions:[]}
     ]
 
     function setUiLanguage(id) { uiLanguage = id }
     function setSystemLocale(id) { systemLocale = id }
+    function setFormatLocale(id) { formatLocale = id }
     function setFormatCountry(id) { formatCountry = id; formatLocale = systemLocale }
     function setTimeZone(id) { timeZone = id }
     function setKeyboardLayout(id) { keyboardLayout = id }
-    function setSelectedDisk(id) { selectedDisk = id }
+    function setSecondaryCalendar(id) { setSelection("preferences", "secondaryCalendar", id); if (id !== "hebcal") setSelection("preferences", "hebcalEnabled", false) }
+    function setHebcalEnabled(enabled) { setSelection("preferences", "hebcalEnabled", enabled) }
+    function useRegionRecommendations() {}
+    function setNetworkHandoffEnabled(enabled) { networkHandoffEnabled = enabled }
+    function setSelectedDisk(id) {
+        selectedDisk = id
+        if (id === "preview-disk-0")
+            setSelection("disk", "sizeBytes", 549755813888)
+    }
+    function selectExistingPartition(diskId, partitionPath) {
+        const disk = disks.find(entry => entry.id === diskId)
+        const root = disk ? disk.partitions.find(entry => entry.path === partitionPath) : null
+        const efi = disk ? disk.partitions.find(entry => entry.eligibleEfi) : null
+        if (!root || !root.eligibleRoot || !efi) { errorMessage = "The preview partition plan is not available."; return }
+        selectedDisk = diskId
+        setSelection("disk", "sizeBytes", disk.sizeBytes)
+        setSelection("disk", "devicePath", disk.devicePath)
+        setSelection("disk", "stableId", diskId)
+        setSelection("disk", "targetPartition", root)
+        setSelection("disk", "efiPartition", efi)
+        setSelection("disk", "mode", "partition")
+    }
     function retryNetwork() { networkState = "connected" }
+    function openDebugTerminal() { debugTerminalMessage = "Preview only: a Live-session terminal would open here." }
     function setSelection(section, key, value) { const next = Object.assign({}, values); next[section + "." + key] = value; values = next }
     function selection(section, key, fallback) { const id = section + "." + key; return typeof values[id] === "undefined" ? fallback : values[id] }
     signal accountReady()

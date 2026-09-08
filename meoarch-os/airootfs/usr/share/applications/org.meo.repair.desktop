@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=MeoArch Quick Repair
+Name[zh_CN]=MeoArch 快速修复
+Comment=Run categorized checks and consent-gated AI repair plans
+Comment[zh_CN]=运行分类检查与经同意的 AI 修复方案
+Exec=meoarch-repair
+Icon=meoarch-ai
+Terminal=false
+Categories=System;Settings;Utility;
+Keywords=repair;troubleshoot;diagnostics;AI;
+StartupNotify=true

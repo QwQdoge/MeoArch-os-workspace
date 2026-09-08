@@ -66,6 +66,7 @@ required=(
   installer/data/account.env.example
   installer/data/application-catalog.json
   installer/data/package-catalog.json
+  assets/wallpapers/installer_background.png
   installer/translations/meoarch_zh_CN.ts
   installer/backend/generate-config.py
   scripts/sync-installer-to-airootfs.sh
@@ -96,9 +97,11 @@ grep -q 'import Meo.System 1.0' installer/qml/pages/NetworkPage.qml
 ! rg -q 'readonly property var wifiNetworks' installer/qml/pages/NetworkPage.qml
 ! rg -q 'preview-disk' installer/app/installercontroller.cpp
 grep -q 'for plasmoid in org.meo.topbar org.meo.timecenter; do' scripts/sync-installer-to-airootfs.sh
-# The installed desktop owns the floating Meo Dock; it superseded the old
-# hard-coded Icons-Only Task Manager layout checked here previously.
-grep -q 'org.meo.dock starts as an independent Layer Shell surface' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
+# Plasma's native task manager is the sole floating Dock. Meo owns its theme
+# geometry and dynamic colour, not a second task/window model.
+grep -q 'bottomPanel.addWidget("org.kde.plasma.icontasks")' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
+grep -q 'DockImplementation=native' "${projects_root}/meo-kde/defaults/plasma/meo-shellrc"
+! rg -q 'data/autostart/org.meo.dock.desktop' "${projects_root}/meo-kde/packaging/arch/PKGBUILD"
 grep -q 'meo-dynamic-colors.path' scripts/sync-installer-to-airootfs.sh
 grep -q '90-meo-applications.conf' installer/backend/apply-target-customizations.sh
 grep -q 'Target dynamic color, application, or input-method integration is missing' scripts/verify-target-install.sh
@@ -106,11 +109,26 @@ grep -q 'git archive --format=tar HEAD meoarch-os' scripts/build-iso.sh
 grep -q 'declared sibling MeoKDE desktop assets' scripts/verify-staging-provenance.sh
 grep -q '^lynis$' meoarch-os/packages.x86_64
 grep -q '^qtkeychain-qt6$' meoarch-os/packages.x86_64
+grep -q '^konsole$' meoarch-os/packages.x86_64
+grep -q 'openDebugTerminal' installer/app/installercontroller.cpp
+grep -q 'openDiagnosticTty' installer/app/repaircontroller.cpp
+grep -q 'TTYPath=/dev/tty3' installer/app/repaircontroller.cpp
+grep -q 'structured_diagnostic_findings' installer/app/repaircontroller.cpp
+grep -q 'wiki.archlinux.org/title/Installation_guide' installer/qml/PageFrame.qml
 grep -q 'meoarch.mode=repair' meoarch-os/grub/grub.cfg
 grep -q 'themes/meoarch/theme.txt' meoarch-os/grub/grub.cfg
-grep -q 'Repair MeoArch OS' meoarch-os/grub/grub.cfg
+grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/grub.cfg
+grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/loopback.cfg
 grep -q 'selected_item_pixmap_style = "select_\*.png"' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'MeoArch Sans Bold 24' meoarch-os/grub/themes/meoarch/theme.txt
+grep -q 'Everything has a GUI. Every choice is yours.' meoarch-os/grub/themes/meoarch/theme.txt
+grep -q 'bg_image.Scale(screen_width, screen_height)' themes/plymouth/meoarch/meoarch.script
+! rg -q 'STAGE:' themes/plymouth/meoarch installer/bin/meo-boot-status
+grep -q 'GRUB_TIMEOUT.*3' installer/backend/apply-target-customizations.sh
+grep -q 'meo-session-actiond' scripts/sync-installer-to-airootfs.sh
+grep -q 'org.meo.SessionAction1.service' installer/backend/verify-target.py
+grep -Fq 'Ctrl+Meta+Delete' "${projects_root}/meo-kde/defaults/kde/kglobalshortcutsrc"
+grep -q 'MeoHoldToConfirm' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/logout/Logout.qml"
 ! rg -q 'AI Repair MeoArch OS|✨' meoarch-os/grub meoarch-os/efiboot meoarch-os/syslinux
 grep -q '/usr/bin/meoarch-repair --live --kiosk' installer/bin/meoarch-installer-kiosk
 grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
@@ -131,7 +149,7 @@ grep -q '^PLYMOUTH_COMMAND_TIMEOUT_SECONDS = 1$' installer/bin/meo-boot-status
 for milestone in early storage services; do
   grep -q '^TimeoutStartSec=5s$' "installer/data/systemd/meo-boot-${milestone}.service"
 done
-! rg -q '^sddm$|^plasma-(desktop|workspace)$|^kwin$' meoarch-os/packages.x86_64
+! rg -q '^sddm$|^plasma-login-manager$|^plasma-(desktop|workspace)$|^kwin$' meoarch-os/packages.x86_64
 grep -q '^seatd$' meoarch-os/packages.x86_64
 ! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'

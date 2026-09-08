@@ -12,7 +12,7 @@ Item {
     property int pageCount: 11
     property string pageTitle: ""
     property string pageSubtitle: ""
-    property string primaryLabel: pageIndex === 0 ? "Get Started" : "Continue"
+    property string primaryLabel: pageIndex === 0 ? qsTr("Get Started") : qsTr("Continue")
     property bool showBackButton: pageIndex > 0 && pageIndex < 9
     property bool showPrimaryButton: true
     property bool primaryEnabled: true
@@ -56,6 +56,10 @@ Item {
     function dp(value) { return Math.round(value * MeoTheme.globalScale) }
     function asset(path) { return String(assetsRoot) + path }
     function firePrimary() { primaryAdvances ? nextRequested() : primaryRequested() }
+    function openDocumentation(url, description) {
+        statusMessage = Qt.openUrlExternally(url)
+                ? description : qsTr("Could not open the documentation browser.")
+    }
 
     onStatusMessageChanged: if (statusMessage.length) snackbar.open()
     Component.onCompleted: MeoTheme.isDarkMode = false
@@ -120,14 +124,28 @@ Item {
         spacing: frame.dp(8)
 
         MeoIconButton {
+            visible: frame.controller && frame.controller.debugTerminalAvailable
+            icon.name: "terminal"
+            size: "l"
+            type: "tonal"
+            Accessible.name: qsTr("Open debug terminal")
+            Accessible.description: qsTr("Opens a real terminal in the Live session for diagnostics")
+            onClicked: {
+                frame.controller.openDebugTerminal()
+                frame.statusMessage = frame.controller.debugTerminalMessage
+            }
+        }
+        MeoIconButton {
+            id: helpButton
             icon.name: "help"
             size: "l"
             type: "tonal"
             Accessible.name: qsTr("Help")
-            onClicked: frame.statusMessage = qsTr("Documentation is available in the installer guide.")
+            onClicked: helpPopup.openFrom(helpButton)
         }
         MeoIconButton {
             id: languageButton
+            visible: frame.controller && frame.controller.uiLanguages.length > 1
             icon.name: "language"
             size: "l"
             type: "tonal"
@@ -141,6 +159,62 @@ Item {
             type: "tonal"
             Accessible.name: qsTr("Power")
             onClicked: powerPopup.openFrom(powerButton)
+        }
+    }
+
+    MeoMotionPopup {
+        id: helpPopup
+        presentation: MeoMotionPopup.Menu
+        x: Math.max(frame.pageMargin, helpButton.x - width + helpButton.width)
+        y: frame.pageMargin + frame.dp(58)
+        width: frame.dp(360)
+        height: frame.dp(286)
+        padding: frame.dp(12)
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        contentItem: Column {
+            width: parent.width
+            spacing: frame.dp(6)
+            MeoText {
+                width: parent.width
+                text: qsTr("Documentation")
+                typeRole: "title"
+                typeSize: "small"
+                emphasized: true
+                color: MeoTheme.contentOnSurface
+            }
+            MeoText {
+                width: parent.width
+                text: qsTr("Meo guides are still being written. Open the original ArchWiki in your browser for current reference material.")
+                typeRole: "body"
+                typeSize: "small"
+                color: MeoTheme.contentOnSurfaceVariant
+                wrapMode: Text.WordWrap
+            }
+            MeoListItem {
+                width: parent.width
+                implicitHeight: frame.dp(44)
+                headline: qsTr("ArchWiki: Installation guide")
+                leadingIcon: "open_in_new"
+                interactive: true
+                onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/Installation_guide", qsTr("Opened the ArchWiki installation guide.")); helpPopup.close() }
+            }
+            MeoListItem {
+                width: parent.width
+                implicitHeight: frame.dp(44)
+                headline: qsTr("ArchWiki: Network configuration")
+                leadingIcon: "wifi"
+                interactive: true
+                onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/Network_configuration", qsTr("Opened the ArchWiki network guide.")); helpPopup.close() }
+            }
+            MeoListItem {
+                width: parent.width
+                implicitHeight: frame.dp(44)
+                headline: qsTr("ArchWiki: KDE Plasma")
+                leadingIcon: "desktop_windows"
+                interactive: true
+                onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/KDE", qsTr("Opened the ArchWiki KDE guide.")); helpPopup.close() }
+            }
         }
     }
 

@@ -38,7 +38,7 @@ classify() {
     airootfs/usr/lib/qt6/qml/MeoKDE/*|airootfs/usr/share/fonts/meo/*|airootfs/etc/fonts/*)
       printf '%s\t%s\t%s' 'MeoKDE' 'compiled or copied sibling MeoKDE runtime' 'shared KDE QML and font integration'
       ;;
-    airootfs/usr/lib/qt6/qml/Meo/System/*)
+    airootfs/usr/lib/qt6/qml/Meo/System/*|airootfs/usr/bin/meo-session-actiond|airootfs/usr/share/dbus-1/services/org.meo.SessionAction1.service)
       printf '%s\t%s\t%s' 'Meo.System' 'compiled sibling MeoKDE native/system module' 'shared NetworkManager and system-state backend'
       ;;
     airootfs/opt/meo-desktop/*|airootfs/usr/share/plasma/look-and-feel/org.meo.desktop/*|airootfs/usr/share/plasma/desktoptheme/*|airootfs/usr/share/plasma/plasmoids/org.meo.shelf/*|airootfs/usr/share/plasma/plasmoids/org.meo.topbar/*|airootfs/usr/share/plasma/plasmoids/org.meo.timecenter/*|airootfs/usr/share/color-schemes/*|airootfs/usr/share/icons/MeoSymbols*/*)
@@ -50,7 +50,7 @@ classify() {
     airootfs/usr/share/wallpapers/MeoArch/*|airootfs/usr/share/pixmaps/meoarch-logo.svg|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg)
       printf '%s\t%s\t%s' 'MeoArch branding' 'workspace assets' 'live session wallpaper and application branding'
       ;;
-    airootfs/usr/share/sddm/themes/breeze/theme.conf.user|airootfs/etc/os-release|airootfs/etc/xdg/kdeglobals|airootfs/etc/xdg/kwinrc|airootfs/etc/xdg/plasmarc|airootfs/etc/xdg/plasma-welcomerc)
+    airootfs/etc/os-release|airootfs/etc/xdg/kdeglobals|airootfs/etc/xdg/kwinrc|airootfs/etc/xdg/plasmarc|airootfs/etc/xdg/plasma-welcomerc)
       printf '%s\t%s\t%s' 'MeoKDE defaults' 'declared sibling MeoKDE defaults' 'installed desktop defaults and branding'
       ;;
     airootfs/usr/lib/qt6/plugins/org.kde.kdecoration3/org.meo.decoration.so|airootfs/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm/kcm_meodecoration.so|airootfs/usr/lib/qt6/plugins/styles/meostyle.so|airootfs/usr/lib/qt6/plugins/kwin/effects/plugins/org.meo.windowcorners.so)

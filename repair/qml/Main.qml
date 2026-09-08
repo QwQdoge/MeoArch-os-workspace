@@ -192,6 +192,12 @@ Window {
             icon: root.repairController.liveEnvironment ? "usb" : "desktop_windows"
             selected: true
         }
+        MeoIconButton {
+            visible: root.repairController.diagnosticTtyAvailable
+            icon.name: "terminal"; type: "outlined"; size: "l"
+            Accessible.name: qsTr("打开 Live TTY 3 诊断终端")
+            onClicked: root.repairController.openDiagnosticTty()
+        }
         MeoChip { label: qsTr("账号可选"); icon: "person_off"; visualStyle: "outlined" }
         MeoIconButton {
             icon.name: "close"; type: "tonal"; size: "l"
@@ -395,6 +401,14 @@ Window {
                     }
                 }
 
+                MeoBanner {
+                    Layout.fillWidth: true
+                    visible: root.repairController.liveEnvironment
+                    title: qsTr("Live TTY 诊断终端")
+                    text: root.repairController.diagnosticTtyMessage
+                    icon: "terminal"
+                }
+
                 MeoCard {
                     Layout.fillWidth: true
                     type: "elevated"
@@ -497,6 +511,12 @@ Window {
                     ColumnLayout {
                         width: parent.width
                         spacing: root.dp(14)
+                        MeoBanner {
+                            Layout.fillWidth: true
+                            title: qsTr("AI 数据边界")
+                            text: qsTr("AI 只会在单次同意后接收当前分类的结构化诊断发现。原始终端日志、网络地址、挂载标签、密码和 API Key 不会发送。")
+                            icon: "privacy_tip"
+                        }
                         RowLayout {
                             Layout.fillWidth: true
                             MeoAiMark { Layout.preferredWidth: root.dp(44); Layout.preferredHeight: root.dp(44) }

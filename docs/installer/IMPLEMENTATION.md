@@ -38,6 +38,12 @@ virtualize delegates with `ListView`, and retain the current selection while sea
 Wi-Fi secret, and disk passphrase stay in memory. The credential artifact is a separate
 0600 file and is never produced from `selections.json`.
 
+The optional single-profile NetworkManager handoff is the sole exception to
+“keep Wi-Fi secrets in memory”: it is an existing NetworkManager connection
+file, copied only after explicit user consent to a root-only temporary file and
+then into the installed system. It is not serialized into selections, plans,
+summaries, or logs, and it is removed on all installer exits.
+
 ## Development checks
 
 ```sh

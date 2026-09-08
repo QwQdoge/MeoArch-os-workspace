@@ -1,6 +1,10 @@
 {
   "schemaVersion": 1,
-  "preferences": { "uiLanguage": "en" },
+  "preferences": {
+    "uiLanguage": "en",
+    "secondaryCalendar": "none",
+    "hebcalEnabled": false
+  },
   "locale": {
     "systemLocale": "en_US.UTF-8",
     "sysLanguage": "en_US",
@@ -8,9 +12,13 @@
     "formatCountry": "US",
     "formatLocale": "en_US.UTF-8",
     "timezone": "UTC",
-    "keyboardLayout": "us"
+    "keyboardLayout": "us",
+    "manualSystemLocale": false,
+    "manualFormatLocale": false,
+    "manualTimezone": false,
+    "manualKeyboardLayout": false
   },
-  "network": { "mode": "networkmanager" },
+  "network": { "mode": "networkmanager", "handoffEnabled": true },
   "hardware": { "graphicsDriver": "automatic" },
   "privacy": {
     "firewall": true
@@ -22,6 +30,6 @@
     "components": [],
     "applications": []
   },
-  "disk": { "mode": "erase", "filesystem": "btrfs", "swap": "zram", "separateHome": true, "rootSizeGiB": 32 },
+  "disk": { "mode": "erase", "filesystem": "btrfs", "swap": "zram", "separateHome": false, "rootSizeGiB": 32 },
   "user": { "hostname": "meoarch", "username": "meo", "automaticLogin": false }
 }

@@ -5,9 +5,9 @@ PageFrame {
     id: page
 
     property string title: ""
-    property string subtitle: "This step is ready for its real controls."
+    property string subtitle: qsTr("This step is ready for its real controls.")
 
-    primaryLabel: pageIndex === pageCount - 1 ? "Finish" : "Continue"
+    primaryLabel: pageIndex === pageCount - 1 ? qsTr("Finish") : qsTr("Continue")
 
     Column {
         id: content

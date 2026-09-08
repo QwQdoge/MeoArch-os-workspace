@@ -15,7 +15,43 @@ fi
 
 if findmnt -n -o FSTYPE / 2>/dev/null | grep -qx btrfs && command -v btrfs >/dev/null 2>&1; then
   echo "[storage] btrfs device stats"
-  btrfs device stats / 2>&1 || true
+  btrfs_stats="$(btrfs device stats / 2>&1 || true)"
+  printf '%s\n' "${btrfs_stats}"
+  if grep -Eq '[[:space:]][1-9][0-9]*$' <<<"${btrfs_stats}"; then
+    echo "MEO_FINDING|warning|storage.btrfs_device_errors|Btrfs reported non-zero device error counters."
+  fi
+fi
+
+echo "[storage] SMART health"
+if command -v smartctl >/dev/null 2>&1; then
+  while IFS= read -r disk; do
+    [ -b "/dev/${disk}" ] || continue
+    smart_output="$(timeout 20 smartctl -H "/dev/${disk}" 2>&1 || true)"
+    printf '%s\n' "--- /dev/${disk} ---"
+    printf '%s\n' "${smart_output}"
+    if grep -Eqi '(overall-health[^:]*:[[:space:]]*FAILED|SMART Health Status:[[:space:]]*FAIL|SMART overall-health.*FAILED)' <<<"${smart_output}"; then
+      echo "MEO_FINDING|warning|storage.smart_failed|SMART reported a failed health result for /dev/${disk}."
+    elif grep -Eqi 'Permission denied|Operation not permitted|Unknown USB bridge|not available' <<<"${smart_output}"; then
+      echo "MEO_FINDING|info|storage.smart_unavailable|SMART health is not available for /dev/${disk} through its current controller."
+    fi
+  done < <(lsblk -dn -o NAME,TYPE 2>/dev/null | awk '$2 == "disk" { print $1 }')
+else
+  echo "MEO_FINDING|info|storage.smartctl_missing|SMART diagnostics are unavailable because smartctl is not installed."
+fi
+
+echo "[storage] NVMe health"
+if command -v nvme >/dev/null 2>&1; then
+  for device in /dev/nvme*n1; do
+    [ -b "${device}" ] || continue
+    nvme_output="$(timeout 20 nvme smart-log "${device}" 2>&1 || true)"
+    printf '%s\n' "--- ${device} ---"
+    printf '%s\n' "${nvme_output}"
+    critical_warning="$(sed -n 's/^[[:space:]]*critical_warning[[:space:]]*:[[:space:]]*//p' <<<"${nvme_output}" | head -n 1)"
+    case "${critical_warning}" in
+      ""|0|0x00) ;;
+      *) echo "MEO_FINDING|warning|storage.nvme_critical_warning|NVMe reported a non-zero critical warning for ${device}." ;;
+    esac
+  done
 fi
 
 if [ "${MEOARCH_REPAIR_SCOPE:-system}" = "live" ] && [ ! -d /mnt/etc ]; then

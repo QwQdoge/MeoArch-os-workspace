@@ -1,10 +1,15 @@
 #pragma once
 
 #include <QObject>
+#include <QHash>
+#include <QPointer>
 #include <QProcess>
 #include <QTimer>
 #include <QVariantList>
 #include <QVariantMap>
+
+class QNetworkAccessManager;
+class QNetworkReply;
 
 class InstallerController final : public QObject
 {
@@ -22,8 +27,13 @@ class InstallerController final : public QObject
     Q_PROPERTY(QString formatLocale READ formatLocale NOTIFY selectionsChanged)
     Q_PROPERTY(QString timeZone READ timeZone NOTIFY selectionsChanged)
     Q_PROPERTY(QString keyboardLayout READ keyboardLayout NOTIFY selectionsChanged)
+    Q_PROPERTY(QVariantMap regionRecommendation READ regionRecommendation NOTIFY selectionsChanged)
+    Q_PROPERTY(QVariantList calendarCapabilities READ calendarCapabilities CONSTANT)
     Q_PROPERTY(QString networkState READ networkState NOTIFY networkStateChanged)
     Q_PROPERTY(QString networkDetail READ networkDetail NOTIFY networkStateChanged)
+    Q_PROPERTY(QString networkHandoffState READ networkHandoffState NOTIFY networkHandoffChanged)
+    Q_PROPERTY(QString networkHandoffMessage READ networkHandoffMessage NOTIFY networkHandoffChanged)
+    Q_PROPERTY(bool networkHandoffEnabled READ networkHandoffEnabled WRITE setNetworkHandoffEnabled NOTIFY networkHandoffChanged)
     Q_PROPERTY(QString selectedDisk READ selectedDisk NOTIFY selectionsChanged)
     Q_PROPERTY(QString hardwareSummary READ hardwareSummary NOTIFY hardwareChanged)
     Q_PROPERTY(bool hardwareDetecting READ hardwareDetecting NOTIFY hardwareChanged)
@@ -31,6 +41,7 @@ class InstallerController final : public QObject
     Q_PROPERTY(int installationProgress READ installationProgress NOTIFY installationChanged)
     Q_PROPERTY(QString installationStage READ installationStage NOTIFY installationChanged)
     Q_PROPERTY(QString installationMessage READ installationMessage NOTIFY installationChanged)
+    Q_PROPERTY(QString installationFailureDetails READ installationFailureDetails NOTIFY installationChanged)
     Q_PROPERTY(QString preflightState READ preflightState NOTIFY preflightChanged)
     Q_PROPERTY(QString preflightMessage READ preflightMessage NOTIFY preflightChanged)
     Q_PROPERTY(QVariantMap installPlan READ installPlan NOTIFY preflightChanged)
@@ -40,6 +51,8 @@ class InstallerController final : public QObject
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
     Q_PROPERTY(bool realInstallEnabled READ realInstallEnabled CONSTANT)
     Q_PROPERTY(bool systemActionsEnabled READ systemActionsEnabled CONSTANT)
+    Q_PROPERTY(bool debugTerminalAvailable READ debugTerminalAvailable NOTIFY debugTerminalChanged)
+    Q_PROPERTY(QString debugTerminalMessage READ debugTerminalMessage NOTIFY debugTerminalChanged)
 
 public:
     explicit InstallerController(const QStringList &arguments, QObject *parent = nullptr);
@@ -57,8 +70,13 @@ public:
     QString formatLocale() const;
     QString timeZone() const;
     QString keyboardLayout() const;
+    QVariantMap regionRecommendation() const;
+    QVariantList calendarCapabilities() const;
     QString networkState() const { return m_networkState; }
     QString networkDetail() const { return m_networkDetail; }
+    QString networkHandoffState() const { return m_networkHandoffState; }
+    QString networkHandoffMessage() const { return m_networkHandoffMessage; }
+    bool networkHandoffEnabled() const;
     QString selectedDisk() const;
     QString hardwareSummary() const { return m_hardwareSummary; }
     bool hardwareDetecting() const { return m_hardwareDetecting; }
@@ -66,6 +84,7 @@ public:
     int installationProgress() const { return m_installationProgress; }
     QString installationStage() const { return m_installationStage; }
     QString installationMessage() const { return m_installationMessage; }
+    QString installationFailureDetails() const { return m_installationFailureDetails; }
     QString preflightState() const { return m_preflightState; }
     QString preflightMessage() const { return m_preflightMessage; }
     QVariantMap installPlan() const { return m_installPlan; }
@@ -73,15 +92,23 @@ public:
     QString errorMessage() const { return m_errorMessage; }
     bool realInstallEnabled() const { return m_realInstallEnabled; }
     bool systemActionsEnabled() const { return m_systemActionsEnabled; }
+    bool debugTerminalAvailable() const { return !m_debugTerminalProgram.isEmpty(); }
+    QString debugTerminalMessage() const { return m_debugTerminalMessage; }
     bool productionMode() const { return m_productionMode; }
     bool previewMode() const { return !m_productionMode; }
 
     Q_INVOKABLE void setUiLanguage(const QString &id);
     Q_INVOKABLE void setSystemLocale(const QString &id);
+    Q_INVOKABLE void setFormatLocale(const QString &id);
     Q_INVOKABLE void setFormatCountry(const QString &alpha2);
     Q_INVOKABLE void setTimeZone(const QString &id);
     Q_INVOKABLE void setKeyboardLayout(const QString &id);
+    Q_INVOKABLE void setSecondaryCalendar(const QString &id);
+    Q_INVOKABLE void setHebcalEnabled(bool enabled);
+    Q_INVOKABLE void useRegionRecommendations();
+    Q_INVOKABLE void setNetworkHandoffEnabled(bool enabled);
     Q_INVOKABLE void setSelectedDisk(const QString &id);
+    Q_INVOKABLE void selectExistingPartition(const QString &diskId, const QString &partitionPath);
     Q_INVOKABLE void setSelection(const QString &section, const QString &key, const QVariant &value);
     Q_INVOKABLE QVariant selection(const QString &section, const QString &key, const QVariant &fallback = {}) const;
     Q_INVOKABLE bool validateAccount(const QString &username, const QString &hostname,
@@ -90,6 +117,7 @@ public:
                                  const QString &password, const QString &confirmation);
     Q_INVOKABLE void retryNetwork();
     Q_INVOKABLE void refreshDisks();
+    Q_INVOKABLE void openDebugTerminal();
     Q_INVOKABLE void prepareInstallation();
     Q_INVOKABLE void confirmSummary();
     Q_INVOKABLE void startInstallation();
@@ -101,12 +129,14 @@ signals:
     void uiLanguageChanged();
     void disksChanged();
     void networkStateChanged();
+    void networkHandoffChanged();
     void hardwareChanged();
     void preflightChanged();
     void accountReady();
     void accountFailed();
     void installationChanged();
     void errorMessageChanged();
+    void debugTerminalChanged();
 
 private:
     void buildUiLanguages();
@@ -114,8 +144,12 @@ private:
     void buildCountries();
     void buildTimeZones();
     void buildKeyboardLayouts();
+    void loadRegionPresets();
     void loadSoftwareCatalog();
     void detectNetwork();
+    void refreshNetworkHandoff();
+    bool stageNetworkHandoff();
+    void disableNetworkHandoff();
     void detectHardware();
     void parseDisks(const QByteArray &payload);
     void persistSelections();
@@ -128,17 +162,27 @@ private:
     QVariantMap section(const QString &name) const;
     void writeSelection(const QString &section, const QString &key, const QVariant &value);
     void discardGeneratedPlan();
+    bool hasSystemLocale(const QString &id) const;
+    void applyRegionPreset(const QString &alpha2);
+    void markLocaleOverride(const QString &key);
 
     QVariantList m_uiLanguages;
     QVariantList m_systemLocales;
     QVariantList m_countries;
     QVariantList m_timeZones;
     QVariantList m_keyboardLayouts;
+    QHash<QString, QVariantMap> m_regionPresets;
     QVariantList m_softwareCatalog;
     QVariantList m_disks;
     QVariantMap m_selections;
     QString m_networkState = QStringLiteral("offline");
     QString m_networkDetail;
+    QString m_networkHandoffState = QStringLiteral("unavailable");
+    QString m_networkHandoffMessage;
+    QString m_networkHandoffSource;
+    QString m_networkHandoffKind;
+    QString m_debugTerminalProgram;
+    QString m_debugTerminalMessage;
     QString m_hardwareSummary = QStringLiteral("Automatic PCI detection will select graphics drivers.");
     bool m_hardwareDetecting = false;
     QString m_installationState = QStringLiteral("idle");
@@ -146,6 +190,7 @@ private:
     int m_installationProgress = 0;
     QString m_installationStage;
     QString m_installationMessage;
+    QString m_installationFailureDetails;
     QString m_preflightState = QStringLiteral("idle");
     QString m_preflightMessage;
     QVariantMap m_installPlan;
@@ -157,4 +202,7 @@ private:
     bool m_preparationRunning = false;
     QString m_userPasswordHash;
     QTimer *m_progressTimer = nullptr;
+    QNetworkAccessManager *m_connectivityManager = nullptr;
+    QPointer<QNetworkReply> m_connectivityReply;
+    quint64 m_connectivityGeneration = 0;
 };

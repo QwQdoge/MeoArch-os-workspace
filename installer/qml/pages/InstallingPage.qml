@@ -63,8 +63,11 @@ PageFrame {
         }
         InfoBanner {
             visible: page.controller && page.controller.installationState === "failed"
-            width: parent.width; tone: "error"; title: qsTr("Installation failed")
-            message: page.controller.errorMessage.length ? page.controller.errorMessage : qsTr("See the diagnostic log for the failing stage. Disk operations are not automatically retried.")
+            width: parent.width; tone: "error"
+            title: qsTr("Installation failed during %1").arg(page.stageLabel(page.controller.installationStage))
+            message: page.controller.installationFailureDetails.length
+                     ? page.controller.installationFailureDetails
+                     : qsTr("See the diagnostic log for the failing stage. Disk operations are not automatically retried.")
         }
     }
 }

@@ -9,17 +9,27 @@ message-bg-color: "#211A2B"
 
 + image {
     left = 8%
-    top = 8%
+    top = 10%
     width = 520
     height = 104
     file = "brand.png"
 }
 
-+ boot_menu {
++ label {
     left = 8%
     top = 25%
+    width = 60%
+    align = "left"
+    color = "#322F35"
+    font = "MeoArch Sans Regular 18"
+    text = "Everything has a GUI. Every choice is yours."
+}
+
++ boot_menu {
+    left = 8%
+    top = 31%
     width = 52%
-    height = 52%
+    height = 46%
 
     item_color = "#F7F2FA"
     selected_item_color = "#FFFFFF"
@@ -40,18 +50,18 @@ message-bg-color: "#211A2B"
 + label {
     id = "__timeout__"
     left = 8%
-    top = 80%
+    top = 79%
     width = 52%
     align = "left"
     color = "#322F35"
     font = "MeoArch Sans Regular 18"
-    text = "Starting the selected option automatically"
+    text = "No system changes are made until you review the installer"
 }
 
 + progress_bar {
     id = "__timeout__"
     left = 8%
-    top = 84%
+    top = 83%
     width = 52%
     height = 6
     show_text = false
@@ -62,10 +72,10 @@ message-bg-color: "#211A2B"
 
 + label {
     left = 8%
-    top = 89%
+    top = 88%
     width = 84%
     align = "left"
     color = "#49454F"
     font = "MeoArch Sans Regular 18"
-    text = "Up/Down: select    Enter: start    E: edit    C: console"
+    text = "Up/Down select    Enter start    E edit    C console"
 }

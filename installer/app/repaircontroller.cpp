@@ -19,6 +19,8 @@
 #include <QUuid>
 #include <qt6keychain/keychain.h>
 
+#include <unistd.h>
+
 namespace {
 constexpr qsizetype MaxNetworkBody = 2 * 1024 * 1024;
 constexpr qsizetype MaxAuditReport = 48 * 1024;
@@ -87,6 +89,16 @@ RepairController::RepairController(QObject *parent)
     m_liveEnvironment = requestedScope == QStringLiteral("live")
         || (requestedScope != QStringLiteral("system")
             && QFileInfo::exists(QStringLiteral("/run/archiso")));
+    m_diagnosticTtyAvailable = m_liveEnvironment && ::geteuid() == 0
+        && QFileInfo(QStringLiteral("/usr/bin/chvt")).isExecutable()
+        && QFileInfo(QStringLiteral("/usr/bin/systemd-run")).isExecutable()
+        && QFileInfo(QStringLiteral("/usr/bin/systemctl")).isExecutable()
+        && QFileInfo(QStringLiteral("/usr/bin/bash")).isExecutable();
+    m_diagnosticTtyMessage = m_diagnosticTtyAvailable
+        ? QStringLiteral("Open a root diagnostic shell on TTY 3. Return to the graphical repair app with Ctrl+Alt+F1.")
+        : m_liveEnvironment
+            ? QStringLiteral("TTY control is unavailable because this Live repair session does not have the required root tools.")
+            : QStringLiteral("TTY control is available only in the Live repair environment so it cannot disrupt an installed desktop session.");
 
     m_checkCategories = {
         QVariantMap{{QStringLiteral("id"), QStringLiteral("all")},
@@ -705,10 +717,8 @@ void RepairController::startQuickCheck(const QString &categoryId)
         m_auditProcess->deleteLater();
         m_auditProcess = nullptr;
 
-        m_auditReport = QStringLiteral("scope=%1\ncategory=%2\n")
-            .arg(m_liveEnvironment ? QStringLiteral("live") : QStringLiteral("system"),
-                 m_selectedCategory) + m_checkLog.left(MaxAuditReport);
         parseCheckOutput(m_checkLog);
+        rebuildAiAuditReport();
         if (exitStatus == QProcess::NormalExit) {
             m_auditState = QStringLiteral("complete");
             m_auditSummary = QStringLiteral("%1 %2 check finished with code %3 and %4 findings. No action has been applied.")
@@ -732,6 +742,47 @@ void RepairController::cancelQuickCheck()
     m_auditProcess->terminate();
     if (!m_auditProcess->waitForFinished(1500))
         m_auditProcess->kill();
+}
+
+void RepairController::openDiagnosticTty()
+{
+    if (!m_diagnosticTtyAvailable) {
+        emit diagnosticTtyChanged();
+        return;
+    }
+
+    const QString unit = QStringLiteral("meoarch-diagnostic-tty3.service");
+    const int active = QProcess::execute(QStringLiteral("/usr/bin/systemctl"),
+                                         {QStringLiteral("is-active"), QStringLiteral("--quiet"), unit});
+    if (active != 0) {
+        // tty3 is reserved for this explicit diagnostic escape hatch. Do not
+        // touch tty1, which remains owned by the graphical Live kiosk.
+        QProcess::execute(QStringLiteral("/usr/bin/systemctl"),
+                          {QStringLiteral("stop"), QStringLiteral("getty@tty3.service")});
+        const QStringList launch{
+            QStringLiteral("--unit=meoarch-diagnostic-tty3"),
+            QStringLiteral("--collect"), QStringLiteral("--quiet"),
+            QStringLiteral("--property=TTYPath=/dev/tty3"),
+            QStringLiteral("--property=StandardInput=tty"),
+            QStringLiteral("--property=StandardOutput=tty"),
+            QStringLiteral("--property=StandardError=tty"),
+            QStringLiteral("--property=TTYReset=yes"),
+            QStringLiteral("--property=TTYVHangup=yes"),
+            QStringLiteral("--service-type=exec"),
+            QStringLiteral("/usr/bin/bash"), QStringLiteral("-l")
+        };
+        if (QProcess::execute(QStringLiteral("/usr/bin/systemd-run"), launch) != 0) {
+            m_diagnosticTtyMessage = QStringLiteral("The diagnostic shell could not be prepared. The graphical repair session remains active.");
+            emit diagnosticTtyChanged();
+            return;
+        }
+    }
+    if (!QProcess::startDetached(QStringLiteral("/usr/bin/chvt"), {QStringLiteral("3")})) {
+        m_diagnosticTtyMessage = QStringLiteral("The diagnostic shell is ready on TTY 3, but the display could not switch automatically. Press Ctrl+Alt+F3.");
+    } else {
+        m_diagnosticTtyMessage = QStringLiteral("Diagnostic shell opened on TTY 3. Return to the graphical repair app with Ctrl+Alt+F1.");
+    }
+    emit diagnosticTtyChanged();
 }
 
 void RepairController::startAudit()
@@ -758,6 +809,29 @@ void RepairController::parseCheckOutput(const QString &output)
         if (m_auditFindings.size() >= 100)
             break;
     }
+}
+
+void RepairController::rebuildAiAuditReport()
+{
+    // Raw terminal output can contain local addresses, mount labels, and
+    // identifiers. The optional AI path receives only typed, bounded findings
+    // that the person can already see in the repair UI.
+    QStringList lines{
+        QStringLiteral("scope=%1").arg(m_liveEnvironment ? QStringLiteral("live") : QStringLiteral("system")),
+        QStringLiteral("category=%1").arg(m_selectedCategory),
+        QStringLiteral("findings=%1").arg(m_auditFindings.size())
+    };
+    for (const QVariant &value : m_auditFindings) {
+        const QVariantMap finding = value.toMap();
+        const QString type = finding.value(QStringLiteral("type")).toString();
+        const QString code = finding.value(QStringLiteral("code")).toString();
+        const QString text = finding.value(QStringLiteral("text")).toString();
+        if (!type.isEmpty() && !code.isEmpty() && !text.isEmpty())
+            lines.append(QStringLiteral("finding=%1|%2|%3").arg(type, code, text.left(600)));
+    }
+    if (m_auditFindings.isEmpty())
+        lines.append(QStringLiteral("finding=info|audit.no_structured_findings|No structured diagnostic findings were reported."));
+    m_auditReport = lines.join(QLatin1Char('\n')).left(MaxPromptText);
 }
 
 void RepairController::parseLynisReport()
@@ -840,8 +914,7 @@ void RepairController::requestAiPlan()
         "an independent model review plus exact user confirmation.");
     prepareInference(QStringLiteral("proposal"), m_proposalCredentialId,
                      QStringLiteral("Locate a system problem and propose only allowlisted repair actions"),
-                     {QStringLiteral("diagnostic_output"), QStringLiteral("system_metadata"),
-                      QStringLiteral("selected_category")},
+                     {QStringLiteral("structured_diagnostic_findings"), QStringLiteral("audit_scope")},
                      systemPrompt, m_auditReport);
 }
 

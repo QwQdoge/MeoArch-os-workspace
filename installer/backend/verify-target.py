@@ -7,21 +7,54 @@ REQUIRED_FILES = (
     "etc/fstab", "etc/os-release", "boot/vmlinuz-linux", "boot/initramfs-linux.img", "boot/grub/grub.cfg",
     "usr/lib/libmeoui.so.0", "usr/lib/qt6/qml/MeoUI/qmldir",
     "usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so", "usr/lib/qt6/qml/MeoKDE/qmldir",
+    "usr/lib/qt6/qml/Meo/System/qmldir", "usr/lib/qt6/qml/Meo/System/plugins.qmltypes",
     "usr/lib/qt6/qml/Meo/System/libmeosystemplugin.so",
     "usr/share/plasma/look-and-feel/org.meo.desktop/metadata.json",
+    "usr/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js",
     "usr/share/plasma/plasmoids/org.meo.topbar/metadata.json",
     "usr/share/plasma/plasmoids/org.meo.timecenter/metadata.json",
-    "etc/xdg/autostart/org.meo.dock.desktop", "etc/xdg/meo-shellrc",
-    "etc/sddm.conf.d/20-meoarch.conf", "usr/share/wayland-sessions/plasma.desktop",
+    "etc/xdg/autostart/org.meo.welcome.desktop", "etc/xdg/meo-shellrc",
+    "etc/xdg/MeoArch/Calendar.ini",
+    "usr/share/applications/org.meo.welcome.desktop",
+    "usr/lib/systemd/system/plasmalogin.service", "usr/share/wayland-sessions/plasma.desktop",
     "usr/share/pixmaps/meoarch-logo.svg", "usr/share/meo-release/package-catalog.json",
     "etc/environment.d/90-meo-applications.conf", "usr/lib/systemd/user/meo-dynamic-colors.path",
     "usr/lib/systemd/user/meo-dynamic-colors.service", "usr/lib/systemd/user/pipewire.service",
     "usr/share/fcitx5/themes/MeoInputMethod-Light/theme.conf",
     "usr/share/meo-desktop/input-method/ibus/gtk.css.in", "etc/plymouth/plymouthd.conf",
     "usr/share/plymouth/themes/meoarch/meoarch.plymouth", "usr/share/plymouth/themes/meoarch/meoarch.script",
+    "boot/grub/themes/meoarch/theme.txt",
+    "usr/share/plasma/look-and-feel/org.meo.desktop/contents/splash/Splash.qml",
+    "usr/share/plasma/look-and-feel/org.meo.desktop/contents/logout/Logout.qml",
+    "usr/share/dbus-1/services/org.meo.SessionAction1.service",
+    "etc/gamemode.ini",
+    "etc/system76-scheduler/process-scheduler/meo-cachyos.kdl",
+    "usr/lib/systemd/zram-generator.conf.d/50-meo-desktop.conf",
+    "usr/lib/systemd/system-preset/50-meo-responsiveness.preset",
+    "usr/share/meo-desktop/optional/preload-ng.toml",
+    "usr/share/meo-desktop/optional/prelockd.conf",
+    "usr/lib/systemd/system/com.system76.Scheduler.service",
+    "usr/lib/systemd/system/power-profiles-daemon.service",
+    "usr/lib/systemd/system/dbus.service",
 )
-REQUIRED_EXECUTABLES = ("usr/bin/meo-dock", "usr/bin/meo-dynamic-colors", "usr/bin/meo-input-method",
-                        "usr/bin/sddm", "usr/bin/startplasma-wayland", "usr/bin/NetworkManager")
+REQUIRED_EXECUTABLES = ("usr/bin/meo-dynamic-colors", "usr/bin/meo-input-method",
+                        "usr/bin/plasmalogin", "usr/bin/startplasma-wayland", "usr/bin/NetworkManager",
+                        "usr/bin/meo-welcome", "usr/bin/meo-session-actiond",
+                        "usr/bin/system76-scheduler", "usr/bin/gamemoded", "usr/bin/powerprofilesctl",
+                        "usr/bin/dbus-broker-launch", "usr/lib/systemd/system-generators/zram-generator")
+REQUIRED_ENABLED_SERVICES = (
+    "display-manager.service",
+    "multi-user.target.wants/NetworkManager.service",
+    "multi-user.target.wants/com.system76.Scheduler.service",
+    "multi-user.target.wants/power-profiles-daemon.service",
+)
+FORBIDDEN_ENABLED_SERVICES = (
+    "multi-user.target.wants/ananicy-cpp.service",
+)
+FORBIDDEN_FILES = (
+    "etc/xdg/autostart/org.meo.dock.desktop",
+    "usr/bin/meo-dock",
+)
 
 
 def target_path(root: Path, relative: str) -> Path:
@@ -64,10 +97,54 @@ def verify(root: Path) -> None:
         raise ValueError("target system identity is not MeoArch")
     if not any(path.is_file() and path.stat().st_size for path in (root / "boot/EFI").glob("*/grubx64.efi")):
         raise ValueError("installed UEFI GRUB executable is missing")
-    for service in ("display-manager.service", "multi-user.target.wants/NetworkManager.service"):
+    for service in REQUIRED_ENABLED_SERVICES:
         path = target_path(root, f"etc/systemd/system/{service}")
         if not path.is_file() or not path.stat().st_size:
             raise ValueError(f"target service is not enabled: {service}")
+    for service in FORBIDDEN_ENABLED_SERVICES:
+        path = root / f"etc/systemd/system/{service}"
+        if path.exists() or path.is_symlink():
+            raise ValueError(f"conflicting target service is enabled: {service}")
+
+    for relative in FORBIDDEN_FILES:
+        path = root / relative
+        if path.exists() or path.is_symlink():
+            raise ValueError(f"retired standalone Dock payload is installed: {relative}")
+
+    dock_profile = target_path(root, "etc/xdg/meo-shellrc").read_text()
+    dock_layout = target_path(
+        root,
+        "usr/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js",
+    ).read_text()
+    if "DockImplementation=native" not in dock_profile:
+        raise ValueError("target desktop does not select the native Plasma Dock")
+    if 'bottomPanel.addWidget("org.kde.plasma.icontasks")' not in dock_layout:
+        raise ValueError("target desktop is missing the native Plasma Icons-Only Task Manager")
+    if "org.meo.dock" in dock_layout:
+        raise ValueError("target desktop layout still references the retired standalone Dock")
+
+    zram = target_path(root, "usr/lib/systemd/zram-generator.conf.d/50-meo-desktop.conf").read_text()
+    if "zram-size = min(ram / 2, 8192)" not in zram or "swap-priority = 100" not in zram:
+        raise ValueError("target zram policy is not the bounded Meo profile")
+
+    scheduler_rules = target_path(
+        root, "etc/system76-scheduler/process-scheduler/meo-cachyos.kdl"
+    ).read_text()
+    if "Unique process names:" not in scheduler_rules or "assignments {" not in scheduler_rules:
+        raise ValueError("target System76 Scheduler classification rules are incomplete")
+    if "oom_score_adj" in scheduler_rules or "ananicy-cpp" in scheduler_rules:
+        raise ValueError("target scheduler rules contain unsupported Ananicy policy actions")
+
+    preset = target_path(root, "usr/lib/systemd/system-preset/50-meo-responsiveness.preset").read_text()
+    for directive in (
+        "enable com.system76.Scheduler.service",
+        "enable power-profiles-daemon.service",
+        "disable ananicy-cpp.service",
+        "disable preload-ng.service",
+        "disable prelockd.service",
+    ):
+        if directive not in preset:
+            raise ValueError(f"target responsiveness preset is missing: {directive}")
 
 
 if __name__ == "__main__":

@@ -41,6 +41,9 @@ PageFrame {
             next.splice(index, 1)
         controller.setSelection("software", "applications", next)
     }
+    function applicationDetail(application) {
+        return application.summary + "\n" + qsTr("Arch official · package: %1").arg(application.package)
+    }
     Column {
         width: parent.width
         spacing: page.dp(16)
@@ -76,9 +79,7 @@ PageFrame {
                 width: parent.width
                 spacing: page.dp(8)
                 MeoText { text: qsTr("Core"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
-                MeoCheckbox { text: qsTr("Meo Desktop (Required)"); checked: true; enabled: false }
-                MeoCheckbox { text: qsTr("MeoUI runtime (Required)"); checked: true; enabled: false }
-                MeoCheckbox { text: qsTr("Meo Icons (Required)"); checked: true; enabled: false }
+                MeoText { width: parent.width; text: qsTr("Included with every MeoArch installation: Meo Desktop, MeoUI runtime, and Meo Icons."); typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
                 MeoText { text: qsTr("Applications"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
                 MeoCheckbox {
                     text: qsTr("Meo Settings")
@@ -91,8 +92,7 @@ PageFrame {
                     onToggled: checked => page.setComponent("omnistore-bin", checked)
                 }
                 MeoText { text: qsTr("System"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
-                MeoCheckbox { text: qsTr("Signed Meo repository integration (Required)"); checked: true; enabled: false }
-                MeoCheckbox { text: qsTr("Meo release compatibility metadata (Required)"); checked: true; enabled: false }
+                MeoText { width: parent.width; text: qsTr("Included with every MeoArch installation: signed Meo repository integration and release compatibility metadata."); typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
             }
         }
         MeoCard {
@@ -118,7 +118,7 @@ PageFrame {
                             enabled: !page.applicationIsDefault(modelData)
                             onToggled: checked => page.setApplication(modelData, checked)
                         }
-                        MeoText { width: parent.width; text: modelData.summary; typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
+                        MeoText { width: parent.width; text: page.applicationDetail(modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
                     }
                 }
             }
@@ -140,7 +140,7 @@ PageFrame {
                         width: parent.width
                         spacing: 0
                         MeoCheckbox { text: modelData.name; checked: page.applicationIsSelected(modelData); onToggled: checked => page.setApplication(modelData, checked) }
-                        MeoText { width: parent.width; text: modelData.summary; typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
+                        MeoText { width: parent.width; text: page.applicationDetail(modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
                     }
                 }
             }
@@ -154,8 +154,8 @@ PageFrame {
                 id: thirdPartyAppsColumn
                 width: parent.width
                 spacing: page.dp(8)
-                MeoText { text: qsTr("Third-party recommendations"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
-                InfoBanner { width: parent.width; title: qsTr("Always opt-in"); message: qsTr("These applications are never selected automatically. During installation they come from the signed Arch official repositories.") }
+                MeoText { text: qsTr("More official applications"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
+                InfoBanner { width: parent.width; title: qsTr("Always opt-in"); message: qsTr("These applications are never selected automatically. During installation they come from the signed Arch official repositories; Flatpak and AUR are not installer sources.") }
                 Repeater {
                     model: page.applicationsForTier("third-party")
                     delegate: Column {
@@ -163,7 +163,7 @@ PageFrame {
                         width: parent.width
                         spacing: 0
                         MeoCheckbox { text: modelData.name; checked: page.applicationIsSelected(modelData); onToggled: checked => page.setApplication(modelData, checked) }
-                        MeoText { width: parent.width; text: modelData.summary; typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
+                        MeoText { width: parent.width; text: page.applicationDetail(modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
                     }
                 }
             }

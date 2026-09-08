@@ -46,6 +46,8 @@ class RepairController final : public QObject
     Q_PROPERTY(bool hasSessionCredential READ hasSessionCredential NOTIFY credentialChanged)
     Q_PROPERTY(QString credentialState READ credentialState NOTIFY credentialChanged)
     Q_PROPERTY(QString credentialMessage READ credentialMessage NOTIFY credentialChanged)
+    Q_PROPERTY(bool diagnosticTtyAvailable READ diagnosticTtyAvailable NOTIFY diagnosticTtyChanged)
+    Q_PROPERTY(QString diagnosticTtyMessage READ diagnosticTtyMessage NOTIFY diagnosticTtyChanged)
 
 public:
     explicit RepairController(QObject *parent = nullptr);
@@ -88,6 +90,8 @@ public:
     }
     QString credentialState() const { return m_credentialState; }
     QString credentialMessage() const { return m_credentialMessage; }
+    bool diagnosticTtyAvailable() const { return m_diagnosticTtyAvailable; }
+    QString diagnosticTtyMessage() const { return m_diagnosticTtyMessage; }
 
     Q_INVOKABLE void signIn(const QString &email, const QString &password);
     Q_INVOKABLE void verifyTotp(const QString &code);
@@ -103,6 +107,7 @@ public:
     Q_INVOKABLE void clearSessionCredential();
     Q_INVOKABLE void startQuickCheck(const QString &categoryId);
     Q_INVOKABLE void cancelQuickCheck();
+    Q_INVOKABLE void openDiagnosticTty();
     Q_INVOKABLE void startAudit();
     Q_INVOKABLE void requestAiPlan();
     Q_INVOKABLE void resolveAiConsent(bool approved);
@@ -117,6 +122,7 @@ signals:
     void executionChanged();
     void aiConfigurationChanged();
     void credentialChanged();
+    void diagnosticTtyChanged();
     void quickCheckFinished(int exitCode);
     void aiConsentReady(const QVariantMap &summary);
 
@@ -151,6 +157,7 @@ private:
     bool validateReview(const QJsonObject &review, QString *error) const;
     void parseLynisReport();
     void parseCheckOutput(const QString &output);
+    void rebuildAiAuditReport();
     void runNextApprovedAction();
     QString credentialModel(const QString &id) const;
     QString checkScriptPath(const QString &categoryId) const;
@@ -216,4 +223,6 @@ private:
     bool m_hasLocalCredential = false;
     QString m_credentialState = QStringLiteral("idle");
     QString m_credentialMessage;
+    bool m_diagnosticTtyAvailable = false;
+    QString m_diagnosticTtyMessage;
 };
