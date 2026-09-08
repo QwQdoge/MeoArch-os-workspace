@@ -25,6 +25,12 @@ MEO_DESKTOP_PACKAGES = [
     "qtkeychain-qt6",
     "lynis",
     "polkit-kde-agent",
+    "plasma-login-manager",
+    "system76-scheduler",
+    "zram-generator",
+    "dbus-broker-units",
+    "power-profiles-daemon",
+    "gamemode",
 ]
 
 
@@ -158,6 +164,107 @@ def build_default_disk_layout(selections):
     }
 
 
+def _safe_partition_on_device(device, partition):
+    """Validate a partition descriptor received from the disk scanner.
+
+    A partition plan is deliberately narrower than Archinstall's general
+    manual-partitioning API: it may use exactly one existing ESP and one
+    existing Linux root partition on the selected disk.  The UI is not a raw
+    partition editor, and stale or hand-edited selection state must not widen
+    that scope.
+    """
+    if not isinstance(partition, dict):
+        return None
+    path = str(partition.get("path", ""))
+    suffix = r"p[1-9][0-9]*" if re.fullmatch(r"/dev/nvme\d+n\d+", device) else r"[1-9][0-9]*"
+    expected = rf"{re.escape(device)}{suffix}"
+    if not re.fullmatch(expected, path):
+        return None
+    try:
+        start = int(partition.get("startSectors", 0))
+        size = int(partition.get("sizeSectors", 0))
+        sector_size = int(partition.get("logicalSectorSize", 0))
+        size_bytes = int(partition.get("sizeBytes", 0))
+    except (TypeError, ValueError):
+        return None
+    if start < 0 or size <= 0 or sector_size not in {512, 4096}:
+        return None
+    if size_bytes != size * sector_size:
+        return None
+    return {
+        "path": path,
+        "start": start,
+        "size": size,
+        "sector_size": sector_size,
+        "size_bytes": size_bytes,
+        "parttype": str(partition.get("parttype", "")).lower(),
+        "fstype": str(partition.get("fstype", "")).lower(),
+    }
+
+
+def build_existing_partition_layout(selections):
+    """Build a bounded Archinstall plan that only consumes one root partition.
+
+    The ESP is represented as ``existing`` and is mounted unchanged.  The
+    selected root partition is represented as ``modify``: Archinstall deletes
+    and recreates *that same partition geometry* before formatting it.  This
+    is why this path refuses any unknown topology instead of accepting a raw
+    custom layout from the UI.
+    """
+    disk = selections.get("disk", {})
+    if disk.get("mode") != "partition":
+        return None
+    device = selected_install_device(disk)
+    if not device:
+        return None
+    root = _safe_partition_on_device(device, disk.get("targetPartition"))
+    efi = _safe_partition_on_device(device, disk.get("efiPartition"))
+    if not root or not efi or root["path"] == efi["path"]:
+        return None
+    filesystem = str(disk.get("filesystem", "btrfs"))
+    if filesystem not in {"btrfs", "ext4"}:
+        return None
+    efi_guid = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
+    if efi["parttype"] != efi_guid or efi["fstype"] not in {"vfat", "fat", "fat16", "fat32"}:
+        return None
+    if root["size_bytes"] < 16 * 1024 * 1024 * 1024 or efi["size_bytes"] < 512 * 1024 * 1024:
+        return None
+
+    def size(value, unit, sector_size):
+        return {"value": value, "unit": unit,
+                "sector_size": {"unit": "B", "value": sector_size}}
+
+    def object_id(label):
+        return str(uuid.uuid5(uuid.NAMESPACE_URL, f"meoarch:{device}:{label}"))
+
+    return {
+        "config_type": "manual_partitioning",
+        "device_modifications": [{
+            "device": device,
+            "wipe": False,
+            "partitions": [
+                {
+                    "btrfs": [], "dev_path": efi["path"], "flags": [],
+                    "fs_type": "fat32", "mount_options": [], "mountpoint": "/boot",
+                    "obj_id": object_id("existing-efi"),
+                    "size": size(efi["size"], "sectors", efi["sector_size"]),
+                    "start": size(efi["start"], "sectors", efi["sector_size"]),
+                    "status": "existing", "type": "primary",
+                },
+                {
+                    "btrfs": [], "dev_path": root["path"], "flags": [],
+                    "fs_type": filesystem,
+                    "mount_options": ["compress=zstd"] if filesystem == "btrfs" else [],
+                    "mountpoint": "/", "obj_id": object_id("selected-root"),
+                    "size": size(root["size"], "sectors", root["sector_size"]),
+                    "start": size(root["start"], "sectors", root["sector_size"]),
+                    "status": "modify", "type": "primary",
+                },
+            ],
+        }],
+    }
+
+
 def build_package_list(hardware_plan=None, firewall=False, application_packages=()):
     hardware_packages = (hardware_plan or driver_plan(detect_devices()))["packages"]
     packages = hardware_packages + MEO_DESKTOP_PACKAGES + list(application_packages)
@@ -194,7 +301,8 @@ def build_user_configuration(selections, hardware_plan=None, application_package
         "packages": desktop_packages,
         "profile_config": {
             "gfx_driver": "All open-source",
-            "greeter": "sddm",
+            # The display manager is enabled by the target customisation step.
+            # Do not ask Archinstall to install/configure SDDM as a side effect.
             "profile": {"details": ["KDE Plasma"], "main": "Desktop"},
         },
         "script": "guided",
@@ -204,7 +312,7 @@ def build_user_configuration(selections, hardware_plan=None, application_package
         "swap": {"enabled": True, "algorithm": "zstd"} if swap_mode == "zram" else False,
         "timezone": locale.get("timezone", "UTC"),
     }
-    disk_layout = disk.get("layout") or build_default_disk_layout(selections)
+    disk_layout = build_existing_partition_layout(selections) or disk.get("layout") or build_default_disk_layout(selections)
     if disk_layout:
         config["disk_config"] = disk_layout
     return config
@@ -242,14 +350,27 @@ def build_target_customizations(selections):
     user = selections.get("user", {})
     disk = selections.get("disk", {})
     privacy = selections.get("privacy", {})
+    network = selections.get("network", {})
+    preferences = selections.get("preferences", {})
     return {
         "schemaVersion": 1,
         "fullName": user.get("fullName", "").strip(),
         "username": user.get("username", ""),
-        "automaticLogin": bool(user.get("automaticLogin", False)),
-        # Confirmed from the current Plasma 6 system session inventory.
-        "sddmSession": "plasma.desktop",
+        # Plasma Login Manager's supported unattended-login configuration is
+        # intentionally not guessed. Keep sign-in authentication on until a
+        # password-preserving backend transaction is implemented.
+        "automaticLogin": False,
+        "loginManager": "plasma-login-manager",
         "firewall": bool(privacy.get("firewall", True)),
+        "networkHandoff": {
+            "enabled": bool(network.get("handoffEnabled", False)),
+            "file": "network-handoff.nmconnection",
+        },
+        "calendar": {
+            "primary": "gregorian",
+            "secondary": preferences.get("secondaryCalendar", "none"),
+            "hebcalEnabled": bool(preferences.get("hebcalEnabled", False)),
+        },
         "swap": {"mode": disk.get("swap", "zram"), "fileSizeMiB": 4096},
     }
 
@@ -270,7 +391,7 @@ def validate_installation_plan(selections, configuration, credentials):
     """Return user-safe blockers; never silently downgrade a production choice."""
     blockers = []
     disk = selections.get("disk", {})
-    if disk.get("mode", "erase") not in {"erase", "guided"}:
+    if disk.get("mode", "erase") not in {"erase", "guided", "partition"}:
         blockers.append("unsupported disk layout mode")
     if not configuration.get("disk_config"):
         blockers.append("disk layout not generated")
@@ -278,6 +399,9 @@ def validate_installation_plan(selections, configuration, credentials):
         blockers.append("unsupported swap mode")
     if selections.get("privacy", {}).get("diskEncryption", False):
         blockers.append("disk encryption is unavailable until its tested secret flow is enabled")
+    secondary_calendar = selections.get("preferences", {}).get("secondaryCalendar", "none")
+    if secondary_calendar not in {"none", "buddhist", "islamic-civil", "hebcal"}:
+        blockers.append("unsupported secondary calendar")
     users = credentials.get("users", [])
     if not users:
         blockers.append("user account is missing")

@@ -67,7 +67,10 @@ grep -q 'opt/meo-desktop/themes/look-and-feel/org.meo.desktop/metadata.json' \
 for package in cage networkmanager qtkeychain-qt6 lynis; do
   grep -q "^${package} " "${evidence_dir}/packages.txt"
 done
-for excluded_package in plasma-desktop plasma-workspace sddm kwin; do
+# The Cage Live session deliberately excludes Plasma Desktop, its login manager
+# and KWin.  plasma-workspace is present solely for its maintained offline
+# timezone selector QML module; it does not start a Plasma session.
+for excluded_package in plasma-desktop plasma-login-manager sddm kwin; do
   if grep -q "^${excluded_package} " "${evidence_dir}/packages.txt"; then
     echo "Cage-only Live ISO unexpectedly includes ${excluded_package}." >&2
     exit 1

@@ -1,18 +1,24 @@
 #include "installercontroller.h"
 
 #include <QCoreApplication>
+#include <QCalendar>
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
+#include <QFileDevice>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLocale>
 #include <QNetworkInterface>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
 #include <QSaveFile>
+#include <QSettings>
 #include <QStandardPaths>
 #include <QStorageInfo>
 #include <QTextStream>
@@ -36,15 +42,67 @@ QString utf8LocaleId(QString value)
     return value;
 }
 
+bool hasMountedFilesystem(const QJsonObject &device)
+{
+    // lsblk represents an unmounted device as [null] on some releases.  An
+    // array being non-empty is not evidence of a mounted filesystem.
+    for (const QJsonValue &mountpoint : device.value(QStringLiteral("mountpoints")).toArray()) {
+        if (!mountpoint.toString().trimmed().isEmpty())
+            return true;
+    }
+    return false;
+}
+
 bool hasMountedDescendant(const QJsonObject &device)
 {
-    if (!device.value(QStringLiteral("mountpoints")).toArray().isEmpty())
+    if (hasMountedFilesystem(device))
         return true;
     for (const QJsonValue &child : device.value(QStringLiteral("children")).toArray()) {
         if (hasMountedDescendant(child.toObject()))
             return true;
     }
     return false;
+}
+
+QString conciseProcessFailure(QString output)
+{
+    // The backend writes diagnostics through tee so the persistent log and
+    // GUI receive the same facts. Keep the GUI copy readable and bounded.
+    output.remove(QRegularExpression(QStringLiteral("\\x1B\\[[0-?]*[ -/]*[@-~]")));
+    const QStringList lines = output.split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+    QStringList tail;
+    for (auto it = lines.crbegin(); it != lines.crend() && tail.size() < 8; ++it)
+        tail.prepend(it->trimmed());
+    return tail.join(QLatin1Char('\n')).left(1600);
+}
+
+bool isSupportedNetworkHandoffProfile(const QString &path, const QString &type)
+{
+    // Only copy profiles that have a complete, portable interpretation in the
+    // installed system. Do not silently degrade enterprise Wi-Fi, VPN, static
+    // routing, or a credential-provider-owned connection.
+    QSettings profile(path, QSettings::IniFormat);
+    profile.beginGroup(QStringLiteral("ipv4"));
+    const QString ipv4Method = profile.value(QStringLiteral("method"), QStringLiteral("auto")).toString();
+    profile.endGroup();
+    if (ipv4Method != QStringLiteral("auto"))
+        return false;
+    if (type == QStringLiteral("802-3-ethernet"))
+        return true;
+
+    profile.beginGroup(QStringLiteral("802-1x"));
+    const bool enterprise = !profile.allKeys().isEmpty();
+    profile.endGroup();
+    if (enterprise)
+        return false;
+    profile.beginGroup(QStringLiteral("802-11-wireless-security"));
+    const QString keyManagement = profile.value(QStringLiteral("key-mgmt")).toString();
+    const bool hasWifiSecurity = !profile.allKeys().isEmpty();
+    profile.endGroup();
+    // No security group means open Wi-Fi. OWE, WPA2-PSK and WPA3-SAE are the
+    // supported portable forms. Do not guess at a more complex profile.
+    return !hasWifiSecurity || keyManagement == QStringLiteral("wpa-psk")
+           || keyManagement == QStringLiteral("sae") || keyManagement == QStringLiteral("owe");
 }
 }
 
@@ -54,9 +112,25 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
       m_realInstallEnabled(m_productionMode && arguments.contains(QStringLiteral("--enable-real-install"))),
       m_systemActionsEnabled(m_productionMode && arguments.contains(QStringLiteral("--enable-system-actions")))
 {
+    m_connectivityManager = new QNetworkAccessManager(this);
+    // A real external terminal is safer and more capable than embedding a
+    // shell widget in the installer. It keeps command execution visibly
+    // separate from installation controls and uses the Live user's session.
+    for (const QString &candidate : {QStringLiteral("konsole"), QStringLiteral("xterm")}) {
+        const QString resolved = QStandardPaths::findExecutable(candidate);
+        if (!resolved.isEmpty()) {
+            m_debugTerminalProgram = resolved;
+            break;
+        }
+    }
+    m_debugTerminalMessage = m_debugTerminalProgram.isEmpty()
+        ? tr("No supported terminal emulator is installed in this Live environment.")
+        : tr("Opens a Live-session terminal for diagnostics. Commands are not part of the installer plan.");
     m_selections = {
         {QStringLiteral("schemaVersion"), 1},
-        {QStringLiteral("preferences"), QVariantMap{{QStringLiteral("uiLanguage"), QStringLiteral("en")}}},
+        {QStringLiteral("preferences"), QVariantMap{{QStringLiteral("uiLanguage"), QStringLiteral("en")},
+                                                      {QStringLiteral("secondaryCalendar"), QStringLiteral("none")},
+                                                      {QStringLiteral("hebcalEnabled"), false}}},
         {QStringLiteral("locale"), QVariantMap{{QStringLiteral("systemLocale"), QStringLiteral("en_US.UTF-8")},
                                                {QStringLiteral("sysLanguage"), QStringLiteral("en_US")},
                                                {QStringLiteral("sysEncoding"), QStringLiteral("UTF-8")},
@@ -64,7 +138,8 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
                                                {QStringLiteral("formatLocale"), QStringLiteral("en_US.UTF-8")},
                                                {QStringLiteral("timezone"), QStringLiteral("UTC")},
                                                {QStringLiteral("keyboardLayout"), QStringLiteral("us")}}},
-        {QStringLiteral("network"), QVariantMap{{QStringLiteral("mode"), QStringLiteral("networkmanager")}}},
+        {QStringLiteral("network"), QVariantMap{{QStringLiteral("mode"), QStringLiteral("networkmanager")},
+                                                  {QStringLiteral("handoffEnabled"), true}}},
         {QStringLiteral("privacy"), QVariantMap{{QStringLiteral("firewall"), true}}},
         {QStringLiteral("software"), QVariantMap{{QStringLiteral("profile"), QStringLiteral("recommended")},
                                                    {QStringLiteral("channel"), QStringLiteral("stable")},
@@ -74,7 +149,7 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
         {QStringLiteral("disk"), QVariantMap{{QStringLiteral("mode"), QStringLiteral("erase")},
                                              {QStringLiteral("filesystem"), QStringLiteral("btrfs")},
                                              {QStringLiteral("swap"), QStringLiteral("zram")},
-                                             {QStringLiteral("separateHome"), true},
+                                             {QStringLiteral("separateHome"), false},
                                              {QStringLiteral("rootSizeGiB"), 32}}},
         {QStringLiteral("user"), QVariantMap{{QStringLiteral("automaticLogin"), false}}}
     };
@@ -82,9 +157,24 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
     buildSystemLocales();
     buildCountries();
     buildTimeZones();
+    loadRegionPresets();
+    // UTC is a safe persisted fallback, but when the Live environment itself
+    // has a real geographic zone use it as the initial map selection. This is
+    // not geolocation and performs no network request.
+    const QString detectedTimeZone = QString::fromUtf8(QTimeZone::systemTimeZoneId());
+    const bool canVisualizeDetectedZone = std::any_of(m_timeZones.cbegin(), m_timeZones.cend(),
+        [&detectedTimeZone](const QVariant &entry) {
+            return entry.toMap().value(QStringLiteral("id")).toString() == detectedTimeZone;
+        });
+    if (canVisualizeDetectedZone) {
+        QVariantMap locale = section(QStringLiteral("locale"));
+        locale.insert(QStringLiteral("timezone"), detectedTimeZone);
+        m_selections.insert(QStringLiteral("locale"), locale);
+    }
     buildKeyboardLayouts();
     loadSoftwareCatalog();
     detectNetwork();
+    refreshNetworkHandoff();
     refreshDisks();
     detectHardware();
 }
@@ -126,7 +216,8 @@ void InstallerController::discardGeneratedPlan()
     for (const QString &name : {QStringLiteral("config_manifest.json"),
                                QStringLiteral("generated/install-plan.json"),
                                QStringLiteral("generated/user_configuration.json"),
-                               QStringLiteral("generated/user_credentials.json")})
+                               QStringLiteral("generated/user_credentials.json"),
+                               QStringLiteral("generated/network-handoff.nmconnection")})
         QFile::remove(QDir(directory).absoluteFilePath(name));
 }
 
@@ -136,33 +227,127 @@ QString InstallerController::formatCountry() const { return section(QStringLiter
 QString InstallerController::formatLocale() const { return section(QStringLiteral("locale")).value(QStringLiteral("formatLocale")).toString(); }
 QString InstallerController::timeZone() const { return section(QStringLiteral("locale")).value(QStringLiteral("timezone")).toString(); }
 QString InstallerController::keyboardLayout() const { return section(QStringLiteral("locale")).value(QStringLiteral("keyboardLayout")).toString(); }
+QVariantMap InstallerController::regionRecommendation() const
+{
+    const QString country = formatCountry();
+    const QVariantMap preset = m_regionPresets.value(country);
+    return {
+        {QStringLiteral("country"), country},
+        {QStringLiteral("systemLocale"), systemLocale()},
+        {QStringLiteral("formatLocale"), formatLocale()},
+        {QStringLiteral("timeZone"), timeZone()},
+        {QStringLiteral("keyboardLayout"), keyboardLayout()},
+        {QStringLiteral("automatic"), !section(QStringLiteral("locale")).value(QStringLiteral("manualSystemLocale")).toBool()
+                                     && !section(QStringLiteral("locale")).value(QStringLiteral("manualFormatLocale")).toBool()
+                                     && !section(QStringLiteral("locale")).value(QStringLiteral("manualTimezone")).toBool()
+                                     && !section(QStringLiteral("locale")).value(QStringLiteral("manualKeyboardLayout")).toBool()},
+        {QStringLiteral("hasPreset"), !preset.isEmpty()}
+    };
+}
+
+QVariantList InstallerController::calendarCapabilities() const
+{
+    // The installer never contacts a calendar service.  These are the only
+    // display preferences it can safely persist for the installed desktop.
+    const QCalendar islamicCivil(QStringLiteral("islamic-civil"));
+    const QString islamicState = islamicCivil.isValid() ? QStringLiteral("ready") : QStringLiteral("unavailable");
+    const QString islamicDescription = islamicCivil.isValid()
+        ? tr("Local Qt calendar display")
+        : tr("This Qt runtime does not provide the Islamic Civil calendar");
+    return {
+        row({{"id", "none"}, {"name", tr("No secondary calendar")}, {"state", "ready"},
+             {"description", tr("Gregorian calendar only")}}),
+        row({{"id", "buddhist"}, {"name", tr("Buddhist Era")}, {"state", "ready"},
+             {"description", tr("Local display only; no online request")}}),
+        row({{"id", "islamic-civil"}, {"name", tr("Islamic Civil calendar")}, {"state", islamicState},
+             {"description", islamicDescription}}),
+        row({{"id", "hebcal"}, {"name", tr("Hebrew calendar and holidays")}, {"state", "needs-online-setup"},
+             {"description", tr("Optional Hebcal data after installation; disabled by default")}})
+    };
+}
 QString InstallerController::selectedDisk() const { return section(QStringLiteral("disk")).value(QStringLiteral("stableId")).toString(); }
+
+bool InstallerController::networkHandoffEnabled() const
+{
+    return section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), true).toBool()
+           && m_networkHandoffState == QStringLiteral("ready");
+}
 
 void InstallerController::setUiLanguage(const QString &id)
 {
     writeSelection(QStringLiteral("preferences"), QStringLiteral("uiLanguage"), id);
+    if (!section(QStringLiteral("locale")).value(QStringLiteral("manualSystemLocale")).toBool())
+        applyRegionPreset(formatCountry());
     emit uiLanguageChanged();
 }
 void InstallerController::setSystemLocale(const QString &id)
 {
+    markLocaleOverride(QStringLiteral("manualSystemLocale"));
     writeSelection(QStringLiteral("locale"), QStringLiteral("systemLocale"), id);
     writeSelection(QStringLiteral("locale"), QStringLiteral("sysLanguage"), id.section(QLatin1Char('.'), 0, 0));
+}
+void InstallerController::setFormatLocale(const QString &id)
+{
+    if (!hasSystemLocale(id)) {
+        setError(tr("That regional format is not available."));
+        return;
+    }
+    markLocaleOverride(QStringLiteral("manualFormatLocale"));
+    writeSelection(QStringLiteral("locale"), QStringLiteral("formatLocale"), id);
 }
 void InstallerController::setFormatCountry(const QString &alpha2)
 {
     writeSelection(QStringLiteral("locale"), QStringLiteral("formatCountry"), alpha2);
-    const QString language = systemLocale().section(QLatin1Char('_'), 0, 0);
-    const QString candidate = language + QLatin1Char('_') + alpha2 + QStringLiteral(".UTF-8");
-    const bool exists = std::any_of(m_systemLocales.cbegin(), m_systemLocales.cend(), [&](const QVariant &entry) {
-        return entry.toMap().value(QStringLiteral("id")).toString() == candidate;
-    });
-    writeSelection(QStringLiteral("locale"), QStringLiteral("formatLocale"), exists ? candidate : systemLocale());
+    applyRegionPreset(alpha2);
 }
-void InstallerController::setTimeZone(const QString &id) { writeSelection(QStringLiteral("locale"), QStringLiteral("timezone"), id); }
-void InstallerController::setKeyboardLayout(const QString &id) { writeSelection(QStringLiteral("locale"), QStringLiteral("keyboardLayout"), id); }
+void InstallerController::setTimeZone(const QString &id) { markLocaleOverride(QStringLiteral("manualTimezone")); writeSelection(QStringLiteral("locale"), QStringLiteral("timezone"), id); }
+void InstallerController::setKeyboardLayout(const QString &id) { markLocaleOverride(QStringLiteral("manualKeyboardLayout")); writeSelection(QStringLiteral("locale"), QStringLiteral("keyboardLayout"), id); }
+void InstallerController::setSecondaryCalendar(const QString &id)
+{
+    const QStringList allowed{QStringLiteral("none"), QStringLiteral("buddhist"), QStringLiteral("islamic-civil"), QStringLiteral("hebcal")};
+    if (!allowed.contains(id)) {
+        setError(tr("That calendar is not available."));
+        return;
+    }
+    writeSelection(QStringLiteral("preferences"), QStringLiteral("secondaryCalendar"), id);
+    if (id != QStringLiteral("hebcal"))
+        writeSelection(QStringLiteral("preferences"), QStringLiteral("hebcalEnabled"), false);
+}
+void InstallerController::setHebcalEnabled(const bool enabled)
+{
+    if (section(QStringLiteral("preferences")).value(QStringLiteral("secondaryCalendar")).toString() != QStringLiteral("hebcal")) {
+        setError(tr("Choose the Hebrew calendar before enabling online data."));
+        return;
+    }
+    writeSelection(QStringLiteral("preferences"), QStringLiteral("hebcalEnabled"), enabled);
+}
+void InstallerController::useRegionRecommendations()
+{
+    for (const QString &key : {QStringLiteral("manualSystemLocale"), QStringLiteral("manualFormatLocale"),
+                               QStringLiteral("manualTimezone"), QStringLiteral("manualKeyboardLayout")})
+        writeSelection(QStringLiteral("locale"), key, false);
+    applyRegionPreset(formatCountry());
+}
+void InstallerController::setNetworkHandoffEnabled(const bool enabled)
+{
+    if (enabled && m_networkHandoffState != QStringLiteral("ready")) {
+        setError(m_networkHandoffMessage);
+        return;
+    }
+    writeSelection(QStringLiteral("network"), QStringLiteral("handoffEnabled"), enabled);
+    emit networkHandoffChanged();
+}
+
+void InstallerController::disableNetworkHandoff()
+{
+    // A visible default must never turn into a hidden failing installation
+    // choice. Keep the default checked while an active profile is still being
+    // discovered, but clear it once the real profile is known unsupported.
+    if (section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), true).toBool())
+        writeSelection(QStringLiteral("network"), QStringLiteral("handoffEnabled"), false);
+}
 void InstallerController::setSelectedDisk(const QString &id)
 {
-    writeSelection(QStringLiteral("disk"), QStringLiteral("stableId"), id);
     for (const QVariant &entry : m_disks) {
         const QVariantMap disk = entry.toMap();
         if (disk.value(QStringLiteral("id")).toString() == id) {
@@ -170,6 +355,7 @@ void InstallerController::setSelectedDisk(const QString &id)
                 setError(disk.value(QStringLiteral("unavailableReason")).toString());
                 return;
             }
+            writeSelection(QStringLiteral("disk"), QStringLiteral("stableId"), id);
             writeSelection(QStringLiteral("disk"), QStringLiteral("sizeBytes"),
                            disk.value(QStringLiteral("sizeBytes")));
             writeSelection(QStringLiteral("disk"), QStringLiteral("devicePath"),
@@ -178,9 +364,53 @@ void InstallerController::setSelectedDisk(const QString &id)
                            disk.value(QStringLiteral("serial")));
             writeSelection(QStringLiteral("disk"), QStringLiteral("wwn"),
                            disk.value(QStringLiteral("wwn")));
+            writeSelection(QStringLiteral("disk"), QStringLiteral("targetPartition"), QVariantMap{});
+            writeSelection(QStringLiteral("disk"), QStringLiteral("efiPartition"), QVariantMap{});
+            setError({});
             break;
         }
     }
+}
+
+void InstallerController::selectExistingPartition(const QString &diskId, const QString &partitionPath)
+{
+    for (const QVariant &entry : m_disks) {
+        const QVariantMap disk = entry.toMap();
+        if (disk.value(QStringLiteral("id")).toString() != diskId)
+            continue;
+        if (!disk.value(QStringLiteral("partitionInstallEligible")).toBool()) {
+            setError(disk.value(QStringLiteral("partitionUnavailableReason")).toString());
+            return;
+        }
+        QVariantMap root;
+        QVariantMap efi;
+        for (const QVariant &partitionEntry : disk.value(QStringLiteral("partitions")).toList()) {
+            const QVariantMap partition = partitionEntry.toMap();
+            if (partition.value(QStringLiteral("path")).toString() == partitionPath)
+                root = partition;
+            if (partition.value(QStringLiteral("eligibleEfi")).toBool() && efi.isEmpty())
+                efi = partition;
+        }
+        if (root.isEmpty() || !root.value(QStringLiteral("eligibleRoot")).toBool()) {
+            setError(tr("That partition cannot be used as the Meo root partition."));
+            return;
+        }
+        if (efi.isEmpty()) {
+            setError(tr("This disk needs an unmounted 512 MiB EFI System Partition. No partition will be changed."));
+            return;
+        }
+        writeSelection(QStringLiteral("disk"), QStringLiteral("stableId"), diskId);
+        writeSelection(QStringLiteral("disk"), QStringLiteral("sizeBytes"), disk.value(QStringLiteral("sizeBytes")));
+        writeSelection(QStringLiteral("disk"), QStringLiteral("devicePath"), disk.value(QStringLiteral("devicePath")));
+        writeSelection(QStringLiteral("disk"), QStringLiteral("serial"), disk.value(QStringLiteral("serial")));
+        writeSelection(QStringLiteral("disk"), QStringLiteral("wwn"), disk.value(QStringLiteral("wwn")));
+        writeSelection(QStringLiteral("disk"), QStringLiteral("targetPartition"), root);
+        writeSelection(QStringLiteral("disk"), QStringLiteral("efiPartition"), efi);
+        writeSelection(QStringLiteral("disk"), QStringLiteral("mode"), QStringLiteral("partition"));
+        setError({});
+        return;
+    }
+    setError(tr("The selected disk is no longer available. Refresh the disk list."));
 }
 void InstallerController::setSelection(const QString &s, const QString &key, const QVariant &value) { writeSelection(s, key, value); }
 QVariant InstallerController::selection(const QString &s, const QString &key, const QVariant &fallback) const { return section(s).value(key, fallback); }
@@ -213,18 +443,13 @@ void InstallerController::loadSoftwareCatalog()
 
 void InstallerController::buildUiLanguages()
 {
+    // UI language is deliberately independent from the locale written to the
+    // installed system.  These are the two translations shipped and checked
+    // with the installer; do not advertise a language merely because a system
+    // locale happens to exist.
     m_uiLanguages = {
         row({{"id", "en"}, {"nativeName", "English"}, {"englishName", "English"}, {"fontFallback", "Roboto"}}),
-        row({{"id", "zh_CN"}, {"nativeName", QStringLiteral("简体中文")}, {"englishName", "Simplified Chinese"}, {"fontFallback", "Noto Sans SC"}}),
-        row({{"id", "zh_TW"}, {"nativeName", QStringLiteral("繁體中文")}, {"englishName", "Traditional Chinese"}, {"fontFallback", "Noto Sans TC"}}),
-        row({{"id", "ja"}, {"nativeName", QStringLiteral("日本語")}, {"englishName", "Japanese"}, {"fontFallback", "Noto Sans JP"}}),
-        row({{"id", "ko"}, {"nativeName", QStringLiteral("한국어")}, {"englishName", "Korean"}, {"fontFallback", "Noto Sans KR"}}),
-        row({{"id", "es"}, {"nativeName", "Español"}, {"englishName", "Spanish"}, {"fontFallback", "Roboto"}}),
-        row({{"id", "fr"}, {"nativeName", "Français"}, {"englishName", "French"}, {"fontFallback", "Roboto"}}),
-        row({{"id", "de"}, {"nativeName", "Deutsch"}, {"englishName", "German"}, {"fontFallback", "Roboto"}}),
-        row({{"id", "pt_BR"}, {"nativeName", "Português (Brasil)"}, {"englishName", "Portuguese (Brazil)"}, {"fontFallback", "Roboto"}}),
-        row({{"id", "ru"}, {"nativeName", QStringLiteral("Русский")}, {"englishName", "Russian"}, {"fontFallback", "Roboto"}}),
-        row({{"id", "it"}, {"nativeName", "Italiano"}, {"englishName", "Italian"}, {"fontFallback", "Roboto"}})
+        row({{"id", "zh_CN"}, {"nativeName", "简体中文"}, {"englishName", "Chinese (Simplified)"}, {"fontFallback", "Noto Sans CJK SC"}})
     };
 }
 
@@ -369,22 +594,228 @@ void InstallerController::buildKeyboardLayouts()
     }
 }
 
+void InstallerController::loadRegionPresets()
+{
+    QFile file(QDir(sourceRoot()).absoluteFilePath(QStringLiteral("data/region-presets.json")));
+    if (!file.open(QIODevice::ReadOnly))
+        return;
+    QJsonParseError error;
+    const QJsonObject root = QJsonDocument::fromJson(file.readAll(), &error).object();
+    if (error.error != QJsonParseError::NoError || root.value(QStringLiteral("schemaVersion")).toInt() != 1)
+        return;
+    const QJsonObject presets = root.value(QStringLiteral("presets")).toObject();
+    for (auto it = presets.begin(); it != presets.end(); ++it)
+        m_regionPresets.insert(it.key(), it.value().toObject().toVariantMap());
+}
+
+bool InstallerController::hasSystemLocale(const QString &id) const
+{
+    return std::any_of(m_systemLocales.cbegin(), m_systemLocales.cend(), [&id](const QVariant &entry) {
+        return entry.toMap().value(QStringLiteral("id")).toString() == id;
+    });
+}
+
+void InstallerController::markLocaleOverride(const QString &key)
+{
+    if (!section(QStringLiteral("locale")).value(key).toBool())
+        writeSelection(QStringLiteral("locale"), key, true);
+}
+
+void InstallerController::applyRegionPreset(const QString &alpha2)
+{
+    const QVariantMap preset = m_regionPresets.value(alpha2);
+    QVariantMap locale = section(QStringLiteral("locale"));
+    const auto preferred = [&preset, this](const QString &key) {
+        QString value = preset.value(key).toString();
+        const QVariantMap byUiLanguage = preset.value(key + QStringLiteral("ByUiLanguage")).toMap();
+        if (!byUiLanguage.isEmpty())
+            value = byUiLanguage.value(uiLanguage(), byUiLanguage.value(QStringLiteral("en"))).toString();
+        return value;
+    };
+
+    QString system = preferred(QStringLiteral("systemLocale"));
+    if (system.isEmpty()) {
+        const QString candidate = systemLocale().section(QLatin1Char('_'), 0, 0) + QLatin1Char('_') + alpha2 + QStringLiteral(".UTF-8");
+        system = hasSystemLocale(candidate) ? candidate : systemLocale();
+    }
+    QString format = preferred(QStringLiteral("formatLocale"));
+    if (format.isEmpty())
+        format = system;
+    const QString zone = preferred(QStringLiteral("timeZone"));
+    const QString keyboard = preferred(QStringLiteral("keyboardLayout"));
+
+    if (!locale.value(QStringLiteral("manualSystemLocale")).toBool() && hasSystemLocale(system)) {
+        writeSelection(QStringLiteral("locale"), QStringLiteral("systemLocale"), system);
+        writeSelection(QStringLiteral("locale"), QStringLiteral("sysLanguage"), system.section(QLatin1Char('.'), 0, 0));
+    }
+    if (!locale.value(QStringLiteral("manualFormatLocale")).toBool() && hasSystemLocale(format))
+        writeSelection(QStringLiteral("locale"), QStringLiteral("formatLocale"), format);
+    if (!locale.value(QStringLiteral("manualTimezone")).toBool() && !zone.isEmpty())
+        writeSelection(QStringLiteral("locale"), QStringLiteral("timezone"), zone);
+    if (!locale.value(QStringLiteral("manualKeyboardLayout")).toBool() && !keyboard.isEmpty())
+        writeSelection(QStringLiteral("locale"), QStringLiteral("keyboardLayout"), keyboard);
+}
+
 void InstallerController::detectNetwork()
 {
+    ++m_connectivityGeneration;
+    if (m_connectivityReply) {
+        m_connectivityReply->abort();
+        m_connectivityReply->deleteLater();
+    }
     m_networkState = QStringLiteral("offline");
-    m_networkDetail = tr("Network status is provided by Meo.System / NetworkManager.");
+    m_networkDetail = tr("No active network interface was detected.");
     for (const QNetworkInterface &interface : QNetworkInterface::allInterfaces()) {
         if (interface.flags().testFlag(QNetworkInterface::IsUp) && interface.flags().testFlag(QNetworkInterface::IsRunning)
             && !interface.flags().testFlag(QNetworkInterface::IsLoopBack)) {
-            m_networkState = QStringLiteral("link");
-            m_networkDetail = tr("A network interface is active. Internet availability is checked before installation.");
-            break;
+            m_networkState = QStringLiteral("checking");
+            m_networkDetail = tr("Checking whether the Internet is available…");
+            emit networkStateChanged();
+            QNetworkRequest request(QUrl(QStringLiteral("https://connectivity.meoarch.org/generate_204")));
+            request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
+            request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("MeoArch-Installer-Connectivity/1"));
+            const quint64 generation = m_connectivityGeneration;
+            QNetworkReply *reply = m_connectivityManager->get(request);
+            m_connectivityReply = reply;
+            QTimer::singleShot(7000, reply, [reply] { if (reply->isRunning()) reply->abort(); });
+            connect(reply, &QNetworkReply::finished, this, [this, reply, generation] {
+                if (generation != m_connectivityGeneration) { reply->deleteLater(); return; }
+                const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+                const QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+                if (status == 204) {
+                    m_networkState = QStringLiteral("online");
+                    m_networkDetail = tr("Internet access is ready. This check sends no account, device, or hardware information.");
+                } else if (redirect.isValid() || (status >= 300 && status < 400)) {
+                    m_networkState = QStringLiteral("portal");
+                    m_networkDetail = tr("This network may require a sign-in page before installation can continue.");
+                } else {
+                    m_networkState = QStringLiteral("offline");
+                    m_networkDetail = tr("Internet access could not be verified. Check the connection and try again.");
+                }
+                m_connectivityReply = nullptr;
+                emit networkStateChanged();
+                refreshNetworkHandoff();
+                reply->deleteLater();
+            });
+            return;
         }
     }
     emit networkStateChanged();
+    refreshNetworkHandoff();
 }
 
 void InstallerController::retryNetwork() { detectNetwork(); }
+
+void InstallerController::openDebugTerminal()
+{
+    if (m_debugTerminalProgram.isEmpty()) {
+        setError(m_debugTerminalMessage);
+        return;
+    }
+    const QString workingDirectory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation))
+                                         .absoluteFilePath(QStringLiteral("meoarch-installer"));
+    QDir().mkpath(workingDirectory);
+    QStringList arguments;
+    if (QFileInfo(m_debugTerminalProgram).fileName() == QStringLiteral("konsole")) {
+        arguments = {QStringLiteral("--title"), tr("MeoArch Installer Debug"),
+                     QStringLiteral("--workdir"), workingDirectory,
+                     QStringLiteral("-e"), QStringLiteral("bash"), QStringLiteral("-l")};
+    } else {
+        arguments = {QStringLiteral("-title"), tr("MeoArch Installer Debug"),
+                     QStringLiteral("-e"), QStringLiteral("bash"), QStringLiteral("-l")};
+    }
+    if (!QProcess::startDetached(m_debugTerminalProgram, arguments, workingDirectory)) {
+        m_debugTerminalMessage = tr("The debug terminal could not be started. Check the Live session.");
+        emit debugTerminalChanged();
+        setError(m_debugTerminalMessage);
+        return;
+    }
+    m_debugTerminalMessage = tr("Debug terminal opened in the Live session.");
+    emit debugTerminalChanged();
+}
+
+void InstallerController::refreshNetworkHandoff()
+{
+    m_networkHandoffSource.clear();
+    m_networkHandoffKind.clear();
+    if (m_networkState != QStringLiteral("online")) {
+        m_networkHandoffState = QStringLiteral("unavailable");
+        m_networkHandoffMessage = tr("Connect to the Internet before this network can be remembered after installation.");
+        emit networkHandoffChanged();
+        return;
+    }
+    auto *process = new QProcess(this);
+    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
+        const QString output = QString::fromUtf8(process->readAllStandardOutput()).trimmed();
+        process->deleteLater();
+        if (status != QProcess::NormalExit || exitCode != 0 || output.isEmpty()) {
+            disableNetworkHandoff();
+            m_networkHandoffState = QStringLiteral("unsupported");
+            m_networkHandoffMessage = tr("The active network cannot be safely transferred. Reconnect after installation.");
+            emit networkHandoffChanged();
+            return;
+        }
+        const QStringList fields = output.split(QLatin1Char(':'));
+        if (fields.size() != 3 || (fields.at(2) != QStringLiteral("802-11-wireless") && fields.at(2) != QStringLiteral("802-3-ethernet"))) {
+            disableNetworkHandoff();
+            m_networkHandoffState = QStringLiteral("unsupported");
+            m_networkHandoffMessage = tr("VPN, enterprise Wi-Fi, and advanced network profiles must be configured after installation.");
+            emit networkHandoffChanged();
+            return;
+        }
+        const QString source = fields.at(1);
+        const QString prefix = QStringLiteral("/etc/NetworkManager/system-connections/");
+        const QFileInfo info(source);
+        if (!source.startsWith(prefix) || !info.isFile() || info.isSymLink() || !info.isReadable()) {
+            disableNetworkHandoff();
+            m_networkHandoffState = QStringLiteral("unsupported");
+            m_networkHandoffMessage = tr("This NetworkManager profile is temporary or protected by another credential service.");
+            emit networkHandoffChanged();
+            return;
+        }
+        if (!isSupportedNetworkHandoffProfile(source, fields.at(2))) {
+            disableNetworkHandoff();
+            m_networkHandoffState = QStringLiteral("unsupported");
+            m_networkHandoffMessage = tr("Only DHCP Ethernet, open Wi-Fi, WPA2/WPA3, and OWE can be remembered. Configure enterprise Wi-Fi, VPN, or static networking after installation.");
+            emit networkHandoffChanged();
+            return;
+        }
+        m_networkHandoffSource = source;
+        m_networkHandoffKind = fields.at(2);
+        m_networkHandoffState = QStringLiteral("ready");
+        m_networkHandoffMessage = tr("This current network can be remembered after installation. Only this NetworkManager profile will be copied.");
+        emit networkHandoffChanged();
+    });
+    process->start(QStringLiteral("nmcli"), {QStringLiteral("--terse"), QStringLiteral("--escape"), QStringLiteral("no"),
+                                               QStringLiteral("--fields"), QStringLiteral("UUID,FILENAME,TYPE"),
+                                               QStringLiteral("connection"), QStringLiteral("show"), QStringLiteral("--active")});
+}
+
+bool InstallerController::stageNetworkHandoff()
+{
+    const QString stateDirectory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation))
+                                       .absoluteFilePath(QStringLiteral("meoarch-installer/generated"));
+    const QString staged = QDir(stateDirectory).absoluteFilePath(QStringLiteral("network-handoff.nmconnection"));
+    QFile::remove(staged);
+    if (!section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), true).toBool())
+        return true;
+    if (m_networkHandoffState != QStringLiteral("ready") || m_networkHandoffSource.isEmpty()) {
+        setError(tr("The selected network can no longer be safely remembered. Turn off network transfer or reconnect."));
+        return false;
+    }
+    QDir().mkpath(stateDirectory);
+    if (!QFile::copy(m_networkHandoffSource, staged)) {
+        setError(tr("Could not prepare the selected network for the installed system."));
+        return false;
+    }
+    QFile handoff(staged);
+    if (!handoff.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
+        QFile::remove(staged);
+        setError(tr("Could not protect the selected network handoff."));
+        return false;
+    }
+    return true;
+}
 
 void InstallerController::detectHardware()
 {
@@ -429,7 +860,7 @@ void InstallerController::refreshDisks()
         process->deleteLater();
     });
     process->start(QStringLiteral("lsblk"), {QStringLiteral("-J"), QStringLiteral("-b"), QStringLiteral("-o"),
-                                            QStringLiteral("NAME,PATH,MODEL,SERIAL,WWN,SIZE,TYPE,ROTA,RM,HOTPLUG,TRAN,MOUNTPOINTS,FSTYPE,PARTTYPE,PKNAME")});
+                                            QStringLiteral("NAME,PATH,MODEL,SERIAL,WWN,SIZE,TYPE,ROTA,RM,HOTPLUG,TRAN,MOUNTPOINTS,FSTYPE,PARTTYPE,PKNAME,START,PARTN,LOG-SEC")});
 #else
     setError(tr("Disk detection is only available in the Linux installer environment."));
     emit disksChanged();
@@ -466,16 +897,62 @@ void InstallerController::parseDisks(const QByteArray &payload)
         const bool mounted = hasMountedDescendant(d);
         const bool runningMedia = runningSource.contains(QStringLiteral("/dev/") + name);
         const bool eligible = !removable && !mounted && !runningMedia;
+        const bool partitionInstallEligible = !removable && !runningMedia;
         QString reason;
         if (runningMedia) reason = tr("This device contains the running installer.");
         else if (removable) reason = tr("Removable media cannot be selected for erase install.");
         else if (mounted) reason = tr("This device has mounted filesystems.");
+        QVariantList partitions;
+        const int logicalSectorSize = d.value(QStringLiteral("log-sec")).toVariant().toInt();
+        const qint64 minimumRootBytes = 16LL * 1024 * 1024 * 1024;
+        const qint64 minimumEfiBytes = 512LL * 1024 * 1024;
+        const QString efiGuid = QStringLiteral("c12a7328-f81f-11d2-ba4b-00a0c93ec93b");
+        for (const QJsonValue &childValue : d.value(QStringLiteral("children")).toArray()) {
+            const QJsonObject child = childValue.toObject();
+            if (child.value(QStringLiteral("type")).toString() != QStringLiteral("part"))
+                continue;
+            const qint64 partitionSize = child.value(QStringLiteral("size")).toVariant().toLongLong();
+            const bool partitionMounted = hasMountedFilesystem(child);
+            const QString parttype = child.value(QStringLiteral("parttype")).toString().toLower();
+            const QString fstype = child.value(QStringLiteral("fstype")).toString().toLower();
+            const bool isEfi = parttype == efiGuid;
+            const bool eligibleRoot = partitionInstallEligible && !partitionMounted && !isEfi && partitionSize >= minimumRootBytes;
+            const bool eligibleEfi = partitionInstallEligible && !partitionMounted && isEfi
+                                     && partitionSize >= minimumEfiBytes
+                                     && (fstype == QStringLiteral("vfat") || fstype == QStringLiteral("fat")
+                                         || fstype == QStringLiteral("fat16") || fstype == QStringLiteral("fat32"));
+            QString partitionReason;
+            if (!partitionInstallEligible)
+                partitionReason = runningMedia ? tr("This device contains the running installer.") : tr("Removable media cannot be selected.");
+            else if (partitionMounted)
+                partitionReason = tr("This partition is mounted.");
+            else if (isEfi)
+                partitionReason = tr("EFI System Partition — preserved for boot files.");
+            else if (partitionSize < minimumRootBytes)
+                partitionReason = tr("At least 16 GiB is required for the Meo root partition.");
+            partitions.append(row({
+                {"name", child.value(QStringLiteral("name")).toString()},
+                {"path", child.value(QStringLiteral("path")).toString()},
+                {"sizeBytes", partitionSize}, {"size", QLocale().formattedDataSize(partitionSize)},
+                {"startSectors", child.value(QStringLiteral("start")).toVariant().toLongLong()},
+                {"sizeSectors", logicalSectorSize > 0 ? partitionSize / logicalSectorSize : 0},
+                {"logicalSectorSize", logicalSectorSize}, {"partn", child.value(QStringLiteral("partn")).toVariant().toInt()},
+                {"fstype", fstype}, {"parttype", parttype}, {"mounted", partitionMounted},
+                {"isEfi", isEfi}, {"eligibleRoot", eligibleRoot}, {"eligibleEfi", eligibleEfi},
+                {"unavailableReason", partitionReason},
+            }));
+        }
+        QString partitionReason;
+        if (runningMedia) partitionReason = tr("This device contains the running installer.");
+        else if (removable) partitionReason = tr("Removable media cannot be selected.");
         m_disks.append(row({{"id", stableId}, {"devicePath", devicePath}, {"name", d.value(QStringLiteral("model")).toString().trimmed().isEmpty() ? tr("Storage device") : d.value(QStringLiteral("model")).toString().trimmed()},
                             {"sizeBytes", size},
                             {"size", QLocale().formattedDataSize(size)}, {"available", tr("Capacity ") + QLocale().formattedDataSize(size)},
                             {"kind", removable ? tr("Removable") : (d.value(QStringLiteral("rota")).toInt() ? tr("HDD") : tr("SSD"))},
                             {"serial", d.value(QStringLiteral("serial")).toString()}, {"wwn", d.value(QStringLiteral("wwn")).toString()},
-                            {"transport", d.value(QStringLiteral("tran")).toString()}, {"eligible", eligible}, {"unavailableReason", reason}}));
+                            {"transport", d.value(QStringLiteral("tran")).toString()}, {"eligible", eligible}, {"unavailableReason", reason},
+                            {"partitions", partitions}, {"partitionInstallEligible", partitionInstallEligible},
+                            {"partitionUnavailableReason", partitionReason}}));
     }
     if (m_disks.isEmpty())
         setError(tr("No eligible installation disk was detected. Preview disks are never shown in production mode."));
@@ -486,13 +963,13 @@ bool InstallerController::validateAccount(const QString &username, const QString
                                           const QString &password, const QString &confirmation)
 {
     if (!QRegularExpression(QStringLiteral("^[a-z_][a-z0-9_-]{0,31}$")).match(username).hasMatch()) {
-        setError(QStringLiteral("Username must use lowercase letters, numbers, _ or -.")); return false;
+        setError(tr("Username must use lowercase letters, numbers, _ or -.")); return false;
     }
     if (!QRegularExpression(QStringLiteral("^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$" )).match(hostname).hasMatch()) {
-        setError(QStringLiteral("Computer name must be 1–63 lowercase letters, numbers or hyphens.")); return false;
+        setError(tr("Computer name must be 1–63 lowercase letters, numbers or hyphens.")); return false;
     }
-    if (password.size() < 8) { setError(QStringLiteral("Password must contain at least 8 characters.")); return false; }
-    if (password != confirmation) { setError(QStringLiteral("Passwords do not match.")); return false; }
+    if (password.size() < 8) { setError(tr("Password must contain at least 8 characters.")); return false; }
+    if (password != confirmation) { setError(tr("Passwords do not match.")); return false; }
     setError({});
     return true;
 }
@@ -603,6 +1080,10 @@ void InstallerController::prepareInstallation()
     m_installPlan.clear();
     m_summaryConfirmed = false;
     setPreflight(QStringLiteral("checking"), tr("Generating and validating the installation plan…"));
+    if (!stageNetworkHandoff()) {
+        setPreflight(QStringLiteral("failed"), m_errorMessage);
+        return;
+    }
     persistSelections();
     if (!m_errorMessage.isEmpty()) {
         setPreflight(QStringLiteral("failed"), m_errorMessage);
@@ -743,6 +1224,7 @@ void InstallerController::startInstallation()
 {
     if (!m_summaryConfirmed || !readyToInstall()) { setError(tr("Review and confirm a ready installation plan before installing.")); return; }
     m_installationProgress = 0;
+    m_installationFailureDetails.clear();
     updateInstallation(QStringLiteral("running"), 0, QStringLiteral("preflight"), tr("Preparing installation."));
     if (!m_realInstallEnabled) {
         updateInstallation(QStringLiteral("failed"), 0, QStringLiteral("blocked"), tr("Real installation is disabled outside production mode."));
@@ -757,6 +1239,7 @@ void InstallerController::startInstallation()
     }
     auto *process = new QProcess(this);
     process->setProcessEnvironment(QProcessEnvironment::systemEnvironment());
+    process->setProcessChannelMode(QProcess::MergedChannels);
     const QString stateDirectory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
     const QString eventsPath = QDir(stateDirectory).absoluteFilePath(QStringLiteral("logs/install-events.jsonl"));
     if (m_progressTimer) {
@@ -797,7 +1280,10 @@ void InstallerController::startInstallation()
             updateInstallation(QStringLiteral("complete"), 100, QStringLiteral("complete"), tr("Installation complete."));
         else {
             updateInstallation(QStringLiteral("failed"), m_installationProgress, m_installationStage, tr("Installation stopped."));
-            setError(QString::fromUtf8(process->readAllStandardError()).trimmed());
+            m_installationFailureDetails = conciseProcessFailure(QString::fromUtf8(process->readAllStandardOutput()));
+            if (m_installationFailureDetails.isEmpty())
+                m_installationFailureDetails = tr("The installer process ended without a diagnostic line. Open the saved log before retrying.");
+            setError(m_installationFailureDetails);
         }
         process->deleteLater();
         emit installationChanged();
@@ -817,11 +1303,11 @@ void InstallerController::updateInstallation(const QString &state, int progress,
 void InstallerController::requestRestart()
 {
     if (m_systemActionsEnabled) QProcess::startDetached(QStringLiteral("systemctl"), {QStringLiteral("reboot")});
-    else setError(QStringLiteral("Restart is disabled in preview mode."));
+    else setError(tr("Restart is disabled in preview mode."));
 }
 void InstallerController::requestShutdown()
 {
     if (m_systemActionsEnabled) QProcess::startDetached(QStringLiteral("systemctl"), {QStringLiteral("poweroff")});
-    else setError(QStringLiteral("Shut down is disabled in preview mode."));
+    else setError(tr("Shut down is disabled in preview mode."));
 }
 void InstallerController::setError(const QString &message) { m_errorMessage = message; emit errorMessageChanged(); }

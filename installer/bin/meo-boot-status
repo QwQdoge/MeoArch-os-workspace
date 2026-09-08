@@ -62,7 +62,7 @@ FAILURES = {
         "message": "NetworkManager failed to start during boot.",
         "code": "ERR_NETWORK_SERVICE_FAILED",
     },
-    "sddm.service": {
+    "plasmalogin.service": {
         "title": "Desktop Session Error",
         "message": "Display manager failed to initialize.",
         "code": "ERR_DESKTOP_INIT_FAILED",
@@ -110,7 +110,6 @@ def handle_stage(stage_id):
     # 1. Update Plymouth progress & message
     run_plymouth_cmd("update", f"--progress={progress}")
     run_plymouth_cmd("display-message", f"--text={msg}")
-    run_plymouth_cmd("message", f"--text=STAGE:{stage_id}:{progress}:{msg}")
 
     # 2. Record state for auditing
     state = {

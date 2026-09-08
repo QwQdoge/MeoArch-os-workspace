@@ -32,6 +32,15 @@ file solely for configuration generation, then removed. Plaintext account,
 Wi-Fi, and disk-encryption passwords are not placed in selections, summaries,
 or diagnostics.
 
+When the user explicitly enables **Remember this network after installation**,
+the controller may copy exactly one supported, already-active NetworkManager
+profile to a root-only mode-0600 temporary handoff file.  The file is neither a
+selection nor a diagnostic artifact; it is imported into the target's
+`/etc/NetworkManager/system-connections/` directory and removed on every
+success or failure exit path. Profiles held by KWallet, enterprise Wi-Fi, VPN,
+or unsupported advanced configurations are refused with an install-afterward
+explanation instead of being partially copied.
+
 `prepareInstallation()` is the only path into a ready plan:
 
 1. persist non-secret selections;

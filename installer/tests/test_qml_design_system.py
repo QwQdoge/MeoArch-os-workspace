@@ -43,11 +43,18 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('applicationsForTier("recommended")', software)
         self.assertIn('applicationsForTier("third-party")', software)
         self.assertIn("Always opt-in", software)
+        self.assertIn("Arch official · package:", software)
+        self.assertIn("Flatpak and AUR are not installer sources", software)
 
     def test_disk_page_keeps_partition_planning_inside_the_cage_client(self):
         disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
-        self.assertIn("Integrated partition plan", disk)
-        self.assertIn('setSelection("disk", "rootSizeGiB"', disk)
+        preview = (QML_ROOT / "PreviewController.qml").read_text(encoding="utf-8")
+        self.assertIn("Use one existing partition", disk)
+        self.assertIn("selectExistingPartition", disk)
+        self.assertIn('"targetPartition"', disk)
+        self.assertIn("EFI System Partition", disk)
+        self.assertIn('"disk.sizeBytes": 549755813888', preview)
+        self.assertIn("eligibleEfi:true", preview)
         self.assertNotIn("gparted", disk.casefold())
 
     def test_choice_cards_expose_selection_semantics_without_turning_status_cards_into_buttons(self):
@@ -62,9 +69,88 @@ class InstallerDesignSystemTests(unittest.TestCase):
 
     def test_installing_page_explains_verified_progress_and_maps_backend_stage_ids(self):
         installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parents[0] / "app/installercontroller.cpp").read_text(encoding="utf-8")
         self.assertIn('stage === "installing_base"', installing)
         self.assertIn("Progress updates at verified stages", installing)
         self.assertIn("same percentage", installing)
+        self.assertIn("installationFailureDetails", installing)
+        self.assertIn("setProcessChannelMode(QProcess::MergedChannels)", controller)
+
+    def test_installer_only_shows_real_or_explicitly_unavailable_choices(self):
+        user = (QML_ROOT / "pages/UserAccountPage.qml").read_text(encoding="utf-8")
+        software = (QML_ROOT / "pages/SoftwarePage.qml").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parents[0] / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        self.assertIn("Password sign-in required", user)
+        self.assertNotIn("Automatic login\")", user)
+        self.assertIn("Included with every MeoArch installation", software)
+        self.assertNotIn('enabled: false', software)
+        self.assertIn('row({{"id", "zh_CN"}', controller)
+        self.assertNotIn('row({{"id", "ja"}', controller)
+        self.assertIn("uiLanguages.length > 1", (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8"))
+
+    def test_language_page_wraps_the_packaged_plasma_offline_timezone_selector(self):
+        page = (QML_ROOT / "pages/LanguageRegionPage.qml").read_text(encoding="utf-8")
+        wrapper = (QML_ROOT / "components/MeoTimezoneSelector.qml").read_text(encoding="utf-8")
+        kde_selector = (QML_ROOT / "components/KdeTimezoneSelector.qml").read_text(encoding="utf-8")
+        packages = (QML_ROOT.parents[1] / "meoarch-os/packages.x86_64").read_text(encoding="utf-8")
+        self.assertIn("MeoTimezoneSelector", page)
+        self.assertIn('source: "KdeTimezoneSelector.qml"', wrapper)
+        self.assertIn("org.kde.plasma.workspace.timezoneselector", kde_selector)
+        self.assertIn("property alias selectedTimeZone", kde_selector)
+        self.assertIn("plasma-workspace", packages)
+        self.assertIn("qt6-location", packages)
+
+    def test_language_page_is_country_first_with_real_adjustments_and_calendar_boundaries(self):
+        page = (QML_ROOT / "pages/LanguageRegionPage.qml").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        presets = (QML_ROOT.parent / "data/region-presets.json").read_text(encoding="utf-8")
+        self.assertIn("Ready for you", page)
+        self.assertIn("Use country recommendations again", page)
+        self.assertIn("The installer never contacts this service", page)
+        self.assertIn("CN", presets)
+        self.assertIn("HK", presets)
+        self.assertIn("KR", presets)
+        self.assertIn("SG", presets)
+        self.assertIn("manualSystemLocale", controller)
+        self.assertIn("applyRegionPreset", controller)
+        self.assertIn("manualTimezone", controller)
+        self.assertIn("manualKeyboardLayout", controller)
+        self.assertIn("setFormatLocale", controller)
+        self.assertIn("Date and number formats", page)
+        selector = (QML_ROOT / "components/SelectorDialog.qml").read_text(encoding="utf-8")
+        self.assertIn("function isSelectable", selector)
+        self.assertIn('state === "needs-online-setup"', selector)
+
+    def test_installer_keeps_cloud_account_authentication_out_of_the_local_user_flow(self):
+        user = (QML_ROOT / "pages/UserAccountPage.qml").read_text(encoding="utf-8").casefold()
+        self.assertNotIn("meo account", user)
+        self.assertNotIn("oauth", user)
+
+    def test_network_handoff_is_explicit_and_never_serializes_profile_secrets(self):
+        network = (QML_ROOT / "pages/NetworkPage.qml").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        customizer = (QML_ROOT.parent / "backend/apply-target-customizations.sh").read_text(encoding="utf-8")
+        self.assertIn("Remember this network after installation", network)
+        self.assertIn("network-handoff.nmconnection", controller)
+        self.assertIn("NetworkManager/system-connections", customizer)
+        self.assertIn("isSupportedNetworkHandoffProfile", controller)
+        self.assertIn('"wpa-psk"', controller)
+        self.assertIn('"sae"', controller)
+        self.assertIn('"owe"', controller)
+        self.assertNotIn("sourcePath", (QML_ROOT.parent / "data/default_selections.json").read_text(encoding="utf-8"))
+
+    def test_installer_has_real_debug_terminal_and_archwiki_fallback(self):
+        frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
+        installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        packages = (QML_ROOT.parents[1] / "meoarch-os/packages.x86_64").read_text(encoding="utf-8")
+        self.assertIn("openDebugTerminal", frame)
+        self.assertIn("https://wiki.archlinux.org/title/Installation_guide", frame)
+        self.assertIn("https://wiki.archlinux.org/title/Network_configuration", frame)
+        self.assertIn("QProcess::startDetached", controller)
+        self.assertIn('QStringLiteral("konsole")', controller)
+        self.assertIn("\nkonsole\n", f"\n{packages}\n")
+        self.assertTrue((QML_ROOT.parents[1] / "assets/wallpapers/installer_background.png").is_file())
 
     def test_minimum_window_uses_compact_install_and_finish_layouts(self):
         installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")

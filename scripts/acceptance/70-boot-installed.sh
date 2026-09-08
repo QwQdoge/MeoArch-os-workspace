@@ -48,7 +48,22 @@ else
   disk_path="${vm_dir}/meoarch-test.qcow2"
 fi
 display_mode="${MEOARCH_QEMU_DISPLAY:-gtk}"
+qemu_gl="${MEOARCH_QEMU_GL:-on}"
+vm_width="${MEOARCH_VM_WIDTH:-1920}"
+vm_height="${MEOARCH_VM_HEIGHT:-1080}"
+vm_name="${MEOARCH_VM_NAME:-MeoArch Installed Acceptance}"
 mkdir -p "${vm_dir}" "${evidence_dir}"
+case "${qemu_gl}" in
+  on|off) ;;
+  *) echo "MEOARCH_QEMU_GL must be on or off." >&2; exit 2 ;;
+esac
+case "${vm_width}x${vm_height}" in
+  *[!0-9x]*|x*|*x) echo "MEOARCH_VM_WIDTH and MEOARCH_VM_HEIGHT must be positive integers." >&2; exit 2 ;;
+esac
+[ "${vm_width}" -ge 960 ] && [ "${vm_height}" -ge 600 ] || {
+  echo "The acceptance VM must be at least 960x600 so the installed desktop is not tested in a clipped layout." >&2
+  exit 2
+}
 
 socket_dir="${MEOARCH_QEMU_SOCKET_DIR:-${tmp_dir}/q/installed}"
 mkdir -p "${socket_dir}"
@@ -80,9 +95,12 @@ if [ -r /dev/kvm ] && [ -w /dev/kvm ]; then
   accel_args=(-enable-kvm -cpu host)
 fi
 
-display_args=(-device virtio-vga-gl -display "${display_mode},gl=on")
+display_args=(-device "virtio-vga-gl,xres=${vm_width},yres=${vm_height}" -display "${display_mode},gl=on")
+if [ "${qemu_gl}" = "off" ]; then
+  display_args=(-device "virtio-vga,xres=${vm_width},yres=${vm_height}" -display "${display_mode}")
+fi
 if [ "${display_mode}" = "none" ]; then
-  display_args=(-device virtio-vga -display none)
+  display_args=(-device "virtio-vga,xres=${vm_width},yres=${vm_height}" -display none)
 fi
 
 cat >"${evidence_dir}/installed-vm-config.txt" <<EOF
@@ -93,8 +111,11 @@ disk=${disk_path}
 iso=none
 network=user/NAT hostfwd tcp 127.0.0.1:2222 to guest 22
 display=${display_mode}
+gl=${qemu_gl}
+resolution=${vm_width}x${vm_height}
 EOF
 
+# Stable USB input IDs make QMP-driven login acceptance deterministic.
 exec qemu-system-x86_64 \
   "${accel_args[@]}" \
   -machine q35 \
@@ -108,9 +129,10 @@ exec qemu-system-x86_64 \
   -device virtio-net-pci,netdev=net0 \
   -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 \
   -device qemu-xhci \
-  -device usb-tablet \
+  -device usb-tablet,id=meo_tablet \
+  -device usb-kbd,id=meo_keyboard \
   -qmp "unix:${qmp_socket},server=on,wait=off" \
   -monitor "unix:${monitor_socket},server=on,wait=off" \
   -serial "file:${evidence_dir}/installed-serial.log" \
   -boot menu=on,order=c \
-  -name "MeoArch Installed Acceptance"
+  -name "${vm_name}"

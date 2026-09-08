@@ -12,9 +12,14 @@ pulseaudio-qt
 noto-fonts-cjk
 qt6-base
 qt6-declarative
+qt6-location
 qt6-svg
 qt6-wayland
 qtkeychain-qt6
+kirigami-addons
+ki18n
+konsole
+plasma-workspace
 b43-fwcutter
 base
 bcachefs-tools

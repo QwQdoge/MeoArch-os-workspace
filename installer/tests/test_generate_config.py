@@ -49,6 +49,38 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("LC_TIME=en_SG.UTF-8", localerc)
         self.assertIn("LC_MEASUREMENT=en_SG.UTF-8", localerc)
 
+    def test_region_presets_cover_the_supported_country_first_defaults(self):
+        presets = json.loads((Path(__file__).parents[1] / "data" / "region-presets.json").read_text(encoding="utf-8"))["presets"]
+        self.assertEqual(presets["CN"]["systemLocale"], "zh_CN.UTF-8")
+        self.assertEqual(presets["CN"]["timeZone"], "Asia/Shanghai")
+        self.assertEqual(presets["HK"]["systemLocale"], "zh_HK.UTF-8")
+        self.assertEqual(presets["HK"]["timeZone"], "Asia/Hong_Kong")
+        self.assertEqual(presets["KR"]["systemLocale"], "ko_KR.UTF-8")
+        self.assertEqual(presets["KR"]["timeZone"], "Asia/Seoul")
+        self.assertEqual(presets["SG"]["systemLocaleByUiLanguage"],
+                         {"en": "en_SG.UTF-8", "zh_CN": "zh_SG.UTF-8"})
+
+    def test_target_customizations_keep_calendar_and_network_handoff_non_secret(self):
+        self.selections["preferences"].update({
+            "secondaryCalendar": "hebcal", "hebcalEnabled": True,
+        })
+        self.selections["network"]["handoffEnabled"] = True
+        customizations = MODULE.build_target_customizations(self.selections)
+        self.assertEqual(customizations["calendar"], {
+            "primary": "gregorian", "secondary": "hebcal", "hebcalEnabled": True,
+        })
+        self.assertEqual(customizations["networkHandoff"], {
+            "enabled": True, "file": "network-handoff.nmconnection",
+        })
+        self.assertNotIn("password", json.dumps(customizations).lower())
+
+    def test_unknown_secondary_calendar_blocks_plan(self):
+        self.selections["preferences"]["secondaryCalendar"] = "invented"
+        configuration = MODULE.build_user_configuration(self.selections)
+        credentials = MODULE.build_user_credentials(self.selections, {"userPasswordHash": "$6$hash"})
+        blockers = MODULE.validate_installation_plan(self.selections, configuration, credentials)
+        self.assertIn("unsupported secondary calendar", blockers)
+
     def test_nvidia_plan_is_added_to_archinstall_packages(self):
         hardware = {
             "vendors": ["intel", "nvidia"],
@@ -96,6 +128,60 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertEqual(partitions[1]["size"]["value"], 32 * 1024)
         self.assertGreaterEqual(partitions[2]["size"]["value"], 8 * 1024)
         self.assertEqual(partitions[2]["start"]["value"], 1025 + 32 * 1024)
+
+    def test_guided_simple_layout_keeps_one_linux_root_partition(self):
+        self.selections["disk"].update({
+            "mode": "guided",
+            "stableId": "/dev/vda",
+            "devicePath": "/dev/vda",
+            "sizeBytes": 64 * 1024 * 1024 * 1024,
+            "separateHome": False,
+        })
+        layout = MODULE.build_default_disk_layout(self.selections)
+        partitions = layout["device_modifications"][0]["partitions"]
+        self.assertEqual([partition["mountpoint"] for partition in partitions], ["/boot", "/"])
+        self.assertEqual(partitions[1]["size"]["value"], 64509)
+
+    def test_existing_partition_plan_only_rebuilds_the_selected_root(self):
+        gib = 1024 * 1024 * 1024
+        self.selections["disk"].update({
+            "mode": "partition", "stableId": "/dev/nvme0n1", "devicePath": "/dev/nvme0n1",
+            "filesystem": "btrfs",
+            "efiPartition": {
+                "path": "/dev/nvme0n1p1", "startSectors": 2048,
+                "sizeSectors": (512 * 1024 * 1024) // 512, "logicalSectorSize": 512,
+                "sizeBytes": 512 * 1024 * 1024,
+                "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b", "fstype": "vfat",
+            },
+            "targetPartition": {
+                "path": "/dev/nvme0n1p4", "startSectors": 4 * 1024 * 1024,
+                "sizeSectors": (32 * gib) // 512, "logicalSectorSize": 512,
+                "sizeBytes": 32 * gib, "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "fstype": "ext4",
+            },
+        })
+        layout = MODULE.build_existing_partition_layout(self.selections)
+        self.assertEqual(layout["config_type"], "manual_partitioning")
+        modification = layout["device_modifications"][0]
+        self.assertFalse(modification["wipe"])
+        self.assertEqual([(item["dev_path"], item["status"], item["mountpoint"])
+                          for item in modification["partitions"]], [
+                              ("/dev/nvme0n1p1", "existing", "/boot"),
+                              ("/dev/nvme0n1p4", "modify", "/"),
+                          ])
+        self.assertEqual(modification["partitions"][1]["fs_type"], "btrfs")
+        self.assertEqual(modification["partitions"][1]["size"]["unit"], "sectors")
+
+    def test_existing_partition_plan_rejects_cross_disk_or_unsafe_efi(self):
+        self.selections["disk"].update({
+            "mode": "partition", "stableId": "/dev/vda", "devicePath": "/dev/vda",
+            "efiPartition": {"path": "/dev/vda1", "startSectors": 2048, "sizeSectors": 1048576,
+                             "logicalSectorSize": 512, "sizeBytes": 512 * 1024 * 1024,
+                             "parttype": "not-an-esp", "fstype": "vfat"},
+            "targetPartition": {"path": "/dev/vdb1", "startSectors": 1050624,
+                                "sizeSectors": 32 * 1024 * 1024 * 1024 // 512,
+                                "logicalSectorSize": 512, "sizeBytes": 32 * 1024 * 1024 * 1024},
+        })
+        self.assertIsNone(MODULE.build_existing_partition_layout(self.selections))
 
     def test_guided_layout_rejects_too_small_root_or_home(self):
         self.selections["disk"].update({
@@ -161,7 +247,8 @@ class GenerateConfigTests(unittest.TestCase):
         self.selections["disk"]["swap"] = "file"
         payload = MODULE.build_target_customizations(self.selections)
         self.assertEqual(payload["fullName"], "Meo User")
-        self.assertEqual(payload["sddmSession"], "plasma.desktop")
+        self.assertEqual(payload["loginManager"], "plasma-login-manager")
+        self.assertFalse(payload["automaticLogin"])
         self.assertEqual(payload["swap"], {"mode": "file", "fileSizeMiB": 4096})
         serialized = json.dumps(payload).lower()
         self.assertNotIn("password", serialized)

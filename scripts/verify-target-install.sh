@@ -44,8 +44,9 @@ fi
 
 # 5. Verify Meo Desktop Payload
 if [ ! -d "${target_root}/usr/share/plasma/look-and-feel/org.meo.desktop" ] \
-  || [ ! -f "${target_root}/etc/sddm.conf.d/20-meoarch.conf" ]; then
-  echo "FAIL: Target Meo Desktop theme or SDDM configuration is missing." >&2
+  || [ ! -x "${target_root}/usr/bin/plasmalogin" ] \
+  || [ ! -f "${target_root}/usr/lib/systemd/system/plasmalogin.service" ]; then
+  echo "FAIL: Target Meo Desktop theme or Plasma Login Manager is missing." >&2
   exit 6
 fi
 

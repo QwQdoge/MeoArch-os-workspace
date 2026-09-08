@@ -51,6 +51,11 @@ MeoMotionPopup {
         }
         filteredModel = result
     }
+
+    function isSelectable(item) {
+        const state = String(item.state || "ready")
+        return state === "ready" || state === "needs-online-setup" || state === "needs-setup"
+    }
     onSourceModelChanged: { updateHaystacks(); rebuild() }
     onSearchTextChanged: rebuild()
     onOpened: { pendingId = selectedId; search.forceActiveFocus(); rebuild(); list.positionViewAtIndex(Math.max(0, list.currentIndex), ListView.Center) }
@@ -83,23 +88,31 @@ MeoMotionPopup {
                 required property var modelData
                 required property int index
                 property real cornerRadius: MeoTheme.shapeLarge
+                readonly property bool selectable: popup.isSelectable(option.modelData)
                 width: ListView.view.width; height: 56
-                activeFocusOnTab: true
+                activeFocusOnTab: selectable
+                opacity: selectable ? 1 : 0.56
                 Accessible.role: Accessible.RadioButton
                 Accessible.name: String(option.modelData[popup.labelKey] || option.modelData[popup.primaryKey])
                 Accessible.checked: String(option.modelData[popup.primaryKey]) === popup.pendingId
-                MeoStateLayer { anchors.fill: parent; radius: option.cornerRadius; hovered: optionHover.hovered; pressed: optionTap.pressed; focused: option.activeFocus; color: MeoTheme.contentOnSurface }
+                Accessible.description: selectable ? "" : String(option.modelData[popup.secondaryKey] || "")
+                MeoStateLayer { anchors.fill: parent; radius: option.cornerRadius; hovered: option.selectable && optionHover.hovered; pressed: option.selectable && optionTap.pressed; focused: option.activeFocus; color: MeoTheme.contentOnSurface }
                 MeoText { anchors.left: parent.left; anchors.leftMargin: 16; anchors.right: code.left; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.labelKey] || option.modelData[popup.primaryKey]); typeRole: "body"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface; elide: Text.ElideRight }
                 MeoText { id: code; anchors.right: parent.right; anchors.rightMargin: 16; anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.secondaryKey] || option.modelData[popup.primaryKey]); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant }
                 HoverHandler { id: optionHover }
-                TapHandler { id: optionTap; onTapped: { popup.pendingId = String(option.modelData[popup.primaryKey]); list.currentIndex = option.index; option.forceActiveFocus() } }
-                Keys.onReturnPressed: { popup.pendingId = String(option.modelData[popup.primaryKey]); list.currentIndex = option.index }
+                TapHandler { id: optionTap; enabled: option.selectable; onTapped: { popup.pendingId = String(option.modelData[popup.primaryKey]); list.currentIndex = option.index; option.forceActiveFocus() } }
+                Keys.onReturnPressed: {
+                    if (option.selectable) {
+                        popup.pendingId = String(option.modelData[popup.primaryKey])
+                        list.currentIndex = option.index
+                    }
+                }
             }
         }
         Row {
             anchors.right: parent.right; spacing: 8
             MeoButton { text: qsTr("Cancel"); type: "text"; onClicked: popup.close() }
-            MeoButton { text: qsTr("Apply"); type: "filled"; enabled: popup.pendingId.length > 0; onClicked: { popup.applied(popup.pendingId); popup.close() } }
+            MeoButton { text: qsTr("Apply"); type: "filled"; enabled: popup.pendingId.length > 0 && popup.filteredModel.some(item => String(item[popup.primaryKey]) === popup.pendingId && popup.isSelectable(item)); onClicked: { popup.applied(popup.pendingId); popup.close() } }
         }
     }
 }

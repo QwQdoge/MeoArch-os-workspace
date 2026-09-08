@@ -66,7 +66,8 @@ cmake --fresh -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "${meosystem_build}" --parallel
 cmake --fresh -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEOUI_SOURCE_DIR="${meoui_source}"
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEOUI_SOURCE_DIR="${meoui_source}" \
+  -DMEO_BUILD_STANDALONE_DOCK=OFF
 cmake --build "${meokde_native_build}" --parallel
 
 rm -rf "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}"
@@ -81,6 +82,10 @@ cp -a "${runtime_root}/lib/libmeoui.so"* "${airootfs}/usr/lib/"
 cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
 cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
 cp -a "${meosystem_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
+install -Dm755 "${meosystem_build}/meo-session-actiond" \
+  "${airootfs}/usr/bin/meo-session-actiond"
+install -Dm644 "${meo_kde_src}/native/system/org.meo.SessionAction1.service" \
+  "${airootfs}/usr/share/dbus-1/services/org.meo.SessionAction1.service"
 cp -a "${meo_kde_src}/assets/fonts/"*.ttf "${meokde_fonts_dst}/"
 
 rm -rf "${repair_dst}"
@@ -110,6 +115,8 @@ install -Dm644 "${meo_kde_src}/defaults/kwin/kwinrc" \
   "${airootfs}/usr/share/meo-desktop/defaults/kwinrc"
 install -Dm644 "${meo_kde_src}/defaults/environment/90-meo-applications.conf" \
   "${airootfs}/etc/environment.d/90-meo-applications.conf"
+install -Dm644 "${meo_kde_src}/defaults/kde/kglobalshortcutsrc" \
+  "${airootfs}/etc/xdg/kglobalshortcutsrc"
 install -Dm644 "${meo_kde_src}/defaults/input-method/fcitx5/conf/classicui.conf" \
   "${airootfs}/etc/xdg/fcitx5/conf/classicui.conf"
 rm -rf "${airootfs}/usr/share/fcitx5/themes/MeoInputMethod-Light" \
@@ -139,6 +146,7 @@ if [ -d "${installer_src}/bootstrap" ]; then
   cp -a "${installer_src}/bootstrap" "${installer_dst}/bootstrap"
 fi
 cp -a "${installer_src}/app" "${installer_dst}/app"
+cp -a "${repo_root}/meoarch-os/grub/themes/meoarch" "${installer_dst}/boot-theme"
 install -Dm600 "${installer_src}/data/account.env.example" \
   "${airootfs}/etc/meoarch/account.env"
 if [ -d "${repo_root}/build/installer-host/translations" ]; then
@@ -216,7 +224,7 @@ ln -sfn /usr/lib/systemd/system/meo-boot-early.service "${airootfs}/etc/systemd/
 ln -sfn /usr/lib/systemd/system/meo-boot-storage.service "${airootfs}/etc/systemd/system/local-fs.target.wants/meo-boot-storage.service"
 ln -sfn /usr/lib/systemd/system/meo-boot-services.service "${airootfs}/etc/systemd/system/multi-user.target.wants/meo-boot-services.service"
 
-for dropin in systemd-udev-settle.service.d NetworkManager.service.d; do
+for dropin in systemd-udev-settle.service.d NetworkManager.service.d plasmalogin.service.d; do
   install -d "${airootfs}/usr/lib/systemd/system/${dropin}"
   install -Dm644 "${installer_src}/data/systemd/dropins/${dropin}/10-meo-boot-status.conf" \
     "${airootfs}/usr/lib/systemd/system/${dropin}/10-meo-boot-status.conf"

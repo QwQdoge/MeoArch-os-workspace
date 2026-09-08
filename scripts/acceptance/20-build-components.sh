@@ -50,6 +50,8 @@ plugin="${runtime}/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so"
 [ -f "${plugin}" ]
 [ -f "${runtime}/lib/qt6/qml/MeoUI/qmldir" ]
 [ -f "${runtime}/lib/qt6/qml/MeoUI/meoui_module.qmltypes" ]
+[ -f "${repo_root}/build/meo-system/qml/Meo/System/qmldir" ]
+[ -f "${repo_root}/build/meo-system/qml/Meo/System/plugins.qmltypes" ]
 [ -x "${runtime}/bin/meoarch-repair" ]
 [ -f "${runtime}/lib/meoarch-repair/qml/Main.qml" ]
 [ -x "${runtime}/lib/meoarch-repair/checks/all.sh" ]
@@ -65,7 +67,8 @@ fi
   echo "Qt 6 qmllint was not found; refusing to validate Qt 6 QML with a Qt 5 parser." >&2
   exit 2
 }
-"${qmllint_bin}" -I "${runtime}/lib/qt6/qml" -I "${repo_root}/build/meo-system/qml" \
+"${qmllint_bin}" -i "${repo_root}/build/meo-system/qml/Meo/System/qmldir" \
+  -I "${runtime}/lib/qt6/qml" -I "${repo_root}/build/meo-system/qml" \
   -I "${repo_root}/installer/qml" "${repo_root}/installer/qml/Main.qml" \
   "${repo_root}/repair/qml/Main.qml" \
   "${repo_root}/installer/qml/pages/NetworkPage.qml" "${repo_root}/installer/qml/pages/DiskSelectionPage.qml"

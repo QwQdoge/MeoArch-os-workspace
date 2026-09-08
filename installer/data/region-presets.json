@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "presets": {
+    "CN": {
+      "systemLocale": "zh_CN.UTF-8",
+      "formatLocale": "zh_CN.UTF-8",
+      "timeZone": "Asia/Shanghai",
+      "keyboardLayout": "us"
+    },
+    "HK": {
+      "systemLocale": "zh_HK.UTF-8",
+      "formatLocale": "zh_HK.UTF-8",
+      "timeZone": "Asia/Hong_Kong",
+      "keyboardLayout": "us"
+    },
+    "KR": {
+      "systemLocale": "ko_KR.UTF-8",
+      "formatLocale": "ko_KR.UTF-8",
+      "timeZone": "Asia/Seoul",
+      "keyboardLayout": "kr"
+    },
+    "SG": {
+      "systemLocaleByUiLanguage": {
+        "en": "en_SG.UTF-8",
+        "zh_CN": "zh_SG.UTF-8"
+      },
+      "formatLocaleByUiLanguage": {
+        "en": "en_SG.UTF-8",
+        "zh_CN": "zh_SG.UTF-8"
+      },
+      "timeZone": "Asia/Singapore",
+      "keyboardLayout": "us"
+    }
+  }
+}

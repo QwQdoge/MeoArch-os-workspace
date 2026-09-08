@@ -48,6 +48,32 @@ class RepairSecurityContractTests(unittest.TestCase):
         self.assertNotIn("--enable-real-install", repair_branch)
         self.assertIn("/usr/bin/cage -s", repair_branch)
 
+    def test_live_tty_escape_is_explicit_and_cannot_touch_graphical_tty1(self):
+        source = CONTROLLER.read_text(encoding="utf-8")
+        self.assertIn("m_liveEnvironment && ::geteuid() == 0", source)
+        self.assertIn('QStringLiteral("/usr/bin/chvt")', source)
+        self.assertIn('QStringLiteral("--property=TTYPath=/dev/tty3")', source)
+        self.assertIn('QStringLiteral("getty@tty3.service")', source)
+        self.assertIn('QStringLiteral("/usr/bin/chvt"), {QStringLiteral("3")}', source)
+        self.assertIn("Do not\n        // touch tty1", source)
+
+    def test_ai_receives_only_structured_diagnostic_findings(self):
+        source = CONTROLLER.read_text(encoding="utf-8")
+        report_builder = source.split("void RepairController::rebuildAiAuditReport()", 1)[1]
+        report_builder = report_builder.split("void RepairController::parseLynisReport()", 1)[0]
+        self.assertIn("m_auditFindings", report_builder)
+        self.assertNotIn("m_checkLog", report_builder)
+        self.assertIn('QStringLiteral("structured_diagnostic_findings")', source)
+        self.assertNotIn('QStringLiteral("diagnostic_output")', source)
+
+    def test_storage_and_graphics_checks_have_real_health_signals(self):
+        storage = (REPO_ROOT / "repair/checks/storage.sh").read_text(encoding="utf-8")
+        graphics = (REPO_ROOT / "repair/checks/graphics.sh").read_text(encoding="utf-8")
+        self.assertIn("smartctl -H", storage)
+        self.assertIn("nvme smart-log", storage)
+        self.assertIn("storage.smart_failed", storage)
+        self.assertIn("graphics.nvidia_drm_modeset_disabled", graphics)
+
     def test_boot_menus_expose_install_and_repair_modes(self):
         boot_files = (
             "meoarch-os/grub/grub.cfg",

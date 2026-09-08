@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# The generated handoff may contain one NetworkManager profile and is never a
+# diagnostic artifact. Remove it on all install exits, including preflight or
+# target-customization failures.
+cleanup_network_handoff() {
+  rm -f -- "${generated_dir:-/tmp/meoarch-installer/generated}/network-handoff.nmconnection"
+}
+trap cleanup_network_handoff EXIT
+
 state_dir="${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}"
 generated_dir="${state_dir}/generated"
 log_dir="${state_dir}/logs"

@@ -13,9 +13,13 @@ is_error_state = 0;
 # Load Background
 bg_image = Image("background.png");
 if (bg_image) {
-    bg_sprite = Sprite(bg_image);
-    bg_sprite.SetX(screen_width / 2 - bg_image.GetWidth() / 2);
-    bg_sprite.SetY(screen_height / 2 - bg_image.GetHeight() / 2);
+    # The artwork is deliberately abstract, so scaling it avoids black or
+    # letterboxed edges on firmware-selected resolutions without distorting a
+    # logo or a readable visual asset.
+    bg_scaled = bg_image.Scale(screen_width, screen_height);
+    bg_sprite = Sprite(bg_scaled);
+    bg_sprite.SetX(0);
+    bg_sprite.SetY(0);
     bg_sprite.SetZ(-100);
 } else {
     Window.SetBackgroundTopColor(0.08, 0.08, 0.12);
@@ -100,6 +104,7 @@ fun refresh_status_text(text) {
 }
 
 refresh_status_text("Starting MeoArch OS...");
+set_footer_text("Everything has a GUI. Every choice is yours.");
 
 # Smooth Progress & Spinner Loop
 angle = 0;
@@ -156,10 +161,6 @@ fun message_callback(text) {
             status_sprite.SetX(screen_width / 2 - err_img.GetWidth() / 2);
         }
         set_footer_text("Press Esc for detailed console log");
-    } else if (String(text).SubString(0, 6) == "STAGE:") {
-        # Stage Event Format: STAGE:id:progress:message
-        # We parse update from meo-boot-status
-        refresh_status_text(text);
     } else {
         refresh_status_text(text);
     }
@@ -172,10 +173,13 @@ Plymouth.SetDisplayMessageFunction(message_callback);
 fun mode_callback(mode) {
     if (mode == "boot") {
         refresh_status_text("Starting MeoArch OS...");
+        set_footer_text("Everything has a GUI. Every choice is yours.");
     } else if (mode == "shutdown") {
-        refresh_status_text("Shutting down MeoArch OS...");
+        refresh_status_text("Finishing services safely...");
+        set_footer_text("Do not power off your computer yet.");
     } else if (mode == "reboot") {
-        refresh_status_text("Restarting MeoArch OS...");
+        refresh_status_text("Preparing a safe restart...");
+        set_footer_text("MeoArch will be ready shortly.");
     }
 }
 

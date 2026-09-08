@@ -88,12 +88,11 @@ PageFrame {
                 onTextChanged: InstallerSession.passwordConfirmation = text
             }
         }
-        ToggleRow {
+        InfoBanner {
             width: parent.width
-            title: qsTr("Automatic login")
-            subtitle: qsTr("Skip the sign-in screen after startup")
-            checked: page.controller ? page.controller.selection("user", "automaticLogin", false) : false
-            onToggled: checked => page.controller.setSelection("user", "automaticLogin", checked)
+            title: qsTr("Password sign-in required")
+            message: qsTr("Automatic login is not offered because Plasma Login Manager has no tested password-preserving Meo backend yet.")
+            tone: "info"
         }
     }
 }

@@ -36,7 +36,7 @@ PageFrame {
     readonly property var summaryRows: [
         { pageIndex: 1, title: qsTr("Language & Region"), value: controller ? controller.systemLocale + " · " + controller.formatCountry + " · " + controller.timeZone : "" },
         { pageIndex: 2, title: qsTr("Keyboard"), value: controller ? controller.keyboardLayout : "" },
-        { pageIndex: 3, title: qsTr("Network"), value: controller ? controller.networkDetail : "" },
+        { pageIndex: 3, title: qsTr("Network"), value: controller ? controller.networkDetail + (controller.networkHandoffEnabled ? qsTr(" · Will be remembered after installation") : qsTr(" · Will not be copied")) : "" },
         { pageIndex: 4, title: qsTr("Privacy & Security"), value: controller && controller.selection("privacy", "firewall", true) ? qsTr("Firewall enabled") : qsTr("Firewall not selected") },
         { pageIndex: 5, title: qsTr("Disk"), value: controller ? controller.selectedDisk : "" },
         { pageIndex: 6, title: qsTr("User Account"), value: InstallerSession.username + " · " + InstallerSession.hostname },
@@ -206,7 +206,7 @@ PageFrame {
             InfoBanner { width: parent.width; title: qsTr("Secrets excluded"); message: qsTr("Passwords, Wi-Fi secrets, and disk passphrases are excluded from this view.") }
             MeoText {
                 width: parent.width
-                text: qsTr("Bootloader\nGRUB\n\nKernel\nlinux\n\nDesktop\nMeoArch KDE Plasma + SDDM\n\nAudio and network\nPipeWire · NetworkManager\n\nGraphics drivers\n") + (page.controller ? page.controller.hardwareSummary : qsTr("Detecting hardware…"))
+                text: qsTr("Bootloader\nGRUB\n\nKernel\nlinux\n\nDesktop\nMeoArch KDE Plasma + Plasma Login Manager\n\nAudio and network\nPipeWire · NetworkManager\n\nGraphics drivers\n") + (page.controller ? page.controller.hardwareSummary : qsTr("Detecting hardware…"))
                       + "\n\n" + qsTr("Disk plan\n") + (page.controller ? page.controller.selectedDisk : qsTr("Not selected"))
                       + "\n\n" + qsTr("Meo repositories\n") + page.joined(page.resolvedRepository.repositories, " → ", qsTr("Prepare the installation plan to resolve repositories."))
                       + "\n\n" + qsTr("Meo packages\n") + page.joined(page.resolvedPackage.packages, "\n", qsTr("Prepare the installation plan to resolve packages."))

@@ -84,12 +84,10 @@ install -d \
   "${target_root}/usr/share/plasma/look-and-feel" \
   "${target_root}/usr/share/plasma/plasmoids" \
   "${target_root}/usr/share/pixmaps" \
-  "${target_root}/usr/share/sddm/themes/breeze" \
   "${target_root}/usr/share/wallpapers/MeoArch" \
   "${target_root}/etc/environment.d" \
   "${target_root}/etc/fonts/conf.avail" \
   "${target_root}/etc/fonts/conf.d" \
-  "${target_root}/etc/sddm.conf.d" \
   "${target_root}/etc/xdg/fcitx5/conf"
 
 cp -a "${runtime_source}/lib/libmeoui.so"* "${target_root}/usr/lib/"
@@ -183,15 +181,13 @@ install -Dm644 "${desktop_source}/branding/Logo.svg" \
   "${target_root}/usr/share/pixmaps/meoarch-logo.svg"
 install -Dm644 "${desktop_source}/branding/Logo.svg" \
   "${target_root}/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg"
-install -Dm644 "${desktop_source}/defaults/sddm/meoarch.conf" \
-  "${target_root}/etc/sddm.conf.d/20-meoarch.conf"
-install -Dm644 "${desktop_source}/defaults/sddm/theme.conf.user" \
-  "${target_root}/usr/share/sddm/themes/breeze/theme.conf.user"
 rm -f "${target_root}/etc/os-release"
 install -Dm644 "${desktop_source}/defaults/system/os-release" \
   "${target_root}/etc/os-release"
 install -Dm644 "${desktop_source}/defaults/kde/kdeglobals" \
   "${target_root}/etc/xdg/kdeglobals"
+install -Dm644 "${desktop_source}/defaults/kde/kglobalshortcutsrc" \
+  "${target_root}/etc/xdg/kglobalshortcutsrc"
 install -Dm644 "${desktop_source}/defaults/kwin/kwinrc" \
   "${target_root}/etc/xdg/kwinrc"
 install -Dm644 "${desktop_source}/defaults/plasma/plasmarc" \
@@ -212,14 +208,57 @@ if [ "${MEOARCH_PACKAGE_MANAGED:-1}" = "1" ]; then
   mv -T -- "$os_release_stage" "${target_root}/etc/os-release"
 fi
 
+# The package provides the executable; this target-owned entry starts the
+# independent first-login flow for every user.  meo-welcome itself stores the
+# explicit Skip/Done decision in that user's settings and exits thereafter.
+install -Dm644 "$(dirname -- "${BASH_SOURCE[0]}")/../data/autostart/org.meo.welcome.desktop" \
+  "${target_root}/etc/xdg/autostart/org.meo.welcome.desktop"
+
 # Target System Plymouth Theme & Hook Configuration
-target_plymouth_dst="${target_root}/usr/share/plymouth/themes/meoarch"
-[ ! -L "$target_plymouth_dst" ] || { echo "Refusing symlinked target Plymouth theme." >&2; exit 13; }
+boot_theme_source="${MEOARCH_GRUB_THEME_SOURCE:-$(dirname -- "${BASH_SOURCE[0]}")/../boot-theme}"
+if [ ! -f "${boot_theme_source}/theme.txt" ] || [ ! -f "${boot_theme_source}/brand.png" ]; then
+  echo "Meo GRUB theme is missing from ${boot_theme_source}." >&2
+  exit 13
+fi
 for theme_file in meoarch.plymouth meoarch.script background.png logo.png spinner.png warning.png progress_box.png progress_bar.png; do
   [ -s "${runtime_source}/share/plymouth/themes/meoarch/$theme_file" ] || {
     echo "Required live Plymouth asset is missing: $theme_file" >&2; exit 13;
   }
 done
+target_grub_theme="${target_root}/boot/grub/themes/meoarch"
+[ ! -L "${target_grub_theme}" ] || { echo "Refusing symlinked target GRUB theme." >&2; exit 13; }
+install -d "${target_grub_theme}" "${target_root}/boot/grub"
+cp -a "${boot_theme_source}/." "${target_grub_theme}/"
+[ -f "${target_root}/etc/default/grub" ] || { echo "Target GRUB defaults are missing." >&2; exit 13; }
+python3 - "${target_root}/etc/default/grub" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+if path.is_symlink():
+    raise SystemExit("Target GRUB defaults must be a regular file")
+text = path.read_text(encoding="utf-8")
+updates = {
+    "GRUB_TIMEOUT": "3",
+    "GRUB_TIMEOUT_STYLE": "menu",
+    "GRUB_GFXMODE": '"1920x1080,1440x900,1280x720,auto"',
+    "GRUB_GFXPAYLOAD_LINUX": "keep",
+    "GRUB_THEME": '"/boot/grub/themes/meoarch/theme.txt"',
+}
+for key, value in updates.items():
+    pattern = re.compile(rf"(?m)^\\s*{re.escape(key)}=.*$")
+    line = f"{key}={value}"
+    text, count = pattern.subn(line, text, count=1)
+    if not count:
+        text += ("" if text.endswith("\n") else "\n") + line + "\n"
+path.write_text(text, encoding="utf-8")
+PY
+[ -x "${target_root}/usr/bin/grub-mkconfig" ] || { echo "Target grub-mkconfig is missing." >&2; exit 13; }
+arch-chroot "${target_root}" /usr/bin/grub-mkconfig -o /boot/grub/grub.cfg
+
+target_plymouth_dst="${target_root}/usr/share/plymouth/themes/meoarch"
+[ ! -L "$target_plymouth_dst" ] || { echo "Refusing symlinked target Plymouth theme." >&2; exit 13; }
 install -d "${target_plymouth_dst}" "${target_root}/etc/plymouth" "${target_root}/usr/lib/meoarch" "${target_root}/usr/bin"
 cp -a "${runtime_source}/share/plymouth/themes/meoarch/." "${target_plymouth_dst}/"
 cat <<'EOF' >"${target_root}/etc/plymouth/plymouthd.conf"
@@ -234,6 +273,15 @@ if [ -f "${runtime_source}/lib/meoarch/meo-boot-status" ]; then
   ln -sfn /usr/lib/meoarch/meo-boot-status "${target_root}/usr/bin/meo-boot-status"
 fi
 
+for session_action_file in \
+  "${runtime_source}/bin/meo-session-actiond" \
+  "${runtime_source}/share/dbus-1/services/org.meo.SessionAction1.service"; do
+  [ -s "${session_action_file}" ] || { echo "Required Meo session action runtime is missing: ${session_action_file}" >&2; exit 13; }
+done
+install -Dm755 "${runtime_source}/bin/meo-session-actiond" "${target_root}/usr/bin/meo-session-actiond"
+install -Dm644 "${runtime_source}/share/dbus-1/services/org.meo.SessionAction1.service" \
+  "${target_root}/usr/share/dbus-1/services/org.meo.SessionAction1.service"
+
 for unit_file in meo-boot-status-failure@.service meo-boot-early.service meo-boot-storage.service meo-boot-services.service; do
   if [ -f "${runtime_source}/lib/systemd/system/${unit_file}" ]; then
     install -Dm644 "${runtime_source}/lib/systemd/system/${unit_file}" "${target_root}/usr/lib/systemd/system/${unit_file}"
@@ -247,7 +295,7 @@ ln -sfn /usr/lib/systemd/system/meo-boot-early.service "${target_root}/etc/syste
 ln -sfn /usr/lib/systemd/system/meo-boot-storage.service "${target_root}/etc/systemd/system/local-fs.target.wants/meo-boot-storage.service"
 ln -sfn /usr/lib/systemd/system/meo-boot-services.service "${target_root}/etc/systemd/system/multi-user.target.wants/meo-boot-services.service"
 
-for dropin in systemd-udev-settle.service.d NetworkManager.service.d sddm.service.d; do
+for dropin in systemd-udev-settle.service.d NetworkManager.service.d plasmalogin.service.d; do
   if [ -d "${runtime_source}/lib/systemd/system/${dropin}" ]; then
     install -d "${target_root}/usr/lib/systemd/system/${dropin}"
     cp -a "${runtime_source}/lib/systemd/system/${dropin}/." "${target_root}/usr/lib/systemd/system/${dropin}/"
@@ -284,36 +332,76 @@ PY
 username="$(read_customization username)"
 full_name="$(read_customization fullName)"
 automatic_login="$(read_customization automaticLogin)"
-sddm_session="$(read_customization sddmSession)"
+login_manager="$(read_customization loginManager)"
 firewall="$(read_customization firewall)"
+network_handoff_enabled="$(read_customization networkHandoff.enabled)"
+network_handoff_file="$(read_customization networkHandoff.file)"
+calendar_primary="$(read_customization calendar.primary)"
+calendar_secondary="$(read_customization calendar.secondary)"
+calendar_hebcal_enabled="$(read_customization calendar.hebcalEnabled)"
+# Calendar choices were added after the first installer selection schema.  A
+# generated legacy plan must keep the documented safe defaults rather than
+# fail target customisation after disks have already been prepared.
+calendar_primary="${calendar_primary:-gregorian}"
+calendar_secondary="${calendar_secondary:-none}"
+calendar_hebcal_enabled="${calendar_hebcal_enabled:-false}"
 swap_mode="$(read_customization swap.mode)"
 swap_size_mib="$(read_customization swap.fileSizeMiB)"
 
 case "${username}" in
   ""|*[!a-z0-9_-]*) echo "Invalid generated username." >&2; exit 7 ;;
 esac
-case "${sddm_session}" in
-  plasma.desktop) ;;
-  *) echo "Unsupported generated SDDM session." >&2; exit 7 ;;
+case "${login_manager}" in
+  plasma-login-manager) ;;
+  *) echo "Unsupported generated login manager." >&2; exit 7 ;;
 esac
 case "${swap_mode}" in zram|file|none) ;; *) echo "Unsupported generated swap mode." >&2; exit 7 ;; esac
 case "${swap_size_mib}" in *[!0-9]*|"") echo "Invalid generated swap size." >&2; exit 7 ;; esac
+case "${calendar_primary}" in gregorian) ;; *) echo "Unsupported primary calendar." >&2; exit 7 ;; esac
+case "${calendar_secondary}" in none|buddhist|islamic-civil|hebcal) ;; *) echo "Unsupported secondary calendar." >&2; exit 7 ;; esac
+case "${calendar_hebcal_enabled}" in true|false) ;; *) echo "Invalid online calendar setting." >&2; exit 7 ;; esac
 
 if [ -n "${full_name}" ]; then
   chroot "${target_root}" /usr/bin/usermod -c "${full_name}" "${username}"
 fi
 if [ "${automatic_login}" = "true" ]; then
-  install -Dm644 /dev/stdin "${target_root}/etc/sddm.conf.d/30-meoarch-autologin.conf" <<EOF
-[Autologin]
-User=${username}
-Session=${sddm_session}
-Relogin=false
-EOF
-else
-  rm -f "${target_root}/etc/sddm.conf.d/30-meoarch-autologin.conf"
+  echo "Automatic login is not supported by the Plasma Login Manager backend yet." >&2
+  exit 7
 fi
+systemctl --root="${target_root}" enable plasmalogin.service
+
+# A selected active NetworkManager profile is the only credential-bearing
+# installer handoff. It is prepared outside selections.json with mode 0600;
+# reject paths, links, and unsupported filenames before copying it to the
+# target's authoritative NetworkManager directory.
+if [ "${network_handoff_enabled}" = "true" ]; then
+  case "${network_handoff_file}" in network-handoff.nmconnection) ;; *) echo "Invalid network handoff file." >&2; exit 7 ;; esac
+  handoff_source="${generated_dir}/${network_handoff_file}"
+  [ -f "${handoff_source}" ] && [ ! -L "${handoff_source}" ] || { echo "Selected network handoff is missing." >&2; exit 7; }
+  handoff_mode="$(stat -c '%a' "${handoff_source}")"
+  [ "${handoff_mode}" = "600" ] || { echo "Selected network handoff is not protected." >&2; exit 7; }
+  install -d -m700 "${target_root}/etc/NetworkManager/system-connections"
+  install -m600 "${handoff_source}" "${target_root}/etc/NetworkManager/system-connections/meo-install.nmconnection"
+  rm -f -- "${handoff_source}"
+fi
+
+install -d -m755 "${target_root}/etc/xdg/MeoArch"
+cat >"${target_root}/etc/xdg/MeoArch/Calendar.ini" <<EOF
+[Calendar]
+Primary=${calendar_primary}
+Secondary=${calendar_secondary}
+HebcalEnabled=${calendar_hebcal_enabled}
+EOF
+chmod 644 "${target_root}/etc/xdg/MeoArch/Calendar.ini"
 if [ "${firewall}" = "true" ]; then
   systemctl --root="${target_root}" enable firewalld.service
+fi
+systemctl --root="${target_root}" enable \
+  com.system76.Scheduler.service power-profiles-daemon.service
+# The CachyOS classification database is consumed by System76 Scheduler only.
+# Never leave Ananicy's competing nice-policy daemon enabled in the target.
+if [ -f "${target_root}/usr/lib/systemd/system/ananicy-cpp.service" ]; then
+  systemctl --root="${target_root}" disable ananicy-cpp.service
 fi
 if [ "${swap_mode}" = "file" ]; then
   if [ -e "${target_root}/swapfile" ]; then
