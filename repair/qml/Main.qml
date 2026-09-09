@@ -866,8 +866,9 @@ Window {
         }
     }
 
-    Popup {
+    MeoMotionPopup {
         id: consentDialog
+        presentation: MeoMotionPopup.Dialog
         parent: Overlay.overlay
         anchors.centerIn: parent
         width: Math.min(root.width - root.dp(48), root.dp(920))
@@ -876,12 +877,6 @@ Window {
         focus: true
         closePolicy: Popup.NoAutoClose
         padding: root.dp(22)
-
-        background: MeoShape {
-            type: "rect"; radius: root.dp(28)
-            color: MeoTheme.surfaceContainerHigh
-            strokeWidth: 1; strokeColor: MeoTheme.outlineVariant
-        }
         contentItem: ColumnLayout {
             spacing: root.dp(14)
             RowLayout {
