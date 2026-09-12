@@ -1,4 +1,5 @@
 import importlib.util
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -10,7 +11,11 @@ spec.loader.exec_module(target)
 
 
 class TargetValidationTests(unittest.TestCase):
+    def verify_fixture(self, root):
+        target.verify(root, expected_system_owner=(os.getuid(), os.getgid()))
+
     def populate(self, root):
+        (root / "var").mkdir(exist_ok=True)
         files = (*target.REQUIRED_FILES, *target.REQUIRED_EXECUTABLES,
                  "boot/EFI/GRUB/grubx64.efi", "usr/lib/systemd/system/plasmalogin.service",
                  "usr/lib/systemd/system/NetworkManager.service")
@@ -57,7 +62,7 @@ class TargetValidationTests(unittest.TestCase):
             self.populate(root)
             self.assertFalse((root / "opt/meo-desktop").exists())
             self.assertFalse((root / "usr/bin/meoarch-repair").exists())
-            target.verify(root)
+            self.verify_fixture(root)
 
     def test_every_required_payload_and_enabled_service_fails_when_missing(self):
         for missing in (*target.REQUIRED_FILES, *target.REQUIRED_EXECUTABLES,
@@ -68,7 +73,7 @@ class TargetValidationTests(unittest.TestCase):
                 self.populate(root)
                 (root / missing).unlink()
                 with self.assertRaises(ValueError):
-                    target.verify(root)
+                    self.verify_fixture(root)
 
     def test_absolute_link_never_uses_host_payload(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -83,6 +88,17 @@ class TargetValidationTests(unittest.TestCase):
     def test_false_complete_cannot_skip_shared_target_validator(self):
         script = (BACKEND / "run-archinstall.sh").read_text()
         self.assertLess(script.index('/backend/verify-target.py'), script.index('progress "complete" 100'))
+        self.assertLess(script.index('systemd-tmpfiles --create --remove'),
+                        script.index('/backend/verify-target.py'))
+        self.assertIn('pacman -Syu --needed --noconfirm', script)
+
+    def test_target_rejects_unsafe_top_level_system_ownership(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            unexpected = (os.getuid() + 1, os.getgid() + 1)
+            with self.assertRaisesRegex(ValueError, "unsafe ownership"):
+                target.verify(root, expected_system_owner=unexpected)
 
     def test_target_contract_requires_the_independent_first_login_flow(self):
         self.assertIn("usr/bin/meo-welcome", target.REQUIRED_EXECUTABLES)
@@ -111,7 +127,7 @@ class TargetValidationTests(unittest.TestCase):
             conflict = root / "etc/systemd/system/multi-user.target.wants/ananicy-cpp.service"
             conflict.symlink_to("/usr/lib/systemd/system/ananicy-cpp.service")
             with self.assertRaisesRegex(ValueError, "conflicting target service"):
-                target.verify(root)
+                self.verify_fixture(root)
 
     def test_target_rejects_retired_standalone_dock_payload(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -121,7 +137,7 @@ class TargetValidationTests(unittest.TestCase):
             legacy.parent.mkdir(parents=True, exist_ok=True)
             legacy.write_text("[Desktop Entry]\n")
             with self.assertRaisesRegex(ValueError, "retired standalone Dock payload"):
-                target.verify(root)
+                self.verify_fixture(root)
 
     def test_target_requires_native_plasma_dock_contract(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -129,7 +145,7 @@ class TargetValidationTests(unittest.TestCase):
             self.populate(root)
             (root / "etc/xdg/meo-shellrc").write_text("[Panels]\nDockImplementation=standalone\n")
             with self.assertRaisesRegex(ValueError, "native Plasma Dock"):
-                target.verify(root)
+                self.verify_fixture(root)
 
     def test_target_rejects_unbounded_zram_profile(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -138,4 +154,4 @@ class TargetValidationTests(unittest.TestCase):
             config = root / "usr/lib/systemd/zram-generator.conf.d/50-meo-desktop.conf"
             config.write_text("[zram0]\nzram-size = ram\nswap-priority = 100\n")
             with self.assertRaisesRegex(ValueError, "bounded Meo profile"):
-                target.verify(root)
+                self.verify_fixture(root)

@@ -83,10 +83,22 @@ def target_path(root: Path, relative: str) -> Path:
     return root.joinpath(*parts)
 
 
-def verify(root: Path) -> None:
+def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
     if root.is_symlink() or root.resolve() == Path("/"):
         raise ValueError("refusing unsafe target root")
     root = root.resolve(strict=True)
+    for relative in ("", "etc", "usr", "var"):
+        path = root / relative
+        if not path.is_dir():
+            raise ValueError(f"target system directory is missing: /{relative}")
+        owner = (path.stat().st_uid, path.stat().st_gid)
+        if owner != expected_system_owner:
+            display = "/" if not relative else f"/{relative}"
+            raise ValueError(
+                f"target system directory has unsafe ownership: {display} "
+                f"is {owner[0]}:{owner[1]}, expected "
+                f"{expected_system_owner[0]}:{expected_system_owner[1]}"
+            )
     for relative in (*REQUIRED_FILES, *REQUIRED_EXECUTABLES):
         path = target_path(root, relative)
         if not path.is_file() or not path.stat().st_size:

@@ -32,11 +32,12 @@ class ConfigureRepositoryTests(unittest.TestCase):
                                         env=env, capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 calls = log.read_text().splitlines()
-                sync = next(index for index, call in enumerate(calls) if call.endswith(" -Sy --noconfirm"))
                 install = next(index for index, call in enumerate(calls) if call.endswith(
-                    f" -S --needed --noconfirm meo/meo-keyring meo/meo-mirrorlist meo/meo-channel-{channel}"))
-                self.assertLess(sync, install)
-                self.assertLess(install, calls.index("pacman -Syy --noconfirm"))
+                    f" -Syu --needed --noconfirm meo/meo-keyring meo/meo-mirrorlist "
+                    f"meo/meo-channel-{channel} meo/meo-release"))
+                self.assertGreaterEqual(install, 0)
+                self.assertFalse(any(" -Sy --noconfirm" in call or " -Syy --noconfirm" in call
+                                     or " -S --needed" in call for call in calls))
                 self.assertTrue(any("--populate-from /etc/meo-bootstrap." in call for call in calls))
                 self.assertFalse(any("/run/meo-bootstrap." in call or "/tmp/meo-bootstrap." in call for call in calls))
                 self.assertFalse((target / "usr/share/pacman/keyrings/meo.gpg").exists())

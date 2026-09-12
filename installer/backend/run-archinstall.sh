@@ -95,7 +95,7 @@ PY
 )
 [ "${#meo_packages[@]}" -gt 0 ] || { echo "Resolved Meo package set is empty." | tee -a "${log_file}" >&2; exit 9; }
 progress "installing_meo_packages" 82 "Installing selected MeoArch packages"
-arch-chroot "${target_root}" pacman -S --needed --noconfirm "${meo_packages[@]}" 2>&1 | tee -a "${log_file}"
+arch-chroot "${target_root}" pacman -Syu --needed --noconfirm "${meo_packages[@]}" 2>&1 | tee -a "${log_file}"
 for package in "${meo_packages[@]}"; do
   arch-chroot "${target_root}" pacman -Q "${package}" >/dev/null || {
     echo "Selected Meo package was not installed: ${package}" | tee -a "${log_file}" >&2
@@ -119,6 +119,7 @@ progress "applying_meo" 89 "Applying target settings"
 "${installer_root}/backend/apply-target-customizations.sh" \
   "${target_root}" "/opt/meo-desktop" "${generated_dir}" 2>&1 | tee -a "${log_file}"
 progress "final_validation" 94 "Validating the installed target"
+arch-chroot "${target_root}" systemd-tmpfiles --create --remove 2>&1 | tee -a "${log_file}"
 python3 "${installer_root}/backend/verify-target.py" "${target_root}" 2>&1 | tee -a "${log_file}"
 if printf '%s\n' "${meo_packages[@]}" | grep -qx 'omnistore-bin'; then
   for command_path in usr/bin/omnistore usr/bin/omnistore-cli usr/bin/omnistore-apps-export usr/bin/meo-update; do

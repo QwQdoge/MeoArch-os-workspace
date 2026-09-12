@@ -56,14 +56,13 @@ if (channel not in expected or repository.get('repositories') != expected[channe
 print(repository['channelPackage'])
 PY
 )"
-# A freshly installed target has never synchronized [meo]. Sync it before the
-# first package lookup; after the channel package changes the file, sync again
-# so the Beta overlay (if selected) is also available.
-arch-chroot "$target_root" pacman --config "$chroot_bootstrap/pacman.conf" -Sy --noconfirm
-arch-chroot "$target_root" pacman --config "$chroot_bootstrap/pacman.conf" -S --needed --noconfirm \
-  meo/meo-keyring meo/meo-mirrorlist "meo/$channel"
+# Bootstrap the signed repository controls as a full system upgrade. A fresh
+# target must never refresh package databases and then perform a partial -S
+# transaction.
+arch-chroot "$target_root" pacman --config "$chroot_bootstrap/pacman.conf" \
+  -Syu --needed --noconfirm \
+  meo/meo-keyring meo/meo-mirrorlist "meo/$channel" meo/meo-release
 printf '\n# Managed by MeoArch bootstrap; meo-channel-* owns the included file.\nInclude = /etc/pacman.d/meo-channel.conf\n' >>"$pacman_conf"
-arch-chroot "$target_root" pacman -Syy --noconfirm
 repository_output="$(arch-chroot "$target_root" pacman-conf --repo-list)"
 python3 - "$plan_file" "$repository_output" <<'PY'
 import json, sys
