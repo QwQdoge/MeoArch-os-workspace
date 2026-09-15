@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Offline checks of the package-managed target; not installed-boot acceptance."""
 from pathlib import Path
+import re
 import sys
 
 REQUIRED_FILES = (
@@ -55,6 +56,14 @@ FORBIDDEN_FILES = (
     "etc/xdg/autostart/org.meo.dock.desktop",
     "usr/bin/meo-dock",
 )
+FORBIDDEN_LIVE_INSTALLER_PATHS = (
+    # These paths belong exclusively to the ArchISO Live environment.  The
+    # installed target must not re-enter a root kiosk installer at first boot.
+    "etc/systemd/system/meoarch-installer.service",
+    "etc/systemd/system/graphical.target.wants/meoarch-installer.service",
+    "usr/local/bin/meoarch-installer",
+    "usr/local/bin/meoarch-installer-kiosk",
+)
 
 
 def target_path(root: Path, relative: str) -> Path:
@@ -83,13 +92,33 @@ def target_path(root: Path, relative: str) -> Path:
     return root.joinpath(*parts)
 
 
+def fstab_has_root_mount(contents: str) -> bool:
+    """Require an actual root entry, not merely a non-empty fstab file."""
+    for line in contents.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        fields = line.split()
+        if len(fields) >= 2 and fields[1] == "/":
+            return True
+    return False
+
+
+def grub_references_linux_kernel(contents: str) -> bool:
+    """Check the generated GRUB config references both boot-critical images."""
+    linux = re.search(r"(?m)^\s*(?:linux|linuxefi)\s+.*\bvmlinuz-linux(?:\s|$)", contents)
+    # GRUB may load CPU microcode and initramfs from the same initrd line.
+    initramfs = re.search(r"(?m)^\s*(?:initrd|initrdefi)\s+.*\binitramfs-linux\.img(?:\s|$)", contents)
+    return bool(linux and initramfs)
+
+
 def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
     if root.is_symlink() or root.resolve() == Path("/"):
         raise ValueError("refusing unsafe target root")
     root = root.resolve(strict=True)
     for relative in ("", "etc", "usr", "var"):
         path = root / relative
-        if not path.is_dir():
+        if path.is_symlink() or not path.is_dir():
             raise ValueError(f"target system directory is missing: /{relative}")
         owner = (path.stat().st_uid, path.stat().st_gid)
         if owner != expected_system_owner:
@@ -105,6 +134,12 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
             raise ValueError(f"target payload missing: {relative}")
         if relative in REQUIRED_EXECUTABLES and not path.stat().st_mode & 0o111:
             raise ValueError(f"target command is not executable: {relative}")
+    fstab = target_path(root, "etc/fstab").read_text()
+    if not fstab_has_root_mount(fstab):
+        raise ValueError("target fstab has no root filesystem entry")
+    grub_config = target_path(root, "boot/grub/grub.cfg").read_text()
+    if not grub_references_linux_kernel(grub_config):
+        raise ValueError("target GRUB configuration does not reference the Linux kernel and initramfs")
     if "ID=meoarch" not in target_path(root, "etc/os-release").read_text().splitlines():
         raise ValueError("target system identity is not MeoArch")
     if not any(path.is_file() and path.stat().st_size for path in (root / "boot/EFI").glob("*/grubx64.efi")):
@@ -122,6 +157,11 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
         path = root / relative
         if path.exists() or path.is_symlink():
             raise ValueError(f"retired standalone Dock payload is installed: {relative}")
+
+    for relative in FORBIDDEN_LIVE_INSTALLER_PATHS:
+        path = root / relative
+        if path.exists() or path.is_symlink():
+            raise ValueError(f"Live installer residue is installed: {relative}")
 
     dock_profile = target_path(root, "etc/xdg/meo-shellrc").read_text()
     dock_layout = target_path(

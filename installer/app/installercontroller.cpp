@@ -69,11 +69,49 @@ QString conciseProcessFailure(QString output)
     // The backend writes diagnostics through tee so the persistent log and
     // GUI receive the same facts. Keep the GUI copy readable and bounded.
     output.remove(QRegularExpression(QStringLiteral("\\x1B\\[[0-?]*[ -/]*[@-~]")));
+    // The generated credentials file contains a shadow-compatible password
+    // hash. It must not turn into a GUI error if a backend diagnostic happens
+    // to include it. Raw passwords are never passed on an argv, but redact a
+    // hash-shaped value defensively as well.
+    output.replace(QRegularExpression(QStringLiteral("\\$[156]\\$[^\\s:]+")),
+                   QStringLiteral("[redacted password hash]"));
     const QStringList lines = output.split(QLatin1Char('\n'), Qt::SkipEmptyParts);
     QStringList tail;
     for (auto it = lines.crbegin(); it != lines.crend() && tail.size() < 8; ++it)
         tail.prepend(it->trimmed());
     return tail.join(QLatin1Char('\n')).left(1600);
+}
+
+bool hasVerifiedCompletionEvent(const QString &eventsPath, qint64 startOffset)
+{
+    QFile events(eventsPath);
+    if (!events.open(QIODevice::ReadOnly | QIODevice::Text))
+        return false;
+    // A failed prior run may have left a terminal event in the shared Live
+    // state directory. Only events written after this backend process was
+    // launched can authorize the current GUI session. If the backend rotated
+    // the file, start at its new beginning instead.
+    if (startOffset < 0 || startOffset > events.size())
+        startOffset = 0;
+    if (!events.seek(startOffset))
+        return false;
+
+    QJsonObject lastStage;
+    while (!events.atEnd()) {
+        const QByteArray line = events.readLine().trimmed();
+        if (line.isEmpty())
+            continue;
+        QJsonParseError parseError;
+        const QJsonDocument document = QJsonDocument::fromJson(line, &parseError);
+        if (parseError.error != QJsonParseError::NoError || !document.isObject())
+            continue;
+        const QJsonObject event = document.object();
+        if (event.value(QStringLiteral("event")).toString() == QStringLiteral("stage"))
+            lastStage = event;
+    }
+
+    return lastStage.value(QStringLiteral("id")).toString() == QStringLiteral("complete")
+           && lastStage.value(QStringLiteral("progress")).toInt(-1) == 100;
 }
 
 bool isSupportedNetworkHandoffProfile(const QString &path, const QString &type)
@@ -113,18 +151,23 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
       m_systemActionsEnabled(m_productionMode && arguments.contains(QStringLiteral("--enable-system-actions")))
 {
     m_connectivityManager = new QNetworkAccessManager(this);
-    // A real external terminal is safer and more capable than embedding a
-    // shell widget in the installer. It keeps command execution visibly
-    // separate from installation controls and uses the Live user's session.
-    for (const QString &candidate : {QStringLiteral("konsole"), QStringLiteral("xterm")}) {
-        const QString resolved = QStandardPaths::findExecutable(candidate);
-        if (!resolved.isEmpty()) {
-            m_debugTerminalProgram = resolved;
-            break;
+    // The production kiosk itself is root-owned.  Never hand its credentials
+    // to an interactive shell: anyone at the installer would otherwise be
+    // able to bypass the guarded installation path.  Preview/developer runs
+    // retain the external terminal for diagnostics.
+    if (!m_productionMode) {
+        for (const QString &candidate : {QStringLiteral("konsole"), QStringLiteral("xterm")}) {
+            const QString resolved = QStandardPaths::findExecutable(candidate);
+            if (!resolved.isEmpty()) {
+                m_debugTerminalProgram = resolved;
+                break;
+            }
         }
     }
     m_debugTerminalMessage = m_debugTerminalProgram.isEmpty()
-        ? tr("No supported terminal emulator is installed in this Live environment.")
+        ? (m_productionMode
+               ? tr("Debug terminal is disabled in the production installer.")
+               : tr("No supported terminal emulator is installed in this Live environment."))
         : tr("Opens a Live-session terminal for diagnostics. Commands are not part of the installer plan.");
     m_selections = {
         {QStringLiteral("schemaVersion"), 1},
@@ -200,6 +243,7 @@ void InstallerController::writeSelection(const QString &sectionName, const QStri
         m_preflightMessage = tr("Choices changed. Prepare the installation plan again.");
         m_installPlan.clear();
         m_summaryConfirmed = false;
+        m_confirmedPlanRevision = 0;
         emit preflightChanged();
     }
     emit selectionsChanged();
@@ -214,11 +258,20 @@ void InstallerController::discardGeneratedPlan()
     // asynchronous writer is drained before another preparation may start, and
     // its completion callback removes any files it recreated after invalidation.
     for (const QString &name : {QStringLiteral("config_manifest.json"),
+                               QStringLiteral("credential-input.json"),
                                QStringLiteral("generated/install-plan.json"),
                                QStringLiteral("generated/user_configuration.json"),
                                QStringLiteral("generated/user_credentials.json"),
                                QStringLiteral("generated/network-handoff.nmconnection")})
         QFile::remove(QDir(directory).absoluteFilePath(name));
+}
+
+void InstallerController::discardAccountPasswordHash()
+{
+    // Account hashing is asynchronous.  A completion from an older save must
+    // never supply credentials for a newer account selection.
+    ++m_accountHashRevision;
+    m_userPasswordHash.clear();
 }
 
 QString InstallerController::uiLanguage() const { return section(QStringLiteral("preferences")).value(QStringLiteral("uiLanguage")).toString(); }
@@ -996,6 +1049,12 @@ bool InstallerController::validateAccount(const QString &username, const QString
 void InstallerController::saveAccount(const QString &fullName, const QString &username, const QString &hostname,
                                       const QString &password, const QString &confirmation)
 {
+    if (m_installationState == QStringLiteral("running")) {
+        setError(tr("Account details cannot change while installation is running."));
+        emit accountFailed();
+        return;
+    }
+    discardAccountPasswordHash();
     if (!validateAccount(username, hostname, password, confirmation)) {
         emit accountFailed();
         return;
@@ -1004,12 +1063,27 @@ void InstallerController::saveAccount(const QString &fullName, const QString &us
     writeSelection(QStringLiteral("user"), QStringLiteral("username"), username);
     writeSelection(QStringLiteral("user"), QStringLiteral("hostname"), hostname);
     auto *process = new QProcess(this);
+    m_accountHashProcess = process;
+    const quint64 revision = m_accountHashRevision;
     connect(process, &QProcess::started, this, [process, password] {
         process->write(password.toUtf8());
         process->write("\n");
         process->closeWriteChannel();
     });
-    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
+    connect(process, &QProcess::errorOccurred, this, [this, process, revision](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart || revision != m_accountHashRevision || process != m_accountHashProcess)
+            return;
+        m_accountHashProcess = nullptr;
+        process->deleteLater();
+        setError(tr("Could not start the account password helper."));
+        emit accountFailed();
+    });
+    connect(process, &QProcess::finished, this, [this, process, revision](int exitCode, QProcess::ExitStatus status) {
+        if (revision != m_accountHashRevision || process != m_accountHashProcess) {
+            process->deleteLater();
+            return;
+        }
+        m_accountHashProcess = nullptr;
         if (status != QProcess::NormalExit || exitCode != 0) {
             setError(tr("Could not securely hash the account password."));
             process->deleteLater();
@@ -1089,6 +1163,10 @@ void InstallerController::prepareInstallation()
 {
     if (m_installationState == QStringLiteral("running"))
         return;
+    if (m_accountHashProcess) {
+        setError(tr("The account password is still being prepared. Please wait a moment."));
+        return;
+    }
     if (m_preparationRunning) {
         setError(tr("The previous preparation is still finishing. Please retry shortly."));
         return;
@@ -1098,6 +1176,7 @@ void InstallerController::prepareInstallation()
     setError({});
     m_installPlan.clear();
     m_summaryConfirmed = false;
+    m_confirmedPlanRevision = 0;
     setPreflight(QStringLiteral("checking"), tr("Generating and validating the installation plan…"));
     if (!stageNetworkHandoff()) {
         setPreflight(QStringLiteral("failed"), m_errorMessage);
@@ -1231,45 +1310,83 @@ void InstallerController::confirmSummary()
         setError(tr("The installation plan is not ready. Resolve the preflight result first."));
         return;
     }
-    m_summaryConfirmed = true;
+    m_summaryConfirmed = false;
+    m_confirmedPlanRevision = 0;
     const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
-    QDir().mkpath(directory);
-    QFile marker(QDir(directory).absoluteFilePath(QStringLiteral("summary_confirmed")));
-    if (marker.open(QIODevice::WriteOnly | QIODevice::Truncate))
-        marker.write("confirmed\n");
+    if (!QDir().mkpath(directory)) {
+        setError(tr("Could not create the installation state directory."));
+        return;
+    }
+    QSaveFile marker(QDir(directory).absoluteFilePath(QStringLiteral("summary_confirmed")));
+    marker.setDirectWriteFallback(false);
+    if (!marker.open(QIODevice::WriteOnly)
+        || !marker.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)
+        || marker.write("confirmed\n") < 0
+        || !marker.commit()) {
+        setError(tr("Could not record the summary confirmation."));
+        return;
+    }
+    m_summaryConfirmed = true;
+    m_confirmedPlanRevision = m_planRevision;
 }
 
 void InstallerController::startInstallation()
 {
-    if (!m_summaryConfirmed || !readyToInstall()) { setError(tr("Review and confirm a ready installation plan before installing.")); return; }
+    if (m_installationState == QStringLiteral("running") || m_installationProcess) {
+        setError(tr("Installation is already running."));
+        return;
+    }
+    if (m_installationState == QStringLiteral("complete")) {
+        setError(tr("Installation has already completed. Restart into the installed system instead."));
+        return;
+    }
+    if (!m_summaryConfirmed || m_confirmedPlanRevision != m_planRevision || !readyToInstall()) {
+        setError(tr("Review and confirm a ready installation plan before installing."));
+        return;
+    }
     m_installationProgress = 0;
     m_installationFailureDetails.clear();
     updateInstallation(QStringLiteral("running"), 0, QStringLiteral("preflight"), tr("Preparing installation."));
     if (!m_realInstallEnabled) {
+        m_summaryConfirmed = false;
+        m_confirmedPlanRevision = 0;
         updateInstallation(QStringLiteral("failed"), 0, QStringLiteral("blocked"), tr("Real installation is disabled outside production mode."));
+        setPreflight(QStringLiteral("failed"), tr("Real installation is disabled. Generate a new plan only from an authorized production session."));
         setError(m_installationMessage);
         return;
     }
     const QString script = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/run-archinstall.sh"));
     if (!QFileInfo::exists(script)) {
+        m_summaryConfirmed = false;
+        m_confirmedPlanRevision = 0;
         setError(tr("The Archinstall adapter is missing."));
         updateInstallation(QStringLiteral("failed"), 0, QStringLiteral("blocked"), m_errorMessage);
+        setPreflight(QStringLiteral("failed"), tr("The installation backend is missing. Return to a complete Live image before trying again."));
         return;
     }
-    auto *process = new QProcess(this);
-    process->setProcessEnvironment(QProcessEnvironment::systemEnvironment());
-    process->setProcessChannelMode(QProcess::MergedChannels);
     const QString stateDirectory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    auto *process = new QProcess(this);
+    m_installationProcess = process;
+    QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
+    environment.insert(QStringLiteral("MEOARCH_INSTALLER_STATE_DIR"), stateDirectory);
+    process->setProcessEnvironment(environment);
+    process->setProcessChannelMode(QProcess::MergedChannels);
     const QString eventsPath = QDir(stateDirectory).absoluteFilePath(QStringLiteral("logs/install-events.jsonl"));
+    const qint64 eventsStartOffset = QFileInfo(eventsPath).exists() ? QFileInfo(eventsPath).size() : 0;
     if (m_progressTimer) {
         m_progressTimer->stop();
         m_progressTimer->deleteLater();
     }
     m_progressTimer = new QTimer(this);
     m_progressTimer->setInterval(350);
-    connect(m_progressTimer, &QTimer::timeout, this, [this, eventsPath] {
+    connect(m_progressTimer, &QTimer::timeout, this, [this, eventsPath, eventsStartOffset] {
         QFile events(eventsPath);
         if (!events.open(QIODevice::ReadOnly | QIODevice::Text))
+            return;
+        qint64 startOffset = eventsStartOffset;
+        if (startOffset < 0 || startOffset > events.size())
+            startOffset = 0;
+        if (!events.seek(startOffset))
             return;
         QByteArray lastLine;
         while (!events.atEnd()) {
@@ -1289,20 +1406,47 @@ void InstallerController::startInstallation()
                            event.value(QStringLiteral("message")).toString());
     });
     m_progressTimer->start();
-    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
+    const auto stopProgress = [this] {
         if (m_progressTimer) {
             m_progressTimer->stop();
             m_progressTimer->deleteLater();
             m_progressTimer = nullptr;
         }
-        if (status == QProcess::NormalExit && exitCode == 0)
+    };
+    connect(process, &QProcess::errorOccurred, this, [this, process, stopProgress](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart || process != m_installationProcess)
+            return;
+        stopProgress();
+        m_installationProcess = nullptr;
+        m_summaryConfirmed = false;
+        m_confirmedPlanRevision = 0;
+        m_installationFailureDetails = tr("The installation backend could not be started. Check the saved log and the Live image contents before retrying.");
+        updateInstallation(QStringLiteral("failed"), m_installationProgress, m_installationStage, tr("Installation stopped."));
+        setPreflight(QStringLiteral("failed"), tr("Installation did not start. Generate and validate a new plan before trying again."));
+        setError(m_installationFailureDetails);
+        process->deleteLater();
+        emit installationChanged();
+    });
+    connect(process, &QProcess::finished, this, [this, process, eventsPath, eventsStartOffset, stopProgress](int exitCode, QProcess::ExitStatus status) {
+        if (process != m_installationProcess) {
+            process->deleteLater();
+            return;
+        }
+        stopProgress();
+        m_installationProcess = nullptr;
+        if (status == QProcess::NormalExit && exitCode == 0 && hasVerifiedCompletionEvent(eventsPath, eventsStartOffset))
             updateInstallation(QStringLiteral("complete"), 100, QStringLiteral("complete"), tr("Installation complete."));
         else {
+            m_summaryConfirmed = false;
+            m_confirmedPlanRevision = 0;
             updateInstallation(QStringLiteral("failed"), m_installationProgress, m_installationStage, tr("Installation stopped."));
             m_installationFailureDetails = conciseProcessFailure(QString::fromUtf8(process->readAllStandardOutput()));
+            if (status == QProcess::NormalExit && exitCode == 0 && m_installationFailureDetails.isEmpty())
+                m_installationFailureDetails = tr("The installation backend exited without the verified completion event. The target is not marked complete.");
             if (m_installationFailureDetails.isEmpty())
                 m_installationFailureDetails = tr("The installer process ended without a diagnostic line. Open the saved log before retrying.");
             setError(m_installationFailureDetails);
+            setPreflight(QStringLiteral("failed"), tr("Installation did not complete. Generate and validate a new plan before trying again."));
         }
         process->deleteLater();
         emit installationChanged();
@@ -1321,12 +1465,28 @@ void InstallerController::updateInstallation(const QString &state, int progress,
 
 void InstallerController::requestRestart()
 {
-    if (m_systemActionsEnabled) QProcess::startDetached(QStringLiteral("systemctl"), {QStringLiteral("reboot")});
-    else setError(tr("Restart is disabled in preview mode."));
+    if (!m_systemActionsEnabled) {
+        setError(tr("Restart is disabled in preview mode."));
+        return;
+    }
+    if (m_installationState != QStringLiteral("complete")) {
+        setError(tr("Restart is available only after target validation completes."));
+        return;
+    }
+    if (!QProcess::startDetached(QStringLiteral("systemctl"), {QStringLiteral("reboot")}))
+        setError(tr("Could not request a restart from the Live system."));
 }
 void InstallerController::requestShutdown()
 {
-    if (m_systemActionsEnabled) QProcess::startDetached(QStringLiteral("systemctl"), {QStringLiteral("poweroff")});
-    else setError(tr("Shut down is disabled in preview mode."));
+    if (!m_systemActionsEnabled) {
+        setError(tr("Shut down is disabled in preview mode."));
+        return;
+    }
+    if (m_installationState != QStringLiteral("complete")) {
+        setError(tr("Shut down is available only after target validation completes."));
+        return;
+    }
+    if (!QProcess::startDetached(QStringLiteral("systemctl"), {QStringLiteral("poweroff")}))
+        setError(tr("Could not request shutdown from the Live system."));
 }
 void InstallerController::setError(const QString &message) { m_errorMessage = message; emit errorMessageChanged(); }

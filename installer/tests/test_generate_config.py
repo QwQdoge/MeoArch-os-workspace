@@ -43,6 +43,18 @@ class GenerateConfigTests(unittest.TestCase):
             if os.name != "nt":
                 self.assertEqual(target.stat().st_mode & 0o777, 0o600)
 
+    def test_state_writers_refuse_a_stale_symlink(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            outside = root / "must-not-change"
+            outside.write_text("sentinel\n", encoding="utf-8")
+            destination = root / "generated" / "plasma-localerc"
+            destination.parent.mkdir()
+            destination.symlink_to(outside)
+            with self.assertRaisesRegex(ValueError, "symlinked state file"):
+                MODULE.write_text(destination, "[Formats]\nLANG=en_US.UTF-8\n", 0o600)
+            self.assertEqual(outside.read_text(encoding="utf-8"), "sentinel\n")
+
     def test_kde_format_locale_uses_country_format_choice(self):
         self.selections["locale"]["formatLocale"] = "en_SG.UTF-8"
         localerc = MODULE.build_plasma_localerc(self.selections)
@@ -201,6 +213,18 @@ class GenerateConfigTests(unittest.TestCase):
                 self.selections["disk"]["sizeBytes"] = 64 * 1024 * 1024 * 1024
                 self.assertNotIn("disk_config", MODULE.build_user_configuration(self.selections))
 
+    def test_hand_edited_raw_layout_is_rejected_instead_of_overriding_selected_disk(self):
+        self.selections["disk"].update({
+            "stableId": "/dev/vda", "devicePath": "/dev/vda",
+            "sizeBytes": 64 * 1024 * 1024 * 1024,
+            "layout": {"device_modifications": [{"device": "/dev/sdz", "wipe": True}]},
+        })
+        configuration = MODULE.build_user_configuration(self.selections)
+        self.assertEqual(configuration["disk_config"]["device_modifications"][0]["device"], "/dev/vda")
+        credentials = MODULE.build_user_credentials(self.selections, {"userPasswordHash": "$6$hash"})
+        self.assertIn("custom disk layouts are not accepted by this installer",
+                      MODULE.validate_installation_plan(self.selections, configuration, credentials))
+
     def test_firewall_is_a_real_target_package_when_selected(self):
         self.selections["privacy"] = {"firewall": True}
         self.assertIn("firewalld", MODULE.build_user_configuration(self.selections)["packages"])
@@ -242,6 +266,41 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertFalse(verified)
         self.assertIn("another device", reason)
 
+    def test_handoff_rejects_config_drift_after_preflight_generation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory) / "state"
+            generated = state / "generated"
+            state.mkdir(mode=0o700)
+            generated.mkdir(mode=0o700)
+            self.selections["disk"].update({
+                "stableId": "/dev/vda", "devicePath": "/dev/vda",
+                "sizeBytes": 64 * 1024 * 1024 * 1024,
+            })
+            configuration = MODULE.build_user_configuration(self.selections)
+            credentials = MODULE.build_user_credentials(self.selections, {"userPasswordHash": "$6$hash"})
+            plan = {"schemaVersion": 2, "package": {"packages": ["meo-desktop"]}}
+            customizations = MODULE.build_target_customizations(self.selections)
+            MODULE.write_json(generated / "user_configuration.json", configuration, 0o600)
+            MODULE.write_json(generated / "user_credentials.json", credentials, 0o600)
+            MODULE.write_text(generated / "plasma-localerc", MODULE.build_plasma_localerc(self.selections), 0o600)
+            MODULE.write_json(generated / "target-customizations.json", customizations, 0o600)
+            MODULE.write_json(generated / "install-plan.json", plan, 0o600)
+            handoff = MODULE.build_handoff_manifest(self.selections["disk"], configuration, generated)
+            self.assertIn("plasma-localerc", handoff["files"])
+            manifest = {
+                "schemaVersion": 2,
+                "realInstallReady": True,
+                "handoff": handoff,
+            }
+            MODULE.write_json(state / "config_manifest.json", manifest, 0o600)
+            with mock.patch.object(MODULE, "verify_selected_disk_identity", return_value=(True, "")), \
+                 mock.patch.object(MODULE, "_verify_live_disk_state", return_value=(True, "")):
+                self.assertEqual(MODULE.verify_generated_handoff(state), (True, ""))
+                (generated / "user_configuration.json").write_text("{}\n", encoding="utf-8")
+                verified, reason = MODULE.verify_generated_handoff(state)
+            self.assertFalse(verified)
+            self.assertIn("changed after confirmation", reason)
+
     def test_target_customizations_carry_no_secrets(self):
         self.selections["user"].update({"fullName": "Meo User", "username": "meo", "automaticLogin": True})
         self.selections["disk"]["swap"] = "file"
@@ -279,6 +338,18 @@ class GenerateConfigTests(unittest.TestCase):
         blockers = MODULE.validate_installation_plan(self.selections, config, credentials)
         self.assertIn("unsupported disk layout mode", blockers)
         self.assertIn("disk encryption is unavailable until its tested secret flow is enabled", blockers)
+
+    def test_bios_live_boot_is_blocked_before_any_real_installation_plan(self):
+        self.selections["disk"].update({
+            "stableId": "/dev/vda", "devicePath": "/dev/vda",
+            "sizeBytes": 64 * 1024 * 1024 * 1024,
+        })
+        configuration = MODULE.build_user_configuration(self.selections)
+        credentials = MODULE.build_user_credentials(self.selections, {"userPasswordHash": "$6$hash"})
+        blockers = MODULE.validate_installation_plan(
+            self.selections, configuration, credentials, boot_mode="bios",
+        )
+        self.assertIn("BIOS target installation is unavailable until a tested BIOS GRUB layout exists", blockers)
 
 
 

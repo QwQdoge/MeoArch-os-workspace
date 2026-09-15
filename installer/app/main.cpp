@@ -18,6 +18,35 @@
 #include <algorithm>
 #include <memory>
 
+#ifdef Q_OS_UNIX
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
+namespace {
+bool hasProductionCapability()
+{
+#ifdef Q_OS_UNIX
+    constexpr char capabilityPath[] = "/run/meoarch-installer/production-capability";
+    const int descriptor = ::open(capabilityPath, O_RDONLY | O_CLOEXEC | O_NOFOLLOW);
+    if (descriptor < 0)
+        return false;
+    struct stat metadata {};
+    const bool valid = ::fstat(descriptor, &metadata) == 0
+                       && S_ISREG(metadata.st_mode)
+                       && metadata.st_uid == 0
+                       && metadata.st_gid == 0
+                       && (metadata.st_mode & 0777) == 0600
+                       && metadata.st_nlink == 1;
+    ::close(descriptor);
+    return valid;
+#else
+    return false;
+#endif
+}
+}
+
 int main(int argc, char *argv[])
 {
     bool dumpRequested = false;
@@ -39,8 +68,26 @@ int main(int argc, char *argv[])
                                              ? QStringLiteral("MeoArch Repair")
                                              : QStringLiteral("MeoArch Installer"));
     const QStringList arguments = app.arguments();
-    if (arguments.contains(QStringLiteral("--production")) && arguments.contains(QStringLiteral("--preview"))) {
+    const bool productionRequested = arguments.contains(QStringLiteral("--production"));
+    const bool previewRequested = arguments.contains(QStringLiteral("--preview"));
+    const bool realInstallRequested = arguments.contains(QStringLiteral("--enable-real-install"));
+    const bool systemActionsRequested = arguments.contains(QStringLiteral("--enable-system-actions"));
+    const bool privilegedCapabilityRequested = realInstallRequested || systemActionsRequested;
+    if (productionRequested && previewRequested) {
         QTextStream(stderr) << "--preview cannot be used with --production.\n";
+        return 2;
+    }
+
+    if (privilegedCapabilityRequested && !productionRequested) {
+        QTextStream(stderr) << "Production capabilities require --production.\n";
+        return 2;
+    }
+    if (repairRequested && (productionRequested || privilegedCapabilityRequested)) {
+        QTextStream(stderr) << "Repair mode cannot request installer production capabilities.\n";
+        return 2;
+    }
+    if ((productionRequested || privilegedCapabilityRequested) && !hasProductionCapability()) {
+        QTextStream(stderr) << "This production launch was not authorized by the MeoArch Live service.\n";
         return 2;
     }
 

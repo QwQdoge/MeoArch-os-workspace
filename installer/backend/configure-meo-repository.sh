@@ -6,8 +6,34 @@ set -euo pipefail
 target_root="${1:?target root is required}"
 generated_dir="${2:?generated directory is required}"
 bootstrap_dir="${3:-/opt/meoarch-installer/bootstrap}"
-target_root="$(realpath -e -- "$target_root")"
+if [ -L "$target_root" ]; then
+  echo "Refusing symlinked target root" >&2
+  exit 2
+fi
+target_root="$(python3 - "$target_root" <<'PY'
+from pathlib import Path
+import sys
+
+try:
+    print(Path(sys.argv[1]).resolve(strict=True))
+except OSError as error:
+    raise SystemExit(error)
+PY
+)"
 [ "$target_root" != / ] || { echo "Refusing root target" >&2; exit 2; }
+for target_directory in etc; do
+  if [ -L "$target_root/$target_directory" ] || [ ! -d "$target_root/$target_directory" ]; then
+    echo "Target $target_directory directory is missing or unsafe" >&2
+    exit 2
+  fi
+done
+install_file() {
+  local mode="$1"
+  local source="$2"
+  local destination="$3"
+  command install -d "$(dirname -- "${destination}")"
+  command install -m "${mode}" "${source}" "${destination}"
+}
 plan_file="$generated_dir/install-plan.json"
 [ -f "$plan_file" ] || { echo "Missing generated install plan" >&2; exit 3; }
 pacman_conf="$target_root/etc/pacman.conf"
@@ -38,7 +64,7 @@ Server = https://packages.meoarch.org/$repo/os/$arch
 EOF
 for file in meo.gpg meo-trusted meo-revoked; do
   [ -s "$bootstrap_dir/$file" ] || { echo "Missing ISO keyring bootstrap file: $file" >&2; exit 4; }
-  install -Dm644 "$bootstrap_dir/$file" "$bootstrap_work/keyrings/$file"
+  install_file 644 "$bootstrap_dir/$file" "$bootstrap_work/keyrings/$file"
 done
 arch-chroot "$target_root" pacman-key --init
 arch-chroot "$target_root" pacman-key --populate archlinux
