@@ -26,6 +26,7 @@ QtObject {
     property string debugTerminalMessage: "Preview only"
     property string selectedDisk: "preview-disk-0"
     property string hardwareSummary: "Automatic PCI detection will select graphics drivers."
+    property bool diskDetecting: false
     property string installationState: previewComplete ? "complete" : previewInstalling ? "running" : "idle"
     property int installationProgress: previewComplete ? 100 : previewInstalling ? 35 : 0
     property string installationStage: previewComplete ? "complete" : previewInstalling ? "installing_base" : "idle"

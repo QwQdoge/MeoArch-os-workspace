@@ -2,6 +2,15 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
   <context>
+    <name>Main</name>
+    <message><source>Loading installation step</source><translation>正在加载安装步骤</translation></message>
+    <message><source>MeoArch OS</source><translation>MeoArch OS</translation></message>
+    <message><source>Preparing installer</source><translation>正在准备安装程序</translation></message>
+    <message><source>Installer could not open</source><translation>无法打开安装程序</translation></message>
+    <message><source>The interface did not finish loading. Retry, or open the debug terminal from the boot status screen.</source><translation>界面未能完成加载。请重试，或从启动状态界面打开调试终端。</translation></message>
+    <message><source>Retry</source><translation>重试</translation></message>
+  </context>
+  <context>
     <name>NetworkPage</name>
     <message><source>Network</source><translation>网络</translation></message>
     <message><source>Continue</source><translation>继续</translation></message>
@@ -17,6 +26,7 @@
   </context>
   <context>
     <name>DiskSelectionPage</name>
+    <message><source>Scanning storage devices</source><translation>正在扫描存储设备</translation></message>
     <message><source>Disk Selection</source><translation>磁盘选择</translation></message>
     <message><source>Erase disk and install</source><translation>擦除磁盘并安装</translation></message>
     <message><source>Manual partitioning</source><translation>手动分区</translation></message>
@@ -72,6 +82,13 @@
     <message><source>Power</source><translation>电源</translation></message>
     <message><source>Restart</source><translation>重启</translation></message>
     <message><source>Shut down</source><translation>关机</translation></message>
+    <message><source>Power options</source><translation>电源选项</translation></message>
+    <message><source>Hold an action to avoid ending the live session by accident.</source><translation>长按操作，避免意外结束 Live 会话。</translation></message>
+    <message><source>Hold to restart</source><translation>长按以重启</translation></message>
+    <message><source>Keep holding to restart…</source><translation>继续按住以重启…</translation></message>
+    <message><source>Hold to shut down</source><translation>长按以关机</translation></message>
+    <message><source>Keep holding to shut down…</source><translation>继续按住以关机…</translation></message>
+    <message><source>Cancel</source><translation>取消</translation></message>
     <message><source>Back</source><translation>返回</translation></message>
     <message><source>Continue</source><translation>继续</translation></message>
     <message><source>Get Started</source><translation>开始使用</translation></message>
@@ -88,6 +105,13 @@
     <message><source>Opened the ArchWiki installation guide.</source><translation>已打开 ArchWiki 安装指南。</translation></message>
     <message><source>Opened the ArchWiki network guide.</source><translation>已打开 ArchWiki 网络指南。</translation></message>
     <message><source>Opened the ArchWiki KDE guide.</source><translation>已打开 ArchWiki KDE 指南。</translation></message>
+  </context>
+  <context>
+    <name>WelcomePage</name>
+    <message><source>MeoArch OS</source><translation>MeoArch OS</translation></message>
+    <message><source>Welcome to MeoArch OS</source><translation>欢迎使用 MeoArch OS</translation></message>
+    <message><source>Install MeoArch in a few clear, guided steps.</source><translation>通过几个清晰的引导步骤安装 MeoArch。</translation></message>
+    <message><source>Review first. Nothing changes until you confirm.</source><translation>先检查设置；确认前不会进行任何更改。</translation></message>
   </context>
   <context>
     <name>PagePlaceholder</name>

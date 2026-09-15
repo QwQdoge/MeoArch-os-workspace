@@ -21,5 +21,11 @@ if(NOT EXISTS "${MEOUI_SOURCE_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "MeoUI source not found at ${MEOUI_SOURCE_DIR}; set MEOUI_SOURCE_DIR explicitly")
 endif()
 add_subdirectory("${MEOUI_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/meoui")
+get_target_property(MEOUI_RUNTIME_VERSION meoui_module VERSION)
+if(NOT MEOUI_RUNTIME_VERSION OR MEOUI_RUNTIME_VERSION VERSION_LESS "1.0.4")
+    message(FATAL_ERROR
+        "MeoArch Installer requires MeoUI 1.0.4 beta 1 or newer; "
+        "${MEOUI_SOURCE_DIR} provides ${MEOUI_RUNTIME_VERSION}")
+endif()
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../repair" "${CMAKE_BINARY_DIR}/repair")
 add_subdirectory(app)

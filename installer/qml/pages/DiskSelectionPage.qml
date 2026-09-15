@@ -15,7 +15,8 @@ PageFrame {
     readonly property int diskSizeGiB: controller ? Math.floor(Number(controller.selection("disk", "sizeBytes", 0)) / 1073741824) : 0
     readonly property bool eraseAvailable: controller && controller.selectedDisk.length > 0 && diskSizeGiB >= 16
 
-    primaryEnabled: existingPartitionReady || (diskMode !== "partition" && eraseAvailable)
+    primaryEnabled: controller && !controller.diskDetecting
+                    && (existingPartitionReady || (diskMode !== "partition" && eraseAvailable))
 
     function selectErase(separateHomeLayout) {
         controller.setSelection("disk", "mode", separateHomeLayout ? "guided" : "erase")
@@ -49,10 +50,23 @@ PageFrame {
             message: qsTr("Select an unmounted partition of at least 16 GiB below. Meo preserves an existing EFI System Partition and rebuilds and formats only the partition you select for MeoArch.")
         }
         InfoBanner {
-            visible: page.controller && page.controller.disks.length === 0
+            visible: page.controller && !page.controller.diskDetecting && page.controller.disks.length === 0
             width: parent.width; tone: "error"
             title: qsTr("No disk detected")
             message: qsTr("Disk detection must complete before installation. The installer does not invent preview disks in production.")
+        }
+        Item {
+            visible: page.controller && page.controller.diskDetecting
+            width: parent.width
+            height: visible ? page.dp(72) : 0
+
+            MeoLoadingFeedback {
+                anchors.fill: parent
+                active: parent.visible
+                delay: 0
+                minimumVisibleDuration: 0
+                accessibleName: qsTr("Scanning storage devices")
+            }
         }
 
         Repeater {

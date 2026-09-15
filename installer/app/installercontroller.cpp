@@ -847,7 +847,13 @@ void InstallerController::detectHardware()
 
 void InstallerController::refreshDisks()
 {
+    if (m_diskDetecting)
+        return;
+
+    m_diskDetecting = true;
     m_disks.clear();
+    emit diskDetectionChanged();
+    emit disksChanged();
 #ifdef Q_OS_LINUX
     auto *process = new QProcess(this);
     connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
@@ -857,6 +863,17 @@ void InstallerController::refreshDisks()
         } else {
             parseDisks(process->readAllStandardOutput());
         }
+        m_diskDetecting = false;
+        emit diskDetectionChanged();
+        process->deleteLater();
+    });
+    connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart || !m_diskDetecting)
+            return;
+        setError(tr("Disk detection could not start. No disk can be selected until lsblk is available."));
+        emit disksChanged();
+        m_diskDetecting = false;
+        emit diskDetectionChanged();
         process->deleteLater();
     });
     process->start(QStringLiteral("lsblk"), {QStringLiteral("-J"), QStringLiteral("-b"), QStringLiteral("-o"),
@@ -864,6 +881,8 @@ void InstallerController::refreshDisks()
 #else
     setError(tr("Disk detection is only available in the Linux installer environment."));
     emit disksChanged();
+    m_diskDetecting = false;
+    emit diskDetectionChanged();
 #endif
 }
 

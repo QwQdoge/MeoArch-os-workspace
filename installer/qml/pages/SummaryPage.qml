@@ -12,6 +12,7 @@ PageFrame {
                   : qsTr("Prepare installation plan")
     primaryAdvances: false
     primaryEnabled: !(controller && controller.preflightState === "checking")
+    primaryLoading: controller && controller.preflightState === "checking"
     primaryAccessibleDescription: controller && controller.preflightState === "ready"
                                   ? qsTr("Opens a final confirmation before installation can begin")
                                   : qsTr("Validates the installation plan without writing the selected disk")

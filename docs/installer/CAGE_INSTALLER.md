@@ -13,6 +13,7 @@ systemd
   -> /usr/local/bin/meoarch-installer-kiosk
   -> cage
   -> /usr/local/bin/meoarch-installer
+  -> /opt/meoarch-installer/bin/meoarch-installer-app
   -> /opt/meoarch-installer/qml/Main.qml
 ```
 
@@ -46,8 +47,8 @@ qt6-declarative
 qt6-wayland
 ```
 
-`archinstall` is present for the future backend. The launcher does not run any
-installer backend unless an explicit test flag is passed.
+`archinstall` is reached only through the native controller's validated,
+explicitly enabled production path.
 
 ## Startup Flags
 
@@ -57,21 +58,22 @@ The launcher defaults to a non-destructive mode:
 meoarch-installer
 ```
 
-Optional flags are opt-in and intended for testing only:
+Capabilities are opt-in; the ISO kiosk launcher owns the production combination:
 
 | Flag | Effect |
 | --- | --- |
-| `--enable-archinstall-preflight` | Runs the background `archinstall --dry-run` preflight helper. |
-| `--enable-system-actions` | Lets the QML power menu emit system-action requests for bridge testing. |
-| `--` | Forwards all following arguments directly to the QML runtime. |
+| `--production` | Marks the ISO-controlled production launch. |
+| `--enable-real-install` | Enables the guarded Archinstall adapter only with `--production`. |
+| `--enable-system-actions` | Enables restart and shutdown only with `--production`. |
+| `--repair` | Opens Quick Repair in Live mode. |
+| `--` | Forwards all following arguments to the native installer host. |
 
-Even with `--enable-system-actions`, the current QML app only emits/logs action
-requests. No native shutdown, reboot, suspend, or installer bridge is connected
-yet.
+The launcher does not fall back to a raw QML runner: that process cannot supply
+the required controller or production capability boundary.
 
 ## Service Behavior
 
-The service starts on the live system through `multi-user.target`.
+The service starts on the live system through `graphical.target`.
 
 Important properties:
 
@@ -87,36 +89,26 @@ session.
 
 ## Current UI Mapping
 
-The QML shell currently contains ten pages:
-
-| QML page | Final spec page | Status |
-| --- | --- | --- |
-| `WelcomePage.qml` | Welcome | Visual first page |
-| `LanguageRegionPage.qml` | Language & Region | Placeholder |
-| `KeyboardLayoutPage.qml` | Keyboard Layout | Placeholder |
-| `NetworkPage.qml` | Network | Placeholder |
-| `PrivacySecurityPage.qml` | Privacy & Security | Placeholder |
-| `DiskSelectionPage.qml` | Disk Selection | Placeholder |
-| `UserAccountPage.qml` | User Account | Placeholder |
-| `SummaryPage.qml` | Summary | Placeholder |
-| `InstallingPage.qml` | Installing | Placeholder |
-| `FinishPage.qml` | Finish | Placeholder |
-
-The shared background, centered card, brand pill, top action buttons, and right
-power menu are defined in `installer/qml/PageFrame.qml`.
+The QML shell contains twelve guided pages from Welcome through Finish,
+including language, keyboard, network, privacy, disk, account, software,
+channel, review, and installation states. The shared background, centered card,
+top actions, footer navigation, and centered power dialog are defined in
+`installer/qml/PageFrame.qml`.
 
 ## Safety Contract
 
-The current framework must remain non-destructive.
+The default development launch remains non-destructive. Real installation and
+system power actions require the separate production capability flags supplied
+by the ISO kiosk launcher.
 
 Allowed:
 
 - Display UI
 - Collect choices
-- Generate future preview data
+- Generate and validate an installation plan
 - Write temporary logs under `/tmp`
-- Run `archinstall --dry-run` only when `--enable-archinstall-preflight` is set
-- Emit QML system-action requests only when `--enable-system-actions` is set
+- Run the non-destructive Archinstall preflight
+- Report disabled system actions without executing them
 
 Forbidden:
 
@@ -137,10 +129,9 @@ Before connecting real installation behavior, test the default disabled mode:
 - The live ISO boots to the installer service.
 - Cage starts successfully.
 - The QML window fills the display.
-- The installer can navigate all ten pages.
-- The power menu opens.
-- Power off, Restart, and Sleep show a disabled message.
-- Test no-op shows a no-op message and never emits a real system action.
+- The installer can navigate all twelve pages.
+- The Material power dialog opens and requires a hold confirmation.
+- Restart and Shut down show a disabled message without production capability.
 - Closing the installer exits Cage cleanly.
 - A service failure is logged to the journal.
 - No disk state changes occur.
@@ -148,13 +139,12 @@ Before connecting real installation behavior, test the default disabled mode:
 Then test explicit opt-in modes:
 
 ```sh
-meoarch-installer --enable-system-actions
-meoarch-installer --enable-archinstall-preflight
-meoarch-installer --enable-system-actions --enable-archinstall-preflight
+meoarch-installer --production --enable-system-actions
+meoarch-installer --production --enable-real-install
 ```
 
 Expected results:
 
-- `--enable-system-actions` allows the QML shell to emit/log action requests.
-- `--enable-archinstall-preflight` runs only the dry-run preflight helper.
-- Running without these flags remains the normal ISO behavior.
+- `--enable-system-actions` allows the controller to request restart or shutdown.
+- `--enable-real-install` allows a confirmed, ready plan to enter the adapter.
+- Without `--production`, both capability flags remain disabled.

@@ -28,6 +28,62 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("MeoMotionSurface", source)
         self.assertIn("MeoDivider", source)
 
+    def test_installer_uses_meoui_104_page_loading_contract(self):
+        cmake = (QML_ROOT.parent / "CMakeLists.txt").read_text(encoding="utf-8")
+        main = (QML_ROOT / "Main.qml").read_text(encoding="utf-8")
+        self.assertIn('VERSION_LESS "1.0.4"', cmake)
+        self.assertIn("sourceProperties:", main)
+        self.assertIn('pageKey: String(root.currentPage) + "-" + String(root.startupAttempt)', main)
+        self.assertIn("loadingAccessibleName:", main)
+        self.assertNotIn("onPageLoaded:", main)
+
+    def test_startup_is_localized_fail_closed_and_visually_minimal(self):
+        host = (QML_ROOT.parent / "app/main.cpp").read_text(encoding="utf-8")
+        main = (QML_ROOT / "Main.qml").read_text(encoding="utf-8")
+        launcher = (QML_ROOT.parent / "bin/meoarch-installer").read_text(encoding="utf-8")
+        welcome = (QML_ROOT / "pages/WelcomePage.qml").read_text(encoding="utf-8")
+        self.assertLess(
+            host.index("loadLanguage(controller.uiLanguage());"),
+            host.index("engine.load(QUrl::fromLocalFile"),
+        )
+        self.assertIn("startupTimedOut", main)
+        self.assertIn("startupAttempt++", main)
+        self.assertIn('qsTr("Preparing installer")', main)
+        self.assertIn('qsTr("Installer could not open")', main)
+        self.assertNotIn("qml6", launcher)
+        self.assertNotIn("qmlscene", launcher)
+        self.assertIn("native MeoArch Installer host is missing", launcher)
+        self.assertNotIn("Repeater", welcome)
+        self.assertIn('qsTr("Review first. Nothing changes until you confirm.")', welcome)
+
+    def test_power_dialog_uses_md_motion_and_hold_confirmation(self):
+        frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
+        self.assertIn("presentation: MeoMotionPopup.Dialog", frame)
+        self.assertEqual(frame.count("MeoHoldToConfirm {"), 2)
+        self.assertIn('confirmationText: qsTr("Hold to restart")', frame)
+        self.assertIn('confirmationText: qsTr("Hold to shut down")', frame)
+        self.assertIn("holdDuration: 1200", frame)
+        self.assertIn("KeyNavigation.down: shutdownAction", frame)
+
+    def test_async_disk_and_preflight_work_have_explicit_loading_states(self):
+        header = (QML_ROOT.parent / "app/installercontroller.h").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        preview = (QML_ROOT / "PreviewController.qml").read_text(encoding="utf-8")
+        disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
+        frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
+        summary = (QML_ROOT / "pages/SummaryPage.qml").read_text(encoding="utf-8")
+        self.assertIn("Q_PROPERTY(bool diskDetecting", header)
+        self.assertIn("if (m_diskDetecting)", controller)
+        self.assertIn("QProcess::FailedToStart", controller)
+        self.assertIn("property bool diskDetecting: false", preview)
+        self.assertIn("!page.controller.diskDetecting", disk)
+        self.assertIn("!controller.diskDetecting", disk)
+        self.assertIn("MeoLoadingFeedback", disk)
+        self.assertIn('accessibleName: qsTr("Scanning storage devices")', disk)
+        self.assertIn("property bool primaryLoading: false", frame)
+        self.assertIn("loading: frame.primaryLoading", frame)
+        self.assertIn('primaryLoading: controller && controller.preflightState === "checking"', summary)
+
     def test_custom_profile_persists_required_desktop_and_review_shows_resolved_plan(self):
         software = (QML_ROOT / "pages/SoftwarePage.qml").read_text(encoding="utf-8")
         summary = (QML_ROOT / "pages/SummaryPage.qml").read_text(encoding="utf-8")
