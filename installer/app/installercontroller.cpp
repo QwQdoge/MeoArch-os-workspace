@@ -792,6 +792,11 @@ void InstallerController::refreshNetworkHandoff()
     m_networkHandoffSource.clear();
     m_networkHandoffKind.clear();
     if (m_networkState != QStringLiteral("online")) {
+        // The presentation getter makes an unavailable profile look disabled,
+        // but installation consumes the persisted value directly. Clear the
+        // default here too so an offline or portal-only Live session cannot
+        // reach plan generation with a hidden, stale handoff request.
+        disableNetworkHandoff();
         m_networkHandoffState = QStringLiteral("unavailable");
         m_networkHandoffMessage = tr("Connect to the Internet before this network can be remembered after installation.");
         emit networkHandoffChanged();
