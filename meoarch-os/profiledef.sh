@@ -39,7 +39,6 @@ file_permissions=(
   ["/usr/lib/meoarch-repair/actions/restart-network-manager.sh"]="0:0:755"
   ["/usr/lib/meoarch-repair/actions/rebuild-initramfs.sh"]="0:0:755"
   ["/usr/lib/meoarch-repair/actions/refresh-pacman-keyring.sh"]="0:0:755"
-  ["/etc/sudoers.d/10-meoarch-live-installer"]="0:0:440"
   ["/opt/meoarch-installer/bin/meoarch-installer-app"]="0:0:755"
   ["/opt/meoarch-installer/backend/apply-target-customizations.sh"]="0:0:755"
   ["/opt/meoarch-installer/backend/archinstall-preflight.sh"]="0:0:755"

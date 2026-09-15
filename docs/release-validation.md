@@ -5,7 +5,7 @@
 1. Release components and the shared `libmeoui.so.0` runtime build.
 2. A real ISO builds and passes structural inspection.
 3. The ISO boots through OVMF UEFI into the intended live graphical session.
-4. The installer launches and all 11 pages remain functional.
+4. The installer launches and all 12 pages remain functional.
 5. Installation completes on the disposable qcow2 disk.
 6. The ISO is detached and that disk boots independently.
 7. A fresh user's first Plasma login loads Meo Desktop without duplicate panels.

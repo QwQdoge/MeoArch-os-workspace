@@ -129,6 +129,7 @@ grep -q 'Installation_guide' meoarch-os/airootfs/etc/motd
 ! rg -q 'meoarch-installer-live' meoarch-os installer/bin scripts/sync-installer-to-airootfs.sh scripts/verify-staging-provenance.sh
 ! test -e meoarch-os/airootfs/etc/xdg/autostart/meoarch-installer.desktop
 ! test -e meoarch-os/airootfs/etc/sudoers.d/10-meoarch-live-installer
+! rg -q '10-meoarch-live-installer' meoarch-os/profiledef.sh
 grep -q 'native installer host, MeoUI runtime, and repair payload' scripts/build-installer-app.sh
 ! rg -q 'qml6 fallback|optional native host' scripts/build-installer-app.sh scripts/sync-installer-to-airootfs.sh
 grep -q '^lynis$' meoarch-os/packages.x86_64
