@@ -265,6 +265,8 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('"wpa-psk"', controller)
         self.assertIn('"sae"', controller)
         self.assertIn('"owe"', controller)
+        unavailable_branch = controller.split('if (m_networkState != QStringLiteral("online")) {', 1)[1].split('auto *process', 1)[0]
+        self.assertIn("disableNetworkHandoff();", unavailable_branch)
         self.assertNotIn("sourcePath", (QML_ROOT.parent / "data/default_selections.json").read_text(encoding="utf-8"))
 
     def test_debug_terminal_is_never_exposed_from_the_root_production_kiosk(self):
