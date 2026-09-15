@@ -74,6 +74,7 @@ if [ ! -e "${runtime_source}/lib/libmeoui.so.0" ] \
   || [ ! -f "${runtime_source}/lib/qt6/qml/Meo/System/libmeosystemplugin.so" ] \
   || [ ! -d "${runtime_source}/lib/qt6/qml/MeoKDE" ] \
   || [ ! -x "${runtime_source}/bin/meo-dynamic-colors" ] \
+  || [ ! -x "${runtime_source}/bin/meo-weather-refresh" ] \
   || [ ! -x "${runtime_source}/bin/meo-input-method" ]; then
   echo "MeoUI, MeoKDE, or Meo.System runtime is missing from ${runtime_source}." >&2
   exit 5
@@ -145,7 +146,7 @@ for plugin in \
       "${target_root}/usr/lib/qt6/plugins/${plugin}"
   fi
 done
-for helper in meo-dynamic-colors meo-input-method meo-theme-mode meo-desktop-apply meo-desktop-layout; do
+for helper in meo-dynamic-colors meo-weather-refresh meo-input-method meo-theme-mode meo-desktop-apply meo-desktop-layout; do
   install_file 755 "${runtime_source}/bin/${helper}" "${target_root}/usr/bin/${helper}"
 done
 install_file 644 "${desktop_source}/defaults/kwin/kwinrc" \
@@ -167,6 +168,12 @@ install_file 644 "${runtime_source}/lib/systemd/user/meo-dynamic-colors.service"
   "${target_root}/usr/lib/systemd/user/meo-dynamic-colors.service"
 ln -sfn ../meo-dynamic-colors.path \
   "${target_root}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path"
+install_file 644 "${runtime_source}/lib/systemd/user/meo-weather-refresh.service" \
+  "${target_root}/usr/lib/systemd/user/meo-weather-refresh.service"
+install_file 644 "${runtime_source}/lib/systemd/user/meo-weather-refresh.timer" \
+  "${target_root}/usr/lib/systemd/user/meo-weather-refresh.timer"
+ln -sfn ../meo-weather-refresh.timer \
+  "${target_root}/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer"
 install_file 644 "${desktop_source}/defaults/fonts/50-meo-fonts.conf" \
   "${target_root}/etc/fonts/conf.avail/50-meo-fonts.conf"
 ln -sfn ../conf.avail/50-meo-fonts.conf \

@@ -38,13 +38,13 @@ classify() {
     airootfs/usr/lib/qt6/qml/MeoKDE/*|airootfs/usr/share/fonts/meo/*|airootfs/etc/fonts/*)
       printf '%s\t%s\t%s' 'MeoKDE' 'compiled or copied sibling MeoKDE runtime' 'shared KDE QML and font integration'
       ;;
-    airootfs/usr/lib/qt6/qml/Meo/System/*|airootfs/usr/bin/meo-session-actiond|airootfs/usr/share/dbus-1/services/org.meo.SessionAction1.service)
+    airootfs/usr/lib/qt6/qml/Meo/System/*|airootfs/usr/bin/meo-session-actiond|airootfs/usr/bin/meo-weather-refresh|airootfs/usr/share/dbus-1/services/org.meo.SessionAction1.service)
       printf '%s\t%s\t%s' 'Meo.System' 'compiled sibling MeoKDE native/system module' 'shared NetworkManager and system-state backend'
       ;;
     airootfs/opt/meo-desktop/*|airootfs/usr/share/plasma/look-and-feel/org.meo.desktop/*|airootfs/usr/share/plasma/desktoptheme/*|airootfs/usr/share/plasma/plasmoids/org.meo.shelf/*|airootfs/usr/share/plasma/plasmoids/org.meo.topbar/*|airootfs/usr/share/plasma/plasmoids/org.meo.timecenter/*|airootfs/usr/share/color-schemes/*|airootfs/usr/share/icons/MeoSymbols*/*)
       printf '%s\t%s\t%s' 'MeoKDE desktop' 'declared sibling MeoKDE desktop assets' 'live desktop theme, status surfaces, or retired Shelf cleanup'
       ;;
-    airootfs/usr/bin/meo-dynamic-colors|airootfs/usr/bin/meo-input-method|airootfs/usr/bin/meo-theme-mode|airootfs/usr/bin/meo-desktop-apply|airootfs/usr/bin/meo-desktop-layout|airootfs/usr/share/meo-desktop/*|airootfs/usr/share/fcitx5/themes/MeoInputMethod-*/*|airootfs/etc/xdg/fcitx5/*|airootfs/etc/environment.d/90-meo-applications.conf|airootfs/usr/lib/systemd/user/meo-dynamic-colors.*|airootfs/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path)
+    airootfs/usr/bin/meo-dynamic-colors|airootfs/usr/bin/meo-input-method|airootfs/usr/bin/meo-theme-mode|airootfs/usr/bin/meo-desktop-apply|airootfs/usr/bin/meo-desktop-layout|airootfs/usr/share/meo-desktop/*|airootfs/usr/share/fcitx5/themes/MeoInputMethod-*/*|airootfs/etc/xdg/fcitx5/*|airootfs/etc/environment.d/90-meo-applications.conf|airootfs/usr/lib/systemd/user/meo-dynamic-colors.*|airootfs/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path|airootfs/usr/lib/systemd/user/meo-weather-refresh.*|airootfs/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer)
       printf '%s\t%s\t%s' 'MeoKDE integration' 'declared sibling MeoKDE scripts and defaults' 'dynamic palette, application style, and input-method integration'
       ;;
     airootfs/usr/share/wallpapers/MeoArch/*|airootfs/usr/share/pixmaps/meoarch-logo.svg|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg)

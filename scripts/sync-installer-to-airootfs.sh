@@ -98,6 +98,8 @@ cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
 cp -a "${meosystem_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
 install -Dm755 "${meosystem_build}/meo-session-actiond" \
   "${airootfs}/usr/bin/meo-session-actiond"
+install -Dm755 "${meosystem_build}/meo-weather-refresh" \
+  "${airootfs}/usr/bin/meo-weather-refresh"
 install -Dm644 "${meo_kde_src}/native/system/org.meo.SessionAction1.service" \
   "${airootfs}/usr/share/dbus-1/services/org.meo.SessionAction1.service"
 cp -a "${meo_kde_src}/assets/fonts/"*.ttf "${meokde_fonts_dst}/"
@@ -150,6 +152,12 @@ sed -i 's|%h/.local/bin/|/usr/bin/|g' \
   "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.service"
 ln -sfn ../meo-dynamic-colors.path \
   "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path"
+install -Dm644 "${meo_kde_src}/defaults/systemd/meo-weather-refresh.service" \
+  "${airootfs}/usr/lib/systemd/user/meo-weather-refresh.service"
+install -Dm644 "${meo_kde_src}/defaults/systemd/meo-weather-refresh.timer" \
+  "${airootfs}/usr/lib/systemd/user/meo-weather-refresh.timer"
+ln -sfn ../meo-weather-refresh.timer \
+  "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer"
 
 rm -rf "${installer_dst}"
 install -d "${installer_dst}"
