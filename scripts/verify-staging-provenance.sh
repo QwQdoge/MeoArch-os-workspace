@@ -62,11 +62,8 @@ classify() {
     airootfs/etc/systemd/system/sysinit.target.wants/debug-shell.service)
       printf '%s\t%s\t%s' 'Acceptance harness' 'MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY' 'ephemeral VM-only tty9 diagnostic shell'
       ;;
-    airootfs/usr/local/bin/Installation_guide|airootfs/usr/local/bin/choose-mirror|airootfs/usr/local/bin/installer.py|airootfs/usr/local/bin/livecd-sound)
+    airootfs/usr/local/bin/Installation_guide|airootfs/usr/local/bin/choose-mirror|airootfs/usr/local/bin/livecd-sound)
       printf '%s\t%s\t%s' 'ArchISO live helpers' 'explicit MeoArch profile helper source' 'services declared by the ArchISO profile'
-      ;;
-    airootfs/usr/local/bin/meoarch-installer-live|airootfs/usr/local/bin/meoarch-installer-live-root)
-      printf '%s\t%s\t%s' 'Installer' 'this workspace installer source' 'live-session launcher and privilege boundary'
       ;;
     airootfs/usr/bin/meo-boot-status|airootfs/usr/lib/meoarch/*|airootfs/usr/lib/systemd/system/meo-boot-*|airootfs/usr/lib/systemd/system/*.service.d/*)
       printf '%s\t%s\t%s' 'Boot Status' 'this workspace boot status bridge' 'systemd milestone and failure bridge'

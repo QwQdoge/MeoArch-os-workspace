@@ -23,6 +23,7 @@ fi
 # helpers must always come from the versioned source profile, never from the
 # generated destination (which is intentionally empty before synchronization).
 profile_live_tools="${repo_root}/meoarch-os/airootfs/usr/local/bin"
+required_live_helpers=(Installation_guide choose-mirror livecd-sound)
 installer_dst="${airootfs}/opt/meoarch-installer"
 repair_dst="${airootfs}/usr/lib/meoarch-repair"
 desktop_dst="${airootfs}/opt/meo-desktop"
@@ -45,12 +46,25 @@ for destructive_target in \
   fi
 done
 
+# These are the ArchISO releng live helpers retained by this profile. Validate
+# the versioned sources before compiling sibling projects so a clean-checkout
+# staging failure is immediate and cannot be masked by generated airootfs
+# leftovers.
+for helper in "${required_live_helpers[@]}"; do
+  helper_source="${profile_live_tools}/${helper}"
+  [ -f "${helper_source}" ] && [ ! -L "${helper_source}" ] || {
+    echo "Required ArchISO live helper is missing or unsafe: ${helper_source}" >&2
+    exit 1
+  }
+done
+
 "${repo_root}/scripts/build-installer-app.sh"
 if [ ! -f "${runtime_root}/lib/libmeoui.so.0" ] \
   || [ ! -x "${runtime_root}/bin/meoarch-repair" ] \
   || [ ! -f "${runtime_root}/lib/meoarch-repair/qml/Main.qml" ] \
-  || [ ! -f "${runtime_root}/lib/qt6/qml/MeoUI/qmldir" ]; then
-  echo "The compiled MeoUI runtime is missing. Run scripts/build-installer-app.sh first." >&2
+  || [ ! -f "${runtime_root}/lib/qt6/qml/MeoUI/qmldir" ] \
+  || [ ! -x "${runtime_root}/bin/meoarch-installer-app" ]; then
+  echo "The required native installer runtime is missing; build-installer-app.sh must provide the host, MeoUI, and repair payload." >&2
   exit 1
 fi
 
@@ -239,12 +253,12 @@ install -Dm755 "${meokde_native_build}/qt-plugins/styles/meostyle.so" \
 # corners effect and the native decoration now own the window geometry.
 rm -f "${airootfs}/usr/lib/qt6/plugins/kwin/effects/plugins/org.meo.windowcorners.so"
 
-native_binary="${MEOARCH_INSTALLER_NATIVE_BINARY:-${repo_root}/build/installer-host/meoarch-installer-app}"
-if [ -x "${native_binary}" ]; then
-  install -Dm755 "${native_binary}" "${installer_dst}/bin/meoarch-installer-app"
-else
-  echo "Compiled installer host not found; ISO will use qml6 from qt6-declarative." >&2
-fi
+native_binary="${MEOARCH_INSTALLER_NATIVE_BINARY:-${runtime_root}/bin/meoarch-installer-app}"
+[ -x "${native_binary}" ] || {
+  echo "Required native installer host is missing: ${native_binary}" >&2
+  exit 1
+}
+install -Dm755 "${native_binary}" "${installer_dst}/bin/meoarch-installer-app"
 
 install -Dm755 "${installer_src}/bin/meoarch-installer" \
   "${airootfs}/usr/local/bin/meoarch-installer"
@@ -254,20 +268,12 @@ install -Dm755 "${installer_src}/bin/meoarch-install" \
   "${airootfs}/usr/local/bin/meoarch-install"
 install -Dm755 "${installer_src}/backend/preflight-meo-repository.sh" \
   "${installer_dst}/backend/preflight-meo-repository.sh"
-for helper in Installation_guide choose-mirror installer.py livecd-sound; do
+for helper in "${required_live_helpers[@]}"; do
   helper_source="${profile_live_tools}/${helper}"
   helper_destination="${airootfs}/usr/local/bin/${helper}"
-  [ -f "${helper_source}" ] || {
-    echo "Required ArchISO live helper is missing: ${helper_source}" >&2
-    exit 1
-  }
   if [ "${helper_source}" != "${helper_destination}" ]; then
     install -Dm755 "${helper_source}" "${helper_destination}"
   else
     chmod 755 "${helper_destination}"
   fi
 done
-install -Dm755 "${installer_src}/bin/meoarch-installer-live" \
-  "${airootfs}/usr/local/bin/meoarch-installer-live"
-install -Dm755 "${installer_src}/bin/meoarch-installer-live-root" \
-  "${airootfs}/usr/local/bin/meoarch-installer-live-root"

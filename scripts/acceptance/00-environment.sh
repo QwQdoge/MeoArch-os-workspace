@@ -41,8 +41,16 @@ report="${evidence_dir}/environment.txt"
   echo "timestamp_utc=$(date -u +%FT%TZ)"
   echo "git_commit=$(git -C "${repo_root}" rev-parse HEAD)"
   echo "kernel=$(uname -srmo)"
-  . /etc/os-release
-  echo "distribution=${PRETTY_NAME}"
+  if [ -r /etc/os-release ]; then
+    # os-release is the Linux build-host identity when it is available.
+    # shellcheck disable=SC1091
+    . /etc/os-release
+    echo "distribution=${PRETTY_NAME:-unknown}"
+  elif command -v sw_vers >/dev/null 2>&1; then
+    echo "distribution=$(sw_vers -productName) $(sw_vers -productVersion)"
+  else
+    echo "distribution=unknown (no /etc/os-release)"
+  fi
   echo "architecture=$(uname -m)"
   for tool in mkarchiso qemu-system-x86_64 qemu-img cmake ninja pkg-config \
     xorriso unsquashfs readelf objdump sha256sum; do

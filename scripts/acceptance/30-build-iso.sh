@@ -39,10 +39,10 @@ else
   run_dir="${outputs_root}/validation/${run_id}"
 fi
 evidence_dir="${run_dir}/iso"
-output_dir="${MEOARCH_ISO_OUTPUT_DIR:-${outputs_root}/packages/iso/${run_id}}"
+output_dir="${MEOARCH_ISO_OUTPUT_DIR:-${outputs_root}/packages/iso/acceptance/${run_id}}"
 mkdir -p "${evidence_dir}" "${output_dir}"
 
-"${repo_root}/scripts/build-iso.sh" --output "${output_dir}" |
+"${repo_root}/scripts/build-iso.sh" --acceptance --output "${output_dir}" |
   tee "${evidence_dir}/build.log"
 iso_path="$(find "${output_dir}" -maxdepth 1 -type f -name '*.iso' -print -quit)"
 [ -n "${iso_path}" ] && [ -s "${iso_path}" ]

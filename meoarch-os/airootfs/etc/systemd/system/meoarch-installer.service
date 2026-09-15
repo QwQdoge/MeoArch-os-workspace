@@ -7,6 +7,10 @@ After=systemd-user-sessions.service systemd-logind.service seatd.service
 Wants=NetworkManager.service seatd.service
 Conflicts=systemd-networkd.service systemd-networkd.socket
 OnFailure=meo-boot-status-failure@meoarch-installer.service
+# A failed Cage/client pair may be restarted a few times for transient GPU or
+# compositor startup faults, but must not loop indefinitely behind a blank TTY.
+StartLimitIntervalSec=30s
+StartLimitBurst=3
 
 [Service]
 Type=simple
@@ -26,6 +30,11 @@ EnvironmentFile=-/etc/meoarch/account.env
 RuntimeDirectory=meoarch-installer
 RuntimeDirectoryMode=0700
 ExecStartPre=/usr/lib/meoarch/meo-boot-status stage installer
+# The native host accepts destructive production capabilities only when this
+# root-only runtime marker exists. RuntimeDirectory is created before
+# ExecStartPre and removed with the service, so a normal Live user cannot mint
+# a production launch by supplying command-line flags.
+ExecStartPre=/usr/bin/install -m 0600 -o root -g root /dev/null /run/meoarch-installer/production-capability
 ExecStart=/usr/local/bin/meoarch-installer-kiosk
 ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready
 Restart=on-failure

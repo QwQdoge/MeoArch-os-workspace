@@ -24,7 +24,7 @@ MEOARCH_RUN_ID="${run_id}" ./scripts/acceptance/30-build-iso.sh
 ```
 
 That wrapper writes the candidate ISO to
-`$HOME/Projects/outputs/meo-arch-os-workspace/packages/iso/<run-id>/`
+`$HOME/Projects/outputs/meo-arch-os-workspace/packages/iso/acceptance/<run-id>/`
 and its build log, status, size, SHA-256, and ISO path to
 `.../validation/<run-id>/iso/`. It does not clean the existing reproducible
 `build/archiso` workspace.

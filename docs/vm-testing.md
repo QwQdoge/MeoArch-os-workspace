@@ -52,10 +52,12 @@ The disk creator rejects `/dev/*` and paths outside the designated VM directory.
 It creates a writable OVMF copy in the disposable VM directory and records the
 exact VM configuration and serial console output in the validation directory.
 
-For automated acceptance, set `MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY` while building
-the ISO. The build copies that public key only into its staged profile; it does
-not alter the source ArchISO profile. Guest SSH is forwarded to
-`127.0.0.1:2222`.
+For automated acceptance, set `MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY` only with an
+explicit `--acceptance` build (the acceptance wrapper already supplies it). The
+build copies that public key only into its staged profile and writes the ISO to
+the isolated `packages/iso/acceptance/` namespace; it does not alter the source
+ArchISO profile. A normal build refuses that environment variable. Guest SSH is
+forwarded to `127.0.0.1:2222`.
 
 Capture each visible Installer checkpoint through QMP. The helper numbers the
 PNG files in the active validation run while keeping the temporary PPM files in
