@@ -6,5 +6,6 @@ MeoBanner {
     property string iconFont: "Roboto"
     property string message: ""
     text: message
-    icon: tone === "error" ? "warning" : tone === "success" ? "check_circle" : "info"
+    icon: tone === "error" || tone === "warning" ? "warning"
+          : tone === "success" ? "check_circle" : "info"
 }

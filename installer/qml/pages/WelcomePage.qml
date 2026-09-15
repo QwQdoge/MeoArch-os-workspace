@@ -11,13 +11,13 @@ PageFrame {
         id: welcomeContent
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -page.dp(8)
-        width: Math.min(parent.width, page.dp(680))
-        spacing: page.dp(16)
+        width: Math.min(parent.width, page.dp(600))
+        spacing: page.compactHeight ? page.dp(12) : page.dp(18)
 
         Image {
             anchors.horizontalCenter: parent.horizontalCenter
-            width: page.dp(188)
-            height: page.dp(84)
+            width: page.dp(168)
+            height: page.dp(76)
             source: page.asset("icons/Logo.png")
             fillMode: Image.PreserveAspectFit
             Accessible.name: qsTr("MeoArch OS")
@@ -34,71 +34,40 @@ PageFrame {
         }
         MeoText {
             width: parent.width
-            text: qsTr("A guided setup that keeps each important Arch choice clear and reviewable.")
+            text: qsTr("Install MeoArch in a few clear, guided steps.")
             horizontalAlignment: Text.AlignHCenter
             color: MeoTheme.contentOnSurfaceVariant
             typeRole: "body"
-            typeSize: "medium"
+            typeSize: "big"
             wrapMode: Text.WordWrap
         }
 
-        MeoCard {
-            width: parent.width
-            type: "filled"
-            padding: page.dp(20)
-            implicitHeight: featureRow.implicitHeight + page.dp(40)
+        MeoMotionSurface {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: Math.min(parent.width, page.dp(430))
+            height: page.dp(52)
+            radius: height / 2
+            color: MeoTheme.secondaryContainer
+            elevation: 0
 
             Row {
-                id: featureRow
-                width: parent.width
-                spacing: page.dp(16)
-
-                Repeater {
-                    model: [
-                        { icon: "edit_note", title: qsTr("Guided choices"), text: qsTr("Language, storage, account, and software in a clear order.") },
-                        { icon: "memory", title: qsTr("Hardware-aware"), text: qsTr("Graphics planning is prepared from real PCI hardware detection.") },
-                        { icon: "fact_check", title: qsTr("Review before install"), text: qsTr("No destructive action is enabled until the installation plan is checked.") }
-                    ]
-
-                    delegate: Column {
-                        required property var modelData
-                        width: (featureRow.width - featureRow.spacing * 2) / 3
-                        spacing: page.dp(6)
-
-                        MeoIcon {
-                            icon: modelData.icon
-                            size: page.dp(24)
-                            color: MeoTheme.primary
-                        }
-                        MeoText {
-                            width: parent.width
-                            text: modelData.title
-                            typeRole: "label"
-                            typeSize: "medium"
-                            emphasized: true
-                            color: MeoTheme.contentOnSurface
-                            wrapMode: Text.WordWrap
-                        }
-                        MeoText {
-                            width: parent.width
-                            text: modelData.text
-                            typeRole: "body"
-                            typeSize: "small"
-                            color: MeoTheme.contentOnSurfaceVariant
-                            wrapMode: Text.WordWrap
-                        }
-                    }
+                anchors.centerIn: parent
+                spacing: page.dp(10)
+                MeoIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    icon: "verified_user"
+                    size: 22
+                    color: MeoTheme.contentOnSecondaryContainer
+                }
+                MeoText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: qsTr("Review first. Nothing changes until you confirm.")
+                    typeRole: "label"
+                    typeSize: "medium"
+                    emphasized: true
+                    color: MeoTheme.contentOnSecondaryContainer
                 }
             }
-        }
-
-        MeoText {
-            width: parent.width
-            text: qsTr("You can review every choice before installation begins.")
-            horizontalAlignment: Text.AlignHCenter
-            typeRole: "label"
-            typeSize: "small"
-            color: MeoTheme.contentOnSurfaceVariant
         }
     }
 }

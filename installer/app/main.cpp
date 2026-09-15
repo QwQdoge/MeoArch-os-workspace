@@ -164,11 +164,13 @@ int main(int argc, char *argv[])
             qmlRoot = development;
     }
     engine.addImportPath(qmlRoot);
+    // Install the selected translator before the first QML object is created.
+    // This prevents an English first frame from flashing before retranslate().
+    loadLanguage(controller.uiLanguage());
     const QString rootQml = QStringLiteral("Main.qml");
     engine.load(QUrl::fromLocalFile(QDir(qmlRoot).absoluteFilePath(rootQml)));
     if (engine.rootObjects().isEmpty())
         return 1;
-    loadLanguage(controller.uiLanguage());
     QObject::connect(&controller, &InstallerController::uiLanguageChanged, &engine,
                      [&controller, &loadLanguage] { loadLanguage(controller.uiLanguage()); });
 

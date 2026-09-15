@@ -1,15 +1,16 @@
 # MeoArch Installer implementation
 
-The preferred runtime is a compiled Qt 6 host that loads the QML view layer and
+The runtime is a compiled Qt 6 host that loads the QML view layer and
 exposes `InstallerController` as the single source of non-secret installation
-state. If the build machine has no Qt development libraries, the ISO build skips
-that optional host and starts the QML layer with `qml6` instead. The default mode
-is a simulated installation and cannot modify a disk.
+state. The launcher fails closed when that host or one of its libraries is
+missing; a raw `qml6` process cannot provide the controller contract. The
+default mode is a simulated installation and cannot modify a disk.
 
 ## Runtime flow
 
-1. `meoarch-installer` prefers `/opt/meoarch-installer/bin/meoarch-installer-app`
-   when all of its shared libraries resolve, otherwise it falls back to `qml6`.
+1. `meoarch-installer` validates and starts
+   `/opt/meoarch-installer/bin/meoarch-installer-app`; missing host dependencies
+   stop startup and let the Live boot-status failure path report the problem.
 2. The host loads `/opt/meoarch-installer/qml/Main.qml` and builds runtime catalogs.
 3. QML writes non-secret choices through `InstallerController`.
 4. `generate-config.py` maps schema version 1 state to Archinstall configuration,
@@ -20,6 +21,16 @@ is a simulated installation and cannot modify a disk.
 The real path additionally requires `--enable-real-install`; power actions require
 `--enable-system-actions`. Missing disk geometry or a missing yescrypt user hash
 keeps the generated manifest in preview state.
+
+## Visual reference boundary
+
+The startup surface and power dialog independently implement the compact,
+morphing-session principles visible in Caelestia Shell: large rounded actions,
+semantic focus, keyboard navigation, and state-driven motion. No Quickshell,
+Caelestia service, IPC, or GPL source is copied into the installer. The result
+uses MeoUI controls and the existing `InstallerController` capability boundary.
+The shared `MeoMotionPopup` separately records its small MIT-licensed DMS
+reference in the MeoUI source.
 
 ## Runtime catalogs
 

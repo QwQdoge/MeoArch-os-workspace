@@ -4,12 +4,12 @@ set -euo pipefail
 app_dir="${MEOARCH_INSTALLER_DIR:-/opt/meoarch-installer}"
 state_dir="${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}"
 meoui_import_path="${MEO_UI_QML_IMPORT_PATH:-/usr/lib/qt6/qml}"
-qml_args=()
+app_args=()
 repair_mode=false
 
 usage() {
   cat <<'EOF'
-Usage: meoarch-installer [options] [-- QML_ARGS...]
+Usage: meoarch-installer [options] [-- APP_ARGS...]
 
 Options:
   --production                    Mark an ISO-controlled production launch.
@@ -25,7 +25,7 @@ EOF
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --production)
-      qml_args+=("--production")
+      app_args+=("--production")
       shift
       ;;
     --repair)
@@ -33,16 +33,16 @@ while [ "$#" -gt 0 ]; do
       shift
       ;;
     --enable-system-actions)
-      qml_args+=("--enable-system-actions")
+      app_args+=("--enable-system-actions")
       shift
       ;;
     --enable-real-install)
-      qml_args+=("--enable-real-install")
+      app_args+=("--enable-real-install")
       shift
       ;;
     --)
       shift
-      qml_args+=("$@")
+      app_args+=("$@")
       break
       ;;
     -h|--help)
@@ -50,7 +50,7 @@ while [ "$#" -gt 0 ]; do
       exit 0
       ;;
     *)
-      qml_args+=("$1")
+      app_args+=("$1")
       shift
       ;;
   esac
@@ -68,29 +68,25 @@ if [ "${repair_mode}" = true ]; then
 fi
 
 native_app="${app_dir}/bin/meoarch-installer-app"
-if [ -x "${native_app}" ]; then
-  missing_libraries="$(ldd "${native_app}" 2>/dev/null | awk '/not found/ { print $1 }' | paste -sd, -)"
-  if [ -z "${missing_libraries}" ]; then
-    export MEOARCH_INSTALLER_ROOT="${app_dir}"
-    export MEOARCH_INSTALLER_QML_ROOT="${app_dir}/qml"
-    export MEO_UI_QML_IMPORT_PATH="${meoui_import_path}"
-    exec "${native_app}" "${qml_args[@]}"
-  fi
-  echo "Native installer host is missing libraries (${missing_libraries}); using the QML runtime." >&2
+if [ ! -x "${native_app}" ]; then
+  echo "The native MeoArch Installer host is missing at ${native_app}." >&2
+  exit 127
+fi
+if ! command -v ldd >/dev/null 2>&1; then
+  echo "Cannot validate the native installer host because ldd is unavailable." >&2
+  exit 127
+fi
+if ! ldd_output="$(ldd "${native_app}" 2>&1)"; then
+  echo "Could not validate the native installer host dependencies." >&2
+  exit 127
+fi
+missing_libraries="$(printf '%s\n' "${ldd_output}" | awk '/not found/ { print $1 }' | paste -sd, -)"
+if [ -n "${missing_libraries}" ]; then
+  echo "The native installer host is missing libraries (${missing_libraries})." >&2
+  exit 127
 fi
 
-main_qml="${app_dir}/qml/Main.qml"
-
-export QML2_IMPORT_PATH="${app_dir}/qml:${meoui_import_path}:/usr/lib/qt6/qml${QML2_IMPORT_PATH:+:${QML2_IMPORT_PATH}}"
-if command -v qml6 >/dev/null 2>&1; then
-  exec qml6 -I "$meoui_import_path" "$main_qml" "${qml_args[@]}"
-elif command -v qml >/dev/null 2>&1; then
-  exec qml -I "$meoui_import_path" "$main_qml" "${qml_args[@]}"
-elif command -v qmlscene6 >/dev/null 2>&1; then
-  exec qmlscene6 -I "$meoui_import_path" "$main_qml" "${qml_args[@]}"
-elif command -v qmlscene >/dev/null 2>&1; then
-  exec qmlscene -I "$meoui_import_path" "$main_qml" "${qml_args[@]}"
-fi
-
-echo "No Qt QML runtime found. Install qt6-declarative." >&2
-exit 127
+export MEOARCH_INSTALLER_ROOT="${app_dir}"
+export MEOARCH_INSTALLER_QML_ROOT="${app_dir}/qml"
+export MEO_UI_QML_IMPORT_PATH="${meoui_import_path}"
+exec "${native_app}" "${app_args[@]}"

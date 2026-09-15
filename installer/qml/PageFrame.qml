@@ -16,6 +16,7 @@ Item {
     property bool showBackButton: pageIndex > 0 && pageIndex < 9
     property bool showPrimaryButton: true
     property bool primaryEnabled: true
+    property bool primaryLoading: false
     property bool primaryAdvances: true
     property string primaryAccessibleDescription: qsTr("Continue to the next installation step")
     property string statusMessage: ""
@@ -269,31 +270,98 @@ Item {
 
     MeoMotionPopup {
         id: powerPopup
-        presentation: MeoMotionPopup.Menu
-        x: frame.width - frame.pageMargin - width
-        y: frame.pageMargin + frame.dp(58)
-        width: frame.dp(220)
-        height: frame.dp(112)
-        padding: frame.dp(8)
+        // Caelestia's session surface is the interaction reference: large
+        // rounded actions, vertical focus navigation, and state-driven shape.
+        // This is an independent MeoUI implementation; no Quickshell service
+        // or upstream GPL QML is embedded in the installer.
+        presentation: MeoMotionPopup.Dialog
+        x: (frame.width - width) / 2
+        y: (frame.height - height) / 2
+        width: Math.min(frame.dp(420), frame.width - frame.pageMargin * 2)
+        height: powerContent.implicitHeight + frame.dp(48)
+        padding: frame.dp(24)
+        initialFocusItem: restartAction
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
         contentItem: Column {
-            Repeater {
-                model: [
-                    { label: qsTr("Restart"), icon: "restart_alt", action: "restart" },
-                    { label: qsTr("Shut down"), icon: "power_settings_new", action: "shutdown" }
-                ]
-                delegate: MeoListItem {
-                    required property var modelData
-                    width: parent.width
-                    implicitHeight: frame.dp(48)
-                    headline: modelData.label
-                    leadingIcon: modelData.icon
-                    onClicked: {
-                        modelData.action === "restart" ? frame.controller.requestRestart()
-                                                         : frame.controller.requestShutdown()
-                        powerPopup.close()
+            id: powerContent
+            width: parent.width
+            spacing: frame.dp(14)
+
+            Row {
+                width: parent.width
+                spacing: frame.dp(12)
+                MeoMotionSurface {
+                    width: frame.dp(48)
+                    height: width
+                    radius: width / 2
+                    color: MeoTheme.secondaryContainer
+                    elevation: 0
+                    MeoIcon {
+                        anchors.centerIn: parent
+                        icon: "power_settings_new"
+                        size: 24
+                        color: MeoTheme.contentOnSecondaryContainer
                     }
                 }
+                Column {
+                    width: parent.width - frame.dp(60)
+                    spacing: frame.dp(2)
+                    MeoText {
+                        width: parent.width
+                        text: qsTr("Power options")
+                        typeRole: "title"
+                        typeSize: "small"
+                        emphasized: true
+                        color: MeoTheme.contentOnSurface
+                    }
+                    MeoText {
+                        width: parent.width
+                        text: qsTr("Hold an action to avoid ending the live session by accident.")
+                        typeRole: "body"
+                        typeSize: "small"
+                        color: MeoTheme.contentOnSurfaceVariant
+                        wrapMode: Text.WordWrap
+                    }
+                }
+            }
+
+            MeoHoldToConfirm {
+                id: restartAction
+                width: parent.width
+                confirmationText: qsTr("Hold to restart")
+                holdingText: qsTr("Keep holding to restart…")
+                holdDuration: 1200
+                iconName: "restart_alt"
+                tone: "neutral"
+                KeyNavigation.down: shutdownAction
+                onConfirmed: {
+                    powerPopup.close()
+                    frame.controller.requestRestart()
+                }
+            }
+            MeoHoldToConfirm {
+                id: shutdownAction
+                width: parent.width
+                confirmationText: qsTr("Hold to shut down")
+                holdingText: qsTr("Keep holding to shut down…")
+                holdDuration: 1200
+                iconName: "power_settings_new"
+                tone: "error"
+                KeyNavigation.up: restartAction
+                KeyNavigation.down: cancelPowerAction
+                onConfirmed: {
+                    powerPopup.close()
+                    frame.controller.requestShutdown()
+                }
+            }
+            MeoButton {
+                id: cancelPowerAction
+                anchors.right: parent.right
+                text: qsTr("Cancel")
+                type: "text"
+                KeyNavigation.up: shutdownAction
+                onClicked: powerPopup.close()
             }
         }
     }
@@ -393,6 +461,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 implicitWidth: Math.max(frame.dp(136), contentItem.implicitWidth + leftPadding + rightPadding)
                 text: frame.primaryLabel
+                loading: frame.primaryLoading
                 type: "filled"
                 size: "m"
                 isEmphasized: true

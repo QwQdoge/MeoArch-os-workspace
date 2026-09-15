@@ -21,6 +21,7 @@ class InstallerController final : public QObject
     Q_PROPERTY(QVariantList keyboardLayouts READ keyboardLayouts CONSTANT)
     Q_PROPERTY(QVariantList softwareCatalog READ softwareCatalog CONSTANT)
     Q_PROPERTY(QVariantList disks READ disks NOTIFY disksChanged)
+    Q_PROPERTY(bool diskDetecting READ diskDetecting NOTIFY diskDetectionChanged)
     Q_PROPERTY(QString uiLanguage READ uiLanguage NOTIFY selectionsChanged)
     Q_PROPERTY(QString systemLocale READ systemLocale NOTIFY selectionsChanged)
     Q_PROPERTY(QString formatCountry READ formatCountry NOTIFY selectionsChanged)
@@ -64,6 +65,7 @@ public:
     QVariantList keyboardLayouts() const { return m_keyboardLayouts; }
     QVariantList softwareCatalog() const { return m_softwareCatalog; }
     QVariantList disks() const { return m_disks; }
+    bool diskDetecting() const { return m_diskDetecting; }
     QString uiLanguage() const;
     QString systemLocale() const;
     QString formatCountry() const;
@@ -128,6 +130,7 @@ signals:
     void selectionsChanged();
     void uiLanguageChanged();
     void disksChanged();
+    void diskDetectionChanged();
     void networkStateChanged();
     void networkHandoffChanged();
     void hardwareChanged();
@@ -174,6 +177,7 @@ private:
     QHash<QString, QVariantMap> m_regionPresets;
     QVariantList m_softwareCatalog;
     QVariantList m_disks;
+    bool m_diskDetecting = false;
     QVariantMap m_selections;
     QString m_networkState = QStringLiteral("offline");
     QString m_networkDetail;
