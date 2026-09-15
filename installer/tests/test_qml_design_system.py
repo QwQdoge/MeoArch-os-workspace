@@ -127,6 +127,13 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("eligibleEfi:true", preview)
         self.assertNotIn("gparted", disk.casefold())
 
+    def test_disk_page_uses_detected_capacity_when_enabling_an_erase_plan(self):
+        disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
+        self.assertIn("controller.disks", disk)
+        self.assertIn("detected[index].sizeBytes", disk)
+        self.assertIn("transient zero capacity", disk)
+        self.assertIn("diskSizeGiB >= 16", disk)
+
     def test_choice_cards_expose_selection_semantics_without_turning_status_cards_into_buttons(self):
         card = (QML_ROOT / "components/SelectionCard.qml").read_text(encoding="utf-8")
         disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")

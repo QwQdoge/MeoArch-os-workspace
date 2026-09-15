@@ -12,7 +12,21 @@ PageFrame {
     readonly property var selectedRoot: controller ? controller.selection("disk", "targetPartition", {}) : ({})
     readonly property var selectedEfi: controller ? controller.selection("disk", "efiPartition", {}) : ({})
     readonly property bool existingPartitionReady: diskMode === "partition" && selectedRoot.path && selectedEfi.path
-    readonly property int diskSizeGiB: controller ? Math.floor(Number(controller.selection("disk", "sizeBytes", 0)) / 1073741824) : 0
+    // The detected disk model is authoritative for whether an erase flow is
+    // safe to offer. Persisted selections are retained for the backend plan,
+    // but an asynchronous write must not leave an already selected real disk
+    // with a transient zero capacity and a permanently disabled Continue.
+    readonly property int diskSizeGiB: {
+        if (!controller)
+            return 0
+        const selectedId = String(controller.selectedDisk || "")
+        const detected = controller.disks || []
+        for (let index = 0; index < detected.length; ++index) {
+            if (String(detected[index].id) === selectedId)
+                return Math.floor(Number(detected[index].sizeBytes || 0) / 1073741824)
+        }
+        return Math.floor(Number(controller.selection("disk", "sizeBytes", 0)) / 1073741824)
+    }
     readonly property bool eraseAvailable: controller && controller.selectedDisk.length > 0 && diskSizeGiB >= 16
 
     primaryEnabled: controller && !controller.diskDetecting

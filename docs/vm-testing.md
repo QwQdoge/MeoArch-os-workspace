@@ -90,3 +90,21 @@ Store screenshots, installer logs, package logs, partition/fstab output,
 first-login observations and performance measurements under the matching
 `validation/<run-id>/` directory. A visible Live ISO is not evidence of an
 installed-system boot.
+
+## Testing unpublished candidate packages
+
+When the target must exercise locally built, unpublished packages, pass a
+directory under the global output root as a read-only 9p share to the installed
+VM. Inside the guest it can be mounted without exposing host credentials or
+host audio:
+
+```bash
+export MEOARCH_QEMU_SHARE="${MEOARCH_OUTPUT_ROOT}/packages/candidates"
+export MEOARCH_VM_AUDIO=1
+./scripts/acceptance/70-boot-installed.sh
+# guest: mount -t 9p -o ro,trans=virtio,version=9p2000.L meo-candidates /mnt/meo-candidates
+```
+
+`MEOARCH_VM_AUDIO=1` creates only a discard-only virtual HDA output. It is
+appropriate for checking PipeWire/PulseAudio device discovery and the lock
+screen's volume/mute controls; it does not route guest sound to the host.

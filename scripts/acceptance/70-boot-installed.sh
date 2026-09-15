@@ -9,6 +9,11 @@ Boot the installed acceptance VM without the ISO. Temporary qcow2, OVMF, and
 QMP state defaults to tmp/<UTC-run-id>/vm; validation records remain under
 validation/<UTC-run-id>/vm. Set MEOARCH_VM_HANDOFF=1 (or
 MEOARCH_INSTALL_DIR) only when a bootable VM handoff must be retained.
+
+Set MEOARCH_QEMU_SHARE to a directory below the configured output root to make
+it available read-only at the guest's 9p tag `meo-candidates`. Set
+MEOARCH_VM_AUDIO=1 to expose a discard-only virtual HDA output for audio UI
+acceptance; it never reads or writes host audio.
 EOF
 }
 
@@ -52,10 +57,16 @@ qemu_gl="${MEOARCH_QEMU_GL:-on}"
 vm_width="${MEOARCH_VM_WIDTH:-1920}"
 vm_height="${MEOARCH_VM_HEIGHT:-1080}"
 vm_name="${MEOARCH_VM_NAME:-MeoArch Installed Acceptance}"
+candidate_share="${MEOARCH_QEMU_SHARE:-}"
+vm_audio="${MEOARCH_VM_AUDIO:-0}"
 mkdir -p "${vm_dir}" "${evidence_dir}"
 case "${qemu_gl}" in
   on|off) ;;
   *) echo "MEOARCH_QEMU_GL must be on or off." >&2; exit 2 ;;
+esac
+case "${vm_audio}" in
+  0|1) ;;
+  *) echo "MEOARCH_VM_AUDIO must be 0 or 1." >&2; exit 2 ;;
 esac
 case "${vm_width}x${vm_height}" in
   *[!0-9x]*|x*|*x) echo "MEOARCH_VM_WIDTH and MEOARCH_VM_HEIGHT must be positive integers." >&2; exit 2 ;;
@@ -95,6 +106,30 @@ if [ -r /dev/kvm ] && [ -w /dev/kvm ]; then
   accel_args=(-enable-kvm -cpu host)
 fi
 
+share_args=()
+resolved_share="none"
+if [ -n "${candidate_share}" ]; then
+  [ -d "${candidate_share}" ] || {
+    echo "MEOARCH_QEMU_SHARE must name an existing directory." >&2
+    exit 2
+  }
+  resolved_share="$(realpath -e -- "${candidate_share}")"
+  resolved_outputs_root="$(realpath -e -- "${outputs_root}")"
+  case "${resolved_share}" in
+    "${resolved_outputs_root}"/*) ;;
+    *)
+      echo "MEOARCH_QEMU_SHARE must remain below ${resolved_outputs_root}." >&2
+      exit 2
+      ;;
+  esac
+  share_args=(-virtfs "local,path=${resolved_share},mount_tag=meo-candidates,security_model=none,readonly=on,id=meo_candidates")
+fi
+
+audio_args=()
+if [ "${vm_audio}" = "1" ]; then
+  audio_args=(-audiodev driver=none,id=meo_audio -device ich9-intel-hda -device hda-duplex,audiodev=meo_audio)
+fi
+
 display_args=(-device "virtio-vga-gl,xres=${vm_width},yres=${vm_height}" -display "${display_mode},gl=on")
 if [ "${qemu_gl}" = "off" ]; then
   display_args=(-device "virtio-vga,xres=${vm_width},yres=${vm_height}" -display "${display_mode}")
@@ -113,6 +148,8 @@ network=user/NAT hostfwd tcp 127.0.0.1:2222 to guest 22
 display=${display_mode}
 gl=${qemu_gl}
 resolution=${vm_width}x${vm_height}
+candidate_share=${resolved_share}
+audio=${vm_audio}
 EOF
 
 # Stable USB input IDs make QMP-driven login acceptance deterministic.
@@ -126,6 +163,8 @@ exec qemu-system-x86_64 \
   -drive "file=${disk_path},if=none,id=install_disk,format=qcow2,cache=writeback" \
   -device "nvme,drive=install_disk,serial=MEOARCH-ACC-0001" \
   "${display_args[@]}" \
+  "${share_args[@]}" \
+  "${audio_args[@]}" \
   -device virtio-net-pci,netdev=net0 \
   -netdev user,id=net0,hostfwd=tcp:127.0.0.1:2222-:22 \
   -device qemu-xhci \
