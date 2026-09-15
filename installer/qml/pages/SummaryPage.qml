@@ -34,16 +34,70 @@ PageFrame {
     function joined(values, separator, fallback) {
         return values && values.length ? Array.from(values).join(separator) : fallback
     }
+    function findSelectedDisk() {
+        const selectedId = controller ? controller.selectedDisk : ""
+        const disks = controller && controller.disks ? controller.disks : []
+        for (let index = 0; index < disks.length; ++index) {
+            if (disks[index].id === selectedId)
+                return disks[index]
+        }
+        return ({})
+    }
+    function describeDiskPlan() {
+        if (page.existingPartitionInstall) {
+            return qsTr("Format %1 only · preserve EFI partition %2 · %3")
+                    .arg(page.selectedRootPath).arg(page.selectedEfiPath).arg(page.selectedDiskDisplay)
+        }
+        if (page.diskMode === "guided") {
+            return qsTr("Erase all data on %1 · create EFI, root, and home partitions")
+                    .arg(page.selectedDiskDisplay)
+        }
+        return qsTr("Erase all data on %1 · create EFI and root partitions")
+                .arg(page.selectedDiskDisplay)
+    }
+    function confirmationWarning() {
+        if (page.existingPartitionInstall) {
+            return qsTr("%1 will be formatted for MeoArch. %2 will be preserved for boot files. Other partitions are not selected for modification.")
+                    .arg(page.selectedRootPath).arg(page.selectedEfiPath)
+        }
+        return qsTr("All data on %1 will be permanently erased. Existing partitions will not be preserved.")
+                .arg(page.selectedDiskDisplay)
+    }
+    readonly property string diskMode: controller ? String(controller.selection("disk", "mode", "erase")) : "erase"
+    readonly property bool existingPartitionInstall: page.diskMode === "partition"
+    readonly property var selectedRoot: controller ? controller.selection("disk", "targetPartition", {}) : ({})
+    readonly property var selectedEfi: controller ? controller.selection("disk", "efiPartition", {}) : ({})
+    readonly property string selectedRootPath: page.selectedRoot && page.selectedRoot.path
+                                               ? String(page.selectedRoot.path) : qsTr("the selected root partition")
+    readonly property string selectedEfiPath: page.selectedEfi && page.selectedEfi.path
+                                              ? String(page.selectedEfi.path) : qsTr("the selected EFI partition")
+    readonly property var selectedDiskInfo: page.findSelectedDisk()
+    readonly property string selectedDiskDisplay: {
+        const disk = page.selectedDiskInfo
+        const name = disk && disk.name ? String(disk.name) : ""
+        const path = disk && disk.devicePath ? String(disk.devicePath)
+                   : (controller ? String(controller.selection("disk", "devicePath", "")) : "")
+        const capacity = disk && disk.size ? String(disk.size) : ""
+        let result = name && path ? name + " (" + path + ")" : (path || name)
+        if (!result.length)
+            result = controller && controller.selectedDisk.length ? controller.selectedDisk : qsTr("the selected disk")
+        return capacity.length ? result + " · " + capacity : result
+    }
+    readonly property string diskPlanSummary: page.describeDiskPlan()
+    readonly property string graphicsSummary: controller && controller.hardwareDetecting
+                                              ? qsTr("Checking graphics hardware…")
+                                              : controller ? controller.hardwareSummary
+                                                           : qsTr("Automatic PCI detection")
     readonly property var summaryRows: [
         { pageIndex: 1, title: qsTr("Language & Region"), value: controller ? controller.systemLocale + " · " + controller.formatCountry + " · " + controller.timeZone : "" },
         { pageIndex: 2, title: qsTr("Keyboard"), value: controller ? controller.keyboardLayout : "" },
         { pageIndex: 3, title: qsTr("Network"), value: controller ? controller.networkDetail + (controller.networkHandoffEnabled ? qsTr(" · Will be remembered after installation") : qsTr(" · Will not be copied")) : "" },
         { pageIndex: 4, title: qsTr("Privacy & Security"), value: controller && controller.selection("privacy", "firewall", true) ? qsTr("Firewall enabled") : qsTr("Firewall not selected") },
-        { pageIndex: 5, title: qsTr("Disk"), value: controller ? controller.selectedDisk : "" },
+        { pageIndex: 5, title: qsTr("Disk"), value: page.diskPlanSummary },
         { pageIndex: 6, title: qsTr("User Account"), value: InstallerSession.username + " · " + InstallerSession.hostname },
         { pageIndex: 7, title: qsTr("Software"), value: controller ? page.profileLabel(controller.selection("software", "profile", "recommended")) : "" },
         { pageIndex: 8, title: qsTr("Meo channel"), value: controller ? page.channelLabel(controller.selection("software", "channel", "stable")) : "" },
-        { pageIndex: -1, title: qsTr("Graphics Drivers"), value: controller ? controller.hardwareSummary : qsTr("Automatic PCI detection") }
+        { pageIndex: -1, title: qsTr("Graphics support"), value: page.graphicsSummary }
     ]
 
     onPrimaryRequested: {
@@ -85,7 +139,9 @@ PageFrame {
                    : page.controller.preflightState === "failed" ? qsTr("Installation plan blocked")
                    : qsTr("Installation plan not prepared")
             message: page.controller.preflightState === "ready"
-                     ? qsTr("Review the selected disk and settings. Install now opens one final erase confirmation.")
+                     ? (page.existingPartitionInstall
+                        ? qsTr("Review the selected root and EFI partitions. Install now opens one final formatting confirmation.")
+                        : qsTr("Review the selected disk and settings. Install now opens one final erase confirmation."))
                      : page.controller.preflightMessage.length ? page.controller.preflightMessage
                                                                : qsTr("Select a valid disk and account, then prepare the plan.")
             tone: page.controller.preflightState === "ready" ? "success"
@@ -168,7 +224,7 @@ PageFrame {
                                 MeoIcon {
                                     visible: modelData.pageIndex >= 0
                                     icon: "edit"
-                                    size: 20
+                                    size: page.dp(20)
                                     color: MeoTheme.primary
                                 }
                             }
@@ -201,23 +257,38 @@ PageFrame {
         padding: page.dp(32)
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
-        contentItem: Column {
-            spacing: page.dp(18)
-            MeoText { text: qsTr("Installation details"); typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
-            InfoBanner { width: parent.width; title: qsTr("Secrets excluded"); message: qsTr("Passwords, Wi-Fi secrets, and disk passphrases are excluded from this view.") }
-            MeoText {
-                width: parent.width
-                text: qsTr("Bootloader\nGRUB\n\nKernel\nlinux\n\nDesktop\nMeoArch KDE Plasma + Plasma Login Manager\n\nAudio and network\nPipeWire · NetworkManager\n\nGraphics drivers\n") + (page.controller ? page.controller.hardwareSummary : qsTr("Detecting hardware…"))
-                      + "\n\n" + qsTr("Disk plan\n") + (page.controller ? page.controller.selectedDisk : qsTr("Not selected"))
-                      + "\n\n" + qsTr("Meo repositories\n") + page.joined(page.resolvedRepository.repositories, " → ", qsTr("Prepare the installation plan to resolve repositories."))
-                      + "\n\n" + qsTr("Meo packages\n") + page.joined(page.resolvedPackage.packages, "\n", qsTr("Prepare the installation plan to resolve packages."))
-                      + "\n\n" + qsTr("System application packages\n") + page.joined(page.resolvedApplications.nativePackages, "\n", qsTr("None"))
-                typeRole: "body"
-                typeSize: "medium"
-                lineHeight: 1.35
-                color: MeoTheme.contentOnSurface
+        contentItem: Flickable {
+            id: detailsFlick
+            contentWidth: width
+            contentHeight: detailsContent.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: contentHeight > height
+            ScrollBar.vertical: ScrollBar {
+                policy: detailsFlick.interactive ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
             }
-            MeoButton { anchors.right: parent.right; text: qsTr("Done"); type: "filled"; onClicked: detailsSheet.close() }
+
+            Column {
+                id: detailsContent
+                width: parent.width
+                spacing: page.dp(18)
+                MeoText { text: qsTr("Installation details"); typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
+                InfoBanner { width: parent.width; title: qsTr("Secrets excluded"); message: qsTr("Passwords, Wi-Fi secrets, and disk passphrases are excluded from this view.") }
+                MeoText {
+                    width: parent.width
+                    text: qsTr("Bootloader\nGRUB\n\nKernel\nlinux\n\nDesktop\nMeoArch KDE Plasma + Plasma Login Manager\n\nAudio and network\nPipeWire · NetworkManager\n\nGraphics support\n") + page.graphicsSummary
+                          + "\n\n" + qsTr("Disk plan\n") + page.diskPlanSummary
+                          + "\n\n" + qsTr("Meo repositories\n") + page.joined(page.resolvedRepository.repositories, " → ", qsTr("Prepare the installation plan to resolve repositories."))
+                          + "\n\n" + qsTr("Meo packages\n") + page.joined(page.resolvedPackage.packages, "\n", qsTr("Prepare the installation plan to resolve packages."))
+                          + "\n\n" + qsTr("System application packages\n") + page.joined(page.resolvedApplications.nativePackages, "\n", qsTr("None"))
+                    typeRole: "body"
+                    typeSize: "medium"
+                    lineHeight: 1.35
+                    color: MeoTheme.contentOnSurface
+                    wrapMode: Text.WrapAnywhere
+                }
+                MeoButton { anchors.right: parent.right; text: qsTr("Done"); type: "filled"; onClicked: detailsSheet.close() }
+            }
         }
     }
 
@@ -226,36 +297,62 @@ PageFrame {
         presentation: MeoMotionPopup.Dialog
         anchors.centerIn: Overlay.overlay
         width: Math.min(page.dp(520), Overlay.overlay ? Overlay.overlay.width - page.dp(48) : page.dp(520))
-        height: page.dp(320)
+        height: Math.min(page.dp(320), Overlay.overlay ? Overlay.overlay.height - page.dp(48) : page.dp(320))
         padding: page.dp(28)
         closePolicy: Popup.CloseOnEscape
         initialFocusItem: accept
-        onAboutToShow: accept.checked = false
+        onAboutToShow: { accept.checked = false; confirmFlick.contentY = 0 }
 
-        contentItem: Column {
-            spacing: page.dp(18)
-            MeoText { width: parent.width; text: qsTr("Begin installation?"); typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
-            InfoBanner { width: parent.width; tone: "error"; title: qsTr("The selected disk will be erased"); message: qsTr("This cannot be undone after disk changes begin.") }
-            MeoCheckbox {
-                id: accept
-                text: qsTr("I understand that the selected disk will be erased.")
-                onCheckedChanged: page.riskAccepted = checked
+        contentItem: Flickable {
+            id: confirmFlick
+            contentWidth: width
+            contentHeight: confirmContent.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: contentHeight > height
+            ScrollBar.vertical: ScrollBar {
+                policy: confirmFlick.interactive ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
             }
-            Row {
-                anchors.right: parent.right
-                spacing: page.dp(8)
-                MeoButton { text: qsTr("Cancel"); type: "text"; onClicked: confirmDialog.close() }
-                MeoButton {
-                    text: qsTr("Erase disk and install")
-                    type: "filled"
-                    enabled: accept.checked
-                    Accessible.description: qsTr("Starts the confirmed destructive installation")
-                    onClicked: {
-                        page.controller.confirmSummary()
-                        if (page.controller.readyToInstall) {
-                            page.controller.startInstallation()
-                            confirmDialog.close()
-                            page.nextRequested()
+
+            Column {
+                id: confirmContent
+                width: parent.width
+                spacing: page.dp(18)
+                MeoText { width: parent.width; text: page.existingPartitionInstall ? qsTr("Format the selected partition?") : qsTr("Begin installation?"); typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
+                InfoBanner {
+                    width: parent.width
+                    tone: "error"
+                    title: page.existingPartitionInstall ? qsTr("The selected root partition will be erased")
+                                                        : qsTr("The selected disk will be erased")
+                    message: page.confirmationWarning()
+                }
+                MeoCheckbox {
+                    id: accept
+                    text: page.existingPartitionInstall
+                          ? qsTr("I understand that only %1 will be formatted.").arg(page.selectedRootPath)
+                          : qsTr("I understand that all data on %1 will be erased.").arg(page.selectedDiskDisplay)
+                    Accessible.description: page.confirmationWarning()
+                    onCheckedChanged: page.riskAccepted = checked
+                }
+                Row {
+                    anchors.right: parent.right
+                    spacing: page.dp(8)
+                    MeoButton { text: qsTr("Cancel"); type: "text"; onClicked: confirmDialog.close() }
+                    MeoButton {
+                        text: page.existingPartitionInstall ? qsTr("Format partition and install")
+                                                            : qsTr("Erase disk and install")
+                        type: "filled"
+                        enabled: accept.checked
+                        Accessible.description: page.existingPartitionInstall
+                                                ? qsTr("Starts the confirmed installation that formats only the selected root partition")
+                                                : qsTr("Starts the confirmed installation that erases the selected disk")
+                        onClicked: {
+                            page.controller.confirmSummary()
+                            if (page.controller.readyToInstall) {
+                                page.controller.startInstallation()
+                                confirmDialog.close()
+                                page.nextRequested()
+                            }
                         }
                     }
                 }

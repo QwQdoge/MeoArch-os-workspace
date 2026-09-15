@@ -13,6 +13,8 @@ Item {
     property string selectedTimeZone: ""
     readonly property bool mapAvailable: mapLoader.status === Loader.Ready
 
+    function dp(value) { return Math.round(value * MeoTheme.globalScale) }
+
     function applySelectedTimeZone(value) {
         const next = String(value || "")
         if (next.length > 0 && next !== root.selectedTimeZone)
@@ -45,12 +47,12 @@ Item {
         anchors.fill: parent
         visible: !root.mapAvailable
         type: "filled"
-        padding: 20
+        padding: root.dp(20)
         Column {
             anchors.centerIn: parent
-            width: parent.width - 40
-            spacing: 10
-            MeoIcon { anchors.horizontalCenter: parent.horizontalCenter; icon: "map"; size: 36; color: MeoTheme.primary }
+            width: parent.width - root.dp(40)
+            spacing: root.dp(10)
+            MeoIcon { anchors.horizontalCenter: parent.horizontalCenter; icon: "map"; size: root.dp(36); color: MeoTheme.primary }
             MeoText { width: parent.width; text: qsTr("Offline time-zone map is unavailable"); horizontalAlignment: Text.AlignHCenter; typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface }
             MeoText { width: parent.width; text: qsTr("Use the searchable time-zone list above. This image is missing Plasma's time-zone map data."); horizontalAlignment: Text.AlignHCenter; typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
         }

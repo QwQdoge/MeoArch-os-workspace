@@ -42,6 +42,10 @@ Item {
                                                         : windowMetrics.isExtraLargeWidth ? dp(96)
                                                                                           : windowMetrics.isLargeWidth ? dp(80) : dp(72)
     readonly property bool compactHeight: windowMetrics.isCompactHeight || mainCardHeight < dp(560)
+    // A 960 px kiosk can still have a high UI scale.  Collapse decorative
+    // chrome before the brand and footer controls compete for the same space.
+    readonly property bool compactChrome: windowMetrics.isCompactWidth || width < dp(760)
+    readonly property bool showFooterPageIndicator: !compactChrome
     readonly property string roboto: robotoLoader.name.length ? robotoLoader.name : MeoTheme.typefacePlain
     readonly property string comfortaa: comfortaaLoader.name.length ? comfortaaLoader.name : MeoTheme.typefaceBrand
     readonly property string symbols: symbolsLoader.name.length ? symbolsLoader.name : "Material Symbols Rounded"
@@ -87,7 +91,8 @@ Item {
     MeoMotionSurface {
         x: frame.pageMargin
         y: frame.pageMargin
-        width: windowMetrics.isExtraLargeWidth ? frame.dp(328) : frame.dp(278)
+        width: frame.compactChrome ? frame.dp(104)
+                                   : windowMetrics.isExtraLargeWidth ? frame.dp(328) : frame.dp(278)
         height: windowMetrics.isExtraLargeWidth ? frame.dp(56) : frame.dp(48)
         color: MeoTheme.surfaceContainer
         radius: MeoTheme.shapeLargeIncreased
@@ -96,7 +101,7 @@ Item {
         Row {
             anchors.fill: parent
             anchors.leftMargin: frame.dp(18)
-            spacing: frame.dp(12)
+            spacing: frame.compactChrome ? 0 : frame.dp(12)
 
             Image {
                 width: frame.dp(68)
@@ -106,6 +111,7 @@ Item {
                 fillMode: Image.PreserveAspectFit
             }
             MeoText {
+                visible: !frame.compactChrome
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("MeoArch Installer")
                 typeRole: "title"
@@ -169,52 +175,65 @@ Item {
         x: Math.max(frame.pageMargin, helpButton.x - width + helpButton.width)
         y: frame.pageMargin + frame.dp(58)
         width: frame.dp(360)
-        height: frame.dp(286)
+        height: Math.min(frame.dp(286), frame.height - frame.pageMargin * 2)
         padding: frame.dp(12)
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
-        contentItem: Column {
-            width: parent.width
-            spacing: frame.dp(6)
-            MeoText {
-                width: parent.width
-                text: qsTr("Documentation")
-                typeRole: "title"
-                typeSize: "small"
-                emphasized: true
-                color: MeoTheme.contentOnSurface
+        contentItem: Flickable {
+            id: helpFlick
+            contentWidth: width
+            contentHeight: helpContent.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: contentHeight > height
+            ScrollBar.vertical: ScrollBar {
+                policy: helpFlick.interactive ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
             }
-            MeoText {
+
+            Column {
+                id: helpContent
                 width: parent.width
-                text: qsTr("Meo guides are still being written. Open the original ArchWiki in your browser for current reference material.")
-                typeRole: "body"
-                typeSize: "small"
-                color: MeoTheme.contentOnSurfaceVariant
-                wrapMode: Text.WordWrap
-            }
-            MeoListItem {
-                width: parent.width
-                implicitHeight: frame.dp(44)
-                headline: qsTr("ArchWiki: Installation guide")
-                leadingIcon: "open_in_new"
-                interactive: true
-                onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/Installation_guide", qsTr("Opened the ArchWiki installation guide.")); helpPopup.close() }
-            }
-            MeoListItem {
-                width: parent.width
-                implicitHeight: frame.dp(44)
-                headline: qsTr("ArchWiki: Network configuration")
-                leadingIcon: "wifi"
-                interactive: true
-                onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/Network_configuration", qsTr("Opened the ArchWiki network guide.")); helpPopup.close() }
-            }
-            MeoListItem {
-                width: parent.width
-                implicitHeight: frame.dp(44)
-                headline: qsTr("ArchWiki: KDE Plasma")
-                leadingIcon: "desktop_windows"
-                interactive: true
-                onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/KDE", qsTr("Opened the ArchWiki KDE guide.")); helpPopup.close() }
+                spacing: frame.dp(6)
+                MeoText {
+                    width: parent.width
+                    text: qsTr("Documentation")
+                    typeRole: "title"
+                    typeSize: "small"
+                    emphasized: true
+                    color: MeoTheme.contentOnSurface
+                }
+                MeoText {
+                    width: parent.width
+                    text: qsTr("Meo guides are still being written. Open the original ArchWiki in your browser for current reference material.")
+                    typeRole: "body"
+                    typeSize: "small"
+                    color: MeoTheme.contentOnSurfaceVariant
+                    wrapMode: Text.WordWrap
+                }
+                MeoListItem {
+                    width: parent.width
+                    implicitHeight: frame.dp(44)
+                    headline: qsTr("ArchWiki: Installation guide")
+                    leadingIcon: "open_in_new"
+                    interactive: true
+                    onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/Installation_guide", qsTr("Opened the ArchWiki installation guide.")); helpPopup.close() }
+                }
+                MeoListItem {
+                    width: parent.width
+                    implicitHeight: frame.dp(44)
+                    headline: qsTr("ArchWiki: Network configuration")
+                    leadingIcon: "wifi"
+                    interactive: true
+                    onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/Network_configuration", qsTr("Opened the ArchWiki network guide.")); helpPopup.close() }
+                }
+                MeoListItem {
+                    width: parent.width
+                    implicitHeight: frame.dp(44)
+                    headline: qsTr("ArchWiki: KDE Plasma")
+                    leadingIcon: "desktop_windows"
+                    interactive: true
+                    onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/KDE", qsTr("Opened the ArchWiki KDE guide.")); helpPopup.close() }
+                }
             }
         }
     }
@@ -259,7 +278,7 @@ Item {
                 trailingComponent: Component {
                     MeoIcon {
                         icon: languageOption.selected ? "check" : ""
-                        size: 20
+                        size: frame.dp(20)
                         color: MeoTheme.contentOnSecondaryContainer
                     }
                 }
@@ -300,7 +319,7 @@ Item {
                     MeoIcon {
                         anchors.centerIn: parent
                         icon: "power_settings_new"
-                        size: 24
+                        size: frame.dp(24)
                         color: MeoTheme.contentOnSecondaryContainer
                     }
                 }
@@ -435,7 +454,7 @@ Item {
             }
             Row {
                 anchors.centerIn: parent
-                spacing: frame.dp(12)
+                spacing: frame.showFooterPageIndicator ? frame.dp(12) : 0
 
                 MeoText {
                     anchors.verticalCenter: parent.verticalCenter
@@ -445,6 +464,7 @@ Item {
                     color: MeoTheme.contentOnSurfaceVariant
                 }
                 MeoPageIndicator {
+                    visible: frame.showFooterPageIndicator
                     anchors.verticalCenter: parent.verticalCenter
                     count: frame.pageCount
                     currentIndex: frame.pageIndex

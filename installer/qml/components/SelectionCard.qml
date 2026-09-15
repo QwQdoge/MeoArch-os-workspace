@@ -7,6 +7,9 @@ MeoCard {
     property string iconFont: "Roboto"
     property string title: ""
     property string value: ""
+    // Most option cards are intentionally compact.  Pages with explanatory
+    // copy can opt in to a taller card so translated text is never clipped.
+    property bool wrapValue: false
     // A selection card represents one option in a mutually exclusive choice;
     // a navigation card opens another view. Keeping that distinction explicit
     // prevents a right-facing chevron from implying navigation on radio-like
@@ -17,7 +20,8 @@ MeoCard {
     type: "outlined"
     interactive: actionable
     padding: 0
-    implicitHeight: 84 * MeoTheme.globalScale
+    implicitHeight: Math.max(84 * MeoTheme.globalScale,
+                             copy.implicitHeight + 32 * MeoTheme.globalScale)
     radius: MeoTheme.shapeLarge
     activeFocusOnTab: actionable
     Accessible.name: title + (value.length ? ", " + value : "")
@@ -42,7 +46,7 @@ MeoCard {
         anchors.leftMargin: 20 * MeoTheme.globalScale
         anchors.verticalCenter: parent.verticalCenter
         icon: card.iconText
-        size: 24
+        size: 24 * MeoTheme.globalScale
         color: MeoTheme.primary
     }
     Column {
@@ -53,7 +57,15 @@ MeoCard {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 2 * MeoTheme.globalScale
         MeoText { width: parent.width; text: card.title; typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface; elide: Text.ElideRight }
-        MeoText { width: parent.width; text: card.value; typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant; elide: Text.ElideRight }
+        MeoText {
+            width: parent.width
+            text: card.value
+            typeRole: "body"
+            typeSize: "medium"
+            color: MeoTheme.contentOnSurfaceVariant
+            wrapMode: card.wrapValue ? Text.WordWrap : Text.NoWrap
+            elide: card.wrapValue ? Text.ElideNone : Text.ElideRight
+        }
     }
     MeoIcon {
         id: trailing
@@ -63,7 +75,7 @@ MeoCard {
         visible: card.selectionIndicator || card.trailingIcon.length > 0
         icon: card.selectionIndicator ? (card.selected ? "check_circle" : "radio_button_unchecked")
                                       : card.trailingIcon
-        size: 24
+        size: 24 * MeoTheme.globalScale
         color: card.selected ? MeoTheme.primary : MeoTheme.contentOnSurfaceVariant
     }
 }

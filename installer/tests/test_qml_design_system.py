@@ -1,5 +1,6 @@
 import re
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -123,6 +124,58 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("Installation plan ready", summary)
         self.assertIn("final erase confirmation", summary)
 
+    def test_summary_names_the_actual_target_for_full_disk_and_partition_confirmation(self):
+        summary = (QML_ROOT / "pages/SummaryPage.qml").read_text(encoding="utf-8")
+        installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")
+        self.assertIn("findSelectedDisk", summary)
+        self.assertIn("selectedDiskDisplay", summary)
+        self.assertIn("The selected root partition will be erased", summary)
+        self.assertIn("The selected disk will be erased", summary)
+        self.assertIn("Format partition and install", summary)
+        self.assertIn("Erase disk and install", summary)
+        self.assertIn("Review Summary", installing)
+        self.assertIn("Restart the Live session before another installation attempt", installing)
+
+    def test_disk_recovery_exposes_a_non_destructive_rescan_action(self):
+        disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
+        preview = (QML_ROOT / "PreviewController.qml").read_text(encoding="utf-8")
+        self.assertIn("Rescan storage devices", disk)
+        self.assertIn("page.controller.refreshDisks()", disk)
+        self.assertIn("function refreshDisks()", preview)
+
+    def test_critical_new_safety_copy_has_simplified_chinese_translations(self):
+        catalog = ET.parse(QML_ROOT.parent / "translations/meoarch_zh_CN.ts")
+        translations = {}
+        for context in catalog.findall("context"):
+            context_name = context.findtext("name")
+            entries = translations.setdefault(context_name, {})
+            for message in context.findall("message"):
+                entries[message.findtext("source")] = message.findtext("translation")
+
+        required = {
+            "SummaryPage": [
+                "The selected root partition will be erased",
+                "The selected disk will be erased",
+                "Format partition and install",
+                "All data on %1 will be permanently erased. Existing partitions will not be preserved.",
+            ],
+            "InstallingPage": [
+                "Review Summary",
+                "Some disk changes may already have happened. Read the Live diagnostic log, then restart the Live session before another installation attempt. Summary is available for review only.",
+            ],
+            "NetworkPage": [
+                "Offline installation is not available",
+                "Connect with Wi-Fi or Ethernet to continue. No disk changes happen on this page or before the final confirmation.",
+            ],
+            "UserAccountPage": ["Finish account details to continue"],
+        }
+        for context_name, sources in required.items():
+            for source in sources:
+                self.assertTrue(
+                    translations.get(context_name, {}).get(source),
+                    f"{context_name}: missing Chinese translation for {source!r}",
+                )
+
     def test_installing_page_explains_verified_progress_and_maps_backend_stage_ids(self):
         installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")
         controller = (QML_ROOT.parents[0] / "app/installercontroller.cpp").read_text(encoding="utf-8")
@@ -195,7 +248,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('"owe"', controller)
         self.assertNotIn("sourcePath", (QML_ROOT.parent / "data/default_selections.json").read_text(encoding="utf-8"))
 
-    def test_installer_has_real_debug_terminal_and_archwiki_fallback(self):
+    def test_debug_terminal_is_never_exposed_from_the_root_production_kiosk(self):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
         installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")
         controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
@@ -205,6 +258,11 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("https://wiki.archlinux.org/title/Network_configuration", frame)
         self.assertIn("QProcess::startDetached", controller)
         self.assertIn('QStringLiteral("konsole")', controller)
+        self.assertIn("if (!m_productionMode)", controller)
+        self.assertIn("Debug terminal is disabled in the production installer.", controller)
+        self.assertLess(controller.index("if (!m_productionMode)"), controller.index('QStringLiteral("konsole")'))
+        translations = (QML_ROOT.parent / "translations/meoarch_zh_CN.ts").read_text(encoding="utf-8")
+        self.assertIn("生产安装程序中已禁用调试终端", translations)
         self.assertIn("\nkonsole\n", f"\n{packages}\n")
         self.assertTrue((QML_ROOT.parents[1] / "assets/wallpapers/installer_background.png").is_file())
 
@@ -213,7 +271,49 @@ class InstallerDesignSystemTests(unittest.TestCase):
         finish = (QML_ROOT / "pages/FinishPage.qml").read_text(encoding="utf-8")
         self.assertIn("page.compactHeight ? page.dp(138)", installing)
         self.assertIn("page.compactHeight ? page.dp(72)", finish)
-        self.assertIn("page.compactHeight ? page.dp(68)", finish)
+        self.assertIn('value: qsTr("Available until restart: /tmp/meoarch-installer/logs/install.log")', finish)
+        self.assertEqual(finish.count("wrapValue: true"), 2)
+
+    def test_high_scale_chrome_and_installer_components_use_scaled_metrics(self):
+        frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
+        selector = (QML_ROOT / "components/SelectorDialog.qml").read_text(encoding="utf-8")
+        card = (QML_ROOT / "components/SelectionCard.qml").read_text(encoding="utf-8")
+        timezone = (QML_ROOT / "components/MeoTimezoneSelector.qml").read_text(encoding="utf-8")
+        main = (QML_ROOT / "Main.qml").read_text(encoding="utf-8")
+        finish = (QML_ROOT / "pages/FinishPage.qml").read_text(encoding="utf-8")
+        installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")
+
+        self.assertIn("readonly property bool compactChrome", frame)
+        self.assertIn("visible: !frame.compactChrome", frame)
+        self.assertIn("visible: frame.showFooterPageIndicator", frame)
+        self.assertIn("height: Math.min(frame.dp(286), frame.height - frame.pageMargin * 2)", frame)
+        self.assertIn("function dp(value)", selector)
+        self.assertIn("Overlay.overlay.width - dp(48)", selector)
+        self.assertIn("highlightMoveDuration: MeoTheme.reduceMotion ? 0", selector)
+        self.assertIn("property bool wrapValue: false", card)
+        self.assertIn("24 * MeoTheme.globalScale", card)
+        self.assertIn("function dp(value)", timezone)
+        self.assertIn("size: 32 * MeoTheme.globalScale", main)
+        self.assertIn("size: page.dp(48)", finish)
+        self.assertIn("id: progressHeader", installing)
+        self.assertIn("width: Math.max(0, progressHeader.width - progressValue.width - progressHeader.spacing)", installing)
+        self.assertIn("maximumLineCount: 2", installing)
+
+    def test_tall_installer_detail_surfaces_scroll_instead_of_clipping(self):
+        frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
+        disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
+        summary = (QML_ROOT / "pages/SummaryPage.qml").read_text(encoding="utf-8")
+
+        self.assertIn("id: helpFlick", frame)
+        self.assertIn("contentHeight: helpContent.implicitHeight", frame)
+        self.assertIn("id: advancedFlick", disk)
+        self.assertIn("contentHeight: advancedContent.implicitHeight", disk)
+        self.assertIn("id: detailsFlick", summary)
+        self.assertIn("contentHeight: detailsContent.implicitHeight", summary)
+        self.assertIn("wrapMode: Text.WrapAnywhere", summary)
+        self.assertIn("id: confirmFlick", summary)
+        self.assertIn("contentHeight: confirmContent.implicitHeight", summary)
+        self.assertIn("Overlay.overlay.height - page.dp(48)", summary)
 
     def test_user_visible_static_strings_are_translation_eligible(self):
         offenders = []

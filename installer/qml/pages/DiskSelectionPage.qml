@@ -55,6 +55,14 @@ PageFrame {
             title: qsTr("No disk detected")
             message: qsTr("Disk detection must complete before installation. The installer does not invent preview disks in production.")
         }
+        MeoButton {
+            visible: page.controller && !page.controller.diskDetecting && page.controller.disks.length === 0
+            text: qsTr("Rescan storage devices")
+            type: "tonal"
+            icon.name: "refresh"
+            Accessible.description: qsTr("Scans again after you connect or make an installation disk available")
+            onClicked: page.controller.refreshDisks()
+        }
         Item {
             visible: page.controller && page.controller.diskDetecting
             width: parent.width
@@ -120,7 +128,7 @@ PageFrame {
                     }
                     MeoButton {
                         visible: diskCard.modelData.eligible
-                        text: qsTr("Use entire %1").arg(diskCard.modelData.devicePath)
+                        text: qsTr("Erase and use entire %1").arg(diskCard.modelData.devicePath)
                         type: "outlined"
                         Accessible.description: qsTr("Erases every partition on this disk after final confirmation")
                         onClicked: {
@@ -171,13 +179,13 @@ PageFrame {
                     width: parent.width; columns: page.width >= page.dp(700) ? 2 : 1; rowSpacing: page.dp(8); columnSpacing: page.dp(8)
                     SelectionCard {
                         Layout.fillWidth: true; implicitHeight: page.dp(72); iconText: "delete_sweep"
-                        title: qsTr("Erase entire disk"); value: qsTr("Creates EFI and one Linux root partition")
+                        title: qsTr("Erase entire disk"); value: qsTr("Deletes all data. Creates EFI and one Linux root partition")
                         selected: page.diskMode === "erase"; selectionIndicator: true; enabled: page.eraseAvailable
                         onClicked: page.selectErase(false)
                     }
                     SelectionCard {
                         Layout.fillWidth: true; implicitHeight: page.dp(72); iconText: "account_tree"
-                        title: qsTr("Erase disk with separate home"); value: qsTr("Creates EFI, root, and home partitions")
+                        title: qsTr("Erase disk with separate home"); value: qsTr("Deletes all data. Creates EFI, root, and home partitions")
                         selected: page.diskMode === "guided"; selectionIndicator: true; enabled: page.eraseAvailable
                         onClicked: page.selectErase(true)
                     }
@@ -207,24 +215,37 @@ PageFrame {
         x: parent ? parent.width - width : 0; y: 0
         width: Math.min(page.dp(520), parent ? parent.width : page.dp(520)); height: parent ? parent.height : page.height
         padding: page.dp(32); closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        contentItem: Column {
-            width: parent.width; spacing: page.dp(16)
-            MeoText { text: qsTr("Advanced disk options"); typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
-            MeoText { text: qsTr("Filesystem"); typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface }
-            Row {
-                spacing: page.dp(8)
-                Repeater {
-                    model: [{ id: "btrfs", name: qsTr("Btrfs · Recommended") }, { id: "ext4", name: qsTr("ext4") }]
-                    delegate: MeoButton { required property var modelData; text: modelData.name; type: page.controller && page.controller.selection("disk", "filesystem", "btrfs") === modelData.id ? "tonal" : "outlined"; onClicked: page.controller.setSelection("disk", "filesystem", modelData.id) }
+        contentItem: Flickable {
+            id: advancedFlick
+            contentWidth: width
+            contentHeight: advancedContent.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            interactive: contentHeight > height
+            ScrollBar.vertical: ScrollBar {
+                policy: advancedFlick.interactive ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
+            }
+
+            Column {
+                id: advancedContent
+                width: parent.width; spacing: page.dp(16)
+                MeoText { text: qsTr("Advanced disk options"); typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
+                MeoText { text: qsTr("Filesystem"); typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface }
+                Row {
+                    spacing: page.dp(8)
+                    Repeater {
+                        model: [{ id: "btrfs", name: qsTr("Btrfs · Recommended") }, { id: "ext4", name: qsTr("ext4") }]
+                        delegate: MeoButton { required property var modelData; text: modelData.name; type: page.controller && page.controller.selection("disk", "filesystem", "btrfs") === modelData.id ? "tonal" : "outlined"; onClicked: page.controller.setSelection("disk", "filesystem", modelData.id) }
+                    }
                 }
+                MeoText { text: qsTr("Swap"); typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface }
+                Repeater {
+                    model: [{ id: "zram", name: qsTr("Automatic ZRAM"), detail: qsTr("Compressed memory swap") }, { id: "file", name: qsTr("Swap file"), detail: qsTr("Creates a 4 GiB target swap file") }, { id: "none", name: qsTr("None"), detail: qsTr("No swap configured") }]
+                    delegate: SelectionCard { required property var modelData; width: parent.width; implicitHeight: page.dp(60); iconText: "swap_horiz"; title: modelData.name; value: modelData.detail; selected: page.controller && page.controller.selection("disk", "swap", "zram") === modelData.id; selectionIndicator: true; onClicked: page.controller.setSelection("disk", "swap", modelData.id) }
+                }
+                InfoBanner { width: parent.width; title: qsTr("Manual partition editor unavailable"); message: qsTr("It remains unavailable until creation, resizing, encryption, recovery, and rollback have one tested transaction path. Use only the safe choices on this page."); tone: "error" }
+                MeoButton { anchors.right: parent.right; text: qsTr("Done"); type: "filled"; onClicked: advanced.close() }
             }
-            MeoText { text: qsTr("Swap"); typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface }
-            Repeater {
-                model: [{ id: "zram", name: qsTr("Automatic ZRAM"), detail: qsTr("Compressed memory swap") }, { id: "file", name: qsTr("Swap file"), detail: qsTr("Creates a 4 GiB target swap file") }, { id: "none", name: qsTr("None"), detail: qsTr("No swap configured") }]
-                delegate: SelectionCard { required property var modelData; width: parent.width; implicitHeight: page.dp(60); iconText: "swap_horiz"; title: modelData.name; value: modelData.detail; selected: page.controller && page.controller.selection("disk", "swap", "zram") === modelData.id; selectionIndicator: true; onClicked: page.controller.setSelection("disk", "swap", modelData.id) }
-            }
-            InfoBanner { width: parent.width; title: qsTr("Manual partition editor unavailable"); message: qsTr("It remains unavailable until creation, resizing, encryption, recovery, and rollback have one tested transaction path. Use only the safe choices on this page."); tone: "error" }
-            MeoButton { anchors.right: parent.right; text: qsTr("Done"); type: "filled"; onClicked: advanced.close() }
         }
     }
 }

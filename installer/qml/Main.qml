@@ -147,7 +147,7 @@ Window {
                 visible: root.startupTimedOut
                 anchors.horizontalCenter: parent.horizontalCenter
                 icon: "error"
-                size: 32
+                size: 32 * MeoTheme.globalScale
                 color: MeoTheme.error
             }
             MeoText {

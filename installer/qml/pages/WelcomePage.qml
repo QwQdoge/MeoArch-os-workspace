@@ -56,7 +56,7 @@ PageFrame {
                 MeoIcon {
                     anchors.verticalCenter: parent.verticalCenter
                     icon: "verified_user"
-                    size: 22
+                    size: page.dp(22)
                     color: MeoTheme.contentOnSecondaryContainer
                 }
                 MeoText {

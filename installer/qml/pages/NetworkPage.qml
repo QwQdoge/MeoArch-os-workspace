@@ -9,7 +9,10 @@ import "../components"
 PageFrame {
     id: page
     primaryEnabled: page.controller && page.controller.networkState === "online"
-    primaryLabel: primaryEnabled ? qsTr("Continue") : qsTr("Network required")
+    primaryLabel: primaryEnabled ? qsTr("Continue") : qsTr("Connect to continue")
+    primaryAccessibleDescription: primaryEnabled
+                                  ? qsTr("Continue after Internet access has been verified")
+                                  : qsTr("Connect to the Internet before continuing with installation")
 
     function signalIcon(strength) {
         if (strength >= 70) return "signal_wifi_4_bar"
@@ -25,7 +28,7 @@ PageFrame {
         PageHeading {
             width: parent.width
             title: qsTr("Network")
-            subtitle: qsTr("Connect to a real NetworkManager connection before MeoArch downloads packages.")
+            subtitle: qsTr("MeoArch downloads the system, desktop, and selected packages during installation. Connect to the Internet to continue.")
         }
         InfoBanner {
             width: parent.width
@@ -36,6 +39,14 @@ PageFrame {
             message: page.controller ? page.controller.networkDetail : qsTr("Network status is unavailable.")
             tone: page.controller && page.controller.networkState === "online" ? "success"
                   : page.controller && page.controller.networkState === "checking" ? "info" : "error"
+        }
+        InfoBanner {
+            visible: page.controller && page.controller.networkState !== "online"
+                     && page.controller.networkState !== "checking"
+            width: parent.width
+            tone: "info"
+            title: qsTr("Offline installation is not available")
+            message: qsTr("Connect with Wi-Fi or Ethernet to continue. No disk changes happen on this page or before the final confirmation.")
         }
         ToggleRow {
             width: parent.width
