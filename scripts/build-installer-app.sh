@@ -18,10 +18,9 @@ if ! command -v cmake >/dev/null 2>&1 \
   || ! command -v ninja >/dev/null 2>&1 \
   || ! command -v pkg-config >/dev/null 2>&1 \
   || ! pkg-config --exists Qt6Core Qt6Gui Qt6Qml Qt6Quick Qt6Network; then
-  echo "Qt 6 development libraries are not available on this build machine." >&2
-  echo "Skipping the optional native host; the ISO will use qml6 from qt6-declarative." >&2
-  rm -f "${build_dir}/meoarch-installer-app"
-  exit 0
+  echo "Qt 6 development libraries are required to build the installer runtime." >&2
+  echo "The ISO staging contract requires the native installer host, MeoUI runtime, and repair payload; no qml6 fallback is supported." >&2
+  exit 127
 fi
 
 cmake -S "${repo_root}/installer" -B "${build_dir}" -G Ninja -DCMAKE_BUILD_TYPE=Release

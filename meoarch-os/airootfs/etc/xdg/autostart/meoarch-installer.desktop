@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=Install MeoArch
-Comment=Install MeoArch on this computer
-Exec=/usr/local/bin/meoarch-installer-live
-Icon=system-software-install
-OnlyShowIn=KDE;
-X-KDE-autostart-phase=2
-X-KDE-StartupNotify=true

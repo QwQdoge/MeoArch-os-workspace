@@ -78,11 +78,19 @@ for excluded_package in plasma-desktop plasma-login-manager sddm kwin; do
 done
 grep -q 'etc/systemd/system/graphical.target.wants/meoarch-installer.service' \
   "${evidence_dir}/airootfs-files.txt"
-grep -q 'etc/systemd/system/multi-user.target.wants/meoarch-installer.service' \
-  "${evidence_dir}/airootfs-files.txt"
+if grep -q 'etc/systemd/system/multi-user.target.wants/meoarch-installer.service' \
+  "${evidence_dir}/airootfs-files.txt"; then
+  echo "Cage-only Live ISO starts the installer from multi-user.target as well as graphical.target." >&2
+  exit 1
+fi
 if grep -q 'etc/systemd/system/display-manager.service\|etc/sddm.conf.d/10-meoarch-live.conf' \
   "${evidence_dir}/airootfs-files.txt"; then
   echo "Cage-only Live ISO still contains an SDDM launch path." >&2
+  exit 1
+fi
+if grep -q 'etc/xdg/autostart/meoarch-installer.desktop\|usr/local/bin/meoarch-installer-live\|etc/sudoers.d/10-meoarch-live-installer' \
+  "${evidence_dir}/airootfs-files.txt"; then
+  echo "Cage-only Live ISO still contains a legacy KDE installer launch path." >&2
   exit 1
 fi
 for executable in \
@@ -91,7 +99,8 @@ for executable in \
   opt/meoarch-installer/backend/run-archinstall.sh \
   usr/bin/meoarch-repair \
   usr/lib/meoarch-repair/checks/all.sh \
-  usr/local/bin/meoarch-installer-live; do
+  usr/local/bin/meoarch-installer \
+  usr/local/bin/meoarch-installer-kiosk; do
   grep -Eq "^-rwx[^[:space:]]*[[:space:]].*${executable}$" \
     "${evidence_dir}/airootfs-files.txt"
 done

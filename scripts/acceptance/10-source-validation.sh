@@ -70,11 +70,20 @@ required=(
   installer/translations/meoarch_zh_CN.ts
   installer/backend/generate-config.py
   scripts/sync-installer-to-airootfs.sh
+  scripts/build-installer-app.sh
   scripts/verify-staging-provenance.sh
   scripts/verify-target-install.sh
 )
 for path in "${required[@]}"; do
   [ -f "${path}" ] || { echo "Missing ${path}" >&2; exit 1; }
+done
+for helper in Installation_guide choose-mirror livecd-sound; do
+  helper_path="meoarch-os/airootfs/usr/local/bin/${helper}"
+  [ -f "${helper_path}" ] || { echo "Missing ArchISO live helper: ${helper_path}" >&2; exit 1; }
+  git ls-files --error-unmatch "${helper_path}" >/dev/null || {
+    echo "ArchISO live helper is not version controlled: ${helper_path}" >&2
+    exit 1
+  }
 done
 for path in \
   "${projects_root}/meo-kde/packaging/arch/PKGBUILD" \
@@ -106,7 +115,22 @@ grep -q 'meo-dynamic-colors.path' scripts/sync-installer-to-airootfs.sh
 grep -q '90-meo-applications.conf' installer/backend/apply-target-customizations.sh
 grep -q 'Target dynamic color, application, or input-method integration is missing' scripts/verify-target-install.sh
 grep -q 'git archive --format=tar HEAD meoarch-os' scripts/build-iso.sh
+grep -q -- '--acceptance' scripts/build-iso.sh
+grep -q 'Refusing acceptance SSH instrumentation without --acceptance' scripts/build-iso.sh
+grep -q 'Acceptance ISO output must be isolated under' scripts/build-iso.sh
+grep -q 'realpath -m -- "${out_dir}"' scripts/build-iso.sh
+grep -q 'packages/iso/acceptance/' scripts/acceptance/30-build-iso.sh
 grep -q 'declared sibling MeoKDE desktop assets' scripts/verify-staging-provenance.sh
+grep -q '^ExecStart=/usr/local/bin/choose-mirror$' meoarch-os/airootfs/etc/systemd/system/choose-mirror.service
+grep -q '^ExecStart=/usr/local/bin/livecd-sound -u$' meoarch-os/airootfs/etc/systemd/system/livecd-alsa-unmuter.service
+grep -q '^ExecStart=/usr/local/bin/livecd-sound -p$' meoarch-os/airootfs/etc/systemd/system/livecd-talk.service
+grep -q 'Installation_guide' meoarch-os/airootfs/etc/motd
+! rg -q 'installer\.py' meoarch-os installer/bin scripts/sync-installer-to-airootfs.sh scripts/verify-staging-provenance.sh
+! rg -q 'meoarch-installer-live' meoarch-os installer/bin scripts/sync-installer-to-airootfs.sh scripts/verify-staging-provenance.sh
+! test -e meoarch-os/airootfs/etc/xdg/autostart/meoarch-installer.desktop
+! test -e meoarch-os/airootfs/etc/sudoers.d/10-meoarch-live-installer
+grep -q 'native installer host, MeoUI runtime, and repair payload' scripts/build-installer-app.sh
+! rg -q 'qml6 fallback|optional native host' scripts/build-installer-app.sh scripts/sync-installer-to-airootfs.sh
 grep -q '^lynis$' meoarch-os/packages.x86_64
 grep -q '^qtkeychain-qt6$' meoarch-os/packages.x86_64
 grep -q '^konsole$' meoarch-os/packages.x86_64
@@ -136,9 +160,12 @@ grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
 grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^After=systemd-user-sessions.service systemd-logind.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Wants=NetworkManager.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^StartLimitIntervalSec=30s$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^StartLimitBurst=3$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Environment=XDG_RUNTIME_DIR=/run/meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^RuntimeDirectory=meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^RuntimeDirectoryMode=0700$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^ExecStartPre=/usr/bin/install -m 0600 -o root -g root /dev/null /run/meoarch-installer/production-capability$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^WantedBy=graphical.target$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 ! rg -q '^Before=getty@tty1.service$|^Conflicts=.*getty@tty1.service' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/getty@tty1.service)" = '/dev/null'
@@ -154,6 +181,24 @@ grep -q '^seatd$' meoarch-os/packages.x86_64
 ! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
 ! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
+
+grep -q "bootmodes=('bios.syslinux'" meoarch-os/profiledef.sh
+grep -q "'uefi.systemd-boot')" meoarch-os/profiledef.sh
+grep -q '^airootfs_image_type="squashfs"$' meoarch-os/profiledef.sh
+expected_live_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1'
+bios_live_options="$(awk '/^LABEL arch$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
+uefi_live_options="$(sed -n 's/^options  //p' meoarch-os/efiboot/loader/entries/01-archiso-linux.conf)"
+[ "${bios_live_options}" = "${expected_live_options}" ]
+[ "${uefi_live_options}" = "${expected_live_options}" ]
+expected_repair_options="${expected_live_options/meoarch.mode=install/meoarch.mode=repair}"
+bios_repair_options="$(awk '/^LABEL archrepair$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
+uefi_repair_options="$(sed -n 's/^options  //p' meoarch-os/efiboot/loader/entries/02-archiso-repair-linux.conf)"
+[ "${bios_repair_options}" = "${expected_repair_options}" ]
+[ "${uefi_repair_options}" = "${expected_repair_options}" ]
+grep -q '^APPEND .*meoarch.mode=install accessibility=on$' meoarch-os/syslinux/archiso_sys-linux.cfg
+for hook in base udev plymouth microcode modconf kms archiso block filesystems keyboard; do
+  grep -Eq "(^|[[:space:]\\(])${hook}([[:space:]\\)])" meoarch-os/airootfs/etc/mkinitcpio.conf.d/archiso.conf
+done
 
 duplicates="$(sed '/^[[:space:]]*#/d;/^[[:space:]]*$/d' meoarch-os/packages.x86_64 |
   sort | uniq -d)"

@@ -17,13 +17,18 @@ staged_profile="${build_root}/profile"
 baseline_profile="${build_root}/baseline-profile"
 out_dir="${outputs_root}/packages/iso"
 clean=0
+acceptance_mode=0
+output_explicit=0
 
 usage() {
   cat <<'EOF'
-Usage: scripts/build-iso.sh [--clean] [--output DIRECTORY]
+Usage: scripts/build-iso.sh [--clean] [--acceptance] [--output DIRECTORY]
 
 Build the MeoArch ISO using a staged ArchISO profile. --clean removes only
 reproducible work files under build/archiso; it never deletes existing ISOs.
+
+--acceptance is required before an acceptance SSH key may be injected. Such
+builds use the isolated packages/iso/acceptance/ output namespace.
 EOF
 }
 
@@ -36,7 +41,12 @@ while [ "$#" -gt 0 ]; do
     --output)
       [ "$#" -ge 2 ] || { echo "--output requires a directory" >&2; exit 2; }
       out_dir="$2"
+      output_explicit=1
       shift 2
+      ;;
+    --acceptance)
+      acceptance_mode=1
+      shift
       ;;
     -h|--help)
       usage
@@ -55,6 +65,14 @@ case "${out_dir}" in
   *) out_dir="${repo_root}/${out_dir}" ;;
 esac
 
+# Acceptance instrumentation deliberately creates a remotely reachable Live
+# account and a diagnostic shell.  An inherited test-harness environment must
+# never be enough to put either artifact in a normal/release ISO.
+if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ] && [ "${acceptance_mode}" -ne 1 ]; then
+  echo "Refusing acceptance SSH instrumentation without --acceptance." >&2
+  exit 2
+fi
+
 command -v flock >/dev/null 2>&1 || {
   echo "Missing required tool: flock" >&2
   exit 127
@@ -68,7 +86,7 @@ if ! flock -n "${iso_lock_fd}"; then
 fi
 printf 'pid=%s\nstarted_utc=%s\n' "$$" "$(date -u +%FT%TZ)" 1>&"${iso_lock_fd}"
 
-for tool in cmake ninja pkg-config mkarchiso sha256sum stat tee; do
+for tool in cmake ninja pkg-config mkarchiso realpath sha256sum stat tee; do
   command -v "${tool}" >/dev/null 2>&1 || {
     echo "Missing required tool: ${tool}" >&2
     exit 127
@@ -119,6 +137,21 @@ if [ "${clean}" -eq 1 ] && [ -d "${build_root}" ]; then
 fi
 
 run_id="$(date -u +%Y-%m-%dT%H%M%SZ)-iso-build"
+out_dir="$(realpath -m -- "${out_dir}")"
+acceptance_output_root="$(realpath -m -- "${outputs_root}/packages/iso/acceptance")"
+if [ "${acceptance_mode}" -eq 1 ]; then
+  if [ "${output_explicit}" -eq 1 ]; then
+    case "${out_dir}" in
+      "${acceptance_output_root}"/*) ;;
+      *)
+        echo "Acceptance ISO output must be isolated under ${acceptance_output_root}." >&2
+        exit 2
+        ;;
+    esac
+  else
+    out_dir="${acceptance_output_root}/${run_id}"
+  fi
+fi
 work_dir="${MEOARCH_ARCHISO_WORK_DIR:-${outputs_root}/tmp/${run_id}/archiso-work}"
 log_dir="${outputs_root}/validation/${run_id}/logs"
 mkdir -p "${log_dir}" "${build_root}" "${work_dir}" "${out_dir}"
@@ -129,6 +162,7 @@ echo "MeoArch ISO build"
 echo "Git commit: $(git -C "${repo_root}" rev-parse HEAD)"
 echo "Profile: ${source_profile}"
 echo "Output directory: ${out_dir}"
+echo "Acceptance mode: ${acceptance_mode}"
 echo "Log: ${log_file}"
 
 for profile_dir in "${baseline_profile}" "${staged_profile}"; do

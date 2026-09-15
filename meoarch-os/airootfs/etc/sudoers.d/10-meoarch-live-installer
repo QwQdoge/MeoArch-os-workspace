@@ -1,2 +1,0 @@
-Defaults:live env_keep += "DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS XDG_CURRENT_DESKTOP QT_QPA_PLATFORM"
-live ALL=(root) NOPASSWD: /usr/local/bin/meoarch-installer-live-root
