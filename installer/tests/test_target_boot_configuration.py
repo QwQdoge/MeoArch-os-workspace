@@ -100,3 +100,22 @@ class TargetBootTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("logo.png", result.stderr)
         self.assertEqual(calls, "")
+
+    def test_target_customizations_reject_a_symlinked_system_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target = root / "target"
+            outside = root / "outside"
+            generated = root / "generated"
+            target.mkdir()
+            outside.mkdir()
+            generated.mkdir()
+            (target / "etc").symlink_to(outside, target_is_directory=True)
+            (target / "usr").mkdir()
+            (target / "boot").mkdir()
+            result = subprocess.run(
+                ["bash", BACKEND / "apply-target-customizations.sh", target, "/unused-source", generated],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 3, result.stderr)
+            self.assertEqual(list(outside.iterdir()), [])

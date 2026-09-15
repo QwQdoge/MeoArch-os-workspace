@@ -165,6 +165,7 @@ private:
     QVariantMap section(const QString &name) const;
     void writeSelection(const QString &section, const QString &key, const QVariant &value);
     void discardGeneratedPlan();
+    void discardAccountPasswordHash();
     bool hasSystemLocale(const QString &id) const;
     void applyRegionPreset(const QString &alpha2);
     void markLocaleOverride(const QString &key);
@@ -203,8 +204,12 @@ private:
     bool m_systemActionsEnabled = false;
     bool m_summaryConfirmed = false;
     quint64 m_planRevision = 0;
+    quint64 m_confirmedPlanRevision = 0;
     bool m_preparationRunning = false;
     QString m_userPasswordHash;
+    QPointer<QProcess> m_accountHashProcess;
+    quint64 m_accountHashRevision = 0;
+    QPointer<QProcess> m_installationProcess;
     QTimer *m_progressTimer = nullptr;
     QNetworkAccessManager *m_connectivityManager = nullptr;
     QPointer<QNetworkReply> m_connectivityReply;

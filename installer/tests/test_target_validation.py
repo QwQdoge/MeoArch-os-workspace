@@ -24,6 +24,13 @@ class TargetValidationTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             content = {
                 "etc/os-release": "ID=meoarch\n",
+                "etc/fstab": "UUID=fixture-root / ext4 defaults 0 1\n",
+                "boot/grub/grub.cfg": (
+                    "menuentry 'MeoArch' {\n"
+                    "  linux /vmlinuz-linux root=UUID=fixture-root rw\n"
+                    "  initrd /initramfs-linux.img\n"
+                    "}\n"
+                ),
                 "etc/xdg/meo-shellrc": "[Panels]\nDockImplementation=native\n",
                 "usr/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js": (
                     'var bottomPanel = new Panel\n'
@@ -100,6 +107,16 @@ class TargetValidationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "unsafe ownership"):
                 target.verify(root, expected_system_owner=unexpected)
 
+    def test_target_rejects_symlinked_top_level_system_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            outside = root / "outside-etc"
+            (root / "etc").rename(outside)
+            (root / "etc").symlink_to(outside, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "target system directory is missing"):
+                self.verify_fixture(root)
+
     def test_target_contract_requires_the_independent_first_login_flow(self):
         self.assertIn("usr/bin/meo-welcome", target.REQUIRED_EXECUTABLES)
         self.assertIn("etc/xdg/autostart/org.meo.welcome.desktop", target.REQUIRED_FILES)
@@ -137,6 +154,30 @@ class TargetValidationTests(unittest.TestCase):
             legacy.parent.mkdir(parents=True, exist_ok=True)
             legacy.write_text("[Desktop Entry]\n")
             with self.assertRaisesRegex(ValueError, "retired standalone Dock payload"):
+                self.verify_fixture(root)
+
+    def test_target_rejects_live_installer_residue_and_incomplete_boot_contract(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            residue = root / "etc/systemd/system/graphical.target.wants/meoarch-installer.service"
+            residue.parent.mkdir(parents=True, exist_ok=True)
+            residue.symlink_to("/etc/systemd/system/meoarch-installer.service")
+            with self.assertRaisesRegex(ValueError, "Live installer residue"):
+                self.verify_fixture(root)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            (root / "etc/fstab").write_text("# target root missing\n")
+            with self.assertRaisesRegex(ValueError, "no root filesystem entry"):
+                self.verify_fixture(root)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            (root / "boot/grub/grub.cfg").write_text("menuentry 'broken' {}\n")
+            with self.assertRaisesRegex(ValueError, "does not reference the Linux kernel"):
                 self.verify_fixture(root)
 
     def test_target_requires_native_plasma_dock_contract(self):

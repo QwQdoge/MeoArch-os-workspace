@@ -56,7 +56,14 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-mkdir -p "${state_dir}"
+# This tree contains generated password hashes and, optionally, one Wi-Fi
+# profile.  Create it private before the native host writes selections under
+# /tmp; backend helpers reject a non-private state directory as well.
+if [ -L "${state_dir}" ]; then
+  echo "The installer state directory must not be a symlink." >&2
+  exit 126
+fi
+install -d -m700 "${state_dir}"
 
 if [ "${repair_mode}" = true ]; then
   repair_app="${MEOARCH_REPAIR_APP:-/usr/bin/meoarch-repair}"

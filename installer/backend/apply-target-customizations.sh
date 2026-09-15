@@ -7,22 +7,47 @@ generated_dir="${3:-${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}/gener
 runtime_source="${MEOARCH_RUNTIME_SOURCE:-/usr}"
 customizations_file="${generated_dir}/target-customizations.json"
 
+resolve_existing_path() {
+  # GNU realpath's -e option is not available on every developer host.  Python
+  # is already required by the installer, and strict resolution gives the same
+  # "must exist" contract without following a caller-supplied target symlink.
+  python3 - "$1" <<'PY'
+from pathlib import Path
+import sys
+
+try:
+    print(Path(sys.argv[1]).resolve(strict=True))
+except OSError as error:
+    raise SystemExit(error)
+PY
+}
+
+install_file() {
+  local mode="$1"
+  local source="$2"
+  local destination="$3"
+  command install -d "$(dirname -- "${destination}")"
+  command install -m "${mode}" "${source}" "${destination}"
+}
+
 if [ "${target_root}" = "/" ] || [ -z "${target_root}" ] || [ -L "${target_root}" ]; then
   echo "Refusing unsafe target root: ${target_root}" >&2
   exit 2
 fi
-target_root="$(realpath -e -- "${target_root}")"
+target_root="$(resolve_existing_path "${target_root}")"
 if [ "${target_root}" = "/" ]; then
   echo "Refusing unsafe resolved target root: ${target_root}" >&2
   exit 2
 fi
 target_desktop_payload="${target_root}/opt/meo-desktop"
-if [ ! -d "${target_root}/etc" ] || [ ! -d "${target_root}/usr" ]; then
-  echo "Installed target is not mounted at ${target_root}." >&2
-  exit 3
-fi
-if [ ! -f "${customizations_file}" ]; then
-  echo "Generated target customizations are missing." >&2
+for target_directory in etc usr boot; do
+  if [ -L "${target_root}/${target_directory}" ] || [ ! -d "${target_root}/${target_directory}" ]; then
+    echo "Installed target has an unsafe ${target_directory} directory at ${target_root}." >&2
+    exit 3
+  fi
+done
+if [ ! -f "${customizations_file}" ] || [ -L "${customizations_file}" ]; then
+  echo "Generated target customizations are missing or unsafe." >&2
   exit 6
 fi
 if [ "${MEOARCH_PACKAGE_MANAGED:-1}" != "1" ]; then
@@ -102,11 +127,11 @@ cp -a "${runtime_source}/lib/qt6/qml/Meo/System" \
 rm -rf "${target_root}/usr/lib/meoarch-repair"
 cp -a "${runtime_source}/lib/meoarch-repair" \
   "${target_root}/usr/lib/meoarch-repair"
-install -Dm755 "${runtime_source}/bin/meoarch-repair" \
+install_file 755 "${runtime_source}/bin/meoarch-repair" \
   "${target_root}/usr/bin/meoarch-repair"
-install -Dm644 "${runtime_source}/share/applications/org.meo.repair.desktop" \
+install_file 644 "${runtime_source}/share/applications/org.meo.repair.desktop" \
   "${target_root}/usr/share/applications/org.meo.repair.desktop"
-install -Dm644 "${runtime_source}/share/icons/hicolor/scalable/apps/meoarch-ai.svg" \
+install_file 644 "${runtime_source}/share/icons/hicolor/scalable/apps/meoarch-ai.svg" \
   "${target_root}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
 if [ -d "${runtime_source}/share/fonts/meo" ]; then
   cp -a "${runtime_source}/share/fonts/meo/." "${target_root}/usr/share/fonts/meo/"
@@ -116,18 +141,18 @@ for plugin in \
   "org.kde.kdecoration3.kcm/kcm_meodecoration.so" \
   "styles/meostyle.so"; do
   if [ -f "${runtime_source}/lib/qt6/plugins/${plugin}" ]; then
-    install -Dm755 "${runtime_source}/lib/qt6/plugins/${plugin}" \
+    install_file 755 "${runtime_source}/lib/qt6/plugins/${plugin}" \
       "${target_root}/usr/lib/qt6/plugins/${plugin}"
   fi
 done
 for helper in meo-dynamic-colors meo-input-method meo-theme-mode meo-desktop-apply meo-desktop-layout; do
-  install -Dm755 "${runtime_source}/bin/${helper}" "${target_root}/usr/bin/${helper}"
+  install_file 755 "${runtime_source}/bin/${helper}" "${target_root}/usr/bin/${helper}"
 done
-install -Dm644 "${desktop_source}/defaults/kwin/kwinrc" \
+install_file 644 "${desktop_source}/defaults/kwin/kwinrc" \
   "${target_root}/usr/share/meo-desktop/defaults/kwinrc"
-install -Dm644 "${desktop_source}/defaults/environment/90-meo-applications.conf" \
+install_file 644 "${desktop_source}/defaults/environment/90-meo-applications.conf" \
   "${target_root}/etc/environment.d/90-meo-applications.conf"
-install -Dm644 "${desktop_source}/defaults/input-method/fcitx5/conf/classicui.conf" \
+install_file 644 "${desktop_source}/defaults/input-method/fcitx5/conf/classicui.conf" \
   "${target_root}/etc/xdg/fcitx5/conf/classicui.conf"
 rm -rf "${target_root}/usr/share/fcitx5/themes/MeoInputMethod-Light" \
   "${target_root}/usr/share/fcitx5/themes/MeoInputMethod-Dark"
@@ -136,13 +161,13 @@ cp -a "${runtime_source}/share/fcitx5/themes/MeoInputMethod-Light" \
   "${target_root}/usr/share/fcitx5/themes/"
 cp -a "${runtime_source}/share/meo-desktop/input-method/ibus/." \
   "${target_root}/usr/share/meo-desktop/input-method/ibus/"
-install -Dm644 "${desktop_source}/defaults/systemd/meo-dynamic-colors.path" \
+install_file 644 "${desktop_source}/defaults/systemd/meo-dynamic-colors.path" \
   "${target_root}/usr/lib/systemd/user/meo-dynamic-colors.path"
-install -Dm644 "${runtime_source}/lib/systemd/user/meo-dynamic-colors.service" \
+install_file 644 "${runtime_source}/lib/systemd/user/meo-dynamic-colors.service" \
   "${target_root}/usr/lib/systemd/user/meo-dynamic-colors.service"
 ln -sfn ../meo-dynamic-colors.path \
   "${target_root}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path"
-install -Dm644 "${desktop_source}/defaults/fonts/50-meo-fonts.conf" \
+install_file 644 "${desktop_source}/defaults/fonts/50-meo-fonts.conf" \
   "${target_root}/etc/fonts/conf.avail/50-meo-fonts.conf"
 ln -sfn ../conf.avail/50-meo-fonts.conf \
   "${target_root}/etc/fonts/conf.d/50-meo-fonts.conf"
@@ -175,24 +200,24 @@ if [ -d "${desktop_source}/plasmoids" ]; then
     fi
   done
 fi
-install -Dm644 "${desktop_source}/wallpaper/installer_background.png" \
+install_file 644 "${desktop_source}/wallpaper/installer_background.png" \
   "${target_root}/usr/share/wallpapers/MeoArch/installer_background.png"
-install -Dm644 "${desktop_source}/branding/Logo.svg" \
+install_file 644 "${desktop_source}/branding/Logo.svg" \
   "${target_root}/usr/share/pixmaps/meoarch-logo.svg"
-install -Dm644 "${desktop_source}/branding/Logo.svg" \
+install_file 644 "${desktop_source}/branding/Logo.svg" \
   "${target_root}/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg"
 rm -f "${target_root}/etc/os-release"
-install -Dm644 "${desktop_source}/defaults/system/os-release" \
+install_file 644 "${desktop_source}/defaults/system/os-release" \
   "${target_root}/etc/os-release"
-install -Dm644 "${desktop_source}/defaults/kde/kdeglobals" \
+install_file 644 "${desktop_source}/defaults/kde/kdeglobals" \
   "${target_root}/etc/xdg/kdeglobals"
-install -Dm644 "${desktop_source}/defaults/kde/kglobalshortcutsrc" \
+install_file 644 "${desktop_source}/defaults/kde/kglobalshortcutsrc" \
   "${target_root}/etc/xdg/kglobalshortcutsrc"
-install -Dm644 "${desktop_source}/defaults/kwin/kwinrc" \
+install_file 644 "${desktop_source}/defaults/kwin/kwinrc" \
   "${target_root}/etc/xdg/kwinrc"
-install -Dm644 "${desktop_source}/defaults/plasma/plasmarc" \
+install_file 644 "${desktop_source}/defaults/plasma/plasmarc" \
   "${target_root}/etc/xdg/plasmarc"
-install -Dm644 "${desktop_source}/defaults/plasma/plasma-welcomerc" \
+install_file 644 "${desktop_source}/defaults/plasma/plasma-welcomerc" \
   "${target_root}/etc/xdg/plasma-welcomerc"
 fi
 
@@ -205,13 +230,19 @@ if [ "${MEOARCH_PACKAGE_MANAGED:-1}" = "1" ]; then
   }
   os_release_stage="$(mktemp "${target_root}/etc/.meo-os-release.XXXXXX")"
   install -m644 "$os_release_template" "$os_release_stage"
-  mv -T -- "$os_release_stage" "${target_root}/etc/os-release"
+  # `mv -T` is a GNU-only flag.  os-release is required to be a non-directory
+  # destination, so ordinary same-filesystem rename atomically replaces a
+  # symlink instead of writing through it on both GNU and BSD userlands.
+  [ ! -d "${target_root}/etc/os-release" ] || {
+    echo "Target os-release must not be a directory." >&2; exit 13;
+  }
+  mv -f "$os_release_stage" "${target_root}/etc/os-release"
 fi
 
 # The package provides the executable; this target-owned entry starts the
 # independent first-login flow for every user.  meo-welcome itself stores the
 # explicit Skip/Done decision in that user's settings and exits thereafter.
-install -Dm644 "$(dirname -- "${BASH_SOURCE[0]}")/../data/autostart/org.meo.welcome.desktop" \
+install_file 644 "$(dirname -- "${BASH_SOURCE[0]}")/../data/autostart/org.meo.welcome.desktop" \
   "${target_root}/etc/xdg/autostart/org.meo.welcome.desktop"
 
 # Target System Plymouth Theme & Hook Configuration
@@ -269,7 +300,7 @@ DeviceTimeout=5
 EOF
 
 if [ -f "${runtime_source}/lib/meoarch/meo-boot-status" ]; then
-  install -Dm755 "${runtime_source}/lib/meoarch/meo-boot-status" "${target_root}/usr/lib/meoarch/meo-boot-status"
+  install_file 755 "${runtime_source}/lib/meoarch/meo-boot-status" "${target_root}/usr/lib/meoarch/meo-boot-status"
   ln -sfn /usr/lib/meoarch/meo-boot-status "${target_root}/usr/bin/meo-boot-status"
 fi
 
@@ -278,13 +309,13 @@ for session_action_file in \
   "${runtime_source}/share/dbus-1/services/org.meo.SessionAction1.service"; do
   [ -s "${session_action_file}" ] || { echo "Required Meo session action runtime is missing: ${session_action_file}" >&2; exit 13; }
 done
-install -Dm755 "${runtime_source}/bin/meo-session-actiond" "${target_root}/usr/bin/meo-session-actiond"
-install -Dm644 "${runtime_source}/share/dbus-1/services/org.meo.SessionAction1.service" \
+install_file 755 "${runtime_source}/bin/meo-session-actiond" "${target_root}/usr/bin/meo-session-actiond"
+install_file 644 "${runtime_source}/share/dbus-1/services/org.meo.SessionAction1.service" \
   "${target_root}/usr/share/dbus-1/services/org.meo.SessionAction1.service"
 
 for unit_file in meo-boot-status-failure@.service meo-boot-early.service meo-boot-storage.service meo-boot-services.service; do
   if [ -f "${runtime_source}/lib/systemd/system/${unit_file}" ]; then
-    install -Dm644 "${runtime_source}/lib/systemd/system/${unit_file}" "${target_root}/usr/lib/systemd/system/${unit_file}"
+    install_file 644 "${runtime_source}/lib/systemd/system/${unit_file}" "${target_root}/usr/lib/systemd/system/${unit_file}"
   fi
 done
 
@@ -308,9 +339,12 @@ arch-chroot "${target_root}" /usr/bin/mkinitcpio -P
 # A later mkinitcpio.conf.d override must not silently remove Plymouth.
 arch-chroot "${target_root}" /usr/bin/lsinitcpio /boot/initramfs-linux.img | grep -E '(^|/)plymouthd$' >/dev/null
 
-if [ -f "${generated_dir}/plasma-localerc" ]; then
-  install -Dm644 "${generated_dir}/plasma-localerc" \
+if [ -f "${generated_dir}/plasma-localerc" ] && [ ! -L "${generated_dir}/plasma-localerc" ]; then
+  install_file 644 "${generated_dir}/plasma-localerc" \
     "${target_root}/etc/xdg/plasma-localerc"
+elif [ -L "${generated_dir}/plasma-localerc" ]; then
+  echo "Generated Plasma locale file is unsafe." >&2
+  exit 7
 fi
 
 read_customization() {

@@ -10,6 +10,25 @@ ROOT = Path(__file__).parents[1]
 
 
 class ConfigureRepositoryTests(unittest.TestCase):
+    def test_repository_configuration_rejects_symlinked_target_etc(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            target, generated, bootstrap = (root / name for name in ("target", "generated", "bootstrap"))
+            target.mkdir()
+            generated.mkdir()
+            bootstrap.mkdir()
+            outside = root / "outside-etc"
+            outside.mkdir()
+            (outside / "pacman.conf").write_text("HOST MUST REMAIN UNCHANGED\n")
+            (target / "etc").symlink_to(outside, target_is_directory=True)
+            (target / "usr").mkdir()
+            result = subprocess.run(
+                [ROOT / "backend/configure-meo-repository.sh", target, generated, bootstrap],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 2, result.stderr)
+            self.assertEqual((outside / "pacman.conf").read_text(), "HOST MUST REMAIN UNCHANGED\n")
+
     def test_fresh_target_syncs_stable_before_bootstrap_then_selected_channel(self):
         for channel, repos in (("stable", ["meo"]), ("beta", ["meo-beta", "meo"])):
             with self.subTest(channel=channel), tempfile.TemporaryDirectory() as directory:
