@@ -38,6 +38,19 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("loadingAccessibleName:", main)
         self.assertNotIn("onPageLoaded:", main)
 
+    def test_all_twelve_installer_pages_reach_the_page_frame(self):
+        main = (QML_ROOT / "Main.qml").read_text(encoding="utf-8")
+        frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
+        for page in (
+            "WelcomePage.qml", "LanguageRegionPage.qml", "KeyboardLayoutPage.qml",
+            "NetworkPage.qml", "PrivacySecurityPage.qml", "DiskSelectionPage.qml",
+            "UserAccountPage.qml", "SoftwarePage.qml", "UpdateChannelPage.qml",
+            "SummaryPage.qml", "InstallingPage.qml", "FinishPage.qml",
+        ):
+            self.assertIn(page, main)
+        self.assertIn("pageCount: root.pages.length", main)
+        self.assertIn("property int pageCount: 12", frame)
+
     def test_startup_is_localized_fail_closed_and_visually_minimal(self):
         host = (QML_ROOT.parent / "app/main.cpp").read_text(encoding="utf-8")
         main = (QML_ROOT / "Main.qml").read_text(encoding="utf-8")

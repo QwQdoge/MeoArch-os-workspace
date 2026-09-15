@@ -9,7 +9,7 @@ Item {
 
     property var controller: PreviewController
     property int pageIndex: 0
-    property int pageCount: 11
+    property int pageCount: 12
     property string pageTitle: ""
     property string pageSubtitle: ""
     property string primaryLabel: pageIndex === 0 ? qsTr("Get Started") : qsTr("Continue")
