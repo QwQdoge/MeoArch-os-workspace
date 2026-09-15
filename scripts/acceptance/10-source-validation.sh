@@ -113,6 +113,8 @@ grep -q 'DockImplementation=native' "${projects_root}/meo-kde/defaults/plasma/me
 ! rg -q 'data/autostart/org.meo.dock.desktop' "${projects_root}/meo-kde/packaging/arch/PKGBUILD"
 grep -q 'meo-dynamic-colors.path' scripts/sync-installer-to-airootfs.sh
 grep -q 'meo-weather-refresh' scripts/sync-installer-to-airootfs.sh
+grep -q 'preflight-meo-repository.sh.*0:0:755' meoarch-os/profiledef.sh
+grep -q 'configure-meo-repository.sh.*0:0:755' meoarch-os/profiledef.sh
 grep -q '90-meo-applications.conf' installer/backend/apply-target-customizations.sh
 grep -q 'Target dynamic color, application, or input-method integration is missing' scripts/verify-target-install.sh
 grep -q 'git archive --format=tar HEAD meoarch-os' scripts/build-iso.sh
