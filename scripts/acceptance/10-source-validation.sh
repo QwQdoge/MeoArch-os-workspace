@@ -112,6 +112,7 @@ grep -q 'bottomPanel.addWidget("org.kde.plasma.icontasks")' "${projects_root}/me
 grep -q 'DockImplementation=native' "${projects_root}/meo-kde/defaults/plasma/meo-shellrc"
 ! rg -q 'data/autostart/org.meo.dock.desktop' "${projects_root}/meo-kde/packaging/arch/PKGBUILD"
 grep -q 'meo-dynamic-colors.path' scripts/sync-installer-to-airootfs.sh
+grep -q 'meo-weather-refresh' scripts/sync-installer-to-airootfs.sh
 grep -q '90-meo-applications.conf' installer/backend/apply-target-customizations.sh
 grep -q 'Target dynamic color, application, or input-method integration is missing' scripts/verify-target-install.sh
 grep -q 'git archive --format=tar HEAD meoarch-os' scripts/build-iso.sh
@@ -177,7 +178,10 @@ grep -q '^PLYMOUTH_COMMAND_TIMEOUT_SECONDS = 1$' installer/bin/meo-boot-status
 for milestone in early storage services; do
   grep -q '^TimeoutStartSec=5s$' "installer/data/systemd/meo-boot-${milestone}.service"
 done
-! rg -q '^sddm$|^plasma-login-manager$|^plasma-(desktop|workspace)$|^kwin$' meoarch-os/packages.x86_64
+if rg -q -e '^sddm$' -e '^plasma-login-manager$' -e '^plasma-(desktop|workspace)$' -e '^kwin$' meoarch-os/packages.x86_64; then
+  echo "Cage-only Live package profile includes a Plasma session component." >&2
+  exit 1
+fi
 grep -q '^seatd$' meoarch-os/packages.x86_64
 ! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'

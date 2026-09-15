@@ -28,6 +28,9 @@ REQUIRED_FILES = (
     "usr/share/plasma/look-and-feel/org.meo.desktop/contents/splash/Splash.qml",
     "usr/share/plasma/look-and-feel/org.meo.desktop/contents/logout/Logout.qml",
     "usr/share/dbus-1/services/org.meo.SessionAction1.service",
+    "usr/lib/systemd/user/meo-weather-refresh.service",
+    "usr/lib/systemd/user/meo-weather-refresh.timer",
+    "usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer",
     "etc/gamemode.ini",
     "etc/system76-scheduler/process-scheduler/meo-cachyos.kdl",
     "usr/lib/systemd/zram-generator.conf.d/50-meo-desktop.conf",
@@ -41,6 +44,7 @@ REQUIRED_FILES = (
 REQUIRED_EXECUTABLES = ("usr/bin/meo-dynamic-colors", "usr/bin/meo-input-method",
                         "usr/bin/plasmalogin", "usr/bin/startplasma-wayland", "usr/bin/NetworkManager",
                         "usr/bin/meo-welcome", "usr/bin/meo-session-actiond",
+                        "usr/bin/meo-weather-refresh",
                         "usr/bin/system76-scheduler", "usr/bin/gamemoded", "usr/bin/powerprofilesctl",
                         "usr/bin/dbus-broker-launch", "usr/lib/systemd/system-generators/zram-generator")
 REQUIRED_ENABLED_SERVICES = (
