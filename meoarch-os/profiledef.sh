@@ -42,7 +42,9 @@ file_permissions=(
   ["/opt/meoarch-installer/bin/meoarch-installer-app"]="0:0:755"
   ["/opt/meoarch-installer/backend/apply-target-customizations.sh"]="0:0:755"
   ["/opt/meoarch-installer/backend/archinstall-preflight.sh"]="0:0:755"
+  ["/opt/meoarch-installer/backend/configure-meo-repository.sh"]="0:0:755"
   ["/opt/meoarch-installer/backend/generate-config.py"]="0:0:755"
   ["/opt/meoarch-installer/backend/hardware.py"]="0:0:755"
+  ["/opt/meoarch-installer/backend/preflight-meo-repository.sh"]="0:0:755"
   ["/opt/meoarch-installer/backend/run-archinstall.sh"]="0:0:755"
 )

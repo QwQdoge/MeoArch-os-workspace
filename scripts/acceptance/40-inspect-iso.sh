@@ -95,7 +95,9 @@ if grep -q 'etc/xdg/autostart/meoarch-installer.desktop\|usr/local/bin/meoarch-i
 fi
 for executable in \
   opt/meoarch-installer/bin/meoarch-installer-app \
+  opt/meoarch-installer/backend/configure-meo-repository.sh \
   opt/meoarch-installer/backend/generate-config.py \
+  opt/meoarch-installer/backend/preflight-meo-repository.sh \
   opt/meoarch-installer/backend/run-archinstall.sh \
   usr/bin/meoarch-repair \
   usr/lib/meoarch-repair/checks/all.sh \
