@@ -22,7 +22,7 @@ PageFrame {
             height: width
             radius: width / 2
             color: MeoTheme.primaryContainer
-            MeoIcon { anchors.centerIn: parent; icon: page.completed ? "check" : "info"; size: 48; color: MeoTheme.contentOnPrimaryContainer }
+            MeoIcon { anchors.centerIn: parent; icon: page.completed ? "check" : "info"; size: page.dp(48); color: MeoTheme.contentOnPrimaryContainer }
         }
         MeoText {
             width: parent.width
@@ -37,8 +37,8 @@ PageFrame {
             visible: page.completed
             width: parent.width
             spacing: page.dp(12)
-            SelectionCard { width: (parent.width - page.dp(12)) / 2; height: page.compactHeight ? page.dp(68) : page.dp(80); iconText: "eject"; title: qsTr("Remove installation media"); value: qsTr("Before restarting"); actionable: false; trailingIcon: "" }
-            SelectionCard { width: (parent.width - page.dp(12)) / 2; height: page.compactHeight ? page.dp(68) : page.dp(80); iconText: "description"; title: qsTr("Session log saved"); value: qsTr("Secrets excluded"); actionable: false; trailingIcon: "" }
+            SelectionCard { width: (parent.width - page.dp(12)) / 2; iconText: "eject"; title: qsTr("Remove installation media"); value: qsTr("Before restarting"); wrapValue: true; actionable: false; trailingIcon: "" }
+            SelectionCard { width: (parent.width - page.dp(12)) / 2; iconText: "description"; title: qsTr("Live diagnostic log"); value: qsTr("Available until restart: /tmp/meoarch-installer/logs/install.log"); wrapValue: true; actionable: false; trailingIcon: "" }
         }
         InfoBanner {
             visible: !page.completed || (page.controller && !page.controller.systemActionsEnabled)

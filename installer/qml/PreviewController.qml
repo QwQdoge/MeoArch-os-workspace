@@ -26,6 +26,7 @@ QtObject {
     property string debugTerminalMessage: "Preview only"
     property string selectedDisk: "preview-disk-0"
     property string hardwareSummary: "Automatic PCI detection will select graphics drivers."
+    property bool hardwareDetecting: false
     property bool diskDetecting: false
     property string installationState: previewComplete ? "complete" : previewInstalling ? "running" : "idle"
     property int installationProgress: previewComplete ? 100 : previewInstalling ? 35 : 0
@@ -127,6 +128,7 @@ QtObject {
         setSelection("disk", "mode", "partition")
     }
     function retryNetwork() { networkState = "connected" }
+    function refreshDisks() {}
     function openDebugTerminal() { debugTerminalMessage = "Preview only: a Live-session terminal would open here." }
     function setSelection(section, key, value) { const next = Object.assign({}, values); next[section + "." + key] = value; values = next }
     function selection(section, key, fallback) { const id = section + "." + key; return typeof values[id] === "undefined" ? fallback : values[id] }

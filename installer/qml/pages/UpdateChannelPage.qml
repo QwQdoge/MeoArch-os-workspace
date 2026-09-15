@@ -12,12 +12,13 @@ PageFrame {
         PageHeading {
             width: parent.width
             title: qsTr("Update channel")
-            subtitle: qsTr("The selected pacman configuration is the single source of truth after installation.")
+            subtitle: qsTr("Choose how cautiously MeoArch updates after installation. Stable is the safe default for most people.")
         }
         SelectionCard {
             width: parent.width
             title: qsTr("Stable")
             value: qsTr("Recommended for most users. Receives fully tested MeoArch release trains. Repository: meo")
+            wrapValue: true
             selected: page.channel === "stable"
             selectionIndicator: true
             onClicked: controller.setSelection("software", "channel", "stable")
@@ -26,6 +27,7 @@ PageFrame {
             width: parent.width
             title: qsTr("Beta")
             value: qsTr("Receives newer Meo components before Stable and may be less tested. Repositories: meo-beta, then meo fallback.")
+            wrapValue: true
             selected: page.channel === "beta"
             selectionIndicator: true
             onClicked: controller.setSelection("software", "channel", "beta")

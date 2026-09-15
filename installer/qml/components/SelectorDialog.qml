@@ -17,10 +17,13 @@ MeoMotionPopup {
     property var filteredModel: []
     property var _searchHaystacks: []
     signal applied(string id)
+
+    function dp(value) { return Math.round(value * MeoTheme.globalScale) }
+
     anchors.centerIn: Overlay.overlay
-    width: Math.min(720, Overlay.overlay ? Overlay.overlay.width - 64 : 720)
-    height: Math.min(620, Overlay.overlay ? Overlay.overlay.height - 64 : 620)
-    padding: 24
+    width: Math.min(dp(720), Overlay.overlay ? Overlay.overlay.width - dp(48) : dp(720))
+    height: Math.min(dp(620), Overlay.overlay ? Overlay.overlay.height - dp(48) : dp(620))
+    padding: dp(24)
     closePolicy: Popup.CloseOnEscape
     initialFocusItem: search
 
@@ -61,13 +64,13 @@ MeoMotionPopup {
     onOpened: { pendingId = selectedId; search.forceActiveFocus(); rebuild(); list.positionViewAtIndex(Math.max(0, list.currentIndex), ListView.Center) }
 
     contentItem: Column {
-        spacing: 16
+        spacing: popup.dp(16)
         MeoText { width: parent.width; text: popup.title + " · " + popup.filteredModel.length; typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
         MeoTextField { id: search; width: parent.width; type: "outlined"; size: "l"; label: qsTr("Search"); placeholder: qsTr("Type a name or code"); onTextChanged: popup.searchText = text }
         ListView {
             id: list
-            width: parent.width; height: parent.height - 150; clip: true; model: popup.filteredModel
-            keyNavigationEnabled: true; highlightMoveDuration: MeoTheme.motionDurationMedium2
+            width: parent.width; height: Math.max(0, parent.height - popup.dp(150)); clip: true; model: popup.filteredModel
+            keyNavigationEnabled: true; highlightMoveDuration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationMedium2
             highlightMoveVelocity: -1
             currentIndex: {
                 for (let i = 0; i < popup.filteredModel.length; ++i)
@@ -89,7 +92,7 @@ MeoMotionPopup {
                 required property int index
                 property real cornerRadius: MeoTheme.shapeLarge
                 readonly property bool selectable: popup.isSelectable(option.modelData)
-                width: ListView.view.width; height: 56
+                width: ListView.view.width; height: popup.dp(56)
                 activeFocusOnTab: selectable
                 opacity: selectable ? 1 : 0.56
                 Accessible.role: Accessible.RadioButton
@@ -97,8 +100,8 @@ MeoMotionPopup {
                 Accessible.checked: String(option.modelData[popup.primaryKey]) === popup.pendingId
                 Accessible.description: selectable ? "" : String(option.modelData[popup.secondaryKey] || "")
                 MeoStateLayer { anchors.fill: parent; radius: option.cornerRadius; hovered: option.selectable && optionHover.hovered; pressed: option.selectable && optionTap.pressed; focused: option.activeFocus; color: MeoTheme.contentOnSurface }
-                MeoText { anchors.left: parent.left; anchors.leftMargin: 16; anchors.right: code.left; anchors.rightMargin: 12; anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.labelKey] || option.modelData[popup.primaryKey]); typeRole: "body"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface; elide: Text.ElideRight }
-                MeoText { id: code; anchors.right: parent.right; anchors.rightMargin: 16; anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.secondaryKey] || option.modelData[popup.primaryKey]); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant }
+                MeoText { anchors.left: parent.left; anchors.leftMargin: popup.dp(16); anchors.right: code.left; anchors.rightMargin: popup.dp(12); anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.labelKey] || option.modelData[popup.primaryKey]); typeRole: "body"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface; elide: Text.ElideRight }
+                MeoText { id: code; anchors.right: parent.right; anchors.rightMargin: popup.dp(16); anchors.verticalCenter: parent.verticalCenter; text: String(option.modelData[popup.secondaryKey] || option.modelData[popup.primaryKey]); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant }
                 HoverHandler { id: optionHover }
                 TapHandler { id: optionTap; enabled: option.selectable; onTapped: { popup.pendingId = String(option.modelData[popup.primaryKey]); list.currentIndex = option.index; option.forceActiveFocus() } }
                 Keys.onReturnPressed: {
@@ -110,7 +113,7 @@ MeoMotionPopup {
             }
         }
         Row {
-            anchors.right: parent.right; spacing: 8
+            anchors.right: parent.right; spacing: popup.dp(8)
             MeoButton { text: qsTr("Cancel"); type: "text"; onClicked: popup.close() }
             MeoButton { text: qsTr("Apply"); type: "filled"; enabled: popup.pendingId.length > 0 && popup.filteredModel.some(item => String(item[popup.primaryKey]) === popup.pendingId && popup.isSelectable(item)); onClicked: { popup.applied(popup.pendingId); popup.close() } }
         }

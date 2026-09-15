@@ -42,7 +42,7 @@ PageFrame {
         InfoBanner {
             width: parent.width
             title: qsTr("Disk encryption")
-            message: qsTr("Encryption belongs with disk choices. It will appear here after the tested Archinstall secret flow is available.")
+            message: qsTr("Disk encryption is not available in this installer yet. It is intentionally hidden until its secret, recovery, and rollback flow is tested.")
             tone: "info"
         }
         InfoBanner {

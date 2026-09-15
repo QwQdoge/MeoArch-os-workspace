@@ -63,6 +63,7 @@ PageFrame {
                 width: parent.width
                 title: modelData.title
                 value: modelData.detail
+                wrapValue: true
                 selected: page.profile === modelData.id
                 selectionIndicator: true
                 onClicked: page.selectProfile(modelData.id)

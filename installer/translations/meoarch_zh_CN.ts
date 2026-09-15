@@ -23,6 +23,10 @@
     <message><source>Wi-Fi password</source><translation>无线网络密码</translation></message>
     <message><source>Remember this network after installation</source><translation>安装后记住此网络</translation></message>
     <message><source>This network will not be copied</source><translation>此网络不会被复制</translation></message>
+    <message><source>Connect to continue</source><translation>连接后继续</translation></message>
+    <message><source>MeoArch downloads the system, desktop, and selected packages during installation. Connect to the Internet to continue.</source><translation>MeoArch 会在安装期间下载系统、桌面和所选软件包。请连接互联网后继续。</translation></message>
+    <message><source>Offline installation is not available</source><translation>暂不支持离线安装</translation></message>
+    <message><source>Connect with Wi-Fi or Ethernet to continue. No disk changes happen on this page or before the final confirmation.</source><translation>请通过 Wi-Fi 或有线网络连接后继续。本页以及最后确认前都不会更改磁盘。</translation></message>
   </context>
   <context>
     <name>DiskSelectionPage</name>
@@ -33,12 +37,21 @@
     <message><source>Advanced options</source><translation>高级选项</translation></message>
     <message><source>Done</source><translation>完成</translation></message>
     <message><source>Swap</source><translation>交换空间</translation></message>
+    <message><source>Erase and use entire %1</source><translation>擦除并使用整个 %1</translation></message>
+    <message><source>Erase entire disk</source><translation>擦除整个磁盘</translation></message>
+    <message><source>Deletes all data. Creates EFI and one Linux root partition</source><translation>删除所有数据。创建 EFI 分区和一个 Linux 根分区</translation></message>
+    <message><source>Erase disk with separate home</source><translation>擦除磁盘并单独创建 home 分区</translation></message>
+    <message><source>Deletes all data. Creates EFI, root, and home partitions</source><translation>删除所有数据。创建 EFI、根目录和 home 分区</translation></message>
+    <message><source>Rescan storage devices</source><translation>重新扫描存储设备</translation></message>
+    <message><source>Scans again after you connect or make an installation disk available</source><translation>在连接或准备好安装磁盘后再次扫描</translation></message>
   </context>
   <context>
     <name>PrivacySecurityPage</name>
     <message><source>Privacy &amp; Security</source><translation>隐私和安全</translation></message>
     <message><source>Enable firewalld</source><translation>启用 firewalld 防火墙</translation></message>
     <message><source>Disk encryption unavailable</source><translation>磁盘加密暂不可用</translation></message>
+    <message><source>Disk encryption</source><translation>磁盘加密</translation></message>
+    <message><source>Disk encryption is not available in this installer yet. It is intentionally hidden until its secret, recovery, and rollback flow is tested.</source><translation>此安装程序暂不提供磁盘加密。只有在密钥、恢复和回滚流程经过测试后才会显示此选项。</translation></message>
   </context>
   <context>
     <name>SummaryPage</name>
@@ -47,6 +60,23 @@
     <message><source>Install now</source><translation>立即安装</translation></message>
     <message><source>Begin installation?</source><translation>开始安装吗？</translation></message>
     <message><source>Install</source><translation>安装</translation></message>
+    <message><source>Format %1 only · preserve EFI partition %2 · %3</source><translation>仅格式化 %1 · 保留 EFI 分区 %2 · %3</translation></message>
+    <message><source>Erase all data on %1 · create EFI, root, and home partitions</source><translation>删除 %1 上的所有数据 · 创建 EFI、根目录和 home 分区</translation></message>
+    <message><source>Erase all data on %1 · create EFI and root partitions</source><translation>删除 %1 上的所有数据 · 创建 EFI 和根分区</translation></message>
+    <message><source>%1 will be formatted for MeoArch. %2 will be preserved for boot files. Other partitions are not selected for modification.</source><translation>将为 MeoArch 格式化 %1。将保留 %2 用于启动文件。未选择修改其他分区。</translation></message>
+    <message><source>the selected root partition</source><translation>所选根分区</translation></message>
+    <message><source>the selected EFI partition</source><translation>所选 EFI 分区</translation></message>
+    <message><source>the selected disk</source><translation>所选磁盘</translation></message>
+    <message><source>Checking graphics hardware…</source><translation>正在检查图形硬件…</translation></message>
+    <message><source>Graphics support</source><translation>图形支持</translation></message>
+    <message><source>Review the selected root and EFI partitions. Install now opens one final formatting confirmation.</source><translation>请检查所选根分区和 EFI 分区。点击“立即安装”后会再次确认格式化。</translation></message>
+    <message><source>Format the selected partition?</source><translation>格式化所选分区吗？</translation></message>
+    <message><source>The selected root partition will be erased</source><translation>所选根分区将被清除</translation></message>
+    <message><source>The selected disk will be erased</source><translation>所选磁盘将被擦除</translation></message>
+    <message><source>All data on %1 will be permanently erased. Existing partitions will not be preserved.</source><translation>%1 上的所有数据将被永久删除。不会保留现有分区。</translation></message>
+    <message><source>I understand that only %1 will be formatted.</source><translation>我了解只会格式化 %1。</translation></message>
+    <message><source>I understand that all data on %1 will be erased.</source><translation>我了解 %1 上的所有数据都会被删除。</translation></message>
+    <message><source>Format partition and install</source><translation>格式化分区并安装</translation></message>
   </context>
   <context>
     <name>UserAccountPage</name>
@@ -56,6 +86,15 @@
     <message><source>Computer name</source><translation>计算机名称</translation></message>
     <message><source>Password</source><translation>密码</translation></message>
     <message><source>Confirm password</source><translation>确认密码</translation></message>
+    <message><source>Use 1–32 lowercase letters, numbers, _ or -</source><translation>使用 1–32 个小写字母、数字、_ 或 -</translation></message>
+    <message><source>Use 1–63 lowercase letters, numbers, or hyphens</source><translation>使用 1–63 个小写字母、数字或连字符</translation></message>
+    <message><source>Use at least 8 characters</source><translation>至少使用 8 个字符</translation></message>
+    <message><source>Finish account details to continue</source><translation>完成账户信息后继续</translation></message>
+    <message><source>Enter a username to continue.</source><translation>请输入用户名后继续。</translation></message>
+    <message><source>Use 1–32 lowercase letters, numbers, _ or - for the username.</source><translation>用户名请使用 1–32 个小写字母、数字、_ 或 -。</translation></message>
+    <message><source>Use 1–63 lowercase letters, numbers, or hyphens for the computer name.</source><translation>计算机名称请使用 1–63 个小写字母、数字或连字符。</translation></message>
+    <message><source>Use a password with at least 8 characters.</source><translation>请使用至少 8 个字符的密码。</translation></message>
+    <message><source>Enter the same password in both password fields.</source><translation>请在两个密码字段中输入相同的密码。</translation></message>
   </context>
   <context>
     <name>InstallingPage</name>
@@ -73,6 +112,18 @@
     <message><source>Installation failed</source><translation>安装失败</translation></message>
     <message><source>Live diagnostic log: /tmp/meoarch-installer/logs/install.log</source><translation>实时诊断日志：/tmp/meoarch-installer/logs/install.log</translation></message>
     <message><source>See the diagnostic log for the failing stage. Disk operations are not automatically retried.</source><translation>请查看诊断日志以确认失败阶段。磁盘操作不会自动重试。</translation></message>
+    <message><source>Review Summary</source><translation>查看摘要</translation></message>
+    <message><source>Restart before another installation</source><translation>再次安装前请重启</translation></message>
+    <message><source>Some disk changes may already have happened. Read the Live diagnostic log, then restart the Live session before another installation attempt. Summary is available for review only.</source><translation>磁盘可能已经发生部分更改。请查看 Live 诊断日志，然后在再次尝试安装前重启 Live 会话。摘要页面仅供复核。</translation></message>
+  </context>
+  <context>
+    <name>FinishPage</name>
+    <message><source>Live diagnostic log</source><translation>实时诊断日志</translation></message>
+    <message><source>Available until restart: /tmp/meoarch-installer/logs/install.log</source><translation>重启前可用：/tmp/meoarch-installer/logs/install.log</translation></message>
+  </context>
+  <context>
+    <name>UpdateChannelPage</name>
+    <message><source>Choose how cautiously MeoArch updates after installation. Stable is the safe default for most people.</source><translation>选择安装后 MeoArch 更新的谨慎程度。稳定版是大多数用户的安全默认选择。</translation></message>
   </context>
   <context>
     <name>PageFrame</name>
@@ -148,6 +199,7 @@
     <message><source>This Qt runtime does not provide the Islamic Civil calendar</source><translation>此 Qt 运行时不提供伊斯兰民用历。</translation></message>
     <message><source>Hebrew calendar and holidays</source><translation>希伯来历和节日</translation></message>
     <message><source>Optional Hebcal data after installation; disabled by default</source><translation>安装后可选 Hebcal 数据；默认关闭</translation></message>
+    <message><source>Debug terminal is disabled in the production installer.</source><translation>生产安装程序中已禁用调试终端。</translation></message>
     <message><source>No supported terminal emulator is installed in this Live environment.</source><translation>此 Live 环境未安装受支持的终端模拟器。</translation></message>
     <message><source>Opens a Live-session terminal for diagnostics. Commands are not part of the installer plan.</source><translation>打开 Live 会话终端以便诊断。命令不属于安装计划的一部分。</translation></message>
     <message><source>MeoArch Installer Debug</source><translation>MeoArch 安装程序调试</translation></message>

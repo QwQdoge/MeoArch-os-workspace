@@ -7,8 +7,18 @@ import "../components"
 PageFrame {
     id: page
     showBackButton: false
-    showPrimaryButton: controller && controller.installationState === "complete"
-    primaryLabel: qsTr("Continue")
+    showPrimaryButton: controller && (controller.installationState === "complete"
+                                      || controller.installationState === "failed")
+    primaryLabel: controller && controller.installationState === "failed"
+                  ? qsTr("Review Summary") : qsTr("Continue")
+    primaryAdvances: controller && controller.installationState === "complete"
+    primaryAccessibleDescription: controller && controller.installationState === "failed"
+                                  ? qsTr("Returns to Summary for review only. Restart the Live session before another installation attempt")
+                                  : qsTr("Continues to the completed installation screen")
+    onPrimaryRequested: {
+        if (controller && controller.installationState === "failed")
+            navigateRequested(9)
+    }
     function stageLabel(stage) {
         if (stage === "preflighting_meo_repository" || stage === "preflight") return qsTr("Checking selected packages")
         if (stage === "preparing_disk") return qsTr("Preparing selected disk")
@@ -26,14 +36,19 @@ PageFrame {
         spacing: page.compactHeight ? page.dp(12) : page.dp(18)
         PageHeading { width: parent.width; title: qsTr("Installing"); subtitle: qsTr("Keep this device powered on while MeoArch is installed.") }
         Row {
+            id: progressHeader
             width: parent.width; spacing: page.dp(16)
-            MeoText { text: page.controller ? page.controller.installationProgress + "%" : "0%"; typeRole: "title"; typeSize: "big"; emphasized: true; color: MeoTheme.primary }
+            MeoText { id: progressValue; text: page.controller ? page.controller.installationProgress + "%" : "0%"; typeRole: "title"; typeSize: "big"; emphasized: true; color: MeoTheme.primary }
             MeoText {
-                anchors.baseline: parent.children[0].baseline
+                width: Math.max(0, progressHeader.width - progressValue.width - progressHeader.spacing)
+                anchors.baseline: progressValue.baseline
                 text: page.controller && page.controller.installationState === "complete" ? qsTr("Installation complete")
                       : page.controller && page.controller.installationState === "failed" ? qsTr("Installation stopped")
                       : page.controller && page.controller.installationMessage.length ? page.controller.installationMessage : qsTr("Waiting to start…")
                 typeRole: "body"; typeSize: "big"; color: MeoTheme.contentOnSurfaceVariant
+                wrapMode: Text.WordWrap
+                maximumLineCount: 2
+                elide: Text.ElideRight
             }
         }
         MeoProgressBar { width: parent.width; height: page.dp(8); value: page.controller ? page.controller.installationProgress / 100 : 0; isThick: true; vibrant: true }
@@ -67,7 +82,14 @@ PageFrame {
             title: qsTr("Installation failed during %1").arg(page.stageLabel(page.controller.installationStage))
             message: page.controller.installationFailureDetails.length
                      ? page.controller.installationFailureDetails
-                     : qsTr("See the diagnostic log for the failing stage. Disk operations are not automatically retried.")
+                     : qsTr("See the diagnostic log for the failing stage. Disk operations are not automatically retried; restart the Live session before another attempt.")
+        }
+        InfoBanner {
+            visible: page.controller && page.controller.installationState === "failed"
+            width: parent.width
+            tone: "warning"
+            title: qsTr("Restart before another installation")
+            message: qsTr("Some disk changes may already have happened. Read the Live diagnostic log, then restart the Live session before another installation attempt. Summary is available for review only.")
         }
     }
 }
