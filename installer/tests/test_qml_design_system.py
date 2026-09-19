@@ -16,6 +16,15 @@ class InstallerDesignSystemTests(unittest.TestCase):
         violations = []
         for qml_file in sorted(QML_ROOT.rglob("*.qml")):
             source = qml_file.read_text(encoding="utf-8")
+            # The Cage handoff must paint an unconditional pure-black first
+            # frame before the MeoUI surface is visible. Keep this one narrow
+            # boot-only exception explicit instead of weakening the global rule.
+            if qml_file.name == "Main.qml":
+                self.assertEqual(source.count("Rectangle {"), 1)
+                self.assertIn("id: handoffSplash", source)
+                self.assertIn('color: "black"', source)
+                source = source.replace("Rectangle {", "", 1)
+                source = source.replace('color: "black"', "", 1)
             if RAW_RECTANGLE.search(source) or RAW_COLOR.search(source):
                 violations.append(str(qml_file.relative_to(QML_ROOT)))
         self.assertEqual(
@@ -99,7 +108,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertNotIn('size: "l"', actions)
         self.assertNotIn('type: "tonal"', actions)
         for accessible_name in (
-            'Accessible.name: qsTr("Open debug terminal")',
+            'Accessible.name: qsTr("Open diagnostic console")',
             'Accessible.name: qsTr("Help")',
             'Accessible.name: qsTr("Installer language")',
             'Accessible.name: qsTr("Power")',
