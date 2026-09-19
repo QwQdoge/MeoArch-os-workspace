@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+: "${XDG_RUNTIME_DIR:?Live repair requires a user runtime directory}"
+: "${DBUS_SESSION_BUS_ADDRESS:?Live repair requires a user D-Bus address}"
+: "${WAYLAND_DISPLAY:?Live repair requires a Cage Wayland display}"
+
+[ -S "${XDG_RUNTIME_DIR}/bus" ] || {
+  echo "The Live repair user bus is unavailable." >&2
+  exit 1
+}
+[ -S "${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}" ] || {
+  echo "The Live repair Wayland display is unavailable." >&2
+  exit 1
+}
+
+/usr/lib/meo-polkit-agent &
+agent_pid=$!
+cleanup_agent() {
+  if /usr/bin/kill -0 "${agent_pid}" 2>/dev/null; then
+    /usr/bin/kill "${agent_pid}" 2>/dev/null || true
+    wait "${agent_pid}" 2>/dev/null || true
+  fi
+}
+trap cleanup_agent EXIT HUP INT TERM
+
+agent_ready=0
+for _ in {1..50}; do
+  if ! /usr/bin/kill -0 "${agent_pid}" 2>/dev/null; then
+    break
+  fi
+  if /usr/bin/busctl --user --list |
+      /usr/bin/grep -q '^org.kde.polkit-kde-authentication-agent-1[[:space:]]'; then
+    agent_ready=1
+    break
+  fi
+  /usr/bin/sleep 0.1
+done
+[ "${agent_ready}" -eq 1 ] || {
+  echo "The Live repair authorization agent did not register on D-Bus." >&2
+  exit 1
+}
+
+/usr/bin/meoarch-repair --live --kiosk

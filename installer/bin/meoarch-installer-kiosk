@@ -22,6 +22,22 @@ case "${boot_mode}" in
     exec /usr/bin/cage -s -- /usr/local/bin/meoarch-installer --production --enable-real-install --enable-system-actions
     ;;
   repair)
-    exec /usr/bin/cage -s -- /usr/bin/meoarch-repair --live --kiosk
+    live_uid="$(id -u live)"
+    /usr/bin/systemctl start "user-runtime-dir@${live_uid}.service" "user@${live_uid}.service"
+    live_runtime="/run/user/${live_uid}"
+    [ -S "${live_runtime}/bus" ] || {
+      echo "The Live repair user bus is unavailable: ${live_runtime}/bus" >&2
+      exit 1
+    }
+    exec /usr/bin/runuser -u live -- /usr/bin/env \
+      HOME=/home/live USER=live LOGNAME=live \
+      XDG_RUNTIME_DIR="${live_runtime}" \
+      DBUS_SESSION_BUS_ADDRESS="unix:path=${live_runtime}/bus" \
+      XDG_SESSION_TYPE=wayland XDG_CURRENT_DESKTOP=MeoArch \
+      QT_QPA_PLATFORM=wayland XKB_DEFAULT_LAYOUT="${XKB_DEFAULT_LAYOUT}" \
+      MEOARCH_REPAIR_SCOPE=live \
+      MEO_UI_QML_IMPORT_PATH=/usr/lib/qt6/qml \
+      QML2_IMPORT_PATH=/usr/lib/meoarch-repair/qml:/usr/lib/qt6/qml \
+      /usr/bin/cage -s -- /usr/local/bin/meoarch-repair-session
     ;;
 esac

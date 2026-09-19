@@ -5,7 +5,14 @@ import "../components"
 
 PageFrame {
     id: page
-    readonly property string channel: controller ? controller.selection("software", "channel", "stable") : "stable"
+    // See SoftwarePage: selection() is an invokable. Include the observable
+    // revision so the selected channel changes on the same interaction.
+    readonly property var selectionRevision: controller && controller.selectionRevision !== undefined
+                                           ? controller.selectionRevision : 0
+    readonly property string channel: {
+        const revision = selectionRevision
+        return revision >= 0 && controller ? controller.selection("software", "channel", "stable") : "stable"
+    }
     Column {
         width: parent.width
         spacing: page.dp(16)

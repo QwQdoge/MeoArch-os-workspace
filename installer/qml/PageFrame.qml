@@ -45,6 +45,11 @@ Item {
     // A 960 px kiosk can still have a high UI scale.  Collapse decorative
     // chrome before the brand and footer controls compete for the same space.
     readonly property bool compactChrome: windowMetrics.isCompactWidth || width < dp(760)
+    // Pixel's top-app-bar actions are visually compact.  MeoIconButton keeps
+    // its 48dp accessible target for S even though the rendered container is
+    // only 40dp, so this reduces kiosk chrome without reducing hit targets.
+    readonly property string topActionSize: "s"
+    readonly property string topActionType: "standard"
     readonly property bool showFooterPageIndicator: !compactChrome
     readonly property string roboto: robotoLoader.name.length ? robotoLoader.name : MeoTheme.typefacePlain
     readonly property string comfortaa: comfortaaLoader.name.length ? comfortaaLoader.name : MeoTheme.typefaceBrand
@@ -61,6 +66,36 @@ Item {
     function dp(value) { return Math.round(value * MeoTheme.globalScale) }
     function asset(path) { return String(assetsRoot) + path }
     function firePrimary() { primaryAdvances ? nextRequested() : primaryRequested() }
+    readonly property string currentStepHelp: {
+        switch (pageIndex) {
+        case 0:
+            return qsTr("This installer guides you through language, keyboard, network, privacy, storage, account, software, and a final review. Nothing changes until you confirm the final plan.")
+        case 1:
+            return qsTr("Choose the language and regional formats used by the installed desktop. You can change them later in Settings.")
+        case 2:
+            return qsTr("Choose a keyboard layout and make sure typing feels right before continuing.")
+        case 3:
+            return qsTr("Connect to a network when you need online packages. Continue offline only when this page says that it is available.")
+        case 4:
+            return qsTr("Review privacy choices. This installer shows only settings that have a real backend.")
+        case 5:
+            return qsTr("Check the target storage carefully. Erase actions run only after final confirmation and remove data from that device.")
+        case 6:
+            return qsTr("Create a local account. Keep the password safe: it is not shown again after installation.")
+        case 7:
+            return qsTr("Choose a software profile. Third-party software is always opt-in and is never added by default.")
+        case 8:
+            return qsTr("Choose how cautiously MeoArch updates after installation. Stable is the safe choice for most people.")
+        case 9:
+            return qsTr("Review every selection. Install now still opens one final confirmation before an erase plan can run.")
+        case 10:
+            return qsTr("Installation is in progress. Do not power off or force a restart; if it fails, note the stage and check the Live diagnostic log.")
+        case 11:
+            return qsTr("When installation is complete, remove the installation media before restarting into the new system. Keep the diagnostic log if validation reports a problem.")
+        default:
+            return qsTr("Review this page before continuing. Nothing is written to disk until the final confirmation.")
+        }
+    }
     function openDocumentation(url, description) {
         statusMessage = Qt.openUrlExternally(url)
                 ? description : qsTr("Could not open the documentation browser.")
@@ -133,8 +168,8 @@ Item {
         MeoIconButton {
             visible: frame.controller && frame.controller.debugTerminalAvailable
             icon.name: "terminal"
-            size: "l"
-            type: "tonal"
+            size: frame.topActionSize
+            type: frame.topActionType
             Accessible.name: qsTr("Open debug terminal")
             Accessible.description: qsTr("Opens a real terminal in the Live session for diagnostics")
             onClicked: {
@@ -145,8 +180,8 @@ Item {
         MeoIconButton {
             id: helpButton
             icon.name: "help"
-            size: "l"
-            type: "tonal"
+            size: frame.topActionSize
+            type: frame.topActionType
             Accessible.name: qsTr("Help")
             onClicked: helpPopup.openFrom(helpButton)
         }
@@ -154,16 +189,16 @@ Item {
             id: languageButton
             visible: frame.controller && frame.controller.uiLanguages.length > 1
             icon.name: "language"
-            size: "l"
-            type: "tonal"
+            size: frame.topActionSize
+            type: frame.topActionType
             Accessible.name: qsTr("Installer language")
             onClicked: languagePopup.openFrom(languageButton)
         }
         MeoIconButton {
             id: powerButton
             icon.name: "power_settings_new"
-            size: "l"
-            type: "tonal"
+            size: frame.topActionSize
+            type: frame.topActionType
             Accessible.name: qsTr("Power")
             onClicked: powerPopup.openFrom(powerButton)
         }
@@ -196,7 +231,7 @@ Item {
                 spacing: frame.dp(6)
                 MeoText {
                     width: parent.width
-                    text: qsTr("Documentation")
+                    text: qsTr("Current step")
                     typeRole: "title"
                     typeSize: "small"
                     emphasized: true
@@ -204,11 +239,20 @@ Item {
                 }
                 MeoText {
                     width: parent.width
-                    text: qsTr("Meo guides are still being written. Open the original ArchWiki in your browser for current reference material.")
+                    text: frame.currentStepHelp
                     typeRole: "body"
                     typeSize: "small"
                     color: MeoTheme.contentOnSurfaceVariant
                     wrapMode: Text.WordWrap
+                }
+                MeoDivider { width: parent.width }
+                MeoText {
+                    width: parent.width
+                    text: qsTr("More reference")
+                    typeRole: "label"
+                    typeSize: "large"
+                    emphasized: true
+                    color: MeoTheme.contentOnSurface
                 }
                 MeoListItem {
                     width: parent.width

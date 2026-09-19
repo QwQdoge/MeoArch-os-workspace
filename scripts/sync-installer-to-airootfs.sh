@@ -8,6 +8,8 @@ meoui_source="${MEOUI_SOURCE_DIR:-${projects_root}/meo-ui}"
 if [ ! -f "${meoui_source}/CMakeLists.txt" ] && [ -f "${projects_root}/MeoUI/CMakeLists.txt" ]; then
   meoui_source="${projects_root}/MeoUI"
 fi
+meo_kde_src="$(realpath -e -- "${meo_kde_src}")"
+meoui_source="$(realpath -e -- "${meoui_source}")"
 airootfs="${MEOARCH_AIROOTFS:-${repo_root}/meoarch-os/airootfs}"
 installer_src="${repo_root}/installer"
 airootfs="$(realpath -m -- "${airootfs}")"
@@ -26,6 +28,10 @@ profile_live_tools="${repo_root}/meoarch-os/airootfs/usr/local/bin"
 required_live_helpers=(Installation_guide choose-mirror livecd-sound)
 installer_dst="${airootfs}/opt/meoarch-installer"
 repair_dst="${airootfs}/usr/lib/meoarch-repair"
+repair_knowledge_dst="${airootfs}/usr/share/meoarch-repair"
+repair_policy_dst="${airootfs}/usr/share/polkit-1/actions/org.meo.repair.policy"
+repair_live_policy_dst="${airootfs}/usr/share/polkit-1/actions/org.meo.repair-live.policy"
+repair_live_rule_dst="${airootfs}/usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules"
 desktop_dst="${airootfs}/opt/meo-desktop"
 runtime_root="${repo_root}/build/installer-runtime-root/usr"
 meoui_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoUI"
@@ -33,13 +39,16 @@ meokde_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoKDE"
 meosystem_qml_dst="${airootfs}/usr/lib/qt6/qml/Meo/System"
 meokde_fonts_dst="${airootfs}/usr/share/fonts/meo"
 meosystem_build="${repo_root}/build/meo-system"
+meosystem_live_build="${repo_root}/build/meo-system-live"
 meokde_native_build="${repo_root}/build/meo-kde-native"
 legacy_meoui_dst="${airootfs}/opt/meo-ui"
 
 for destructive_target in \
   "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" \
   "${meosystem_qml_dst}" "${meokde_fonts_dst}" "${installer_dst}" \
-  "${repair_dst}" "${desktop_dst}"; do
+  "${repair_dst}" "${repair_knowledge_dst}" "${repair_policy_dst}" \
+  "${repair_live_policy_dst}" \
+  "${repair_live_rule_dst}" "${desktop_dst}"; do
   if [ -L "${destructive_target}" ]; then
     echo "Refusing recursive replacement of symlink: ${destructive_target}" >&2
     exit 2
@@ -62,6 +71,8 @@ done
 if [ ! -f "${runtime_root}/lib/libmeoui.so.0" ] \
   || [ ! -x "${runtime_root}/bin/meoarch-repair" ] \
   || [ ! -f "${runtime_root}/lib/meoarch-repair/qml/Main.qml" ] \
+  || [ ! -f "${runtime_root}/share/meoarch-repair/knowledge/manifest.json" ] \
+  || [ ! -f "${runtime_root}/share/polkit-1/actions/org.meo.repair.policy" ] \
   || [ ! -f "${runtime_root}/lib/qt6/qml/MeoUI/qmldir" ] \
   || [ ! -x "${runtime_root}/bin/meoarch-installer-app" ]; then
   echo "The required native installer runtime is missing; build-installer-app.sh must provide the host, MeoUI, and repair payload." >&2
@@ -79,6 +90,9 @@ MEOUI_SOURCE_DIR="${meoui_source}" \
 cmake --fresh -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "${meosystem_build}" --parallel
+cmake --fresh -S "${repo_root}/installer/live-system" -B "${meosystem_live_build}" \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEO_KDE_SOURCE_DIR="${meo_kde_src}"
+cmake --build "${meosystem_live_build}" --parallel
 cmake --fresh -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEOUI_SOURCE_DIR="${meoui_source}" \
   -DMEO_BUILD_STANDALONE_DOCK=OFF
@@ -95,7 +109,7 @@ install -d "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meok
 cp -a "${runtime_root}/lib/libmeoui.so"* "${airootfs}/usr/lib/"
 cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
 cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
-cp -a "${meosystem_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
+cp -a "${meosystem_live_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
 install -Dm755 "${meosystem_build}/meo-session-actiond" \
   "${airootfs}/usr/bin/meo-session-actiond"
 install -Dm755 "${meosystem_build}/meo-weather-refresh" \
@@ -104,12 +118,26 @@ install -Dm644 "${meo_kde_src}/native/system/org.meo.SessionAction1.service" \
   "${airootfs}/usr/share/dbus-1/services/org.meo.SessionAction1.service"
 cp -a "${meo_kde_src}/assets/fonts/"*.ttf "${meokde_fonts_dst}/"
 
-rm -rf "${repair_dst}"
+rm -rf "${repair_dst}" "${repair_knowledge_dst}"
 cp -a "${runtime_root}/lib/meoarch-repair" "${repair_dst}"
+cp -a "${runtime_root}/share/meoarch-repair" "${repair_knowledge_dst}"
 install -Dm755 "${runtime_root}/bin/meoarch-repair" \
   "${airootfs}/usr/bin/meoarch-repair"
 install -Dm644 "${runtime_root}/share/applications/org.meo.repair.desktop" \
   "${airootfs}/usr/share/applications/org.meo.repair.desktop"
+install -Dm644 "${runtime_root}/share/polkit-1/actions/org.meo.repair.policy" \
+  "${repair_policy_dst}"
+install -Dm644 "${repo_root}/repair/data/org.meo.repair-live.policy" \
+  "${repair_live_policy_dst}"
+install -Dm644 "${repo_root}/repair/data/org.meo.repair-live.rules" \
+  "${repair_live_rule_dst}"
+install -d "${repair_dst}/live-actions"
+install -m755 "${repo_root}/repair/live-actions/"*.sh \
+  "${repair_dst}/live-actions/"
+install -Dm755 "${meokde_native_build}/authentication/meo-polkit-agent" \
+  "${airootfs}/usr/lib/meo-polkit-agent"
+install -Dm644 "${meo_kde_src}/native/authentication/data/plasma-polkit-agent.service" \
+  "${airootfs}/usr/lib/systemd/user/plasma-polkit-agent.service"
 install -Dm644 "${runtime_root}/share/icons/hicolor/scalable/apps/meoarch-ai.svg" \
   "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
 install -Dm644 "${meo_kde_src}/defaults/fonts/50-meo-fonts.conf" \
@@ -272,6 +300,8 @@ install -Dm755 "${installer_src}/bin/meoarch-installer" \
   "${airootfs}/usr/local/bin/meoarch-installer"
 install -Dm755 "${installer_src}/bin/meoarch-installer-kiosk" \
   "${airootfs}/usr/local/bin/meoarch-installer-kiosk"
+install -Dm755 "${installer_src}/bin/meoarch-repair-session" \
+  "${airootfs}/usr/local/bin/meoarch-repair-session"
 install -Dm755 "${installer_src}/bin/meoarch-install" \
   "${airootfs}/usr/local/bin/meoarch-install"
 install -Dm755 "${installer_src}/backend/preflight-meo-repository.sh" \

@@ -60,37 +60,37 @@ QQC2.ScrollView {
     }
 
     function bluetoothSubtitle() {
-        if (!SystemState.bluetoothEnabled) return qsTr("Off")
+        if (!SystemState.bluetoothEnabled) return i18n("Off")
         for (const device of SystemState.bluetoothDevices) {
             if (device.connected) return device.name
         }
-        return qsTr("On")
+        return i18n("On")
     }
 
     function tileTitle(id) {
-        if (id === "wifi") return qsTr("Wi-Fi")
-        if (id === "bluetooth") return qsTr("Bluetooth")
-        if (id === "focus") return qsTr("Focus")
-        if (id === "nightLight") return qsTr("Night Light")
-        if (id === "keepAwake") return qsTr("Keep Awake")
-        if (id === "powerMode") return qsTr("Power Mode")
-        if (id === "microphone") return qsTr("Microphone")
-        if (id === "audioDevices") return qsTr("Sound")
-        if (id === "display") return qsTr("Displays")
-        return qsTr("Screenshot")
+        if (id === "wifi") return i18n("Wi-Fi")
+        if (id === "bluetooth") return i18n("Bluetooth")
+        if (id === "focus") return i18n("Focus")
+        if (id === "nightLight") return i18n("Night Light")
+        if (id === "keepAwake") return i18n("Keep Awake")
+        if (id === "powerMode") return i18n("Power Mode")
+        if (id === "microphone") return i18n("Microphone")
+        if (id === "audioDevices") return i18n("Sound")
+        if (id === "display") return i18n("Displays")
+        return i18n("Screenshot")
     }
 
     function tileSubtitle(id) {
         if (id === "wifi") return SystemState.networkName !== "" ? SystemState.networkName : SystemState.networkStatus
         if (id === "bluetooth") return bluetoothSubtitle()
-        if (id === "focus") return NotificationManager.Server.inhibited ? qsTr("Do Not Disturb") : qsTr("Notifications on")
-        if (id === "nightLight") return Platform.nightLightRunning ? qsTr("On") : qsTr("Off")
-        if (id === "keepAwake") return Platform.keepAwake ? qsTr("On") : qsTr("Off")
+        if (id === "focus") return NotificationManager.Server.inhibited ? i18n("Do Not Disturb") : i18n("Notifications on")
+        if (id === "nightLight") return Platform.nightLightRunning ? i18n("On") : i18n("Off")
+        if (id === "keepAwake") return Platform.keepAwake ? i18n("On") : i18n("Off")
         if (id === "powerMode") return Platform.activePowerProfile
-        if (id === "microphone") return SystemState.microphoneMuted ? qsTr("Muted") : SystemState.microphoneDevice
-        if (id === "audioDevices") return SystemState.audioMuted ? qsTr("Muted") : SystemState.audioDevice
-        if (id === "display") return qsTr("%1 connected").arg(Platform.brightnessDisplays.length)
-        return qsTr("Capture screen")
+        if (id === "microphone") return SystemState.microphoneMuted ? i18n("Muted") : SystemState.microphoneDevice
+        if (id === "audioDevices") return SystemState.audioMuted ? i18n("Muted") : SystemState.audioDevice
+        if (id === "display") return i18n("%1 connected").arg(Platform.brightnessDisplays.length)
+        return i18n("Capture screen")
     }
 
     function tileIcon(id) {
@@ -170,7 +170,7 @@ QQC2.ScrollView {
             Item { Layout.fillWidth: true }
             MeoText {
                 visible: root.editMode
-                text: qsTr("Drag to reorder · use arrows to resize")
+                text: i18n("Drag to reorder · use arrows to resize")
                 typeRole: "label"
                 typeSize: "small"
                 color: MeoTheme.primary
@@ -187,8 +187,8 @@ QQC2.ScrollView {
             interval: 1000; running: true; repeat: true; triggeredOnStart: true
             onTriggered: {
                 const now = new Date()
-                timeText.text = Qt.formatDateTime(now, "hh:mm")
-                dateText.text = Qt.formatDateTime(now, "dddd, MMMM d")
+                timeText.text = Qt.formatTime(now, Qt.locale().timeFormat(Locale.ShortFormat))
+                dateText.text = Qt.formatDate(now, Qt.DefaultLocaleLongDate)
             }
         }
 
@@ -202,8 +202,8 @@ QQC2.ScrollView {
                 iconName: "light_mode"
                 label: root.displayExpanded && Platform.brightnessDisplays.length > 1 ? modelData.label : ""
                 accessibleName: modelData.label
-                    ? qsTr("%1 brightness").arg(modelData.label)
-                    : qsTr("Display brightness")
+                    ? i18n("%1 brightness").arg(modelData.label)
+                    : i18n("Display brightness")
                 iconAccessibleName: ""
                 iconActionEnabled: false
                 from: 0
@@ -221,8 +221,8 @@ QQC2.ScrollView {
             visible: SystemState.audioAvailable
             iconName: SystemState.audioMuted ? "volume_off" : "volume_up"
             label: ""
-            accessibleName: qsTr("Output volume")
-            iconAccessibleName: SystemState.audioMuted ? qsTr("Unmute output") : qsTr("Mute output")
+            accessibleName: i18n("Output volume")
+            iconAccessibleName: SystemState.audioMuted ? i18n("Unmute output") : i18n("Mute output")
             from: 0
             to: 100
             value: SystemState.volumePercent
@@ -247,7 +247,7 @@ QQC2.ScrollView {
                 spacing: MeoTheme.space8
                 MeoExposedDropdown {
                     Layout.fillWidth: true
-                    label: qsTr("Output device")
+                    label: i18n("Output device")
                     model: SystemState.audioOutputDevices.map(function(device) { return device.name })
                     text: SystemState.audioDevice
                     onSelected: function(index, value) { SystemState.setDefaultAudioOutput(SystemState.audioOutputDevices[index].id) }
@@ -257,9 +257,9 @@ QQC2.ScrollView {
                     visible: SystemState.microphoneAvailable
                     iconName: SystemState.microphoneMuted ? "mic_off" : "mic"
                     label: SystemState.microphoneDevice
-                    accessibleName: qsTr("Microphone volume")
+                    accessibleName: i18n("Microphone volume")
                     iconAccessibleName: SystemState.microphoneMuted
-                        ? qsTr("Unmute microphone") : qsTr("Mute microphone")
+                        ? i18n("Unmute microphone") : i18n("Mute microphone")
                     from: 0; to: 100; value: SystemState.microphoneVolumePercent
                     onMoved: function(value) { SystemState.microphoneVolumePercent = Math.round(value) }
                     onIconTriggered: SystemState.microphoneMuted = !SystemState.microphoneMuted
@@ -267,7 +267,7 @@ QQC2.ScrollView {
                 MeoExposedDropdown {
                     Layout.fillWidth: true
                     visible: SystemState.audioInputDevices.length > 1
-                    label: qsTr("Input device")
+                    label: i18n("Input device")
                     model: SystemState.audioInputDevices.map(function(device) { return device.name })
                     text: SystemState.microphoneDevice
                     onSelected: function(index, value) { SystemState.setDefaultAudioInput(SystemState.audioInputDevices[index].id) }
@@ -373,18 +373,18 @@ QQC2.ScrollView {
                 MeoIconButton {
                     visible: Media.canGoPrevious
                     type: "standard"; size: "s"; icon.name: "skip_previous"
-                    Accessible.name: qsTr("Previous track")
+                    Accessible.name: i18n("Previous track")
                     onClicked: Media.previous()
                 }
                 MeoIconButton {
                     type: "tonal"; size: "m"; icon.name: Media.playing ? "pause" : "play_arrow"
-                    Accessible.name: Media.playing ? qsTr("Pause") : qsTr("Play")
+                    Accessible.name: Media.playing ? i18n("Pause") : i18n("Play")
                     onClicked: Media.playPause()
                 }
                 MeoIconButton {
                     visible: Media.canGoNext
                     type: "standard"; size: "s"; icon.name: "skip_next"
-                    Accessible.name: qsTr("Next track")
+                    Accessible.name: i18n("Next track")
                     onClicked: Media.next()
                 }
             }
@@ -403,19 +403,19 @@ QQC2.ScrollView {
             MeoIconButton {
                 visible: root.editMode
                 type: "standard"; size: "m"; icon.name: "restart_alt"
-                Accessible.name: qsTr("Reset tile layout")
+                Accessible.name: i18n("Reset tile layout")
                 onClicked: {
                     root.tileOrder = "wifi,bluetooth,focus,nightLight,keepAwake,powerMode,microphone,audioDevices,display,screenshot"
                     root.tileSizes = "wifi:2,bluetooth:2,focus:2,nightLight:2,keepAwake:2,powerMode:2,microphone:2,audioDevices:2,display:2,screenshot:2"
                     root.rebuildTiles(); root.saveTiles()
                 }
             }
-            MeoIconButton { type: "standard"; size: "m"; icon.name: "lock"; Accessible.name: qsTr("Lock screen"); onClicked: Platform.lockScreen() }
-            MeoIconButton { type: "standard"; size: "m"; icon.name: "settings"; Accessible.name: qsTr("System Settings"); onClicked: Qt.openUrlExternally("systemsettings:") }
-            MeoIconButton { type: "standard"; size: "m"; icon.name: "power_settings_new"; Accessible.name: qsTr("Power"); onClicked: root.powerRequested() }
+            MeoIconButton { type: "standard"; size: "m"; icon.name: "lock"; Accessible.name: i18n("Lock screen"); onClicked: Platform.lockScreen() }
+            MeoIconButton { type: "standard"; size: "m"; icon.name: "settings"; Accessible.name: i18n("System Settings"); onClicked: Qt.openUrlExternally("systemsettings:") }
+            MeoIconButton { type: "standard"; size: "m"; icon.name: "power_settings_new"; Accessible.name: i18n("Power"); onClicked: root.powerRequested() }
             MeoIconButton {
                 type: root.editMode ? "filled" : "standard"; size: "m"; icon.name: root.editMode ? "check" : "edit"
-                Accessible.name: root.editMode ? qsTr("Finish editing") : qsTr("Edit quick settings")
+                Accessible.name: root.editMode ? i18n("Finish editing") : i18n("Edit quick settings")
                 onClicked: root.editMode = !root.editMode
             }
         }

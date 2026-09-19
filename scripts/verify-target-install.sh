@@ -79,7 +79,15 @@ fi
 if [ ! -x "${target_root}/usr/bin/meoarch-repair" ] \
   || [ ! -f "${target_root}/usr/lib/meoarch-repair/qml/Main.qml" ] \
   || [ ! -x "${target_root}/usr/lib/meoarch-repair/checks/all.sh" ] \
+  || [ ! -x "${target_root}/usr/lib/meoarch-repair/checks/audio.sh" ] \
+  || [ ! -x "${target_root}/usr/lib/meoarch-repair/checks/display.sh" ] \
   || [ ! -x "${target_root}/usr/lib/meoarch-repair/actions/rebuild-initramfs.sh" ] \
+  || [ ! -x "${target_root}/usr/lib/meoarch-repair/meoarch-repair-privileged-service" ] \
+  || [ ! -f "${target_root}/usr/share/meoarch-repair/knowledge/manifest.json" ] \
+  || [ ! -f "${target_root}/usr/share/polkit-1/actions/org.meo.repair.policy" ] \
+  || [ ! -f "${target_root}/usr/share/dbus-1/system.d/org.meo.Repair1.conf" ] \
+  || [ ! -f "${target_root}/usr/share/dbus-1/system-services/org.meo.Repair1.service" ] \
+  || [ ! -f "${target_root}/usr/lib/systemd/system/meoarch-repair-privileged.service" ] \
   || [ ! -f "${target_root}/usr/share/applications/org.meo.repair.desktop" ]; then
   echo "FAIL: Target MeoArch Quick Repair payload is missing." >&2
   exit 10

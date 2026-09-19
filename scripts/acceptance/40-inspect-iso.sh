@@ -62,9 +62,28 @@ grep -q 'opt/meoarch-installer/qml/Main.qml' "${evidence_dir}/airootfs-files.txt
 grep -q 'opt/meoarch-installer/translations/meoarch_zh_CN.qm' "${evidence_dir}/airootfs-files.txt"
 grep -q 'usr/lib/qt6/qml/Meo/System/libmeosystemplugin.so' "${evidence_dir}/airootfs-files.txt"
 grep -q 'usr/lib/meoarch-repair/qml/Main.qml' "${evidence_dir}/airootfs-files.txt"
+for path in \
+  usr/share/meoarch-repair/knowledge/manifest.json \
+  usr/share/meoarch-repair/knowledge/system-prompt.md \
+  usr/share/meoarch-repair/knowledge/risk-review-prompt.md \
+  usr/share/meoarch-repair/knowledge/system-general.json \
+  usr/share/meoarch-repair/knowledge/audio-output.json \
+  usr/share/meoarch-repair/knowledge/display-output.json \
+  usr/share/meoarch-repair/knowledge/network-connectivity.json \
+  usr/share/meoarch-repair/knowledge/boot-startup.json \
+  usr/share/meoarch-repair/knowledge/package-health.json \
+  usr/share/meoarch-repair/knowledge/storage-health.json \
+  usr/share/meoarch-repair/knowledge/graphics-session.json \
+  usr/share/meoarch-repair/knowledge/security-posture.json \
+  usr/share/polkit-1/actions/org.meo.repair.policy \
+  usr/share/polkit-1/actions/org.meo.repair-live.policy \
+  usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules \
+  usr/lib/systemd/user/plasma-polkit-agent.service; do
+  grep -q "${path}$" "${evidence_dir}/airootfs-files.txt"
+done
 grep -q 'opt/meo-desktop/themes/look-and-feel/org.meo.desktop/metadata.json' \
   "${evidence_dir}/airootfs-files.txt"
-for package in cage networkmanager qtkeychain-qt6 lynis; do
+for package in alsa-utils cage networkmanager qtkeychain-qt6 lynis noto-fonts pipewire-audio pipewire-pulse wireplumber polkit-qt6; do
   grep -q "^${package} " "${evidence_dir}/packages.txt"
 done
 # The Cage Live session deliberately excludes Plasma Desktop, its login manager,
@@ -101,8 +120,16 @@ for executable in \
   opt/meoarch-installer/backend/run-archinstall.sh \
   usr/bin/meoarch-repair \
   usr/lib/meoarch-repair/checks/all.sh \
+  usr/lib/meoarch-repair/checks/audio.sh \
+  usr/lib/meoarch-repair/checks/display.sh \
+  usr/lib/meoarch-repair/live-actions/rebuild-initramfs.sh \
+  usr/lib/meoarch-repair/live-actions/refresh-pacman-keyring.sh \
+  usr/lib/meoarch-repair/live-actions/reload-systemd-manager.sh \
+  usr/lib/meoarch-repair/live-actions/restart-network-manager.sh \
+  usr/lib/meo-polkit-agent \
   usr/local/bin/meoarch-installer \
-  usr/local/bin/meoarch-installer-kiosk; do
+  usr/local/bin/meoarch-installer-kiosk \
+  usr/local/bin/meoarch-repair-session; do
   grep -Eq "^-rwx[^[:space:]]*[[:space:]].*${executable}$" \
     "${evidence_dir}/airootfs-files.txt"
 done
@@ -113,15 +140,81 @@ fi
 
 for path in \
   usr/lib/libmeoui.so.0 \
-  usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so; do
+  usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so \
+  usr/lib/qt6/qml/Meo/System/libmeosystemplugin.so; do
   destination="${extract_dir}/$(basename "${path}")"
   unsquashfs -cat "${extract_dir}/airootfs.sfs" "${path}" >"${destination}"
 done
-readelf -d "${extract_dir}/libmeoui.so.0" |
+# Keep stored ABI evidence in a stable language because the assertions below
+# match readelf's labels and must not vary with the build host locale.
+LC_ALL=C readelf -d "${extract_dir}/libmeoui.so.0" |
   tee "${evidence_dir}/libmeoui-readelf.txt"
-readelf -d "${extract_dir}/libmeoui_moduleplugin.so" |
+LC_ALL=C readelf -d "${extract_dir}/libmeoui_moduleplugin.so" |
   tee "${evidence_dir}/plugin-readelf.txt"
+LC_ALL=C readelf -d "${extract_dir}/libmeosystemplugin.so" |
+  tee "${evidence_dir}/meosystem-plugin-readelf.txt"
 grep -q 'Library soname: \[libmeoui.so.0\]' "${evidence_dir}/libmeoui-readelf.txt"
 grep -q 'Shared library: \[libmeoui.so.0\]' "${evidence_dir}/plugin-readelf.txt"
+if grep -Eq 'Shared library: \[(libPlasma\.so\.7|libkrdb\.so)\]' \
+  "${evidence_dir}/meosystem-plugin-readelf.txt"; then
+  echo "Live Meo.System must not depend on Plasma Workspace libraries." >&2
+  exit 1
+fi
 
-echo "PASS: ISO structure and MeoUI runtime" | tee "${evidence_dir}/inspect-status.txt"
+for path in \
+  manifest.json \
+  system-prompt.md \
+  risk-review-prompt.md \
+  system-general.json \
+  audio-output.json \
+  display-output.json \
+  network-connectivity.json \
+  boot-startup.json \
+  package-health.json \
+  storage-health.json \
+  graphics-session.json \
+  security-posture.json; do
+  unsquashfs -cat "${extract_dir}/airootfs.sfs" \
+    "usr/share/meoarch-repair/knowledge/${path}" >"${extract_dir}/${path}"
+  cmp "${repo_root}/repair/knowledge/${path}" "${extract_dir}/${path}"
+done
+unsquashfs -cat "${extract_dir}/airootfs.sfs" \
+  usr/share/polkit-1/actions/org.meo.repair.policy \
+  >"${extract_dir}/org.meo.repair.policy"
+cmp "${repo_root}/repair/data/org.meo.repair.policy" \
+  "${extract_dir}/org.meo.repair.policy"
+unsquashfs -cat "${extract_dir}/airootfs.sfs" \
+  usr/share/polkit-1/actions/org.meo.repair-live.policy \
+  >"${extract_dir}/org.meo.repair-live.policy"
+cmp "${repo_root}/repair/data/org.meo.repair-live.policy" \
+  "${extract_dir}/org.meo.repair-live.policy"
+unsquashfs -cat "${extract_dir}/airootfs.sfs" \
+  usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules \
+  >"${extract_dir}/49-meoarch-live-repair.rules"
+cmp "${repo_root}/repair/data/org.meo.repair-live.rules" \
+  "${extract_dir}/49-meoarch-live-repair.rules"
+for action in rebuild-initramfs refresh-pacman-keyring reload-systemd-manager restart-network-manager; do
+  unsquashfs -cat "${extract_dir}/airootfs.sfs" \
+    "usr/lib/meoarch-repair/live-actions/${action}.sh" \
+    >"${extract_dir}/live-${action}.sh"
+  cmp "${repo_root}/repair/live-actions/${action}.sh" \
+    "${extract_dir}/live-${action}.sh"
+done
+for path in \
+  etc/systemd/system/meoarch-installer.service \
+  usr/local/bin/meoarch-installer-kiosk \
+  usr/local/bin/meoarch-repair-session \
+  usr/lib/systemd/user/plasma-polkit-agent.service; do
+  destination="${extract_dir}/$(basename "${path}")"
+  unsquashfs -cat "${extract_dir}/airootfs.sfs" "${path}" >"${destination}"
+done
+cmp "${repo_root}/meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service" \
+  "${extract_dir}/meoarch-installer.service"
+cmp "${repo_root}/installer/bin/meoarch-installer-kiosk" \
+  "${extract_dir}/meoarch-installer-kiosk"
+cmp "${repo_root}/installer/bin/meoarch-repair-session" \
+  "${extract_dir}/meoarch-repair-session"
+cmp "${projects_root}/meo-kde/native/authentication/data/plasma-polkit-agent.service" \
+  "${extract_dir}/plasma-polkit-agent.service"
+
+echo "PASS: ISO structure and Help/MeoUI runtime payload" | tee "${evidence_dir}/inspect-status.txt"

@@ -17,6 +17,25 @@ QQC2.AbstractButton {
     property bool use24HourClock: true
     signal statusCenterRequested()
 
+    function displayedTime() {
+        return Qt.formatTime(currentDateTime, use24HourClock ? "hh:mm" : "h:mm AP")
+    }
+
+    function displayedDate() {
+        return Qt.formatDate(currentDateTime, Qt.DefaultLocaleShortDate)
+    }
+
+    function notificationStatus() {
+        if (inhibited)
+            return i18n("Do Not Disturb is on")
+        if (unreadCount > 0)
+            return i18n("%1 unread notifications").arg(unreadCount)
+        if (activeJobsCount > 0)
+            return i18n("%1 background tasks, %2 percent complete")
+                .arg(activeJobsCount).arg(jobsPercentage)
+        return i18n("No unread notifications")
+    }
+
     implicitWidth: timeContent.implicitWidth + leftPadding + rightPadding
     // The top panel is intentionally compact.  Keep time, date and the
     // notification affordance on a single baseline so they cannot visually
@@ -24,15 +43,10 @@ QQC2.AbstractButton {
     implicitHeight: 32 * MeoTheme.globalScale
     leftPadding: MeoTheme.space8
     rightPadding: MeoTheme.space8
-    Accessible.name: qsTr("Time, calendar, and notifications")
-    Accessible.description: inhibited
-                            ? qsTr("Do Not Disturb is on")
-                            : (unreadCount > 0
-                               ? qsTr("%1 unread notifications").arg(unreadCount)
-                               : (activeJobsCount > 0
-                                  ? qsTr("%1 background tasks, %2 percent complete")
-                                      .arg(activeJobsCount).arg(jobsPercentage)
-                                  : qsTr("No unread notifications")))
+    Accessible.name: i18n("Time, calendar, and notifications")
+    Accessible.description: showDate
+                            ? i18n("%1 · %2 · %3", displayedTime(), displayedDate(), notificationStatus())
+                            : i18n("%1 · %2", displayedTime(), notificationStatus())
     onClicked: statusCenterRequested()
 
     background: MeoShape {
@@ -71,7 +85,7 @@ QQC2.AbstractButton {
             Layout.alignment: Qt.AlignVCenter
 
             MeoText {
-                text: Qt.formatTime(root.currentDateTime, root.use24HourClock ? "hh:mm" : "h:mm AP")
+                text: root.displayedTime()
                 typeRole: "label"
                 typeSize: "medium"
                 emphasized: true
@@ -81,7 +95,7 @@ QQC2.AbstractButton {
 
             MeoText {
                 visible: root.showDate
-                text: Qt.formatDate(root.currentDateTime, "MMM d")
+                text: root.displayedDate()
                 typeRole: "label"
                 typeSize: "small"
                 fontScaleOverride: root.textScale

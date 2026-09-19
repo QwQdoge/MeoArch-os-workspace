@@ -100,16 +100,16 @@ PageFrame {
             ToggleRow {
                 visible: page.secondaryCalendar === "hebcal"
                 width: parent.width
-                title: qsTr("Use online Hebrew calendar data after installation")
-                subtitle: qsTr("Optional Hebcal data. The installer never contacts this service.")
+                title: qsTr("Hebcal calendar")
+                subtitle: qsTr("Public calendar data can be configured after installation")
                 checked: page.controller ? page.controller.selection("preferences", "hebcalEnabled", false) : false
                 onToggled: checked => page.controller.setHebcalEnabled(checked)
             }
             InfoBanner {
                 visible: page.secondaryCalendar === "hebcal"
                 width: parent.width
-                title: qsTr("Online data is optional")
-                message: qsTr("Only the current date and a public calendar language are requested after installation. Account, device, hardware, and location data are never sent.")
+                title: qsTr("Privacy")
+                message: qsTr("The installer never contacts this service. When enabled after installation, only the current date and public calendar language are requested—never account, device, hardware, or location data.")
             }
             MeoTimezoneSelector {
                 width: parent.width

@@ -53,6 +53,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
 
     def test_startup_is_localized_fail_closed_and_visually_minimal(self):
         host = (QML_ROOT.parent / "app/main.cpp").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
         main = (QML_ROOT / "Main.qml").read_text(encoding="utf-8")
         launcher = (QML_ROOT.parent / "bin/meoarch-installer").read_text(encoding="utf-8")
         welcome = (QML_ROOT / "pages/WelcomePage.qml").read_text(encoding="utf-8")
@@ -69,6 +70,12 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("native MeoArch Installer host is missing", launcher)
         self.assertNotIn("Repeater", welcome)
         self.assertIn('qsTr("Review first. Nothing changes until you confirm.")', welcome)
+        self.assertLess(
+            host.index("loadCatalogs(initialUiLanguage);"),
+            host.index("InstallerController controller(arguments);"),
+        )
+        self.assertIn("controller.retranslateUserFacingState();", host)
+        self.assertIn("void InstallerController::retranslateUserFacingState()", controller)
 
     def test_power_dialog_uses_md_motion_and_hold_confirmation(self):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
@@ -78,6 +85,35 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('confirmationText: qsTr("Hold to shut down")', frame)
         self.assertIn("holdDuration: 1200", frame)
         self.assertIn("KeyNavigation.down: shutdownAction", frame)
+
+    def test_top_actions_are_compact_borderless_and_help_is_step_local(self):
+        frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
+        actions_start = frame.index("id: actions")
+        actions_end = frame.index("MeoMotionPopup {", actions_start)
+        actions = frame[actions_start:actions_end]
+
+        self.assertIn('readonly property string topActionSize: "s"', frame)
+        self.assertIn('readonly property string topActionType: "standard"', frame)
+        self.assertEqual(actions.count("size: frame.topActionSize"), 4)
+        self.assertEqual(actions.count("type: frame.topActionType"), 4)
+        self.assertNotIn('size: "l"', actions)
+        self.assertNotIn('type: "tonal"', actions)
+        for accessible_name in (
+            'Accessible.name: qsTr("Open debug terminal")',
+            'Accessible.name: qsTr("Help")',
+            'Accessible.name: qsTr("Installer language")',
+            'Accessible.name: qsTr("Power")',
+        ):
+            self.assertIn(accessible_name, actions)
+
+        self.assertIn("readonly property string currentStepHelp", frame)
+        self.assertIn("case 5:", frame)
+        self.assertIn("case 10:", frame)
+        self.assertIn('text: qsTr("Current step")', frame)
+        self.assertIn("text: frame.currentStepHelp", frame)
+        self.assertIn('text: qsTr("More reference")', frame)
+        self.assertIn("helpPopup.openFrom(helpButton)", frame)
+        self.assertIn("closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside", frame)
 
     def test_async_disk_and_preflight_work_have_explicit_loading_states(self):
         header = (QML_ROOT.parent / "app/installercontroller.h").read_text(encoding="utf-8")
@@ -100,12 +136,43 @@ class InstallerDesignSystemTests(unittest.TestCase):
 
     def test_custom_profile_persists_required_desktop_and_review_shows_resolved_plan(self):
         software = (QML_ROOT / "pages/SoftwarePage.qml").read_text(encoding="utf-8")
+        channel = (QML_ROOT / "pages/UpdateChannelPage.qml").read_text(encoding="utf-8")
+        header = (QML_ROOT.parent / "app/installercontroller.h").read_text(encoding="utf-8")
+        preview = (QML_ROOT / "PreviewController.qml").read_text(encoding="utf-8")
         summary = (QML_ROOT / "pages/SummaryPage.qml").read_text(encoding="utf-8")
         self.assertIn('value === "custom" ? ["meo-desktop"] : []', software)
+        # Profiles are a fixed product contract.  They must be direct page
+        # children so a compact Live window cannot omit them from the
+        # positioner's layout and strand a user in the catalog below.
+        profile_section = software.split('MeoCard {', 1)[0]
+        self.assertEqual(profile_section.count('title: qsTr("Recommended")'), 1)
+        self.assertEqual(profile_section.count('title: qsTr("Minimal")'), 1)
+        self.assertEqual(profile_section.count('title: qsTr("Custom")'), 1)
+        self.assertNotIn('Repeater {\n            model: [', profile_section)
         self.assertIn("controller.installPlan.repository", summary)
         self.assertIn("controller.installPlan.package", summary)
         self.assertIn("controller.installPlan.applications", summary)
         self.assertIn("Validated Meo package plan", summary)
+        # A generic invokable read is not reactive on its own. Both choice
+        # pages must bind through the controller revision so a click updates
+        # its indicator and the Custom component controls in the same view.
+        self.assertIn("Q_PROPERTY(quint64 selectionRevision", header)
+        self.assertIn("property int selectionRevision: 0", preview)
+        self.assertIn("++selectionRevision", preview)
+        self.assertIn("readonly property var selectionRevision", software)
+        self.assertIn("readonly property var selectedComponents", software)
+        self.assertEqual(software.count("controlled: true"), 5)
+        self.assertIn("readonly property var selectionRevision", channel)
+
+    def test_selection_cards_measure_their_content_column(self):
+        selection_card = (QML_ROOT / "components/SelectionCard.qml").read_text(encoding="utf-8")
+        self.assertIn("id: copy", selection_card)
+        self.assertIn("copy.implicitHeight", selection_card)
+
+    def test_installation_details_keep_multiline_text_in_readable_line_boxes(self):
+        summary = (QML_ROOT / "pages/SummaryPage.qml").read_text(encoding="utf-8")
+        self.assertIn("lineHeightMode: Text.ProportionalHeight", summary)
+        self.assertIn("lineHeight: 1.35", summary)
 
     def test_software_page_exposes_system_recommended_and_opt_in_third_party_tiers(self):
         software = (QML_ROOT / "pages/SoftwarePage.qml").read_text(encoding="utf-8")
@@ -187,6 +254,9 @@ class InstallerDesignSystemTests(unittest.TestCase):
                 "Offline installation is not available",
                 "Connect with Wi-Fi or Ethernet to continue. No disk changes happen on this page or before the final confirmation.",
             ],
+            "InstallerController": [
+                "The selected software list is invalid. Go back and choose the components again.",
+            ],
             "UserAccountPage": ["Finish account details to continue"],
         }
         for context_name, sources in required.items():
@@ -249,6 +319,29 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("function isSelectable", selector)
         self.assertIn('state === "needs-online-setup"', selector)
 
+    def test_visual_preview_uses_the_same_bilingual_copy_contract(self):
+        preview = (QML_ROOT / "PreviewController.qml").read_text(encoding="utf-8")
+        catalog = ET.parse(QML_ROOT.parent / "translations/meoarch_zh_CN.ts")
+        preview_entries = {}
+        for context in catalog.findall("context"):
+            if context.findtext("name") == "PreviewController":
+                preview_entries = {
+                    message.findtext("source"): message.findtext("translation")
+                    for message in context.findall("message")
+                }
+                break
+        self.assertIn('Qt.uiLanguage.toLowerCase().startsWith("zh")', preview)
+        self.assertIn('summary:qsTr("Open and create compressed archives.")', preview)
+        self.assertIn('errorMessage = qsTr("Enter a valid lowercase username.")', preview)
+        for source in (
+            "Visual preview data",
+            "This current network can be remembered after installation.",
+            "Open and create compressed archives.",
+            "NVMe Solid State Drive",
+            "Visual preview complete.",
+        ):
+            self.assertTrue(preview_entries.get(source), source)
+
     def test_installer_keeps_cloud_account_authentication_out_of_the_local_user_flow(self):
         user = (QML_ROOT / "pages/UserAccountPage.qml").read_text(encoding="utf-8").casefold()
         self.assertNotIn("meo account", user)
@@ -268,6 +361,15 @@ class InstallerDesignSystemTests(unittest.TestCase):
         unavailable_branch = controller.split('if (m_networkState != QStringLiteral("online")) {', 1)[1].split('auto *process', 1)[0]
         self.assertIn("disableNetworkHandoff();", unavailable_branch)
         self.assertNotIn("sourcePath", (QML_ROOT.parent / "data/default_selections.json").read_text(encoding="utf-8"))
+
+    def test_network_reachability_checks_the_first_party_package_source_with_head(self):
+        network = (QML_ROOT / "pages/NetworkPage.qml").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        self.assertIn("https://packages.meoarch.org/meo/os/x86_64/meo.db", controller)
+        self.assertIn("m_connectivityManager->head(request)", controller)
+        self.assertIn("status >= 200 && status < 300", controller)
+        self.assertNotIn("connectivity.meoarch.org", controller)
+        self.assertIn("official MeoArch package source", network)
 
     def test_debug_terminal_is_never_exposed_from_the_root_production_kiosk(self):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")

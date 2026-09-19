@@ -2,6 +2,8 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QJSEngine>
+#include <QJsonObject>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QtTest>
@@ -59,6 +61,36 @@ else:
     }
 
 private slots:
+    void javascriptSoftwareArraysAreMaterializedBeforeJsonPersistence()
+    {
+        InstallerController controller({});
+        QJSEngine engine;
+        const QJSValue components = engine.evaluate(
+            QStringLiteral("['meo-desktop', 'meo-settings', 'omnistore-bin']"));
+        QVERIFY(components.isArray());
+
+        // This is the same generic-QVariant boundary used by QML. Without
+        // materialisation, QJsonObject serializes this QJSValue as JSON null.
+        controller.setSelection(QStringLiteral("software"), QStringLiteral("components"),
+                                QVariant::fromValue(components));
+        const QVariant stored = controller.selection(QStringLiteral("software"),
+                                                     QStringLiteral("components"));
+        QCOMPARE(stored.metaType(), QMetaType::fromType<QVariantList>());
+        QCOMPARE(stored.toList(), (QVariantList{
+            QStringLiteral("meo-desktop"), QStringLiteral("meo-settings"),
+            QStringLiteral("omnistore-bin")}));
+        const QJsonObject serialized = QJsonObject::fromVariantMap(
+            QVariantMap{{QStringLiteral("components"), stored}});
+        QCOMPARE(serialized.value(QStringLiteral("components")).toArray().toVariantList(),
+                 stored.toList());
+
+        controller.setSelection(QStringLiteral("software"), QStringLiteral("components"),
+                                QVariant::fromValue(engine.evaluate(QStringLiteral("null"))));
+        QVERIFY(controller.errorMessage().contains(QStringLiteral("software list is invalid")));
+        QCOMPARE(controller.selection(QStringLiteral("software"), QStringLiteral("components")).toList(),
+                 stored.toList());
+    }
+
     void staleCompletion_data()
     {
         QTest::addColumn<QString>("delayedStage");

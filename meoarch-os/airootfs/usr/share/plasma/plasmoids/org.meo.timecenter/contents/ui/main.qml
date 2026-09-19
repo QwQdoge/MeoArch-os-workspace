@@ -18,11 +18,11 @@ PlasmoidItem {
     readonly property real compactHeight: ShellMetrics.topBarHeight
 
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
-    Plasmoid.title: qsTr("Meo Time and Notifications")
-    toolTipMainText: qsTr("Meo Time and Notifications")
+    Plasmoid.title: i18n("Meo Time and Notifications")
+    toolTipMainText: i18n("Meo Time and Notifications")
     toolTipSubText: notifications.unreadNotificationsCount > 0
-                    ? qsTr("%1 unread notifications").arg(notifications.unreadNotificationsCount)
-                    : qsTr("Calendar and notifications")
+                    ? i18n("%1 unread notifications").arg(notifications.unreadNotificationsCount)
+                    : i18n("Calendar and notifications")
     preferredRepresentation: compactRepresentation
     switchWidth: 0
     switchHeight: 0

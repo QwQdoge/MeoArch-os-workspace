@@ -3,7 +3,7 @@ set -u -o pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 status=0
-for category in network boot packages storage graphics security; do
+for category in audio display network boot packages storage graphics security; do
   printf '\n===== MeoArch %s check =====\n' "${category}"
   if "${script_dir}/${category}.sh"; then
     :

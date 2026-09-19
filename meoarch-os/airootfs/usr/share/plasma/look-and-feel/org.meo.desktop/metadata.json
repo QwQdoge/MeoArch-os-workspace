@@ -8,9 +8,11 @@
     ],
     "Category": "MeoArch",
     "Description": "MeoArch adaptive Material 3 desktop for KDE Plasma 6",
+    "Description[zh_CN]": "适用于 KDE Plasma 6 的 MeoArch 自适应 Material 3 桌面",
     "Id": "org.meo.desktop",
     "License": "GPL-3.0-or-later",
     "Name": "Meo Desktop",
+    "Name[zh_CN]": "Meo 桌面",
     "Version": "0.2.0",
     "Website": "https://github.com/QwQdoge/MeoArch_os-workspace"
   }

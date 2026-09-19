@@ -1,0 +1,36 @@
+{
+  "schema": "org.meo.help-runbook/v1",
+  "id": "security.posture.concern",
+  "version": 1,
+  "intents": ["安全问题", "怀疑入侵", "病毒", "security concern", "possible compromise", "malware"],
+  "questions": [
+    {
+      "id": "active_compromise_signs",
+      "label": "你是否看到陌生登录、未知进程或文件被异常修改？",
+      "options": [
+        {"id": "yes", "label": "是，看到可疑迹象"},
+        {"id": "no", "label": "否，没有明确迹象"}
+      ]
+    },
+    {
+      "id": "account_affected",
+      "label": "在线账号也出现了陌生登录或密码异常吗？",
+      "options": [
+        {"id": "yes", "label": "是，账号也受影响"},
+        {"id": "no", "label": "否，账号看起来正常"}
+      ]
+    },
+    {
+      "id": "hardening_check_only",
+      "label": "你只是想检查系统安全设置是否完善吗？",
+      "options": [
+        {"id": "yes", "label": "是，只做安全检查"},
+        {"id": "no", "label": "否，我担心已经发生问题"}
+      ]
+    }
+  ],
+  "diagnostics": ["security.lynis"],
+  "guidedCapabilities": [],
+  "allowedRepairActions": [],
+  "manualHandoffs": ["active_compromise_isolation", "account_recovery", "forensic_review", "hardening_requires_individual_decisions"]
+}

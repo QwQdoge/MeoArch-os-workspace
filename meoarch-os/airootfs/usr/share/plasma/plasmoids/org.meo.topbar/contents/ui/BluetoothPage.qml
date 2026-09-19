@@ -16,8 +16,8 @@ Item {
 
         PopupPageHeader {
             Layout.fillWidth: true
-            title: qsTr("Bluetooth")
-            subtitle: SystemState.bluetoothEnabled ? qsTr("Connect and manage devices") : qsTr("Bluetooth is off")
+            title: i18n("Bluetooth")
+            subtitle: SystemState.bluetoothEnabled ? i18n("Connect and manage devices") : i18n("Bluetooth is off")
             onBackRequested: root.backRequested()
             trailingContent: Component {
                 RowLayout {
@@ -26,7 +26,7 @@ Item {
                         size: "s"
                         checked: SystemState.bluetoothEnabled
                         enabled: SystemState.bluetoothAvailable && !SystemState.bluetoothBusy
-                        Accessible.name: qsTr("Bluetooth")
+                        Accessible.name: i18n("Bluetooth")
                         onToggled: function(checked) { SystemState.bluetoothEnabled = checked }
                     }
                     MeoIconButton {
@@ -35,7 +35,7 @@ Item {
                         icon.name: SystemState.bluetoothDiscovering ? "stop" : "refresh"
                         enabled: SystemState.bluetoothEnabled && !SystemState.bluetoothBusy
                         Accessible.name: SystemState.bluetoothDiscovering
-                                         ? qsTr("Stop Bluetooth discovery") : qsTr("Discover Bluetooth devices")
+                                         ? i18n("Stop Bluetooth discovery") : i18n("Discover Bluetooth devices")
                         onClicked: {
                             if (SystemState.bluetoothDiscovering) SystemState.stopBluetoothDiscovery()
                             else SystemState.startBluetoothDiscovery()
@@ -58,7 +58,7 @@ Item {
             spacing: MeoTheme.space8
             MeoLoadingIndicator { indeterminate: true; width: 20 * MeoTheme.globalScale; height: width }
             MeoText {
-                text: qsTr("Looking for nearby devices…")
+                text: i18n("Looking for nearby devices…")
                 typeRole: "body"
                 typeSize: "small"
                 color: MeoTheme.onSurfaceVariant
@@ -86,8 +86,8 @@ Item {
                     headline: modelData.name
                     supportingText: modelData.connected
                                     ? (modelData.batteryAvailable
-                                       ? qsTr("Connected · %1%").arg(modelData.batteryPercent) : qsTr("Connected"))
-                                    : (modelData.paired ? qsTr("Paired") : qsTr("Available"))
+                                       ? i18n("Connected · %1%").arg(modelData.batteryPercent) : i18n("Connected"))
+                                    : (modelData.paired ? i18n("Paired") : i18n("Available"))
                     leadingIcon: modelData.icon
                     selected: modelData.connected
                     interactive: !SystemState.bluetoothBusy
@@ -100,7 +100,7 @@ Item {
                                 type: "standard"
                                 size: "s"
                                 icon.name: "delete"
-                                Accessible.name: qsTr("Forget %1").arg(modelData.name)
+                                Accessible.name: i18n("Forget %1").arg(modelData.name)
                                 onClicked: SystemState.forgetBluetoothDevice(modelData.address)
                             }
                         }
@@ -113,16 +113,16 @@ Item {
                 anchors.fill: parent
                 visible: !bluetoothList.visible
                 iconName: "bluetooth"
-                title: !SystemState.bluetoothAvailable ? qsTr("Bluetooth is unavailable")
-                       : (!SystemState.bluetoothEnabled ? qsTr("Bluetooth is turned off") : qsTr("No devices found"))
+                title: !SystemState.bluetoothAvailable ? i18n("Bluetooth is unavailable")
+                       : (!SystemState.bluetoothEnabled ? i18n("Bluetooth is turned off") : i18n("No devices found"))
                 description: !SystemState.bluetoothAvailable
-                             ? qsTr("Check that a Bluetooth adapter and the BlueZ service are available.")
+                             ? i18n("Check that a Bluetooth adapter and the BlueZ service are available.")
                              : (!SystemState.bluetoothEnabled
-                                ? qsTr("Turn on Bluetooth to connect accessories.")
-                                : qsTr("Put the device in pairing mode, then search again."))
-                actionText: !SystemState.bluetoothAvailable ? qsTr("Bluetooth Settings")
-                            : (!SystemState.bluetoothEnabled ? qsTr("Turn on Bluetooth")
-                                                            : (SystemState.bluetoothDiscovering ? "" : qsTr("Find devices")))
+                                ? i18n("Turn on Bluetooth to connect accessories.")
+                                : i18n("Put the device in pairing mode, then search again."))
+                actionText: !SystemState.bluetoothAvailable ? i18n("Bluetooth Settings")
+                            : (!SystemState.bluetoothEnabled ? i18n("Turn on Bluetooth")
+                                                            : (SystemState.bluetoothDiscovering ? "" : i18n("Find devices")))
                 onActionRequested: {
                     if (!SystemState.bluetoothAvailable)
                         Qt.openUrlExternally("systemsettings:kcm_bluetooth")

@@ -1,0 +1,17 @@
+{
+  "schema": "org.meo.help-knowledge-manifest/v1",
+  "version": "2026.09.17.3",
+  "resources": [
+    {"id": "system-prompt", "path": "system-prompt.md", "kind": "policy"},
+    {"id": "risk-review-prompt", "path": "risk-review-prompt.md", "kind": "policy"},
+    {"id": "system.general.problem", "path": "system-general.json", "kind": "runbook"},
+    {"id": "audio.output.no-sound", "path": "audio-output.json", "kind": "runbook"},
+    {"id": "display.second-output-missing", "path": "display-output.json", "kind": "runbook"},
+    {"id": "network.connectivity.unavailable", "path": "network-connectivity.json", "kind": "runbook"},
+    {"id": "boot.startup.failure", "path": "boot-startup.json", "kind": "runbook"},
+    {"id": "packages.update.failure", "path": "package-health.json", "kind": "runbook"},
+    {"id": "storage.health.problem", "path": "storage-health.json", "kind": "runbook"},
+    {"id": "graphics.session.problem", "path": "graphics-session.json", "kind": "runbook"},
+    {"id": "security.posture.concern", "path": "security-posture.json", "kind": "runbook"}
+  ]
+}

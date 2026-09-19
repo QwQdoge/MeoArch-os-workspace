@@ -104,6 +104,15 @@ class GenerateConfigTests(unittest.TestCase):
         for package in MODULE.MEO_DESKTOP_PACKAGES:
             self.assertIn(package, config["packages"])
 
+    def test_archinstall_does_not_request_meo_repository_packages_before_repo_setup(self):
+        # Meo packages are installed only after the target's signed Meo
+        # repository is configured by run-archinstall.sh. Asking Archinstall
+        # for OmniStore earlier would fail against the Arch official catalog
+        # and would ignore a Minimal/unchecked Custom choice.
+        config = MODULE.build_user_configuration(self.selections)
+        self.assertNotIn("omnistore-bin", MODULE.MEO_DESKTOP_PACKAGES)
+        self.assertNotIn("omnistore-bin", config["packages"])
+
     def test_erase_mode_generates_explicit_safe_disk_layout(self):
         self.selections["disk"]["stableId"] = "/dev/vda"
         self.selections["disk"]["devicePath"] = "/dev/vda"

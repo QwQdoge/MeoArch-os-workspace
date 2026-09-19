@@ -145,6 +145,16 @@ class RepositoryPreflightTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("meo-desktop", result.stderr)
 
+    def test_missing_icon_studio_blocks_a_settings_package_plan(self):
+        plan = json.loads(self.plan.read_text())
+        plan["package"]["packages"] = ["meo-settings", "meo-icon-studio"]
+        self.plan.write_text(json.dumps(plan))
+        result = self._run_preflight(*self._write_signed_database(
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-settings"]
+        ))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("meo-icon-studio", result.stderr)
+
     def test_expired_signing_key_fails_even_with_good_signature(self):
         past = str(int(time.time()) - 2 * 24 * 60 * 60)
         identity = "Expired test key <expired@example.invalid>"

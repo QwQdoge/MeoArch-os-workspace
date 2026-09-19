@@ -1,0 +1,28 @@
+{
+  "schema": "org.meo.help-runbook/v1",
+  "id": "audio.output.no-sound",
+  "version": 3,
+  "intents": ["没有声音", "声音用不了", "no sound", "audio not working", "wrong output"],
+  "questions": [
+    {
+      "id": "scope",
+      "label": "所有应用都没有声音吗？",
+      "options": [
+        {"id": "all_apps", "label": "是，所有应用都没有声音"},
+        {"id": "one_app", "label": "否，只有一个应用没有声音"}
+      ]
+    }
+  ],
+  "diagnostics": ["audio.services", "audio.outputs", "audio.default", "audio.mute", "audio.volume", "audio.routes", "audio.bluetooth_transport"],
+  "guidedCapabilities": [
+    {"id": "audio.unmute_default", "privilege": "user", "reversible": true, "postCheck": "audio.default_audible"},
+    {"id": "audio.select_output", "privilege": "user", "reversible": true, "postCheck": "audio.default_matches_selection"},
+    {"id": "audio.restart_services", "privilege": "user", "reversible": true, "postCheck": "audio.services_active_and_physical_output_present"}
+  ],
+  "allowedRepairActions": [
+    "open_omnistore_libpulse",
+    "open_omnistore_wireplumber",
+    "open_omnistore_bluez_utils"
+  ],
+  "manualHandoffs": ["hardware_not_detected", "single_application_problem", "unsupported_profile_or_port", "bluetooth_service_or_controller_unavailable"]
+}

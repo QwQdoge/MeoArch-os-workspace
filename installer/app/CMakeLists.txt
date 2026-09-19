@@ -32,7 +32,11 @@ target_link_libraries(meoarch-installer-app PRIVATE
 target_compile_definitions(meoarch-installer-app PRIVATE
     MEOARCH_QML_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../qml"
     MEOUI_QML_BUILD_IMPORT_PATH="${CMAKE_BINARY_DIR}/meoui"
+    MEOUI_TRANSLATIONS_BUILD_DIR="${CMAKE_BINARY_DIR}/meoui/translations"
 )
+if(TARGET meoui_lrelease)
+    add_dependencies(meoarch-installer-app meoui_lrelease)
+endif()
 set_target_properties(meoarch-installer-app PROPERTIES
     WIN32_EXECUTABLE FALSE
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"

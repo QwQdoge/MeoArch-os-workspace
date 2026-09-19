@@ -1,0 +1,20 @@
+[Unit]
+Description=MeoArch strongly typed privileged repair service
+Documentation=file:///usr/share/doc/meoarch-repair/security-architecture.md
+
+[Service]
+Type=dbus
+BusName=org.meo.Repair1
+ExecStart=/usr/lib/meoarch-repair/meoarch-repair-privileged-service
+User=root
+Group=root
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectClock=yes
+RestrictRealtime=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+UMask=0077
+TimeoutStopSec=5s

@@ -71,7 +71,7 @@ PageFrame {
             type: "tonal"
             loading: page.controller && page.controller.networkState === "checking"
             enabled: page.controller && page.controller.networkState !== "checking"
-            Accessible.description: qsTr("Checks the MeoArch connectivity endpoint without sending account, device, or hardware information")
+            Accessible.description: qsTr("Checks an official MeoArch package source without sending account, device, or hardware information")
             onClicked: page.controller.retryNetwork()
         }
         SelectionCard {

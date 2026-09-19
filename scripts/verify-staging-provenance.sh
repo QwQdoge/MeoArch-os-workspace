@@ -26,10 +26,10 @@ set -e
 classify() {
   local path="$1"
   case "${path}" in
-    airootfs/opt/meoarch-installer/*|airootfs/usr/local/bin/meoarch-installer*|airootfs/usr/local/bin/meoarch-install)
+    airootfs/opt/meoarch-installer/*|airootfs/usr/local/bin/meoarch-installer*|airootfs/usr/local/bin/meoarch-install|airootfs/usr/local/bin/meoarch-repair-session)
       printf '%s\t%s\t%s' 'Installer' 'this workspace installer source' 'Installer runtime and kiosk entrypoint'
       ;;
-    airootfs/usr/bin/meoarch-repair|airootfs/usr/lib/meoarch-repair/*|airootfs/usr/share/applications/org.meo.repair.desktop|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg)
+    airootfs/usr/bin/meoarch-repair|airootfs/usr/lib/meoarch-repair/*|airootfs/usr/share/meoarch-repair/*|airootfs/usr/share/polkit-1/actions/org.meo.repair*.policy|airootfs/usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules|airootfs/usr/share/applications/org.meo.repair.desktop|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg|airootfs/usr/lib/meo-polkit-agent|airootfs/usr/lib/systemd/user/plasma-polkit-agent.service)
       printf '%s\t%s\t%s' 'Quick Repair' 'this workspace shared repair source' 'system and Live categorized repair application'
       ;;
     airootfs/usr/lib/libmeoui.so*|airootfs/usr/lib/qt6/qml/MeoUI/*)
@@ -39,7 +39,7 @@ classify() {
       printf '%s\t%s\t%s' 'MeoKDE' 'compiled or copied sibling MeoKDE runtime' 'shared KDE QML and font integration'
       ;;
     airootfs/usr/lib/qt6/qml/Meo/System/*|airootfs/usr/bin/meo-session-actiond|airootfs/usr/bin/meo-weather-refresh|airootfs/usr/share/dbus-1/services/org.meo.SessionAction1.service)
-      printf '%s\t%s\t%s' 'Meo.System' 'compiled sibling MeoKDE native/system module' 'shared NetworkManager and system-state backend'
+      printf '%s\t%s\t%s' 'Meo.System' 'Live adapter compiled from validated sibling MeoKDE SystemStateHub source' 'shared NetworkManager and system-state backend without Plasma Workspace runtime coupling'
       ;;
     airootfs/opt/meo-desktop/*|airootfs/usr/share/plasma/look-and-feel/org.meo.desktop/*|airootfs/usr/share/plasma/desktoptheme/*|airootfs/usr/share/plasma/plasmoids/org.meo.shelf/*|airootfs/usr/share/plasma/plasmoids/org.meo.topbar/*|airootfs/usr/share/plasma/plasmoids/org.meo.timecenter/*|airootfs/usr/share/color-schemes/*|airootfs/usr/share/icons/MeoSymbols*/*)
       printf '%s\t%s\t%s' 'MeoKDE desktop' 'declared sibling MeoKDE desktop assets' 'live desktop theme, status surfaces, or retired Shelf cleanup'
@@ -70,6 +70,9 @@ classify() {
       ;;
     airootfs/usr/share/plymouth/themes/meoarch/*|airootfs/etc/plymouth/*)
       printf '%s\t%s\t%s' 'Plymouth theme' 'workspace plymouth theme source' 'MeoArch graphical boot splash theme'
+      ;;
+    airootfs/etc/pacman.d/gnupg/*)
+      printf '%s\t%s\t%s' 'Build trust seed' 'public Arch keyring and ISO Meo bootstrap' 'pacstrap verification only; no private key material'
       ;;
     profiledef.sh)
       printf '%s\t%s\t%s' 'Profile version' 'ISO build script' 'timestamped ISO versioning'

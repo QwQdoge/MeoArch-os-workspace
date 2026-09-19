@@ -41,9 +41,15 @@ exec > >(tee "${evidence_dir}/component-build.log") 2>&1
 cmake --fresh -S "${repo_root}/../meo-kde/native/system" -B "${repo_root}/build/meo-system" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "${repo_root}/build/meo-system" --parallel
+cmake --fresh -S "${repo_root}/installer/live-system" \
+  -B "${repo_root}/build/meo-system-live" \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DMEO_KDE_SOURCE_DIR="${repo_root}/../meo-kde"
+cmake --build "${repo_root}/build/meo-system-live" --parallel
 runtime="${repo_root}/build/installer-runtime-root/usr"
 library="${runtime}/lib/libmeoui.so.0"
 plugin="${runtime}/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so"
+live_system_plugin="${repo_root}/build/meo-system-live/qml/Meo/System/libmeosystemplugin.so"
 
 [ -f "${library}" ]
 [ -L "${runtime}/lib/libmeoui.so.0" ]
@@ -52,13 +58,61 @@ plugin="${runtime}/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so"
 [ -f "${runtime}/lib/qt6/qml/MeoUI/meoui_module.qmltypes" ]
 [ -f "${repo_root}/build/meo-system/qml/Meo/System/qmldir" ]
 [ -f "${repo_root}/build/meo-system/qml/Meo/System/plugins.qmltypes" ]
+[ -f "${live_system_plugin}" ]
+[ -f "${repo_root}/build/meo-system-live/qml/Meo/System/qmldir" ]
 [ -x "${runtime}/bin/meoarch-repair" ]
+[ -x "${runtime}/lib/meoarch-repair/meoarch-repair-privileged-service" ]
+[ -x "${repo_root}/build/installer-host/meoarch-repair-ai-flow-smoke" ]
+[ -x "${repo_root}/build/installer-host/meoarch-repair-core-contract-test" ]
 [ -f "${runtime}/lib/meoarch-repair/qml/Main.qml" ]
 [ -x "${runtime}/lib/meoarch-repair/checks/all.sh" ]
-readelf -d "${library}" | tee "${evidence_dir}/libmeoui-readelf.txt"
-readelf -d "${plugin}" | tee "${evidence_dir}/plugin-readelf.txt"
-readelf -d "${library}" | grep -q 'Library soname: \[libmeoui.so.0\]'
-readelf -d "${plugin}" | grep -q 'Shared library: \[libmeoui.so.0\]'
+[ -x "${runtime}/lib/meoarch-repair/checks/audio.sh" ]
+[ -x "${runtime}/lib/meoarch-repair/checks/display.sh" ]
+[ -f "${runtime}/share/meoarch-repair/knowledge/manifest.json" ]
+[ -f "${runtime}/share/polkit-1/actions/org.meo.repair.policy" ]
+[ -f "${runtime}/share/dbus-1/system.d/org.meo.Repair1.conf" ]
+[ -f "${runtime}/share/dbus-1/system-services/org.meo.Repair1.service" ]
+[ -f "${runtime}/lib/systemd/system/meoarch-repair-privileged.service" ]
+LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" --help \
+  | grep -q '^MeoArch Quick Repair$'
+audio_category="$(LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" \
+  --classify='为什么没有声音？' | python -c 'import json,sys; print(json.load(sys.stdin)["category"])')"
+display_category="$(LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" \
+  --classify='第二个显示器连接了但不显示' | python -c 'import json,sys; print(json.load(sys.stdin)["category"])')"
+[ "${audio_category}" = audio ]
+[ "${display_category}" = display ]
+LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" --questions=audio \
+  | python -c 'import json,sys; d=json.load(sys.stdin); assert d["schema"] == "org.meo.repair-guided-questions/v1"; assert d["questions"]; assert all(q["label"] and len(q["options"]) == 2 for q in d["questions"])'
+LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" --questions=display \
+  | python -c 'import json,sys; d=json.load(sys.stdin); assert len(d["questions"]) == 3; assert all(len(q["options"]) == 2 for q in d["questions"])'
+for category in all network boot packages storage graphics security; do
+  LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" --questions="${category}" \
+    | python -c 'import json,sys; d=json.load(sys.stdin); assert d["schema"] == "org.meo.repair-guided-questions/v1"; assert len(d["questions"]) >= 2; assert all(len(q["options"]) == 2 for q in d["questions"])'
+done
+LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" \
+  --evaluate-guidance=display --answer=detected:no \
+  | python -c 'import json,sys; d=json.load(sys.stdin); assert d["schema"] == "org.meo.repair-guidance-evaluation/v1"; assert d["automaticDisplayRepairAllowed"] is False; assert d["handoffMessage"]'
+LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" \
+  --evaluate-guidance=audio --answer=scope:one_app \
+  | python -c 'import json,sys; d=json.load(sys.stdin); assert d["answers"]["scope"] == "one_app"; assert d["automaticAudioRepairAllowed"] is False; assert d["handoffMessage"]'
+"${repo_root}/repair/tests/run-ai-write-flow-smoke.sh" \
+  "${repo_root}/build/installer-host/meoarch-repair-ai-flow-smoke" \
+  | tee "${evidence_dir}/repair-ai-flow-smoke.log"
+"${repo_root}/build/installer-host/meoarch-repair-core-contract-test" \
+  | tee "${evidence_dir}/repair-core-contract.log"
+# The following ABI assertions intentionally match stable readelf labels.
+# Pin its locale so the validation result does not depend on the build host's
+# language (for example, a zh_CN session localizes "Shared library").
+LC_ALL=C readelf -d "${library}" | tee "${evidence_dir}/libmeoui-readelf.txt"
+LC_ALL=C readelf -d "${plugin}" | tee "${evidence_dir}/plugin-readelf.txt"
+LC_ALL=C readelf -d "${live_system_plugin}" | tee "${evidence_dir}/live-system-plugin-readelf.txt"
+LC_ALL=C readelf -d "${library}" | grep -q 'Library soname: \[libmeoui.so.0\]'
+LC_ALL=C readelf -d "${plugin}" | grep -q 'Shared library: \[libmeoui.so.0\]'
+if grep -Eq 'Shared library: \[(libPlasma\.so\.7|libkrdb\.so)\]' \
+  "${evidence_dir}/live-system-plugin-readelf.txt"; then
+  echo "Live Meo.System must not depend on Plasma Workspace libraries." >&2
+  exit 1
+fi
 qmllint_bin="$(command -v qmllint6 || true)"
 if [ -z "${qmllint_bin}" ] && [ -x /usr/lib/qt6/bin/qmllint ]; then
   qmllint_bin=/usr/lib/qt6/bin/qmllint

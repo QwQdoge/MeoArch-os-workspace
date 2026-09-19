@@ -150,7 +150,12 @@ def build_install_plan(config: dict[str, Any], catalog: dict[str, Any], architec
         raise PlanError("profile must be recommended, minimal or custom")
     packages = catalog["packages"]
     if profile == "custom":
-        selected = {str(name) for name in config.get("components", [])}
+        components = config.get("components")
+        if not isinstance(components, list) or any(
+                not isinstance(name, str) or not PACKAGE_NAME.fullmatch(name)
+                for name in components):
+            raise PlanError("custom components must be a list of package names")
+        selected = set(components)
         if "meo-desktop" not in selected:
             raise PlanError("custom profile requires meo-desktop")
     else:

@@ -10,6 +10,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJSValue>
 #include <QLocale>
 #include <QNetworkInterface>
 #include <QNetworkAccessManager>
@@ -150,6 +151,15 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
       m_realInstallEnabled(m_productionMode && arguments.contains(QStringLiteral("--enable-real-install"))),
       m_systemActionsEnabled(m_productionMode && arguments.contains(QStringLiteral("--enable-system-actions")))
 {
+    const QLocale systemLocale = QLocale::system();
+    // The installer exposes only its reviewed English and Simplified Chinese
+    // catalogs. Start with the language of the Live session whenever it has a
+    // matching catalog; the user can still choose either language explicitly.
+    // The installer currently ships one Chinese catalog. Resolve every
+    // Chinese system locale to it so a Chinese Live desktop never starts with
+    // an English installer just because its region uses a different script.
+    const QString initialUiLanguage = systemLocale.language() == QLocale::Chinese
+        ? QStringLiteral("zh_CN") : QStringLiteral("en");
     m_connectivityManager = new QNetworkAccessManager(this);
     // The production kiosk itself is root-owned.  Never hand its credentials
     // to an interactive shell: anyone at the installer would otherwise be
@@ -164,14 +174,10 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
             }
         }
     }
-    m_debugTerminalMessage = m_debugTerminalProgram.isEmpty()
-        ? (m_productionMode
-               ? tr("Debug terminal is disabled in the production installer.")
-               : tr("No supported terminal emulator is installed in this Live environment."))
-        : tr("Opens a Live-session terminal for diagnostics. Commands are not part of the installer plan.");
+    refreshDebugTerminalMessage();
     m_selections = {
         {QStringLiteral("schemaVersion"), 1},
-        {QStringLiteral("preferences"), QVariantMap{{QStringLiteral("uiLanguage"), QStringLiteral("en")},
+        {QStringLiteral("preferences"), QVariantMap{{QStringLiteral("uiLanguage"), initialUiLanguage},
                                                       {QStringLiteral("secondaryCalendar"), QStringLiteral("none")},
                                                       {QStringLiteral("hebcalEnabled"), false}}},
         {QStringLiteral("locale"), QVariantMap{{QStringLiteral("systemLocale"), QStringLiteral("en_US.UTF-8")},
@@ -196,6 +202,7 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
                                              {QStringLiteral("rootSizeGiB"), 32}}},
         {QStringLiteral("user"), QVariantMap{{QStringLiteral("automaticLogin"), false}}}
     };
+    m_hardwareSummary = tr("Automatic PCI detection will select graphics drivers.");
     buildUiLanguages();
     buildSystemLocales();
     buildCountries();
@@ -231,10 +238,40 @@ void InstallerController::writeSelection(const QString &sectionName, const QStri
 {
     if (m_installationState == QStringLiteral("running"))
         return;
+    QVariant normalizedValue = value;
+    const bool isSoftwareList = sectionName == QStringLiteral("software")
+                                && (key == QStringLiteral("components")
+                                    || key == QStringLiteral("applications"));
+    if (isSoftwareList) {
+        // QML passes a JavaScript Array through a generic QVariant as a
+        // QJSValue. QJsonObject does not serialize that wrapper as an array,
+        // so persist the concrete QVariantList at this native boundary.
+        if (normalizedValue.metaType() == QMetaType::fromType<QJSValue>()) {
+            const QJSValue scriptValue = normalizedValue.value<QJSValue>();
+            if (!scriptValue.isArray()) {
+                setError(tr("The selected software list is invalid. Go back and choose the components again."));
+                return;
+            }
+            normalizedValue = scriptValue.toVariant(QJSValue::ConvertJSObjects);
+        }
+        if (normalizedValue.metaType() != QMetaType::fromType<QVariantList>()) {
+            setError(tr("The selected software list is invalid. Go back and choose the components again."));
+            return;
+        }
+        const QVariantList entries = normalizedValue.toList();
+        for (const QVariant &entry : entries) {
+            if (entry.metaType() != QMetaType::fromType<QString>()
+                || entry.toString().trimmed().isEmpty()) {
+                setError(tr("The selected software list is invalid. Go back and choose the components again."));
+                return;
+            }
+        }
+        normalizedValue = entries;
+    }
     QVariantMap data = section(sectionName);
-    if (data.value(key) == value)
+    if (data.value(key) == normalizedValue)
         return;
-    data.insert(key, value);
+    data.insert(key, normalizedValue);
     m_selections.insert(sectionName, data);
     ++m_planRevision;
     discardGeneratedPlan();
@@ -314,8 +351,8 @@ QVariantList InstallerController::calendarCapabilities() const
              {"description", tr("Local display only; no online request")}}),
         row({{"id", "islamic-civil"}, {"name", tr("Islamic Civil calendar")}, {"state", islamicState},
              {"description", islamicDescription}}),
-        row({{"id", "hebcal"}, {"name", tr("Hebrew calendar and holidays")}, {"state", "needs-online-setup"},
-             {"description", tr("Optional Hebcal data after installation; disabled by default")}})
+        row({{"id", "hebcal"}, {"name", tr("Online Hebrew calendar data")}, {"state", "needs-online-setup"},
+             {"description", tr("After installation, you can turn on public holiday data for the Hebrew calendar.")}})
     };
 }
 QString InstallerController::selectedDisk() const { return section(QStringLiteral("disk")).value(QStringLiteral("stableId")).toString(); }
@@ -328,10 +365,47 @@ bool InstallerController::networkHandoffEnabled() const
 
 void InstallerController::setUiLanguage(const QString &id)
 {
-    writeSelection(QStringLiteral("preferences"), QStringLiteral("uiLanguage"), id);
+    // The host ships reviewed catalogs only for English and Simplified
+    // Chinese. Keep unknown command-line or test input on the English
+    // fallback instead of storing an id that no selector can represent.
+    const QString language = QLocale(id).language() == QLocale::Chinese
+        ? QStringLiteral("zh_CN") : QStringLiteral("en");
+    writeSelection(QStringLiteral("preferences"), QStringLiteral("uiLanguage"), language);
     if (!section(QStringLiteral("locale")).value(QStringLiteral("manualSystemLocale")).toBool())
         applyRegionPreset(formatCountry());
+    loadSoftwareCatalog();
+    emit localizedContentChanged();
     emit uiLanguageChanged();
+}
+
+void InstallerController::retranslateUserFacingState()
+{
+    // The selected language changes only this application's process locale.
+    // Rebuilding these presentation values is read-only: it neither changes a
+    // chosen disk nor writes the installation plan.
+    refreshDebugTerminalMessage();
+    if (!m_hardwareDetected)
+        m_hardwareSummary = tr("Automatic PCI detection will select graphics drivers.");
+
+    if (m_networkState == QStringLiteral("checking"))
+        m_networkDetail = tr("Checking whether the Internet is available…");
+    else if (m_networkState == QStringLiteral("online"))
+        m_networkDetail = tr("Internet access is ready. This first-party package-source check sends no account, device, or hardware information.");
+    else if (m_networkState == QStringLiteral("portal"))
+        m_networkDetail = tr("This network may require a sign-in page before installation can continue.");
+    else if (m_networkState == QStringLiteral("offline"))
+        m_networkDetail = tr("No active network interface was detected.");
+    else
+        m_networkDetail = tr("Internet access could not be verified. Check the connection and try again.");
+
+    loadSoftwareCatalog();
+    refreshNetworkHandoff();
+    if (!m_diskDetecting)
+        refreshDisks();
+    emit debugTerminalChanged();
+    emit hardwareChanged();
+    emit networkStateChanged();
+    emit localizedContentChanged();
 }
 void InstallerController::setSystemLocale(const QString &id)
 {
@@ -470,6 +544,7 @@ QVariant InstallerController::selection(const QString &s, const QString &key, co
 
 void InstallerController::loadSoftwareCatalog()
 {
+    m_softwareCatalog.clear();
     QFile file(QDir(sourceRoot()).absoluteFilePath(QStringLiteral("data/application-catalog.json")));
     if (!file.open(QIODevice::ReadOnly))
         return;
@@ -482,11 +557,13 @@ void InstallerController::loadSoftwareCatalog()
         const QJsonObject installer = application.value(QStringLiteral("installer")).toObject();
         if (installer.value(QStringLiteral("source")).toString() != QStringLiteral("arch-official"))
             continue;
+        const QJsonObject translations = application.value(QStringLiteral("translations")).toObject();
+        const QJsonObject localized = translations.value(uiLanguage()).toObject();
         m_softwareCatalog.append(QVariantMap{
             {QStringLiteral("id"), application.value(QStringLiteral("id")).toString()},
-            {QStringLiteral("name"), application.value(QStringLiteral("name")).toString()},
-            {QStringLiteral("summary"), application.value(QStringLiteral("summary")).toString()},
-            {QStringLiteral("category"), application.value(QStringLiteral("category")).toString()},
+            {QStringLiteral("name"), localized.value(QStringLiteral("name")).toString(application.value(QStringLiteral("name")).toString())},
+            {QStringLiteral("summary"), localized.value(QStringLiteral("summary")).toString(application.value(QStringLiteral("summary")).toString())},
+            {QStringLiteral("category"), localized.value(QStringLiteral("category")).toString(application.value(QStringLiteral("category")).toString())},
             {QStringLiteral("package"), installer.value(QStringLiteral("package")).toString()},
             {QStringLiteral("tier"), installer.value(QStringLiteral("tier")).toString()},
             {QStringLiteral("profiles"), installer.value(QStringLiteral("profiles")).toArray().toVariantList()},
@@ -724,20 +801,24 @@ void InstallerController::detectNetwork()
             m_networkState = QStringLiteral("checking");
             m_networkDetail = tr("Checking whether the Internet is available…");
             emit networkStateChanged();
-            QNetworkRequest request(QUrl(QStringLiteral("https://connectivity.meoarch.org/generate_204")));
+            // Use the first-party signed package source that installation will
+            // actually need, rather than a separate availability endpoint.
+            // HEAD keeps the privacy-preserving probe payload-free while still
+            // validating DNS, routing, TLS, and the repository origin.
+            QNetworkRequest request(QUrl(QStringLiteral("https://packages.meoarch.org/meo/os/x86_64/meo.db")));
             request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::ManualRedirectPolicy);
             request.setHeader(QNetworkRequest::UserAgentHeader, QStringLiteral("MeoArch-Installer-Connectivity/1"));
             const quint64 generation = m_connectivityGeneration;
-            QNetworkReply *reply = m_connectivityManager->get(request);
+            QNetworkReply *reply = m_connectivityManager->head(request);
             m_connectivityReply = reply;
             QTimer::singleShot(7000, reply, [reply] { if (reply->isRunning()) reply->abort(); });
             connect(reply, &QNetworkReply::finished, this, [this, reply, generation] {
                 if (generation != m_connectivityGeneration) { reply->deleteLater(); return; }
                 const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
                 const QUrl redirect = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
-                if (status == 204) {
+                if (status >= 200 && status < 300) {
                     m_networkState = QStringLiteral("online");
-                    m_networkDetail = tr("Internet access is ready. This check sends no account, device, or hardware information.");
+                    m_networkDetail = tr("Internet access is ready. This first-party package-source check sends no account, device, or hardware information.");
                 } else if (redirect.isValid() || (status >= 300 && status < 400)) {
                     m_networkState = QStringLiteral("portal");
                     m_networkDetail = tr("This network may require a sign-in page before installation can continue.");
@@ -755,6 +836,15 @@ void InstallerController::detectNetwork()
     }
     emit networkStateChanged();
     refreshNetworkHandoff();
+}
+
+void InstallerController::refreshDebugTerminalMessage()
+{
+    m_debugTerminalMessage = m_debugTerminalProgram.isEmpty()
+        ? (m_productionMode
+               ? tr("Debug terminal is disabled in the production installer.")
+               : tr("No supported terminal emulator is installed in this Live environment."))
+        : tr("Opens a Live-session terminal for diagnostics. Commands are not part of the installer plan.");
 }
 
 void InstallerController::retryNetwork() { detectNetwork(); }
@@ -892,6 +982,8 @@ void InstallerController::detectHardware()
             QStringList names;
             for (const QJsonValue &package : packages)
                 names.append(package.toString());
+            if (!names.isEmpty())
+                m_hardwareDetected = true;
             if (!names.isEmpty())
                 m_hardwareSummary = result.value(QStringLiteral("summary")).toString().toUpper()
                                    + QStringLiteral(" · ") + names.join(QStringLiteral(", "));
