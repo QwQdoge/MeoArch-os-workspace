@@ -6,6 +6,12 @@ The MeoArch installer has two intentionally separate execution modes.
   enable installation or power actions on its own.
 - `meoarch-installer-kiosk` is the ISO-owned Cage entrypoint. It supplies
   `--production --enable-real-install --enable-system-actions`.
+
+The Live graphical environment is Cage itself, not a KDE Plasma desktop
+session. The installed target may use Plasma, but that does not make the Live
+installer a Plasma session. Diagnostics that need user-entered commands are
+therefore embedded in the installer UI instead of opening separate desktop
+windows.
 - `--preview` selects `PreviewController` for screenshot and visual-regression
   work. It is rejected when combined with `--production`.
 
