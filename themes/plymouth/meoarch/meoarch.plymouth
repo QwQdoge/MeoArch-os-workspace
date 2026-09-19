@@ -1,6 +1,6 @@
 [Plymouth Theme]
 Name=MeoArch OS Boot Splash
-Description=MD3 Expressive graphical boot splash for MeoArch OS with animated progress bar, status text, and error dialogs.
+Description=Minimal black MeoArch boot splash with centered logo, soft handoff fade, and error fallback.
 ModuleName=script
 
 [script]
