@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+  "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>MeoArch</vendor>
+  <vendor_url>https://meoarch.org</vendor_url>
+
+  <action id="org.meo.repair.live.reload-systemd-manager">
+    <description>Validate Live recovery handling for the system service manager</description>
+    <message>Authorization is required to run the fixed Live recovery action.</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>no</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/meoarch-repair/live-actions/reload-systemd-manager.sh</annotate>
+  </action>
+
+  <action id="org.meo.repair.live.restart-network-manager">
+    <description>Validate Live recovery handling for the network service</description>
+    <message>Authorization is required to run the fixed Live recovery action.</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>no</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/meoarch-repair/live-actions/restart-network-manager.sh</annotate>
+  </action>
+
+  <action id="org.meo.repair.live.rebuild-initramfs">
+    <description>Rebuild initramfs images in the mounted installed system</description>
+    <message>Authorization is required to run the fixed Live recovery action.</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>no</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/meoarch-repair/live-actions/rebuild-initramfs.sh</annotate>
+  </action>
+
+  <action id="org.meo.repair.live.refresh-pacman-keyring">
+    <description>Refresh the package trust keyring in the mounted installed system</description>
+    <message>Authorization is required to run the fixed Live recovery action.</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>no</allow_active></defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/meoarch-repair/live-actions/refresh-pacman-keyring.sh</annotate>
+  </action>
+</policyconfig>

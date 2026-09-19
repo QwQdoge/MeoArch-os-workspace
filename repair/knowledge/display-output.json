@@ -1,0 +1,37 @@
+{
+  "schema": "org.meo.help-runbook/v1",
+  "id": "display.second-output-missing",
+  "version": 3,
+  "intents": ["第二个显示器", "外接屏不显示", "second monitor", "external display", "black screen"],
+  "questions": [
+    {
+      "id": "detected",
+      "label": "系统设置里能看到第二个显示器吗？",
+      "options": [
+        {"id": "yes", "label": "是，系统能看到它"},
+        {"id": "no", "label": "否，系统完全看不到它"}
+      ]
+    },
+    {
+      "id": "stable",
+      "label": "这个显示器会一直保持连接吗？",
+      "options": [
+        {"id": "yes", "label": "是，连接很稳定"},
+        {"id": "no", "label": "否，它会闪烁或反复断开"}
+      ]
+    },
+    {
+      "id": "visible",
+      "label": "第二个显示器现在有画面吗？",
+      "options": [
+        {"id": "yes", "label": "是，已经有画面"},
+        {"id": "no", "label": "否，仍然是黑屏或未启用"}
+      ]
+    }
+  ],
+  "diagnostics": ["display.kernel_connectors", "display.kscreen_outputs", "display.enabled_state"],
+  "guidedCapabilities": [
+    {"id": "display.enable_connected", "privilege": "user", "reversible": true, "rollbackSeconds": 15, "rollbackAuthority": "systemd-user-timer", "postCheck": "display.output_enabled"}
+  ],
+  "manualHandoffs": ["kernel_connector_not_detected", "unstable_link", "unsupported_live_session"]
+}

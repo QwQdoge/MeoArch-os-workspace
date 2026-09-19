@@ -64,10 +64,10 @@ QQC2.Popup {
             radius: ShellMetrics.radiusMedium
             elevation: 3
         }
-        QQC2.MenuItem { text: qsTr("Sleep"); visible: sessionManagement.canSuspend; onTriggered: { sessionManagement.suspend(); quickSettingsPopup.close() } }
-        QQC2.MenuItem { text: qsTr("Restart"); visible: sessionManagement.canReboot; onTriggered: { sessionManagement.requestReboot(Sessions.SessionManagement.ForcePrompt); quickSettingsPopup.close() } }
-        QQC2.MenuItem { text: qsTr("Shut down"); visible: sessionManagement.canShutdown; onTriggered: { sessionManagement.requestShutdown(Sessions.SessionManagement.ForcePrompt); quickSettingsPopup.close() } }
+        QQC2.MenuItem { text: i18n("Sleep"); visible: sessionManagement.canSuspend; onTriggered: { sessionManagement.suspend(); quickSettingsPopup.close() } }
+        QQC2.MenuItem { text: i18n("Restart"); visible: sessionManagement.canReboot; onTriggered: { sessionManagement.requestReboot(Sessions.SessionManagement.ForcePrompt); quickSettingsPopup.close() } }
+        QQC2.MenuItem { text: i18n("Shut down"); visible: sessionManagement.canShutdown; onTriggered: { sessionManagement.requestShutdown(Sessions.SessionManagement.ForcePrompt); quickSettingsPopup.close() } }
         QQC2.MenuSeparator {}
-        QQC2.MenuItem { text: qsTr("Sign out"); visible: sessionManagement.canLogout; onTriggered: { sessionManagement.requestLogout(Sessions.SessionManagement.ForcePrompt); quickSettingsPopup.close() } }
+        QQC2.MenuItem { text: i18n("Sign out"); visible: sessionManagement.canLogout; onTriggered: { sessionManagement.requestLogout(Sessions.SessionManagement.ForcePrompt); quickSettingsPopup.close() } }
     }
 }

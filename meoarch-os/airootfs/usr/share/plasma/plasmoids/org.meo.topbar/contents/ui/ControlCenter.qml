@@ -58,7 +58,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 currentDateTime: root.currentDateTime
-                timeText: Qt.formatTime(root.currentDateTime, "hh:mm")
+                timeText: Qt.formatTime(root.currentDateTime, Qt.locale().timeFormat(Locale.ShortFormat))
                 dateText: Qt.formatDate(root.currentDateTime, Qt.DefaultLocaleLongDate)
                 unreadCount: root.notifications ? root.notifications.unreadNotificationsCount : 0
 
@@ -81,23 +81,23 @@ Item {
     QQC2.Menu {
         id: powerMenu
         QQC2.MenuItem {
-            text: qsTr("Sleep")
+            text: i18n("Sleep")
             visible: sessionManagement.canSuspend
             onTriggered: sessionManagement.suspend()
         }
         QQC2.MenuItem {
-            text: qsTr("Restart")
+            text: i18n("Restart")
             visible: sessionManagement.canReboot
             onTriggered: sessionManagement.requestReboot(Sessions.SessionManagement.ForcePrompt)
         }
         QQC2.MenuItem {
-            text: qsTr("Shut down")
+            text: i18n("Shut down")
             visible: sessionManagement.canShutdown
             onTriggered: sessionManagement.requestShutdown(Sessions.SessionManagement.ForcePrompt)
         }
         QQC2.MenuSeparator {}
         QQC2.MenuItem {
-            text: qsTr("Sign out")
+            text: i18n("Sign out")
             visible: sessionManagement.canLogout
             onTriggered: sessionManagement.requestLogout(Sessions.SessionManagement.ForcePrompt)
         }

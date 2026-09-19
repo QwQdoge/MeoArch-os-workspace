@@ -30,6 +30,9 @@ EnvironmentFile=-/etc/meoarch/account.env
 RuntimeDirectory=meoarch-installer
 RuntimeDirectoryMode=0700
 ExecStartPre=/usr/lib/meoarch/meo-boot-status stage installer
+# Install mode remains root-owned, while the repair branch drops to this Live
+# user. Grant only the device groups needed by rootless Cage and PipeWire.
+ExecStartPre=/usr/bin/usermod -aG audio,seat,tty live
 # The native host accepts destructive production capabilities only when this
 # root-only runtime marker exists. RuntimeDirectory is created before
 # ExecStartPre and removed with the service, so a normal Live user cannot mint

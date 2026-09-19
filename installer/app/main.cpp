@@ -11,6 +11,7 @@
 #include <QWindow>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QLocale>
 #include <QTextStream>
 #include <QTranslator>
 #include <QQmlContext>
@@ -68,6 +69,65 @@ int main(int argc, char *argv[])
                                              ? QStringLiteral("MeoArch Repair")
                                              : QStringLiteral("MeoArch Installer"));
     const QStringList arguments = app.arguments();
+
+    // Work out the initial UI language before the controller is constructed.
+    // Several controller properties are user-facing strings created during
+    // construction (for example the initial network and debug-terminal
+    // status).  Installing the catalog only after construction leaves those
+    // values in English until the next backend update.
+    const auto normalizedUiLanguage = [](const QString &candidate) {
+        return QLocale(candidate).language() == QLocale::Chinese
+            ? QStringLiteral("zh_CN") : QStringLiteral("en");
+    };
+    QString initialUiLanguage = normalizedUiLanguage(QLocale::system().name());
+    for (const QString &argument : arguments) {
+        if (argument.startsWith(QStringLiteral("--language=")))
+            initialUiLanguage = normalizedUiLanguage(argument.mid(11));
+    }
+
+    QTranslator installerTranslator;
+    QTranslator meoUiTranslator;
+    const auto loadCatalogs = [&app, &installerTranslator, &meoUiTranslator](const QString &language) {
+        app.removeTranslator(&installerTranslator);
+        app.removeTranslator(&meoUiTranslator);
+        if (language != QStringLiteral("zh_CN"))
+            return;
+
+        QStringList paths;
+        const QString configured = qEnvironmentVariable("MEOARCH_INSTALLER_TRANSLATIONS");
+        if (!configured.isEmpty())
+            paths.append(configured);
+        paths.append(QStringLiteral("/opt/meoarch-installer/translations"));
+#ifdef MEOARCH_TRANSLATIONS_BUILD_DIR
+        paths.append(QString::fromUtf8(MEOARCH_TRANSLATIONS_BUILD_DIR));
+#endif
+        for (const QString &path : paths) {
+            if (installerTranslator.load(QStringLiteral("meoarch_zh_CN"), path)) {
+                app.installTranslator(&installerTranslator);
+                break;
+            }
+        }
+
+        QStringList meoUiPaths;
+        const QString configuredMeoUiTranslations = qEnvironmentVariable("MEOUI_TRANSLATIONS");
+        if (!configuredMeoUiTranslations.isEmpty())
+            meoUiPaths.append(configuredMeoUiTranslations);
+#ifdef MEOUI_TRANSLATIONS_BUILD_DIR
+        meoUiPaths.append(QString::fromUtf8(MEOUI_TRANSLATIONS_BUILD_DIR));
+#endif
+        meoUiPaths.append(QStringLiteral("/usr/share/meoui-qml/translations"));
+        for (const QString &path : meoUiPaths) {
+            if (meoUiTranslator.load(QStringLiteral("meoui_zh_CN"), path)) {
+                app.installTranslator(&meoUiTranslator);
+                break;
+            }
+        }
+    };
+    // This is a process-local default. It gives C++ and QML locale-sensitive
+    // formatting the same initial language without mutating the Live desktop.
+    QLocale::setDefault(QLocale(initialUiLanguage));
+    loadCatalogs(initialUiLanguage);
+
     const bool productionRequested = arguments.contains(QStringLiteral("--production"));
     const bool previewRequested = arguments.contains(QStringLiteral("--preview"));
     const bool realInstallRequested = arguments.contains(QStringLiteral("--enable-real-install"));
@@ -142,27 +202,15 @@ int main(int argc, char *argv[])
     // the same QML context into the Cage installer host rather than making a
     // local fork of that component just to replace its translated labels.
     engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
-    QTranslator translator;
-    const auto loadLanguage = [&app, &engine, &translator](const QString &language) {
-        app.removeTranslator(&translator);
-        if (language != QStringLiteral("zh_CN")) {
-            engine.retranslate();
-            return;
-        }
-        QStringList paths;
-        const QString configured = qEnvironmentVariable("MEOARCH_INSTALLER_TRANSLATIONS");
-        if (!configured.isEmpty())
-            paths.append(configured);
-        paths.append(QStringLiteral("/opt/meoarch-installer/translations"));
-#ifdef MEOARCH_TRANSLATIONS_BUILD_DIR
-        paths.append(QString::fromUtf8(MEOARCH_TRANSLATIONS_BUILD_DIR));
-#endif
-        for (const QString &path : paths) {
-            if (translator.load(QStringLiteral("meoarch_zh_CN"), path)) {
-                app.installTranslator(&translator);
-                break;
-            }
-        }
+    const auto loadLanguage = [&engine, &loadCatalogs, &normalizedUiLanguage](const QString &language) {
+        const QString normalizedLanguage = normalizedUiLanguage(language);
+        const QLocale locale(normalizedLanguage);
+        // Keep date, time, and accessible QML formatting in step with the UI
+        // language for this installer process only. This does not change the
+        // Live system's desktop locale.
+        QLocale::setDefault(locale);
+        engine.setUiLanguage(locale.bcp47Name());
+        loadCatalogs(normalizedLanguage);
         engine.retranslate();
     };
     const QString configuredMeoUiPath = qEnvironmentVariable("MEO_UI_QML_IMPORT_PATH");
@@ -219,7 +267,10 @@ int main(int argc, char *argv[])
     if (engine.rootObjects().isEmpty())
         return 1;
     QObject::connect(&controller, &InstallerController::uiLanguageChanged, &engine,
-                     [&controller, &loadLanguage] { loadLanguage(controller.uiLanguage()); });
+                     [&controller, &loadLanguage] {
+                         loadLanguage(controller.uiLanguage());
+                         controller.retranslateUserFacingState();
+                     });
 
     // Keep visual-regression capture in the C++ host.  Let the source-page
     // fonts and window-level wallpaper settle before grabbing the first frame.

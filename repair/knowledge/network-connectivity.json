@@ -1,0 +1,36 @@
+{
+  "schema": "org.meo.help-runbook/v1",
+  "id": "network.connectivity.unavailable",
+  "version": 1,
+  "intents": ["不能上网", "网络断开", "Wi-Fi 连不上", "no internet", "network disconnected", "dns failure"],
+  "questions": [
+    {
+      "id": "link_connected",
+      "label": "电脑现在显示已经连接到 Wi-Fi 或网线吗？",
+      "options": [
+        {"id": "yes", "label": "是，显示已连接"},
+        {"id": "no", "label": "否，显示未连接"}
+      ]
+    },
+    {
+      "id": "any_site_opens",
+      "label": "你可以打开任意一个网站吗？",
+      "options": [
+        {"id": "yes", "label": "是，有网站可以打开"},
+        {"id": "no", "label": "否，所有网站都打不开"}
+      ]
+    },
+    {
+      "id": "other_devices_online",
+      "label": "同一个网络里的其他设备可以正常上网吗？",
+      "options": [
+        {"id": "yes", "label": "是，其他设备正常"},
+        {"id": "no", "label": "否，其他设备也不行"}
+      ]
+    }
+  ],
+  "diagnostics": ["network.manager", "network.links", "network.routes", "network.resolver"],
+  "guidedCapabilities": [],
+  "allowedRepairActions": ["restart_network_manager"],
+  "manualHandoffs": ["wifi_authentication_failed", "router_or_isp_outage", "hardware_radio_not_detected"]
+}

@@ -19,7 +19,7 @@ class InstallerController final : public QObject
     Q_PROPERTY(QVariantList countries READ countries CONSTANT)
     Q_PROPERTY(QVariantList timeZones READ timeZones CONSTANT)
     Q_PROPERTY(QVariantList keyboardLayouts READ keyboardLayouts CONSTANT)
-    Q_PROPERTY(QVariantList softwareCatalog READ softwareCatalog CONSTANT)
+    Q_PROPERTY(QVariantList softwareCatalog READ softwareCatalog NOTIFY localizedContentChanged)
     Q_PROPERTY(QVariantList disks READ disks NOTIFY disksChanged)
     Q_PROPERTY(bool diskDetecting READ diskDetecting NOTIFY diskDetectionChanged)
     Q_PROPERTY(QString uiLanguage READ uiLanguage NOTIFY selectionsChanged)
@@ -29,13 +29,16 @@ class InstallerController final : public QObject
     Q_PROPERTY(QString timeZone READ timeZone NOTIFY selectionsChanged)
     Q_PROPERTY(QString keyboardLayout READ keyboardLayout NOTIFY selectionsChanged)
     Q_PROPERTY(QVariantMap regionRecommendation READ regionRecommendation NOTIFY selectionsChanged)
-    Q_PROPERTY(QVariantList calendarCapabilities READ calendarCapabilities CONSTANT)
+    Q_PROPERTY(QVariantList calendarCapabilities READ calendarCapabilities NOTIFY localizedContentChanged)
     Q_PROPERTY(QString networkState READ networkState NOTIFY networkStateChanged)
     Q_PROPERTY(QString networkDetail READ networkDetail NOTIFY networkStateChanged)
     Q_PROPERTY(QString networkHandoffState READ networkHandoffState NOTIFY networkHandoffChanged)
     Q_PROPERTY(QString networkHandoffMessage READ networkHandoffMessage NOTIFY networkHandoffChanged)
     Q_PROPERTY(bool networkHandoffEnabled READ networkHandoffEnabled WRITE setNetworkHandoffEnabled NOTIFY networkHandoffChanged)
     Q_PROPERTY(QString selectedDisk READ selectedDisk NOTIFY selectionsChanged)
+    // selection() is an invokable read. Expose a revision so QML can bind to
+    // a real notify signal when a generic selection value changes.
+    Q_PROPERTY(quint64 selectionRevision READ selectionRevision NOTIFY selectionsChanged)
     Q_PROPERTY(QString hardwareSummary READ hardwareSummary NOTIFY hardwareChanged)
     Q_PROPERTY(bool hardwareDetecting READ hardwareDetecting NOTIFY hardwareChanged)
     Q_PROPERTY(QString installationState READ installationState NOTIFY installationChanged)
@@ -80,6 +83,7 @@ public:
     QString networkHandoffMessage() const { return m_networkHandoffMessage; }
     bool networkHandoffEnabled() const;
     QString selectedDisk() const;
+    quint64 selectionRevision() const { return m_planRevision; }
     QString hardwareSummary() const { return m_hardwareSummary; }
     bool hardwareDetecting() const { return m_hardwareDetecting; }
     QString installationState() const { return m_installationState; }
@@ -126,6 +130,10 @@ public:
     Q_INVOKABLE void requestRestart();
     Q_INVOKABLE void requestShutdown();
 
+    // Called by the native host after it swaps translation catalogs. Stored
+    // status descriptions are rebuilt without changing the installation plan.
+    void retranslateUserFacingState();
+
 signals:
     void selectionsChanged();
     void uiLanguageChanged();
@@ -140,6 +148,7 @@ signals:
     void installationChanged();
     void errorMessageChanged();
     void debugTerminalChanged();
+    void localizedContentChanged();
 
 private:
     void buildUiLanguages();
@@ -169,6 +178,7 @@ private:
     bool hasSystemLocale(const QString &id) const;
     void applyRegionPreset(const QString &alpha2);
     void markLocaleOverride(const QString &key);
+    void refreshDebugTerminalMessage();
 
     QVariantList m_uiLanguages;
     QVariantList m_systemLocales;
@@ -188,7 +198,8 @@ private:
     QString m_networkHandoffKind;
     QString m_debugTerminalProgram;
     QString m_debugTerminalMessage;
-    QString m_hardwareSummary = QStringLiteral("Automatic PCI detection will select graphics drivers.");
+    QString m_hardwareSummary;
+    bool m_hardwareDetected = false;
     bool m_hardwareDetecting = false;
     QString m_installationState = QStringLiteral("idle");
     QString m_errorMessage;

@@ -1,0 +1,540 @@
+# SPDX-FileCopyrightText: 2026 Meo Desktop Team
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Simplified Chinese catalog for the ISO profile Plasma applet.
+# Source messages remain English; Plasma chooses this catalog from the desktop locale.
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_org.meo.topbar\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-17 22:47+0800\n"
+"PO-Revision-Date: 2026-09-17 00:00+0000\n"
+"Last-Translator: Meo Desktop Team\n"
+"Language-Team: Simplified Chinese\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: contents/config/config.qml:6
+msgid "Appearance"
+msgstr "外观"
+
+#: contents/ui/AudioPage.qml:32 contents/ui/QuickSettingsHome.qml:78
+msgid "Sound"
+msgstr "声音"
+
+#: contents/ui/AudioPage.qml:33
+msgid "No audio service"
+msgstr "未检测到音频服务"
+
+#: contents/ui/AudioPage.qml:40
+msgid "Open Sound Settings"
+msgstr "打开声音设置"
+
+#: contents/ui/AudioPage.qml:58
+msgid "Audio is unavailable"
+msgstr "音频不可用"
+
+#: contents/ui/AudioPage.qml:59
+msgid "Open Sound Settings to check PipeWire or PulseAudio devices."
+msgstr "打开声音设置，检查 PipeWire 或 PulseAudio 设备。"
+
+#: contents/ui/AudioPage.qml:60
+msgid "Sound Settings"
+msgstr "声音设置"
+
+#: contents/ui/AudioPage.qml:66 contents/ui/AudioPage.qml:95
+#: contents/ui/QuickSettingsHome.qml:224
+msgid "Output volume"
+msgstr "输出音量"
+
+#: contents/ui/AudioPage.qml:85
+msgid "Unmute"
+msgstr "取消静音"
+
+#: contents/ui/AudioPage.qml:85
+msgid "Mute"
+msgstr "静音"
+
+#: contents/ui/AudioPage.qml:109 contents/ui/QuickSettingsHome.qml:250
+msgid "Output device"
+msgstr "输出设备"
+
+#: contents/ui/AudioPage.qml:133
+msgid "No output device is currently available."
+msgstr "当前没有可用的输出设备。"
+
+#: contents/ui/AudioPage.qml:139 contents/ui/QuickSettingsHome.qml:77
+msgid "Microphone"
+msgstr "麦克风"
+
+#: contents/ui/AudioPage.qml:158 contents/ui/QuickSettingsHome.qml:262
+msgid "Unmute microphone"
+msgstr "取消麦克风静音"
+
+#: contents/ui/AudioPage.qml:158 contents/ui/QuickSettingsHome.qml:262
+msgid "Mute microphone"
+msgstr "麦克风静音"
+
+#: contents/ui/AudioPage.qml:168 contents/ui/QuickSettingsHome.qml:260
+msgid "Microphone volume"
+msgstr "麦克风音量"
+
+#: contents/ui/BluetoothPage.qml:19 contents/ui/BluetoothPage.qml:29
+#: contents/ui/QuickSettingsHome.qml:72
+msgid "Bluetooth"
+msgstr "蓝牙"
+
+#: contents/ui/BluetoothPage.qml:20
+msgid "Connect and manage devices"
+msgstr "连接和管理设备"
+
+#: contents/ui/BluetoothPage.qml:20
+msgid "Bluetooth is off"
+msgstr "蓝牙已关闭"
+
+#: contents/ui/BluetoothPage.qml:38
+msgid "Stop Bluetooth discovery"
+msgstr "停止搜索蓝牙设备"
+
+#: contents/ui/BluetoothPage.qml:38
+msgid "Discover Bluetooth devices"
+msgstr "搜索蓝牙设备"
+
+#: contents/ui/BluetoothPage.qml:61
+msgid "Looking for nearby devices…"
+msgstr "正在搜索附近的设备…"
+
+#: contents/ui/BluetoothPage.qml:89
+#, javascript-format
+msgid "Connected · %1%"
+msgstr "已连接 · %1%"
+
+#: contents/ui/BluetoothPage.qml:89 contents/ui/WifiPage.qml:91
+msgid "Connected"
+msgstr "已连接"
+
+#: contents/ui/BluetoothPage.qml:90
+msgid "Paired"
+msgstr "已配对"
+
+#: contents/ui/BluetoothPage.qml:90
+msgid "Available"
+msgstr "可用"
+
+#: contents/ui/BluetoothPage.qml:103
+msgid "Forget %1"
+msgstr "忘记 %1"
+
+#: contents/ui/BluetoothPage.qml:116
+msgid "Bluetooth is unavailable"
+msgstr "蓝牙不可用"
+
+#: contents/ui/BluetoothPage.qml:117
+msgid "Bluetooth is turned off"
+msgstr "蓝牙已关闭"
+
+#: contents/ui/BluetoothPage.qml:117
+msgid "No devices found"
+msgstr "未找到设备"
+
+#: contents/ui/BluetoothPage.qml:119
+msgid "Check that a Bluetooth adapter and the BlueZ service are available."
+msgstr "请确认蓝牙适配器和 BlueZ 服务可用。"
+
+#: contents/ui/BluetoothPage.qml:121
+msgid "Turn on Bluetooth to connect accessories."
+msgstr "打开蓝牙以连接配件。"
+
+#: contents/ui/BluetoothPage.qml:122
+msgid "Put the device in pairing mode, then search again."
+msgstr "让设备进入配对模式后重新搜索。"
+
+#: contents/ui/BluetoothPage.qml:123
+msgid "Bluetooth Settings"
+msgstr "蓝牙设置"
+
+#: contents/ui/BluetoothPage.qml:124
+msgid "Turn on Bluetooth"
+msgstr "打开蓝牙"
+
+#: contents/ui/BluetoothPage.qml:125
+msgid "Find devices"
+msgstr "搜索设备"
+
+#: contents/ui/ControlCenter.qml:84 contents/ui/QuickSettingsCenter.qml:85
+#: contents/ui/QuickSettingsPopup.qml:67
+msgid "Sleep"
+msgstr "休眠"
+
+#: contents/ui/ControlCenter.qml:89 contents/ui/QuickSettingsCenter.qml:90
+#: contents/ui/QuickSettingsPopup.qml:68
+msgid "Restart"
+msgstr "重启"
+
+#: contents/ui/ControlCenter.qml:94 contents/ui/QuickSettingsCenter.qml:95
+#: contents/ui/QuickSettingsPopup.qml:69
+msgid "Shut down"
+msgstr "关机"
+
+#: contents/ui/ControlCenter.qml:100 contents/ui/QuickSettingsCenter.qml:101
+#: contents/ui/QuickSettingsPopup.qml:71
+msgid "Sign out"
+msgstr "退出登录"
+
+#: contents/ui/PowerPage.qml:19
+msgid "Performance"
+msgstr "性能"
+
+#: contents/ui/PowerPage.qml:20
+msgid "Power saver"
+msgstr "省电"
+
+#: contents/ui/PowerPage.qml:21
+msgid "Balanced"
+msgstr "平衡"
+
+#: contents/ui/PowerPage.qml:25
+msgid "Prioritise speed and responsiveness"
+msgstr "优先保证速度和响应"
+
+#: contents/ui/PowerPage.qml:26
+msgid "Reduce energy use and background activity"
+msgstr "减少能耗和后台活动"
+
+#: contents/ui/PowerPage.qml:27
+msgid "Balance performance and battery life"
+msgstr "平衡性能与续航"
+
+#: contents/ui/PowerPage.qml:37 contents/ui/QuickSettingsHome.qml:415
+msgid "Power"
+msgstr "电源"
+
+#: contents/ui/PowerPage.qml:39
+msgid "Session and display controls"
+msgstr "会话与显示控制"
+
+#: contents/ui/PowerPage.qml:46
+msgid "Open Power Management Settings"
+msgstr "打开电源管理设置"
+
+#: contents/ui/PowerPage.qml:68
+msgid "Power mode"
+msgstr "电源模式"
+
+#: contents/ui/PowerPage.qml:112
+msgid ""
+"Power profiles are not provided by this system. Session controls remain "
+"available below."
+msgstr "本系统不提供电源配置文件。下方会话控制仍可使用。"
+
+#: contents/ui/PowerPage.qml:116
+msgid "Session"
+msgstr "会话"
+
+#: contents/ui/PowerPage.qml:133 contents/ui/PowerPage.qml:143
+msgid "Keep awake"
+msgstr "保持唤醒"
+
+#: contents/ui/PowerPage.qml:135
+msgid "Sleep and screen locking are paused"
+msgstr "睡眠与屏幕锁定已暂停"
+
+#: contents/ui/PowerPage.qml:136
+msgid "Use the normal sleep and screen-lock timers"
+msgstr "使用正常的睡眠与锁屏计时器"
+
+#: contents/ui/PowerPage.qml:153 contents/ui/QuickSettingsHome.qml:413
+msgid "Lock screen"
+msgstr "锁定屏幕"
+
+#: contents/ui/PowerPage.qml:154
+msgid "Lock without closing applications"
+msgstr "锁定屏幕但不关闭应用"
+
+#: contents/ui/QuickSettingsHome.qml:63 contents/ui/QuickSettingsHome.qml:87
+#: contents/ui/QuickSettingsHome.qml:88
+msgid "Off"
+msgstr "关闭"
+
+#: contents/ui/QuickSettingsHome.qml:67 contents/ui/QuickSettingsHome.qml:87
+#: contents/ui/QuickSettingsHome.qml:88
+msgid "On"
+msgstr "开启"
+
+#: contents/ui/QuickSettingsHome.qml:71 contents/ui/WifiPage.qml:26
+#: contents/ui/WifiPage.qml:37
+msgid "Wi-Fi"
+msgstr "Wi-Fi"
+
+#: contents/ui/QuickSettingsHome.qml:73
+msgid "Focus"
+msgstr "专注"
+
+#: contents/ui/QuickSettingsHome.qml:74
+msgid "Night Light"
+msgstr "夜间模式"
+
+#: contents/ui/QuickSettingsHome.qml:75
+msgid "Keep Awake"
+msgstr "保持唤醒"
+
+#: contents/ui/QuickSettingsHome.qml:76
+msgid "Power Mode"
+msgstr "电源模式"
+
+#: contents/ui/QuickSettingsHome.qml:79
+msgid "Displays"
+msgstr "显示器"
+
+#: contents/ui/QuickSettingsHome.qml:80
+msgid "Screenshot"
+msgstr "截图"
+
+#: contents/ui/QuickSettingsHome.qml:86
+msgid "Do Not Disturb"
+msgstr "勿扰模式"
+
+#: contents/ui/QuickSettingsHome.qml:86
+msgid "Notifications on"
+msgstr "通知已开启"
+
+#: contents/ui/QuickSettingsHome.qml:90 contents/ui/QuickSettingsHome.qml:91
+msgid "Muted"
+msgstr "已静音"
+
+#: contents/ui/QuickSettingsHome.qml:92
+msgid "%1 connected"
+msgstr "已连接 %1 台"
+
+#: contents/ui/QuickSettingsHome.qml:93
+msgid "Capture screen"
+msgstr "截取屏幕"
+
+#: contents/ui/QuickSettingsHome.qml:173
+msgid "Drag to reorder · use arrows to resize"
+msgstr "拖动以重新排序 · 使用箭头调整大小"
+
+#: contents/ui/QuickSettingsHome.qml:205
+msgid "%1 brightness"
+msgstr "%1 亮度"
+
+#: contents/ui/QuickSettingsHome.qml:206
+msgid "Display brightness"
+msgstr "显示器亮度"
+
+#: contents/ui/QuickSettingsHome.qml:225
+msgid "Unmute output"
+msgstr "取消输出静音"
+
+#: contents/ui/QuickSettingsHome.qml:225
+msgid "Mute output"
+msgstr "输出静音"
+
+#: contents/ui/QuickSettingsHome.qml:270
+msgid "Input device"
+msgstr "输入设备"
+
+#: contents/ui/QuickSettingsHome.qml:376
+msgid "Previous track"
+msgstr "上一曲"
+
+#: contents/ui/QuickSettingsHome.qml:381
+msgid "Pause"
+msgstr "暂停"
+
+#: contents/ui/QuickSettingsHome.qml:381
+msgid "Play"
+msgstr "播放"
+
+#: contents/ui/QuickSettingsHome.qml:387
+msgid "Next track"
+msgstr "下一曲"
+
+#: contents/ui/QuickSettingsHome.qml:406
+msgid "Reset tile layout"
+msgstr "重置磁贴布局"
+
+#: contents/ui/QuickSettingsHome.qml:414
+msgid "System Settings"
+msgstr "系统设置"
+
+#: contents/ui/QuickSettingsHome.qml:418
+msgid "Finish editing"
+msgstr "完成编辑"
+
+#: contents/ui/QuickSettingsHome.qml:418
+msgid "Edit quick settings"
+msgstr "编辑快速设置"
+
+#: contents/ui/TimeNotificationButton.qml:29
+msgid "%1 unread notifications"
+msgstr "%1 条未读通知"
+
+#: contents/ui/TimeNotificationButton.qml:30
+msgid "No unread notifications"
+msgstr "没有未读通知"
+
+#: contents/ui/TimeNotificationButton.qml:37
+msgid "Time, calendar, and notifications"
+msgstr "时间、日历与通知"
+
+#: contents/ui/TimeNotificationButton.qml:39
+msgid "%1 · %2 · %3"
+msgstr "%2 · %1 · %3"
+
+#: contents/ui/TimeNotificationButton.qml:40
+msgid "%1 · %2"
+msgstr "%1 · %2"
+
+#: contents/ui/WifiPage.qml:28
+msgid "Choose a network"
+msgstr "选择网络"
+
+#: contents/ui/WifiPage.qml:28
+msgid "Wireless is off"
+msgstr "无线网络已关闭"
+
+#: contents/ui/WifiPage.qml:45
+msgid "Scan for Wi-Fi networks"
+msgstr "扫描 Wi-Fi 网络"
+
+#: contents/ui/WifiPage.qml:65
+msgid "Scanning for nearby networks…"
+msgstr "正在扫描附近的网络…"
+
+#: contents/ui/WifiPage.qml:92
+msgid "Connecting…"
+msgstr "正在连接…"
+
+#: contents/ui/WifiPage.qml:122
+msgid "Wi-Fi is unavailable"
+msgstr "Wi-Fi 不可用"
+
+#: contents/ui/WifiPage.qml:123
+msgid "Wi-Fi is turned off"
+msgstr "Wi-Fi 已关闭"
+
+#: contents/ui/WifiPage.qml:123
+msgid "No networks found"
+msgstr "未找到网络"
+
+#: contents/ui/WifiPage.qml:125
+msgid "Open Network Settings to check the adapter and connection service."
+msgstr "打开网络设置，检查适配器和连接服务。"
+
+#: contents/ui/WifiPage.qml:127
+msgid "Turn on Wi-Fi to discover nearby networks."
+msgstr "打开 Wi-Fi 以发现附近网络。"
+
+#: contents/ui/WifiPage.qml:128
+msgid "Scan again or move closer to an access point."
+msgstr "再次扫描，或靠近接入点。"
+
+#: contents/ui/WifiPage.qml:129
+msgid "Network Settings"
+msgstr "网络设置"
+
+#: contents/ui/WifiPage.qml:130
+msgid "Turn on Wi-Fi"
+msgstr "打开 Wi-Fi"
+
+#: contents/ui/WifiPage.qml:131
+msgid "Scan again"
+msgstr "再次扫描"
+
+#: contents/ui/WifiPasswordDialog.qml:26
+msgid "Connect to %1"
+msgstr "连接到 %1"
+
+#: contents/ui/WifiPasswordDialog.qml:37
+msgid "Password"
+msgstr "密码"
+
+#: contents/ui/WifiPasswordDialog.qml:50
+msgid "Cancel"
+msgstr "取消"
+
+#: contents/ui/WifiPasswordDialog.qml:54
+msgid "Connect"
+msgstr "连接"
+
+#: contents/ui/components/SystemStatusCluster.qml:26
+msgid "System status"
+msgstr "系统状态"
+
+#: contents/ui/components/SystemStatusCluster.qml:29
+msgid "Bluetooth on"
+msgstr "蓝牙已开启"
+
+#: contents/ui/components/SystemStatusCluster.qml:30
+msgid "%1 percent battery"
+msgstr "电量 %1%"
+
+#: contents/ui/components/SystemStatusCluster.qml:97
+#, javascript-format
+msgid "Charging · %1%"
+msgstr "正在充电 · %1%"
+
+#: contents/ui/config/Appearance.qml:26
+msgid "Text size:"
+msgstr "文字大小："
+
+#: contents/ui/config/Appearance.qml:27
+#, javascript-format
+msgid "%1%"
+msgstr "%1%"
+
+#: contents/ui/config/Appearance.qml:32
+msgid "Show network"
+msgstr "显示网络"
+
+#: contents/ui/config/Appearance.qml:36
+msgid "Show Bluetooth"
+msgstr "显示蓝牙"
+
+#: contents/ui/config/Appearance.qml:40
+msgid "Show volume"
+msgstr "显示音量"
+
+#: contents/ui/config/Appearance.qml:46
+msgid "Battery:"
+msgstr "电池："
+
+#: contents/ui/config/Appearance.qml:48
+msgid "Hidden"
+msgstr "隐藏"
+
+#: contents/ui/config/Appearance.qml:49
+msgid "Icon only"
+msgstr "仅图标"
+
+#: contents/ui/config/Appearance.qml:50
+msgid "Icon and percentage"
+msgstr "图标和百分比"
+
+#: contents/ui/config/Appearance.qml:51
+msgid "Detailed state"
+msgstr "详细状态"
+
+#: contents/ui/config/Appearance.qml:57
+msgid "Show date"
+msgstr "显示日期"
+
+#: contents/ui/config/Appearance.qml:61
+msgid "Show notifications"
+msgstr "显示通知"
+
+#: contents/ui/config/Appearance.qml:65
+msgid "Use 24-hour clock"
+msgstr "使用 24 小时制"
+
+#: contents/ui/main.qml:20 contents/ui/main.qml:21
+msgid "Meo Quick Settings"
+msgstr "Meo 快速设置"
+
+#: contents/ui/main.qml:22
+msgid "Network, audio, display, and power controls"
+msgstr "网络、音频、显示与电源控制"

@@ -1,0 +1,36 @@
+{
+  "schema": "org.meo.help-runbook/v1",
+  "id": "storage.health.problem",
+  "version": 1,
+  "intents": ["磁盘空间不足", "硬盘错误", "文件系统损坏", "disk full", "storage failure", "smart failure"],
+  "questions": [
+    {
+      "id": "low_space_warning",
+      "label": "系统提示磁盘空间不足吗？",
+      "options": [
+        {"id": "yes", "label": "是，提示空间不足"},
+        {"id": "no", "label": "否，没有空间警告"}
+      ]
+    },
+    {
+      "id": "important_data_backed_up",
+      "label": "重要文件已经备份到其他设备了吗？",
+      "options": [
+        {"id": "yes", "label": "是，已经备份"},
+        {"id": "no", "label": "否，还没有备份"}
+      ]
+    },
+    {
+      "id": "unusual_disk_behavior",
+      "label": "最近是否出现读取错误、文件突然消失或硬盘异常声音？",
+      "options": [
+        {"id": "yes", "label": "是，出现过异常"},
+        {"id": "no", "label": "否，没有这些情况"}
+      ]
+    }
+  ],
+  "diagnostics": ["storage.capacity", "storage.mounts", "storage.smart", "storage.nvme", "storage.btrfs"],
+  "guidedCapabilities": [],
+  "allowedRepairActions": [],
+  "manualHandoffs": ["backup_required", "disk_health_failure", "filesystem_repair_requires_offline_mode", "user_data_cleanup_requires_selection"]
+}

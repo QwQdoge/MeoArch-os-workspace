@@ -1,0 +1,36 @@
+{
+  "schema": "org.meo.help-runbook/v1",
+  "id": "graphics.session.problem",
+  "version": 1,
+  "intents": ["显卡问题", "桌面黑屏", "画面撕裂", "gpu problem", "desktop black screen", "graphics driver"],
+  "questions": [
+    {
+      "id": "desktop_visible",
+      "label": "你现在可以看到并操作桌面吗？",
+      "options": [
+        {"id": "yes", "label": "是，桌面可以操作"},
+        {"id": "no", "label": "否，桌面不可用"}
+      ]
+    },
+    {
+      "id": "one_app_only",
+      "label": "这个画面问题只出现在一个应用里吗？",
+      "options": [
+        {"id": "yes", "label": "是，只有一个应用"},
+        {"id": "no", "label": "否，整个系统都会出现"}
+      ]
+    },
+    {
+      "id": "after_driver_update",
+      "label": "问题是在显卡驱动或内核更新后出现的吗？",
+      "options": [
+        {"id": "yes", "label": "是，更新后出现"},
+        {"id": "no", "label": "否，不确定或无关"}
+      ]
+    }
+  ],
+  "diagnostics": ["graphics.pci", "graphics.drm", "graphics.modules", "graphics.kernel_warnings"],
+  "guidedCapabilities": [],
+  "allowedRepairActions": [],
+  "manualHandoffs": ["desktop_unavailable", "application_specific_rendering", "driver_change_requires_review", "gpu_hardware_failure"]
+}

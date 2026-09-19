@@ -1,0 +1,540 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the plasma_applet_org.meo.topbar package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_org.meo.topbar\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-17 22:48+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: contents/config/config.qml:6
+msgid "Appearance"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:32 contents/ui/QuickSettingsHome.qml:78
+msgid "Sound"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:33
+msgid "No audio service"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:40
+msgid "Open Sound Settings"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:58
+msgid "Audio is unavailable"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:59
+msgid "Open Sound Settings to check PipeWire or PulseAudio devices."
+msgstr ""
+
+#: contents/ui/AudioPage.qml:60
+msgid "Sound Settings"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:66 contents/ui/AudioPage.qml:95
+#: contents/ui/QuickSettingsHome.qml:224
+msgid "Output volume"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:85
+msgid "Unmute"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:85
+msgid "Mute"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:109 contents/ui/QuickSettingsHome.qml:250
+msgid "Output device"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:133
+msgid "No output device is currently available."
+msgstr ""
+
+#: contents/ui/AudioPage.qml:139 contents/ui/QuickSettingsHome.qml:77
+msgid "Microphone"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:158 contents/ui/QuickSettingsHome.qml:262
+msgid "Unmute microphone"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:158 contents/ui/QuickSettingsHome.qml:262
+msgid "Mute microphone"
+msgstr ""
+
+#: contents/ui/AudioPage.qml:168 contents/ui/QuickSettingsHome.qml:260
+msgid "Microphone volume"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:19 contents/ui/BluetoothPage.qml:29
+#: contents/ui/QuickSettingsHome.qml:72
+msgid "Bluetooth"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:20
+msgid "Connect and manage devices"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:20
+msgid "Bluetooth is off"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:38
+msgid "Stop Bluetooth discovery"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:38
+msgid "Discover Bluetooth devices"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:61
+msgid "Looking for nearby devices…"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:89
+#, javascript-format
+msgid "Connected · %1%"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:89 contents/ui/WifiPage.qml:91
+msgid "Connected"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:90
+msgid "Paired"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:90
+msgid "Available"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:103
+msgid "Forget %1"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:116
+msgid "Bluetooth is unavailable"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:117
+msgid "Bluetooth is turned off"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:117
+msgid "No devices found"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:119
+msgid "Check that a Bluetooth adapter and the BlueZ service are available."
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:121
+msgid "Turn on Bluetooth to connect accessories."
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:122
+msgid "Put the device in pairing mode, then search again."
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:123
+msgid "Bluetooth Settings"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:124
+msgid "Turn on Bluetooth"
+msgstr ""
+
+#: contents/ui/BluetoothPage.qml:125
+msgid "Find devices"
+msgstr ""
+
+#: contents/ui/ControlCenter.qml:84 contents/ui/QuickSettingsCenter.qml:85
+#: contents/ui/QuickSettingsPopup.qml:67
+msgid "Sleep"
+msgstr ""
+
+#: contents/ui/ControlCenter.qml:89 contents/ui/QuickSettingsCenter.qml:90
+#: contents/ui/QuickSettingsPopup.qml:68
+msgid "Restart"
+msgstr ""
+
+#: contents/ui/ControlCenter.qml:94 contents/ui/QuickSettingsCenter.qml:95
+#: contents/ui/QuickSettingsPopup.qml:69
+msgid "Shut down"
+msgstr ""
+
+#: contents/ui/ControlCenter.qml:100 contents/ui/QuickSettingsCenter.qml:101
+#: contents/ui/QuickSettingsPopup.qml:71
+msgid "Sign out"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:19
+msgid "Performance"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:20
+msgid "Power saver"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:21
+msgid "Balanced"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:25
+msgid "Prioritise speed and responsiveness"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:26
+msgid "Reduce energy use and background activity"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:27
+msgid "Balance performance and battery life"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:37 contents/ui/QuickSettingsHome.qml:415
+msgid "Power"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:39
+msgid "Session and display controls"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:46
+msgid "Open Power Management Settings"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:68
+msgid "Power mode"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:112
+msgid ""
+"Power profiles are not provided by this system. Session controls remain "
+"available below."
+msgstr ""
+
+#: contents/ui/PowerPage.qml:116
+msgid "Session"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:133 contents/ui/PowerPage.qml:143
+msgid "Keep awake"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:135
+msgid "Sleep and screen locking are paused"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:136
+msgid "Use the normal sleep and screen-lock timers"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:153 contents/ui/QuickSettingsHome.qml:413
+msgid "Lock screen"
+msgstr ""
+
+#: contents/ui/PowerPage.qml:154
+msgid "Lock without closing applications"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:63 contents/ui/QuickSettingsHome.qml:87
+#: contents/ui/QuickSettingsHome.qml:88
+msgid "Off"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:67 contents/ui/QuickSettingsHome.qml:87
+#: contents/ui/QuickSettingsHome.qml:88
+msgid "On"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:71 contents/ui/WifiPage.qml:26
+#: contents/ui/WifiPage.qml:37
+msgid "Wi-Fi"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:73
+msgid "Focus"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:74
+msgid "Night Light"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:75
+msgid "Keep Awake"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:76
+msgid "Power Mode"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:79
+msgid "Displays"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:80
+msgid "Screenshot"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:86
+msgid "Do Not Disturb"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:86
+msgid "Notifications on"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:90 contents/ui/QuickSettingsHome.qml:91
+msgid "Muted"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:92
+msgid "%1 connected"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:93
+msgid "Capture screen"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:173
+msgid "Drag to reorder · use arrows to resize"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:205
+msgid "%1 brightness"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:206
+msgid "Display brightness"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:225
+msgid "Unmute output"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:225
+msgid "Mute output"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:270
+msgid "Input device"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:376
+msgid "Previous track"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:381
+msgid "Pause"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:381
+msgid "Play"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:387
+msgid "Next track"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:406
+msgid "Reset tile layout"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:414
+msgid "System Settings"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:418
+msgid "Finish editing"
+msgstr ""
+
+#: contents/ui/QuickSettingsHome.qml:418
+msgid "Edit quick settings"
+msgstr ""
+
+#: contents/ui/TimeNotificationButton.qml:29
+msgid "%1 unread notifications"
+msgstr ""
+
+#: contents/ui/TimeNotificationButton.qml:30
+msgid "No unread notifications"
+msgstr ""
+
+#: contents/ui/TimeNotificationButton.qml:37
+msgid "Time, calendar, and notifications"
+msgstr ""
+
+#: contents/ui/TimeNotificationButton.qml:39
+msgid "%1 · %2 · %3"
+msgstr ""
+
+#: contents/ui/TimeNotificationButton.qml:40
+msgid "%1 · %2"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:28
+msgid "Choose a network"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:28
+msgid "Wireless is off"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:45
+msgid "Scan for Wi-Fi networks"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:65
+msgid "Scanning for nearby networks…"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:92
+msgid "Connecting…"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:122
+msgid "Wi-Fi is unavailable"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:123
+msgid "Wi-Fi is turned off"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:123
+msgid "No networks found"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:125
+msgid "Open Network Settings to check the adapter and connection service."
+msgstr ""
+
+#: contents/ui/WifiPage.qml:127
+msgid "Turn on Wi-Fi to discover nearby networks."
+msgstr ""
+
+#: contents/ui/WifiPage.qml:128
+msgid "Scan again or move closer to an access point."
+msgstr ""
+
+#: contents/ui/WifiPage.qml:129
+msgid "Network Settings"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:130
+msgid "Turn on Wi-Fi"
+msgstr ""
+
+#: contents/ui/WifiPage.qml:131
+msgid "Scan again"
+msgstr ""
+
+#: contents/ui/WifiPasswordDialog.qml:26
+msgid "Connect to %1"
+msgstr ""
+
+#: contents/ui/WifiPasswordDialog.qml:37
+msgid "Password"
+msgstr ""
+
+#: contents/ui/WifiPasswordDialog.qml:50
+msgid "Cancel"
+msgstr ""
+
+#: contents/ui/WifiPasswordDialog.qml:54
+msgid "Connect"
+msgstr ""
+
+#: contents/ui/components/SystemStatusCluster.qml:26
+msgid "System status"
+msgstr ""
+
+#: contents/ui/components/SystemStatusCluster.qml:29
+msgid "Bluetooth on"
+msgstr ""
+
+#: contents/ui/components/SystemStatusCluster.qml:30
+msgid "%1 percent battery"
+msgstr ""
+
+#: contents/ui/components/SystemStatusCluster.qml:97
+#, javascript-format
+msgid "Charging · %1%"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:26
+msgid "Text size:"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:27
+#, javascript-format
+msgid "%1%"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:32
+msgid "Show network"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:36
+msgid "Show Bluetooth"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:40
+msgid "Show volume"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:46
+msgid "Battery:"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:48
+msgid "Hidden"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:49
+msgid "Icon only"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:50
+msgid "Icon and percentage"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:51
+msgid "Detailed state"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:57
+msgid "Show date"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:61
+msgid "Show notifications"
+msgstr ""
+
+#: contents/ui/config/Appearance.qml:65
+msgid "Use 24-hour clock"
+msgstr ""
+
+#: contents/ui/main.qml:20 contents/ui/main.qml:21
+msgid "Meo Quick Settings"
+msgstr ""
+
+#: contents/ui/main.qml:22
+msgid "Network, audio, display, and power controls"
+msgstr ""

@@ -16,14 +16,28 @@ QQC2.AbstractButton {
 
     signal statusCenterRequested()
 
+    function displayedTime() {
+        return Qt.formatTime(currentDateTime, use24HourClock ? "hh:mm" : "h:mm AP")
+    }
+
+    function displayedDate() {
+        return Qt.formatDate(currentDateTime, Qt.DefaultLocaleShortDate)
+    }
+
+    function notificationStatus() {
+        return unreadCount > 0
+            ? i18n("%1 unread notifications").arg(unreadCount)
+            : i18n("No unread notifications")
+    }
+
     implicitWidth: contentItem.implicitWidth + leftPadding + rightPadding
     implicitHeight: 32 * MeoTheme.globalScale
     leftPadding: MeoTheme.space8
     rightPadding: MeoTheme.space8
-    Accessible.name: qsTr("Time, calendar, and notifications")
-    Accessible.description: unreadCount > 0
-                            ? qsTr("%1 unread notifications").arg(unreadCount)
-                            : qsTr("No unread notifications")
+    Accessible.name: i18n("Time, calendar, and notifications")
+    Accessible.description: showDate
+                            ? i18n("%1 · %2 · %3", displayedTime(), displayedDate(), notificationStatus())
+                            : i18n("%1 · %2", displayedTime(), notificationStatus())
     onClicked: statusCenterRequested()
 
     background: MeoShape {
@@ -49,7 +63,7 @@ QQC2.AbstractButton {
             spacing: 0
 
             MeoText {
-                text: Qt.formatTime(root.currentDateTime, root.use24HourClock ? "hh:mm" : "h:mm AP")
+                text: root.displayedTime()
                 typeRole: "label"
                 typeSize: "medium"
                 emphasized: true
@@ -59,7 +73,7 @@ QQC2.AbstractButton {
 
             MeoText {
                 visible: root.showDate
-                text: Qt.formatDate(root.currentDateTime, "MMM d")
+                text: root.displayedDate()
                 typeRole: "label"
                 typeSize: "small"
                 fontScaleOverride: root.textScale

@@ -58,10 +58,33 @@ required=(
   meoarch-os/grub/themes/meoarch/meoarch-sans-regular-24.pf2
   meoarch-os/grub/themes/meoarch/meoarch-sans-bold-24.pf2
   installer/qml/Main.qml
+  installer/live-system/CMakeLists.txt
+  installer/live-system/meosystemliveplugin.cpp
+  installer/live-system/qmldir
   repair/qml/Main.qml
   repair/CMakeLists.txt
+  repair/core/agentstate.h
+  repair/core/capabilityregistry.h
+  repair/core/sessionjournal.h
+  repair/docs/security-architecture.md
+  repair/tests/core-contract-test.cpp
   repair/checks/all.sh
+  repair/checks/audio.sh
+  repair/checks/display.sh
   repair/actions/rebuild-initramfs.sh
+  repair/live-actions/rebuild-initramfs.sh
+  repair/data/org.meo.repair.policy
+  repair/data/org.meo.Repair1.conf
+  repair/data/org.meo.Repair1.service
+  repair/data/meoarch-repair-privileged.service
+  repair/privileged/privilegedrepairservice.cpp
+  repair/privileged/privilegedrepairservice.h
+  repair/data/org.meo.repair-live.policy
+  repair/data/org.meo.repair-live.rules
+  repair/knowledge/manifest.json
+  repair/knowledge/system-prompt.md
+  repair/knowledge/audio-output.json
+  repair/knowledge/display-output.json
   installer/app/repaircontroller.cpp
   installer/data/account.env.example
   installer/data/application-catalog.json
@@ -69,6 +92,7 @@ required=(
   assets/wallpapers/installer_background.png
   installer/translations/meoarch_zh_CN.ts
   installer/backend/generate-config.py
+  installer/bin/meoarch-repair-session
   scripts/sync-installer-to-airootfs.sh
   scripts/build-installer-app.sh
   scripts/verify-staging-provenance.sh
@@ -137,11 +161,30 @@ grep -q 'native installer host, MeoUI runtime, and repair payload' scripts/build
 ! rg -q 'qml6 fallback|optional native host' scripts/build-installer-app.sh scripts/sync-installer-to-airootfs.sh
 grep -q '^lynis$' meoarch-os/packages.x86_64
 grep -q '^qtkeychain-qt6$' meoarch-os/packages.x86_64
+grep -q '^polkit-qt6$' meoarch-os/packages.x86_64
 grep -q '^konsole$' meoarch-os/packages.x86_64
+for package in alsa-utils pipewire-audio pipewire-pulse wireplumber; do
+  grep -q "^${package}$" meoarch-os/packages.x86_64
+  grep -q "\"${package}\"" installer/backend/generate-config.py
+done
+! grep -q '^libplasma$' meoarch-os/packages.x86_64
+grep -q 'MEO_KDE_SOURCE_DIR' installer/live-system/CMakeLists.txt
+grep -q 'systemstatehub.cpp' installer/live-system/CMakeLists.txt
+grep -q 'qmlRegisterSingletonType<SystemStateHub>' installer/live-system/meosystemliveplugin.cpp
 grep -q 'openDebugTerminal' installer/app/installercontroller.cpp
 grep -q 'openDiagnosticTty' installer/app/repaircontroller.cpp
 grep -q 'TTYPath=/dev/tty3' installer/app/repaircontroller.cpp
 grep -q 'structured_diagnostic_findings' installer/app/repaircontroller.cpp
+grep -q 'actionSupportedByEvidence' installer/app/repaircontroller.cpp
+grep -q 'org.meo.repair-plan-binding/v1' installer/app/repaircontroller.cpp
+grep -q 'dispatchPrivilegedServiceAction' installer/app/repaircontroller.cpp
+grep -q 'checkAuthorizationSync' repair/privileged/privilegedrepairservice.cpp
+! rg -q 'Execute\(|RunCommand|commandArgument|programArgument' repair/privileged
+grep -q 'storage_destructive_repair' repair/core/capabilityregistry.cpp
+grep -q 'State::WaitConfirm' repair/core/agentstate.cpp
+grep -q 'm_displayRecoverySeconds = 15' installer/app/repaircontroller.cpp
+grep -q 'import Meo.System 1.0' repair/qml/Main.qml
+grep -q 'Never request an administrator password' repair/knowledge/system-prompt.md
 grep -q 'wiki.archlinux.org/title/Installation_guide' installer/qml/PageFrame.qml
 grep -q 'meoarch.mode=repair' meoarch-os/grub/grub.cfg
 grep -q 'themes/meoarch/theme.txt' meoarch-os/grub/grub.cfg
@@ -158,7 +201,10 @@ grep -q 'org.meo.SessionAction1.service' installer/backend/verify-target.py
 grep -Fq 'Ctrl+Meta+Delete' "${projects_root}/meo-kde/defaults/kde/kglobalshortcutsrc"
 grep -q 'MeoHoldToConfirm' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/logout/Logout.qml"
 ! rg -q 'AI Repair MeoArch OS|✨' meoarch-os/grub meoarch-os/efiboot meoarch-os/syslinux
-grep -q '/usr/bin/meoarch-repair --live --kiosk' installer/bin/meoarch-installer-kiosk
+grep -q '/usr/local/bin/meoarch-repair-session' installer/bin/meoarch-installer-kiosk
+grep -q '/usr/bin/meoarch-repair --live --kiosk' installer/bin/meoarch-repair-session
+grep -q '/usr/lib/meo-polkit-agent &' installer/bin/meoarch-repair-session
+grep -q 'org.kde.polkit-kde-authentication-agent-1' installer/bin/meoarch-repair-session
 grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
 ! rg -q 'RepairMain.qml' installer
 grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
@@ -169,8 +215,19 @@ grep -q '^StartLimitBurst=3$' meoarch-os/airootfs/etc/systemd/system/meoarch-ins
 grep -q '^Environment=XDG_RUNTIME_DIR=/run/meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^RuntimeDirectory=meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^RuntimeDirectoryMode=0700$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^ExecStartPre=/usr/bin/usermod -aG audio,seat,tty live$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^ExecStartPre=/usr/bin/install -m 0600 -o root -g root /dev/null /run/meoarch-installer/production-capability$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^WantedBy=graphical.target$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '/usr/bin/runuser -u live' installer/bin/meoarch-installer-kiosk
+grep -q 'user-runtime-dir@${live_uid}.service' installer/bin/meoarch-installer-kiosk
+grep -q 'subject.user === "live"' repair/data/org.meo.repair-live.rules
+grep -q 'subject.local === true' repair/data/org.meo.repair-live.rules
+grep -q 'subject.active === true' repair/data/org.meo.repair-live.rules
+grep -q 'action.lookup("program") === fixedLiveActions\[action.id\]' repair/data/org.meo.repair-live.rules
+grep -q 'action.lookup("user") === "root"' repair/data/org.meo.repair-live.rules
+grep -q 'polkit.Result.YES' repair/data/org.meo.repair-live.rules
+! grep -q 'org.meo.repair-live.rules' repair/CMakeLists.txt
+! grep -q 'org.meo.repair-live.policy' repair/CMakeLists.txt
 ! rg -q '^Before=getty@tty1.service$|^Conflicts=.*getty@tty1.service' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/getty@tty1.service)" = '/dev/null'
 for unit in systemd-networkd.service systemd-networkd.socket systemd-networkd-varlink.socket systemd-networkd-varlink-metrics.socket systemd-networkd-resolve-hook.socket; do

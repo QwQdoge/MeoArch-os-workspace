@@ -60,6 +60,8 @@ for destructive_target in \
   "${target_root}/usr/lib/qt6/qml/MeoKDE" \
   "${target_root}/usr/lib/qt6/qml/Meo/System" \
   "${target_root}/usr/lib/meoarch-repair" \
+  "${target_root}/usr/share/meoarch-repair" \
+  "${target_root}/usr/share/polkit-1/actions/org.meo.repair.policy" \
   "${target_root}/usr/share/plasma/look-and-feel/org.meo.desktop" \
   "${target_root}/usr/share/plasma/desktoptheme/MeoLight" \
   "${target_root}/usr/share/plasma/desktoptheme/MeoDark" \
@@ -81,6 +83,8 @@ if [ ! -e "${runtime_source}/lib/libmeoui.so.0" ] \
 fi
 if [ ! -x "${runtime_source}/bin/meoarch-repair" ] \
   || [ ! -f "${runtime_source}/lib/meoarch-repair/qml/Main.qml" ] \
+  || [ ! -f "${runtime_source}/share/meoarch-repair/knowledge/manifest.json" ] \
+  || [ ! -f "${runtime_source}/share/polkit-1/actions/org.meo.repair.policy" ] \
   || [ ! -f "${runtime_source}/share/applications/org.meo.repair.desktop" ]; then
   echo "MeoArch Quick Repair runtime is missing from ${runtime_source}." >&2
   exit 5
@@ -107,6 +111,7 @@ install -d \
   "${target_root}/usr/share/color-schemes" \
   "${target_root}/usr/share/icons" \
   "${target_root}/usr/share/icons/hicolor/scalable/apps" \
+  "${target_root}/usr/share/polkit-1/actions" \
   "${target_root}/usr/share/plasma/look-and-feel" \
   "${target_root}/usr/share/plasma/plasmoids" \
   "${target_root}/usr/share/pixmaps" \
@@ -128,10 +133,15 @@ cp -a "${runtime_source}/lib/qt6/qml/Meo/System" \
 rm -rf "${target_root}/usr/lib/meoarch-repair"
 cp -a "${runtime_source}/lib/meoarch-repair" \
   "${target_root}/usr/lib/meoarch-repair"
+rm -rf "${target_root}/usr/share/meoarch-repair"
+cp -a "${runtime_source}/share/meoarch-repair" \
+  "${target_root}/usr/share/meoarch-repair"
 install_file 755 "${runtime_source}/bin/meoarch-repair" \
   "${target_root}/usr/bin/meoarch-repair"
 install_file 644 "${runtime_source}/share/applications/org.meo.repair.desktop" \
   "${target_root}/usr/share/applications/org.meo.repair.desktop"
+install_file 644 "${runtime_source}/share/polkit-1/actions/org.meo.repair.policy" \
+  "${target_root}/usr/share/polkit-1/actions/org.meo.repair.policy"
 install_file 644 "${runtime_source}/share/icons/hicolor/scalable/apps/meoarch-ai.svg" \
   "${target_root}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
 if [ -d "${runtime_source}/share/fonts/meo" ]; then

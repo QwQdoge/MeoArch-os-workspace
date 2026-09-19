@@ -23,7 +23,7 @@ QQC2.Popup {
         spacing: MeoTheme.space16
         MeoText {
             Layout.fillWidth: true
-            text: qsTr("Connect to %1").arg(root.ssid)
+            text: i18n("Connect to %1").arg(root.ssid)
             typeRole: "title"
             typeSize: "medium"
             emphasized: true
@@ -34,7 +34,7 @@ QQC2.Popup {
             id: passwordField
             Layout.fillWidth: true
             type: "outlined"
-            label: qsTr("Password")
+            label: i18n("Password")
             isPassword: true
             leadingIcon: "key"
             Keys.onReturnPressed: {
@@ -47,11 +47,11 @@ QQC2.Popup {
         RowLayout {
             Layout.fillWidth: true
             Item { Layout.fillWidth: true }
-            MeoButton { type: "text"; size: "s"; text: qsTr("Cancel"); onClicked: root.close() }
+            MeoButton { type: "text"; size: "s"; text: i18n("Cancel"); onClicked: root.close() }
             MeoButton {
                 type: "filled"
                 size: "s"
-                text: qsTr("Connect")
+                text: i18n("Connect")
                 enabled: passwordField.text.length > 0
                 onClicked: {
                     root.accepted(passwordField.text)

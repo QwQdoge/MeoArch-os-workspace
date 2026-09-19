@@ -23,9 +23,9 @@ Item {
 
         PopupPageHeader {
             Layout.fillWidth: true
-            title: qsTr("Wi-Fi")
+            title: i18n("Wi-Fi")
             subtitle: SystemState.networkConnected ? SystemState.networkName
-                      : (SystemState.wirelessEnabled ? qsTr("Choose a network") : qsTr("Wireless is off"))
+                      : (SystemState.wirelessEnabled ? i18n("Choose a network") : i18n("Wireless is off"))
             onBackRequested: root.backRequested()
             trailingContent: Component {
                 RowLayout {
@@ -34,7 +34,7 @@ Item {
                         size: "s"
                         checked: SystemState.wirelessEnabled
                         enabled: SystemState.networkAvailable && !SystemState.networkBusy
-                        Accessible.name: qsTr("Wi-Fi")
+                        Accessible.name: i18n("Wi-Fi")
                         onToggled: function(checked) { SystemState.wirelessEnabled = checked }
                     }
                     MeoIconButton {
@@ -42,7 +42,7 @@ Item {
                         size: "m"
                         icon.name: "refresh"
                         enabled: SystemState.wirelessEnabled && !SystemState.wifiScanning && !SystemState.networkBusy
-                        Accessible.name: qsTr("Scan for Wi-Fi networks")
+                        Accessible.name: i18n("Scan for Wi-Fi networks")
                         onClicked: SystemState.requestWifiScan()
                     }
                 }
@@ -62,7 +62,7 @@ Item {
             spacing: MeoTheme.space8
             MeoLoadingIndicator { indeterminate: true; width: 20 * MeoTheme.globalScale; height: width }
             MeoText {
-                text: qsTr("Scanning for nearby networks…")
+                text: i18n("Scanning for nearby networks…")
                 typeRole: "body"
                 typeSize: "small"
                 color: MeoTheme.onSurfaceVariant
@@ -88,8 +88,8 @@ Item {
                     isSegmented: true
                     roundingStrategy: "all"
                     headline: modelData.ssid
-                    supportingText: modelData.connected ? qsTr("Connected")
-                                  : (modelData.connecting ? qsTr("Connecting…") : modelData.securityLabel)
+                    supportingText: modelData.connected ? i18n("Connected")
+                                  : (modelData.connecting ? i18n("Connecting…") : modelData.securityLabel)
                     leadingIcon: root.signalIcon(modelData.strength)
                     selected: modelData.connected
                     interactive: !SystemState.networkBusy
@@ -119,16 +119,16 @@ Item {
                 visible: !networkList.visible
                 iconName: !SystemState.networkAvailable ? "wifi_off"
                           : (!SystemState.wirelessEnabled ? "wifi_off" : "wifi_find")
-                title: !SystemState.networkAvailable ? qsTr("Wi-Fi is unavailable")
-                       : (!SystemState.wirelessEnabled ? qsTr("Wi-Fi is turned off") : qsTr("No networks found"))
+                title: !SystemState.networkAvailable ? i18n("Wi-Fi is unavailable")
+                       : (!SystemState.wirelessEnabled ? i18n("Wi-Fi is turned off") : i18n("No networks found"))
                 description: !SystemState.networkAvailable
-                             ? qsTr("Open Network Settings to check the adapter and connection service.")
+                             ? i18n("Open Network Settings to check the adapter and connection service.")
                              : (!SystemState.wirelessEnabled
-                                ? qsTr("Turn on Wi-Fi to discover nearby networks.")
-                                : qsTr("Scan again or move closer to an access point."))
-                actionText: !SystemState.networkAvailable ? qsTr("Network Settings")
-                            : (!SystemState.wirelessEnabled ? qsTr("Turn on Wi-Fi")
-                                                           : (SystemState.wifiScanning ? "" : qsTr("Scan again")))
+                                ? i18n("Turn on Wi-Fi to discover nearby networks.")
+                                : i18n("Scan again or move closer to an access point."))
+                actionText: !SystemState.networkAvailable ? i18n("Network Settings")
+                            : (!SystemState.wirelessEnabled ? i18n("Turn on Wi-Fi")
+                                                           : (SystemState.wifiScanning ? "" : i18n("Scan again")))
                 onActionRequested: {
                     if (!SystemState.networkAvailable)
                         Qt.openUrlExternally("systemsettings:kcm_networkmanagement")

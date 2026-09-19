@@ -4,9 +4,12 @@
 #include <QNetworkAccessManager>
 #include <QObject>
 #include <QProcess>
+#include <QTimer>
 #include <QUrl>
 #include <QVariantList>
 #include <QVariantMap>
+#include "sessionjournal.h"
+#include "agentstate.h"
 #include <functional>
 
 class RepairController final : public QObject
@@ -48,6 +51,20 @@ class RepairController final : public QObject
     Q_PROPERTY(QString credentialMessage READ credentialMessage NOTIFY credentialChanged)
     Q_PROPERTY(bool diagnosticTtyAvailable READ diagnosticTtyAvailable NOTIFY diagnosticTtyChanged)
     Q_PROPERTY(QString diagnosticTtyMessage READ diagnosticTtyMessage NOTIFY diagnosticTtyChanged)
+    Q_PROPERTY(QString userProblem READ userProblem NOTIFY guidedChanged)
+    Q_PROPERTY(QVariantMap guidedAnswers READ guidedAnswers NOTIFY guidedChanged)
+    Q_PROPERTY(QString guidedHandoffMessage READ guidedHandoffMessage NOTIFY guidedChanged)
+    Q_PROPERTY(bool audioGuidedRepairAllowed READ audioGuidedRepairAllowed NOTIFY guidedChanged)
+    Q_PROPERTY(bool displayGuidedRepairAllowed READ displayGuidedRepairAllowed NOTIFY guidedChanged)
+    Q_PROPERTY(bool audioServiceRepairAvailable READ audioServiceRepairAvailable NOTIFY auditChanged)
+    Q_PROPERTY(QString audioTestState READ audioTestState NOTIFY audioTestChanged)
+    Q_PROPERTY(QString audioTestMessage READ audioTestMessage NOTIFY audioTestChanged)
+    Q_PROPERTY(QString audioRecoveryState READ audioRecoveryState NOTIFY guidedChanged)
+    Q_PROPERTY(QString audioRecoveryMessage READ audioRecoveryMessage NOTIFY guidedChanged)
+    Q_PROPERTY(QVariantList displayOutputs READ displayOutputs NOTIFY displayRecoveryChanged)
+    Q_PROPERTY(QString displayRecoveryState READ displayRecoveryState NOTIFY displayRecoveryChanged)
+    Q_PROPERTY(QString displayRecoveryMessage READ displayRecoveryMessage NOTIFY displayRecoveryChanged)
+    Q_PROPERTY(int displayRecoverySeconds READ displayRecoverySeconds NOTIFY displayRecoveryChanged)
 
 public:
     explicit RepairController(QObject *parent = nullptr);
@@ -92,6 +109,20 @@ public:
     QString credentialMessage() const { return m_credentialMessage; }
     bool diagnosticTtyAvailable() const { return m_diagnosticTtyAvailable; }
     QString diagnosticTtyMessage() const { return m_diagnosticTtyMessage; }
+    QString userProblem() const { return m_userProblem; }
+    QVariantMap guidedAnswers() const { return m_guidedAnswers; }
+    QString guidedHandoffMessage() const;
+    bool audioGuidedRepairAllowed() const;
+    bool displayGuidedRepairAllowed() const;
+    bool audioServiceRepairAvailable() const;
+    QString audioTestState() const { return m_audioTestState; }
+    QString audioTestMessage() const { return m_audioTestMessage; }
+    QString audioRecoveryState() const { return m_audioRecoveryState; }
+    QString audioRecoveryMessage() const { return m_audioRecoveryMessage; }
+    QVariantList displayOutputs() const { return m_displayOutputs; }
+    QString displayRecoveryState() const { return m_displayRecoveryState; }
+    QString displayRecoveryMessage() const { return m_displayRecoveryMessage; }
+    int displayRecoverySeconds() const { return m_displayRecoverySeconds; }
 
     Q_INVOKABLE void signIn(const QString &email, const QString &password);
     Q_INVOKABLE void verifyTotp(const QString &code);
@@ -105,6 +136,11 @@ public:
     Q_INVOKABLE void saveLocalCredential(const QString &secret, bool sessionOnly);
     Q_INVOKABLE void deleteLocalCredential();
     Q_INVOKABLE void clearSessionCredential();
+    Q_INVOKABLE QString classifyProblem(const QString &problem) const;
+    Q_INVOKABLE void setUserProblem(const QString &problem);
+    Q_INVOKABLE QVariantList guidedQuestionsForCategory(const QString &categoryId) const;
+    Q_INVOKABLE void prepareGuidedCategory(const QString &categoryId);
+    Q_INVOKABLE void setGuidedAnswer(const QString &questionId, const QString &optionId);
     Q_INVOKABLE void startQuickCheck(const QString &categoryId);
     Q_INVOKABLE void cancelQuickCheck();
     Q_INVOKABLE void openDiagnosticTty();
@@ -113,6 +149,12 @@ public:
     Q_INVOKABLE void resolveAiConsent(bool approved);
     Q_INVOKABLE void executeConfirmedPlan(const QString &confirmation);
     Q_INVOKABLE void clearPlan();
+    Q_INVOKABLE void playAudioTestTone();
+    Q_INVOKABLE void restartAudioServices();
+    Q_INVOKABLE void refreshDisplayOutputs();
+    Q_INVOKABLE void beginDisplayRecovery(const QString &outputId);
+    Q_INVOKABLE void keepDisplayRecovery();
+    Q_INVOKABLE void revertDisplayRecovery();
 
 signals:
     void authChanged();
@@ -123,6 +165,9 @@ signals:
     void aiConfigurationChanged();
     void credentialChanged();
     void diagnosticTtyChanged();
+    void guidedChanged();
+    void audioTestChanged();
+    void displayRecoveryChanged();
     void quickCheckFinished(int exitCode);
     void aiConsentReady(const QVariantMap &summary);
 
@@ -155,13 +200,20 @@ private:
     QJsonObject extractJsonObject(const QString &text) const;
     bool validatePlan(const QJsonObject &plan, QString *error) const;
     bool validateReview(const QJsonObject &review, QString *error) const;
-    void parseLynisReport();
     void parseCheckOutput(const QString &output);
+    void consumeCheckOutput(const QString &output, bool finalChunk = false);
     void rebuildAiAuditReport();
     void runNextApprovedAction();
     QString credentialModel(const QString &id) const;
     QString checkScriptPath(const QString &categoryId) const;
     QString actionScriptPath(const QString &kind) const;
+    QString knowledgeText(const QString &fileName, const QString &fallback = {}) const;
+    QString runbookText(const QString &categoryId) const;
+    bool actionSupportedByEvidence(const QString &kind) const;
+    bool hasBlockingOperation() const;
+    bool runKscreen(const QStringList &arguments, QByteArray *output, QString *error) const;
+    bool scheduleDisplayRollback(const QString &outputId, QString *error);
+    bool cancelDisplayRollback(QString *error);
     QString providerDisplayName(const QString &provider) const;
     QUrl accountProviderUrl(const QVariantMap &credential, const QString &model) const;
     QUrl localProviderUrl(const QString &provider, const QString &model) const;
@@ -170,6 +222,13 @@ private:
     void loadAccountEnvironmentFile();
     void updateCredentialMarker();
     void clearPendingInference();
+    void beginAudioServicePostCheck();
+    void beginAudioOutputPostCheck();
+    QString computeEvidenceSnapshotId() const;
+    bool bindCurrentPlan(QString *error);
+    bool currentPlanBindingValid(QString *error) const;
+    void appendExecutionJournal(const QString &state, const QString &actionId = {});
+    bool dispatchPrivilegedServiceAction(const QString &kind, const QString &actionId);
 
     QNetworkAccessManager m_network;
     QString m_supabaseUrl;
@@ -188,11 +247,23 @@ private:
     bool m_liveEnvironment = false;
     QVariantList m_checkCategories;
     QString m_selectedCategory = QStringLiteral("all");
+    QString m_userProblem;
+    QString m_guidedCategory;
+    QVariantMap m_guidedAnswers;
+    QString m_audioTestState = QStringLiteral("idle");
+    QString m_audioTestMessage;
+    QProcess *m_audioTestProcess = nullptr;
+    QString m_audioRecoveryState = QStringLiteral("idle");
+    QString m_audioRecoveryMessage;
+    QProcess *m_audioRecoveryProcess = nullptr;
+    int m_audioOutputPostCheckAttempts = 0;
     QString m_checkLog;
+    QString m_checkParseBuffer;
     QString m_auditState = QStringLiteral("idle");
     QString m_auditSummary = QStringLiteral("Run the read-only audit before asking AI for a plan.");
     QVariantList m_auditFindings;
     QString m_auditReport;
+    QString m_evidenceSnapshotId;
 
     QString m_aiState = QStringLiteral("idle");
     QString m_aiMessage;
@@ -205,6 +276,9 @@ private:
     QString m_planSha256;
     QString m_confirmationPhrase;
     bool m_readyToExecute = false;
+    QJsonObject m_planBinding;
+    QString m_planExpiryUtc;
+    QString m_sessionNonce;
 
     QString m_executionState = QStringLiteral("idle");
     QString m_executionLog;
@@ -212,6 +286,7 @@ private:
     int m_executionIndex = 0;
     bool m_executionFailed = false;
     QProcess *m_executionProcess = nullptr;
+    QObject *m_privilegedCallWatcher = nullptr;
 
     QString m_aiSource = QStringLiteral("local");
     QString m_localProvider = QStringLiteral("openai");
@@ -225,4 +300,13 @@ private:
     QString m_credentialMessage;
     bool m_diagnosticTtyAvailable = false;
     QString m_diagnosticTtyMessage;
+    QVariantList m_displayOutputs;
+    QString m_displayRecoveryState = QStringLiteral("idle");
+    QString m_displayRecoveryMessage;
+    QString m_displayRollbackId;
+    QString m_displayRollbackUnit;
+    int m_displayRecoverySeconds = 0;
+    QTimer m_displayRecoveryTimer;
+    MeoRepair::SessionJournal m_sessionJournal;
+    MeoRepair::AgentStateMachine m_agentState;
 };

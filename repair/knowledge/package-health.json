@@ -1,0 +1,36 @@
+{
+  "schema": "org.meo.help-runbook/v1",
+  "id": "packages.update.failure",
+  "version": 1,
+  "intents": ["更新失败", "软件安装失败", "签名错误", "package update failed", "pacman error", "keyring error"],
+  "questions": [
+    {
+      "id": "signature_error",
+      "label": "更新时出现了签名、密钥或 keyring 错误吗？",
+      "options": [
+        {"id": "yes", "label": "是，出现了密钥错误"},
+        {"id": "no", "label": "否，没有密钥错误"}
+      ]
+    },
+    {
+      "id": "missing_files",
+      "label": "错误信息提到了文件缺失或损坏吗？",
+      "options": [
+        {"id": "yes", "label": "是，提到了文件问题"},
+        {"id": "no", "label": "否，没有提到"}
+      ]
+    },
+    {
+      "id": "normal_update_used",
+      "label": "你使用的是正常的系统更新，而不是手动覆盖文件吗？",
+      "options": [
+        {"id": "yes", "label": "是，使用正常更新"},
+        {"id": "no", "label": "否，曾手动覆盖或删除文件"}
+      ]
+    }
+  ],
+  "diagnostics": ["packages.database", "packages.files", "packages.keyring"],
+  "guidedCapabilities": [],
+  "allowedRepairActions": ["refresh_pacman_keyring"],
+  "manualHandoffs": ["filesystem_ownership_conflict", "missing_or_altered_package_files", "repository_or_mirror_failure"]
+}

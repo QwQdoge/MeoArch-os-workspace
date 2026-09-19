@@ -18,8 +18,18 @@ else
   echo "MEO_FINDING|warning|packages.pacman_missing|pacman is not installed in the current environment."
 fi
 
+echo "[packages] keyring"
+if command -v pacman-key >/dev/null 2>&1 \
+   && ! timeout 15 pacman-key --list-keys >/dev/null 2>&1; then
+  echo "MEO_FINDING|warning|packages.keyring_unreadable|The package signing keyring could not be read."
+fi
+
 if [ "${MEOARCH_REPAIR_SCOPE:-system}" = "live" ] && [ -x /usr/bin/arch-chroot ] \
    && [ -d /mnt/etc ] && [ -x /mnt/usr/bin/pacman ]; then
   echo "[packages] mounted target"
   run_package_checks /usr/bin/arch-chroot /mnt
+  if [ -x /mnt/usr/bin/pacman-key ] \
+     && ! timeout 15 /usr/bin/arch-chroot /mnt /usr/bin/pacman-key --list-keys >/dev/null 2>&1; then
+    echo "MEO_FINDING|warning|packages.keyring_unreadable|The mounted target package signing keyring could not be read."
+  fi
 fi

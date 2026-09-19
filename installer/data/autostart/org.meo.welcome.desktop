@@ -1,7 +1,9 @@
 [Desktop Entry]
 Type=Application
 Name=Welcome to Meo
+Name[zh_CN]=欢迎使用 Meo
 Comment=Set up your MeoArch experience
+Comment[zh_CN]=开始设置你的 MeoArch 体验
 TryExec=meo-welcome
 Exec=meo-welcome
 Icon=meoarch-logo

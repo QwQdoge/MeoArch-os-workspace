@@ -5,14 +5,31 @@ import "../components"
 
 PageFrame {
     id: page
-    readonly property string profile: controller ? controller.selection("software", "profile", "recommended") : "recommended"
+    // selection() is an invokable, so its result is not itself a reactive QML
+    // property. Depend on the controller's revision to make a clicked profile
+    // and component checkbox update immediately rather than only after this
+    // page is reloaded.
+    readonly property var selectionRevision: controller && controller.selectionRevision !== undefined
+                                           ? controller.selectionRevision : 0
+    readonly property string profile: {
+        const revision = selectionRevision
+        return revision >= 0 && controller ? controller.selection("software", "profile", "recommended") : "recommended"
+    }
+    readonly property var selectedComponents: {
+        const revision = selectionRevision
+        return revision >= 0 && controller ? controller.selection("software", "components", []) : []
+    }
+    readonly property var selectedApplications: {
+        const revision = selectionRevision
+        return revision >= 0 && controller ? controller.selection("software", "applications", []) : []
+    }
     readonly property var softwareCatalog: controller ? controller.softwareCatalog : []
     function selectProfile(value) {
         controller.setSelection("software", "profile", value)
         controller.setSelection("software", "components", value === "custom" ? ["meo-desktop"] : [])
     }
     function setComponent(name, enabled) {
-        let next = controller.selection("software", "components", []).slice()
+        let next = Array.from(page.selectedComponents)
         const index = next.indexOf(name)
         if (enabled && index < 0)
             next.push(name)
@@ -28,12 +45,12 @@ PageFrame {
     }
     function applicationIsSelected(application) {
         return page.applicationIsDefault(application)
-               || (controller && controller.selection("software", "applications", []).indexOf(application.id) >= 0)
+               || page.selectedApplications.indexOf(application.id) >= 0
     }
     function setApplication(application, enabled) {
         if (page.applicationIsDefault(application))
             return
-        let next = controller.selection("software", "applications", []).slice()
+        let next = Array.from(page.selectedApplications)
         const index = next.indexOf(application.id)
         if (enabled && index < 0)
             next.push(application.id)
@@ -52,22 +69,37 @@ PageFrame {
             title: qsTr("Choose what to install")
             subtitle: qsTr("All selections resolve through the signed MeoArch package repository.")
         }
-        Repeater {
-            model: [
-                { id: "recommended", title: qsTr("Recommended"), detail: qsTr("Meo Desktop, MeoUI, icons, Settings, OmniStore, and required integration.") },
-                { id: "minimal", title: qsTr("Minimal"), detail: qsTr("Meo Desktop core, MeoUI, icons, and required system integration.") },
-                { id: "custom", title: qsTr("Custom"), detail: qsTr("Choose optional official components. Required desktop dependencies stay enabled.") }
-            ]
-            delegate: SelectionCard {
-                required property var modelData
-                width: parent.width
-                title: modelData.title
-                value: modelData.detail
-                wrapValue: true
-                selected: page.profile === modelData.id
-                selectionIndicator: true
-                onClicked: page.selectProfile(modelData.id)
-            }
+        // Keep the three product profiles as direct children of the page
+        // layout.  In a real compact Live session, the dynamic delegate
+        // version could be omitted from the positioner's measured height,
+        // leaving people in the application list with no way to choose a
+        // profile.  These are a fixed product contract, not catalog data.
+        SelectionCard {
+            width: parent.width
+            title: qsTr("Recommended")
+            value: qsTr("Meo Desktop, MeoUI, icons, Settings, OmniStore, and required integration.")
+            wrapValue: true
+            selected: page.profile === "recommended"
+            selectionIndicator: true
+            onClicked: page.selectProfile("recommended")
+        }
+        SelectionCard {
+            width: parent.width
+            title: qsTr("Minimal")
+            value: qsTr("Meo Desktop core, MeoUI, icons, and required system integration.")
+            wrapValue: true
+            selected: page.profile === "minimal"
+            selectionIndicator: true
+            onClicked: page.selectProfile("minimal")
+        }
+        SelectionCard {
+            width: parent.width
+            title: qsTr("Custom")
+            value: qsTr("Choose the official components to install. Required desktop components stay enabled.")
+            wrapValue: true
+            selected: page.profile === "custom"
+            selectionIndicator: true
+            onClicked: page.selectProfile("custom")
         }
         MeoCard {
             visible: page.profile === "custom"
@@ -84,12 +116,14 @@ PageFrame {
                 MeoText { text: qsTr("Applications"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
                 MeoCheckbox {
                     text: qsTr("Meo Settings")
-                    checked: controller && controller.selection("software", "components", []).indexOf("meo-settings") >= 0
+                    controlled: true
+                    checked: page.selectedComponents.indexOf("meo-settings") >= 0
                     onToggled: checked => page.setComponent("meo-settings", checked)
                 }
                 MeoCheckbox {
                     text: qsTr("OmniStore")
-                    checked: controller && controller.selection("software", "components", []).indexOf("omnistore-bin") >= 0
+                    controlled: true
+                    checked: page.selectedComponents.indexOf("omnistore-bin") >= 0
                     onToggled: checked => page.setComponent("omnistore-bin", checked)
                 }
                 MeoText { text: qsTr("System"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
@@ -115,6 +149,7 @@ PageFrame {
                         spacing: 0
                         MeoCheckbox {
                             text: modelData.name + (page.applicationIsDefault(modelData) ? qsTr(" · Included") : "")
+                            controlled: true
                             checked: page.applicationIsSelected(modelData)
                             enabled: !page.applicationIsDefault(modelData)
                             onToggled: checked => page.setApplication(modelData, checked)
@@ -140,7 +175,7 @@ PageFrame {
                         required property var modelData
                         width: parent.width
                         spacing: 0
-                        MeoCheckbox { text: modelData.name; checked: page.applicationIsSelected(modelData); onToggled: checked => page.setApplication(modelData, checked) }
+                        MeoCheckbox { text: modelData.name; controlled: true; checked: page.applicationIsSelected(modelData); onToggled: checked => page.setApplication(modelData, checked) }
                         MeoText { width: parent.width; text: page.applicationDetail(modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
                     }
                 }
@@ -163,7 +198,7 @@ PageFrame {
                         required property var modelData
                         width: parent.width
                         spacing: 0
-                        MeoCheckbox { text: modelData.name; checked: page.applicationIsSelected(modelData); onToggled: checked => page.setApplication(modelData, checked) }
+                        MeoCheckbox { text: modelData.name; controlled: true; checked: page.applicationIsSelected(modelData); onToggled: checked => page.setApplication(modelData, checked) }
                         MeoText { width: parent.width; text: page.applicationDetail(modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
                     }
                 }

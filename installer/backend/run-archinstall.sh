@@ -281,6 +281,32 @@ progress "applying_meo" 89 "Applying target settings"
 progress "final_validation" 94 "Validating the installed target"
 arch-chroot "${target_root}" systemd-tmpfiles --create --remove 2>&1 | tee -a "${log_file}"
 python3 "${installer_root}/backend/verify-target.py" "${target_root}" 2>&1 | tee -a "${log_file}"
+if printf '%s\n' "${meo_packages[@]}" | grep -qx 'meo-settings'; then
+  studio_path=/usr/bin/meo-app-icon-studio
+  [ -x "${target_root}${studio_path}" ] || {
+    echo "Meo Settings requires the package-owned Icon Studio executable." | tee -a "${log_file}" >&2
+    exit 12
+  }
+  studio_owner="$(arch-chroot "${target_root}" env LC_ALL=C pacman -Qo "${studio_path}" 2>&1)" || {
+    echo "Icon Studio executable has no package owner." | tee -a "${log_file}" >&2
+    exit 12
+  }
+  case "${studio_owner}" in
+    "${studio_path} is owned by meo-icon-studio "*) ;;
+    *)
+      echo "Icon Studio executable is not owned by meo-icon-studio." | tee -a "${log_file}" >&2
+      exit 12
+      ;;
+  esac
+  studio_check="$(arch-chroot "${target_root}" env LC_ALL=C pacman -Qkk meo-icon-studio)" || {
+    echo "Icon Studio package integrity check failed." | tee -a "${log_file}" >&2
+    exit 12
+  }
+  grep -F '0 altered files' <<<"${studio_check}" >/dev/null || {
+    echo "Icon Studio package integrity check found altered files." | tee -a "${log_file}" >&2
+    exit 12
+  }
+fi
 if printf '%s\n' "${meo_packages[@]}" | grep -qx 'omnistore-bin'; then
   for command_path in usr/bin/omnistore usr/bin/omnistore-cli usr/bin/omnistore-apps-export usr/bin/meo-update; do
     [ -x "${target_root}/${command_path}" ] || {

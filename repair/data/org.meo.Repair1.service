@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=org.meo.Repair1
+Exec=/usr/lib/meoarch-repair/meoarch-repair-privileged-service
+User=root
+SystemdService=meoarch-repair-privileged.service

@@ -9,6 +9,12 @@ networkmanager-qt
 bluez-qt
 solid
 pulseaudio-qt
+# Quick Repair diagnoses and restarts this exact user-session audio stack.
+pipewire-audio
+pipewire-pulse
+wireplumber
+omnistore-bin
+noto-fonts
 noto-fonts-cjk
 qt6-base
 qt6-declarative
@@ -16,6 +22,7 @@ qt6-location
 qt6-svg
 qt6-wayland
 qtkeychain-qt6
+polkit-qt6
 kirigami-addons
 ki18n
 konsole

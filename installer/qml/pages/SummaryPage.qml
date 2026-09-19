@@ -283,6 +283,7 @@ PageFrame {
                           + "\n\n" + qsTr("System application packages\n") + page.joined(page.resolvedApplications.nativePackages, "\n", qsTr("None"))
                     typeRole: "body"
                     typeSize: "medium"
+                    lineHeightMode: Text.ProportionalHeight
                     lineHeight: 1.35
                     color: MeoTheme.contentOnSurface
                     wrapMode: Text.WrapAnywhere

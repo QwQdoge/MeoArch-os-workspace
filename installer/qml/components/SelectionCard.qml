@@ -50,6 +50,7 @@ MeoCard {
         color: MeoTheme.primary
     }
     Column {
+        id: copy
         anchors.left: leadingIcon.right
         anchors.leftMargin: 16 * MeoTheme.globalScale
         anchors.right: trailing.left

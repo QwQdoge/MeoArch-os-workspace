@@ -3,6 +3,7 @@ set -Eeuo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 projects_root="$(cd "${repo_root}/.." && pwd)"
+cd "${repo_root}"
 meoui_source="${MEOUI_SOURCE_DIR:-${projects_root}/meo-ui}"
 if [ ! -f "${meoui_source}/CMakeLists.txt" ] && [ -f "${projects_root}/MeoUI/CMakeLists.txt" ]; then
   meoui_source="${projects_root}/MeoUI"
@@ -86,7 +87,7 @@ if ! flock -n "${iso_lock_fd}"; then
 fi
 printf 'pid=%s\nstarted_utc=%s\n' "$$" "$(date -u +%FT%TZ)" 1>&"${iso_lock_fd}"
 
-for tool in cmake ninja pkg-config mkarchiso realpath sha256sum stat tee; do
+for tool in cmake ninja pkg-config mkarchiso realpath sha256sum stat tee gpg; do
   command -v "${tool}" >/dev/null 2>&1 || {
     echo "Missing required tool: ${tool}" >&2
     exit 127
@@ -109,6 +110,10 @@ done
 # provenance gate; ignored leftovers in airootfs must never become ISO input.
 if git status --porcelain --untracked-files=all -- "${source_profile}" | grep -q .; then
   echo "The ArchISO profile has uncommitted files. Refuse an ambiguous candidate; stage or resolve them first." >&2
+  exit 7
+fi
+if git status --porcelain --untracked-files=all -- "${repo_root}/installer/bootstrap" | grep -q .; then
+  echo "The ISO public keyring bootstrap has uncommitted files. Refuse an ambiguous trust root." >&2
   exit 7
 fi
 
@@ -175,6 +180,9 @@ done
 git archive --format=tar HEAD meoarch-os | tar -x -C "${baseline_profile}" --strip-components=1
 cp -a "${baseline_profile}/." "${staged_profile}/"
 sed -i -e "s/iso_version=\".*\"/iso_version=\"$(date -u +%Y.%m.%d-%H%M%S)\"/g" "${staged_profile}/profiledef.sh"
+"${repo_root}/scripts/stage-build-keyring.sh" \
+  "${staged_profile}" "${repo_root}/installer/bootstrap" \
+  "${log_dir}/build-keyring-provenance.tsv"
 
 if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
   [ -f "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" ] || {

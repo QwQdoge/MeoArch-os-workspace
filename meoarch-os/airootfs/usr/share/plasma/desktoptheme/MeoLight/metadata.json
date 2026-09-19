@@ -7,10 +7,12 @@
     ],
     "Category": "Desktop Theme",
     "Description": "Material 3 light Plasma surfaces for Meo Desktop",
+    "Description[zh_CN]": "适用于 Meo 桌面的 Material 3 浅色 Plasma 界面",
     "EnabledByDefault": true,
     "Id": "MeoLight",
     "License": "GPL-3.0-or-later",
     "Name": "Meo Material 3 Light",
+    "Name[zh_CN]": "Meo Material 3 浅色桌面主题",
     "Version": "0.2.0"
   }
 }

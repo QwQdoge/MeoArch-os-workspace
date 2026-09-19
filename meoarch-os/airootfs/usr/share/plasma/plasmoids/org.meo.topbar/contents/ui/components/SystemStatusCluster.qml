@@ -23,11 +23,11 @@ QQC2.AbstractButton {
     implicitHeight: 32 * MeoTheme.globalScale
     leftPadding: MeoTheme.space8
     rightPadding: MeoTheme.space8
-    Accessible.name: qsTr("System status")
+    Accessible.name: i18n("System status")
     Accessible.description: [
         SystemState.networkName,
-        SystemState.bluetoothEnabled ? qsTr("Bluetooth on") : "",
-        SystemState.batteryAvailable ? qsTr("%1 percent battery").arg(SystemState.batteryPercent) : ""
+        SystemState.bluetoothEnabled ? i18n("Bluetooth on") : "",
+        SystemState.batteryAvailable ? i18n("%1 percent battery").arg(SystemState.batteryPercent) : ""
     ].filter(function(value) { return value !== "" }).join(", ")
     onClicked: quickSettingsRequested()
 
@@ -94,7 +94,7 @@ QQC2.AbstractButton {
             MeoText {
                 visible: root.batteryDisplay >= 2
                 text: root.batteryDisplay === 3 && SystemState.batteryCharging
-                      ? qsTr("Charging · %1%").arg(SystemState.batteryPercent)
+                      ? i18n("Charging · %1%").arg(SystemState.batteryPercent)
                       : SystemState.batteryPercent + "%"
                 typeRole: "label"
                 typeSize: "small"

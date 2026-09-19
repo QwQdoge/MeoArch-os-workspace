@@ -56,7 +56,7 @@ QQC2.Popup {
         width: statusCenter.availableWidth
         height: statusCenter.availableHeight
         currentDateTime: clock.dateTime
-        timeText: Qt.formatTime(clock.dateTime, "hh:mm")
+        timeText: Qt.formatTime(clock.dateTime, Qt.locale().timeFormat(Locale.ShortFormat))
         dateText: Qt.formatDate(clock.dateTime, Qt.DefaultLocaleLongDate)
         unreadCount: notificationModel.unreadNotificationsCount
 
