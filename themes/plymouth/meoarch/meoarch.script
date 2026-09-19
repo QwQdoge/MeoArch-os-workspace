@@ -1,186 +1,106 @@
-# MeoArch Plymouth Boot Splash Script
-# Event-Driven Stage Progress, Discrete Progress Weights & Sanitized Error Handler
+# MeoArch Plymouth boot splash
+# Minimal black handoff surface: logo only during normal boot, with a soft
+# fade near the graphical-session handoff. Error text remains available when
+# boot status reports a failure.
 
-# Screen Dimensions
 screen_width = Window.GetWidth();
 screen_height = Window.GetHeight();
 
-# State Variables
-target_progress = 0.05;
-anim_progress = 0.05;
-is_error_state = 0;
+Window.SetBackgroundTopColor(0.0, 0.0, 0.0);
+Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
 
-# Load Background
-bg_image = Image("background.png");
-if (bg_image) {
-    # The artwork is deliberately abstract, so scaling it avoids black or
-    # letterboxed edges on firmware-selected resolutions without distorting a
-    # logo or a readable visual asset.
-    bg_scaled = bg_image.Scale(screen_width, screen_height);
-    bg_sprite = Sprite(bg_scaled);
-    bg_sprite.SetX(0);
-    bg_sprite.SetY(0);
-    bg_sprite.SetZ(-100);
-} else {
-    Window.SetBackgroundTopColor(0.08, 0.08, 0.12);
-    Window.SetBackgroundBottomColor(0.04, 0.04, 0.06);
-}
-
-# Load MeoArch Logo
 logo_image = Image("logo.png");
+logo_sprite = Sprite();
+logo_opacity = 0.0;
+boot_progress = 0.0;
+is_error_state = 0;
+frame_count = 0;
+
 if (logo_image) {
-    logo_sprite = Sprite(logo_image);
+    logo_sprite.SetImage(logo_image);
     logo_sprite.SetX(screen_width / 2 - logo_image.GetWidth() / 2);
-    logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2 - 80);
+    logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2);
     logo_sprite.SetZ(10);
+    logo_sprite.SetOpacity(0.0);
 }
 
-# Load Spinner / Progress Ring
-spinner_image = Image("spinner.png");
-if (spinner_image) {
-    spinner_sprite = Sprite(spinner_image);
-    spinner_sprite.SetX(screen_width / 2 - spinner_image.GetWidth() / 2);
-    spinner_sprite.SetY(screen_height / 2 + 20);
-    spinner_sprite.SetZ(15);
-}
-
-# Load Warning / Error Icon
-warning_image = Image("warning.png");
-if (warning_image) {
-    warning_sprite = Sprite(warning_image);
-    warning_sprite.SetX(screen_width / 2 - warning_image.GetWidth() / 2);
-    warning_sprite.SetY(screen_height / 2 + 20);
-    warning_sprite.SetZ(15);
-    warning_sprite.SetOpacity(0);
-}
-
-# Progress Bar Containers
-progress_box_image = Image("progress_box.png");
-if (progress_box_image) {
-    progress_box_sprite = Sprite(progress_box_image);
-    progress_box_sprite.SetX(screen_width / 2 - progress_box_image.GetWidth() / 2);
-    progress_box_sprite.SetY(screen_height / 2 + 80);
-    progress_box_sprite.SetZ(20);
-}
-
-progress_bar_image = Image("progress_bar.png");
-if (progress_bar_image) {
-    progress_bar_sprite = Sprite(progress_bar_image);
-    progress_bar_sprite.SetX(screen_width / 2 - progress_box_image.GetWidth() / 2 + 4);
-    progress_bar_sprite.SetY(screen_height / 2 + 84);
-    progress_bar_sprite.SetZ(25);
-    progress_bar_sprite.SetOpacity(1.0);
-}
-
-# Status & Footer Sprites
 status_sprite = Sprite();
-status_sprite.SetY(screen_height / 2 + 115);
 status_sprite.SetZ(30);
+status_sprite.SetY(screen_height / 2 + 84);
+status_sprite.SetOpacity(0.0);
 
-footer_sprite = Sprite();
-footer_sprite.SetY(screen_height - 50);
-footer_sprite.SetZ(30);
-
-fun set_footer_text(text) {
-    if (text != "") {
-        f_img = Image.Text(text, 0.65, 0.65, 0.70);
-        if (f_img) {
-            footer_sprite.SetImage(f_img);
-            footer_sprite.SetX(screen_width / 2 - f_img.GetWidth() / 2);
-        }
-    } else {
-        footer_sprite.SetImage(NULL);
+fun set_error_text(text) {
+    err_img = Image.Text(text, 1.0, 0.42, 0.42);
+    if (err_img) {
+        status_sprite.SetImage(err_img);
+        status_sprite.SetX(screen_width / 2 - err_img.GetWidth() / 2);
+        status_sprite.SetOpacity(1.0);
     }
 }
 
-fun refresh_status_text(text) {
-    if (!is_error_state) {
-        status_image = Image.Text(text, 0.9, 0.9, 0.95);
-        if (status_image) {
-            status_sprite.SetImage(status_image);
-            status_sprite.SetX(screen_width / 2 - status_image.GetWidth() / 2);
-        }
-    }
-}
-
-refresh_status_text("Starting MeoArch OS...");
-set_footer_text("Everything has a GUI. Every choice is yours.");
-
-# Smooth Progress & Spinner Loop
-angle = 0;
 fun refresh_callback() {
-    if (!is_error_state) {
-        # Target-chasing interpolation towards discrete progress reported by systemd
-        if (anim_progress < target_progress) {
-            anim_progress = anim_progress + (target_progress - anim_progress) * 0.15;
-            if (target_progress - anim_progress < 0.005) {
-                anim_progress = target_progress;
-            }
+    frame_count = frame_count + 1;
+
+    if (!is_error_state && logo_image) {
+        # Fade in gently on first paint. Keep the boot screen deliberately
+        # quiet: no spinner, status text, footer, or progress bar.
+        if (frame_count < 24 && logo_opacity < 1.0) {
+            logo_opacity = Math.Min(1.0, logo_opacity + 0.06);
         }
-        
-        if (spinner_image && spinner_sprite) {
-            angle = angle + 0.1;
-            spinner_sprite.SetImage(spinner_image.Rotate(angle));
+
+        # systemd boot progress approaches 1.0 shortly before the graphical
+        # target. Fade the logo toward black so Cage inherits a dark frame
+        # instead of a bright hard cut.
+        if (boot_progress >= 0.90) {
+            logo_opacity = Math.Max(0.0, logo_opacity - 0.045);
         }
-        
-        if (progress_bar_image && progress_bar_sprite && progress_box_image) {
-            total_w = progress_box_image.GetWidth() - 8;
-            fill_w = Math.Max(4, Math.Min(total_w, total_w * anim_progress));
-            scaled_bar = progress_bar_image.Scale(fill_w, progress_bar_image.GetHeight());
-            progress_bar_sprite.SetImage(scaled_bar);
-        }
+
+        logo_sprite.SetOpacity(logo_opacity);
     }
 }
 
 Plymouth.SetRefreshFunction(refresh_callback);
 
-# Systemd Progress Callback (0.0 to 1.0)
 fun progress_callback(duration, progress) {
-    if (progress > target_progress && progress <= 1.0) {
-        target_progress = progress;
-    }
+    if (progress >= 0.0 && progress <= 1.0)
+        boot_progress = progress;
 }
 
 Plymouth.SetBootProgressFunction(progress_callback);
 
-# Status Message Callback (Real systemd Stage Updates & Error Handling)
 fun message_callback(text) {
-    if (text == "") return;
+    if (text == "")
+        return;
 
     if (String(text).SubString(0, 6) == "ERROR:") {
-        # Error Event Format: ERROR:unit:code:title:message
         is_error_state = 1;
-        if (spinner_sprite) spinner_sprite.SetOpacity(0);
-        if (progress_box_sprite) progress_box_sprite.SetOpacity(0);
-        if (progress_bar_sprite) progress_bar_sprite.SetOpacity(0);
-        if (warning_sprite) warning_sprite.SetOpacity(1.0);
-
-        err_img = Image.Text(text, 1.0, 0.4, 0.4);
-        if (err_img) {
-            status_sprite.SetImage(err_img);
-            status_sprite.SetX(screen_width / 2 - err_img.GetWidth() / 2);
-        }
-        set_footer_text("Press Esc for detailed console log");
-    } else {
-        refresh_status_text(text);
+        if (logo_sprite)
+            logo_sprite.SetOpacity(0.28);
+        set_error_text(text);
     }
 }
 
 Plymouth.SetUpdateStatusFunction(message_callback);
 Plymouth.SetDisplayMessageFunction(message_callback);
 
-# Mode Callback
 fun mode_callback(mode) {
+    # Keep shutdown/reboot minimal too. The normal boot handoff is the main
+    # concern here; no extra text is painted unless an error is reported.
     if (mode == "boot") {
-        refresh_status_text("Starting MeoArch OS...");
-        set_footer_text("Everything has a GUI. Every choice is yours.");
-    } else if (mode == "shutdown") {
-        refresh_status_text("Finishing services safely...");
-        set_footer_text("Do not power off your computer yet.");
-    } else if (mode == "reboot") {
-        refresh_status_text("Preparing a safe restart...");
-        set_footer_text("MeoArch will be ready shortly.");
+        is_error_state = 0;
+        status_sprite.SetOpacity(0.0);
     }
 }
 
 Plymouth.SetModeFunction(mode_callback);
+
+fun quit_callback() {
+    # Plymouth cannot guarantee a multi-frame animation after quit is requested,
+    # so the regular refresh loop performs the visible fade before graphical
+    # target. Finish on black if quit arrives first.
+    if (logo_sprite)
+        logo_sprite.SetOpacity(0.0);
+    status_sprite.SetOpacity(0.0);
+}
+
+Plymouth.SetQuitFunction(quit_callback);
