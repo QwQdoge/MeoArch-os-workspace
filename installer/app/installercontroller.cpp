@@ -171,20 +171,6 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
                                    && QFileInfo(QStringLiteral("/usr/bin/env")).isExecutable()
                                    && QFileInfo(QStringLiteral("/usr/bin/bash")).isExecutable();
 
-    // The production kiosk itself is root-owned.  Never hand its credentials
-    // to an interactive shell: anyone at the installer would otherwise be
-    // able to bypass the guarded installation path.  Preview/developer runs
-    // retain the external terminal for diagnostics.
-    if (!m_productionMode) {
-        for (const QString &candidate : {QStringLiteral("konsole"), QStringLiteral("xterm")}) {
-            const QString resolved = QStandardPaths::findExecutable(candidate);
-            if (!resolved.isEmpty()) {
-                m_debugTerminalProgram = resolved;
-                break;
-            }
-        }
-    }
-    refreshDebugTerminalMessage();
     m_selections = {
         {QStringLiteral("schemaVersion"), 1},
         {QStringLiteral("preferences"), QVariantMap{{QStringLiteral("uiLanguage"), initialUiLanguage},
@@ -393,7 +379,6 @@ void InstallerController::retranslateUserFacingState()
     // The selected language changes only this application's process locale.
     // Rebuilding these presentation values is read-only: it neither changes a
     // chosen disk nor writes the installation plan.
-    refreshDebugTerminalMessage();
     if (!m_hardwareDetected)
         m_hardwareSummary = tr("Automatic PCI detection will select graphics drivers.");
 
@@ -416,7 +401,6 @@ void InstallerController::retranslateUserFacingState()
     refreshNetworkHandoff();
     if (!m_diskDetecting)
         refreshDisks();
-    emit debugTerminalChanged();
     emit hardwareChanged();
     emit networkStateChanged();
     emit localizedContentChanged();
@@ -920,45 +904,6 @@ void InstallerController::detectNetwork()
 
         checkRepository();
     });
-}
-
-void InstallerController::refreshDebugTerminalMessage()
-{
-    m_debugTerminalMessage = m_debugTerminalProgram.isEmpty()
-        ? (m_productionMode
-               ? tr("Debug terminal is disabled in the production installer.")
-               : tr("No supported terminal emulator is installed in this Live environment."))
-        : tr("Opens a Live-session terminal for diagnostics. Commands are not part of the installer plan.");
-}
-
-void InstallerController::retryNetwork() { detectNetwork(); }
-
-void InstallerController::openDebugTerminal()
-{
-    if (m_debugTerminalProgram.isEmpty()) {
-        setError(m_debugTerminalMessage);
-        return;
-    }
-    const QString workingDirectory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation))
-                                         .absoluteFilePath(QStringLiteral("meoarch-installer"));
-    QDir().mkpath(workingDirectory);
-    QStringList arguments;
-    if (QFileInfo(m_debugTerminalProgram).fileName() == QStringLiteral("konsole")) {
-        arguments = {QStringLiteral("--title"), tr("MeoArch Installer Debug"),
-                     QStringLiteral("--workdir"), workingDirectory,
-                     QStringLiteral("-e"), QStringLiteral("bash"), QStringLiteral("-l")};
-    } else {
-        arguments = {QStringLiteral("-title"), tr("MeoArch Installer Debug"),
-                     QStringLiteral("-e"), QStringLiteral("bash"), QStringLiteral("-l")};
-    }
-    if (!QProcess::startDetached(m_debugTerminalProgram, arguments, workingDirectory)) {
-        m_debugTerminalMessage = tr("The debug terminal could not be started. Check the Live session.");
-        emit debugTerminalChanged();
-        setError(m_debugTerminalMessage);
-        return;
-    }
-    m_debugTerminalMessage = tr("Debug terminal opened in the Live session.");
-    emit debugTerminalChanged();
 }
 
 void InstallerController::runDiagnosticCommand(const QString &command)
