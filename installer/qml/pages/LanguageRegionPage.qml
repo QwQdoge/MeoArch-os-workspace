@@ -1,6 +1,5 @@
+pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
 import MeoUI 1.0
 import ".."
 import "../components"
@@ -57,7 +56,7 @@ PageFrame {
                 }
                 MeoText {
                     width: parent.width
-                    text: recommendation.automatic ? qsTr("Recommended from your country and installer language.")
+                    text: page.recommendation.automatic ? qsTr("Recommended from your country and installer language.")
                                                    : qsTr("Some values were adjusted by you and will be kept when you change country.")
                     typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap
                 }
@@ -70,12 +69,13 @@ PageFrame {
                         { icon: "calendar_month", label: qsTr("Calendar"), value: qsTr("Gregorian") + (page.secondaryCalendar !== "none" ? qsTr(" · %1").arg(page.calendarLabel(page.secondaryCalendar)) : "") }
                     ]
                     delegate: Row {
+                        id: preparedSetting
                         required property var modelData
                         width: parent.width
                         spacing: page.dp(10)
-                        MeoIcon { anchors.verticalCenter: parent.verticalCenter; icon: modelData.icon; size: page.dp(18); color: MeoTheme.contentOnSurfaceVariant }
-                        MeoText { width: parent.width - page.dp(170); text: modelData.label; typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurface }
-                        MeoText { anchors.verticalCenter: parent.verticalCenter; text: modelData.value; typeRole: "label"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurfaceVariant; elide: Text.ElideLeft }
+                        MeoIcon { anchors.verticalCenter: parent.verticalCenter; icon: preparedSetting.modelData.icon; size: page.dp(18); color: MeoTheme.contentOnSurfaceVariant }
+                        MeoText { width: parent.width - page.dp(170); text: preparedSetting.modelData.label; typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurface }
+                        MeoText { anchors.verticalCenter: parent.verticalCenter; text: preparedSetting.modelData.value; typeRole: "label"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurfaceVariant; elide: Text.ElideLeft }
                     }
                 }
             }
@@ -91,7 +91,7 @@ PageFrame {
             visible: page.adjustmentsOpen
             width: parent.width
             spacing: page.dp(12)
-            MeoButton { visible: !recommendation.automatic; text: qsTr("Use country recommendations again"); type: "outlined"; onClicked: page.controller.useRegionRecommendations() }
+            MeoButton { visible: !page.recommendation.automatic; text: qsTr("Use country recommendations again"); type: "outlined"; onClicked: page.controller.useRegionRecommendations() }
             SelectionCard { width: parent.width; iconText: "translate"; title: qsTr("System language"); value: page.controller ? page.controller.systemLocale : ""; onClicked: localeDialog.openFrom(this) }
             SelectionCard { width: parent.width; iconText: "format_list_numbered"; title: qsTr("Date and number format"); value: page.controller ? page.controller.formatLocale : ""; onClicked: formatDialog.openFrom(this) }
             SelectionCard { width: parent.width; iconText: "schedule"; title: qsTr("Time zone"); value: page.controller ? page.controller.timeZone : ""; onClicked: zoneDialog.openFrom(this) }
