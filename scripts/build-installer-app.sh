@@ -23,7 +23,7 @@ if ! command -v cmake >/dev/null 2>&1 \
   exit 127
 fi
 
-cmake -S "${repo_root}/installer" -B "${build_dir}" -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --fresh -S "${repo_root}/installer" -B "${build_dir}" -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build "${build_dir}"
 rm -rf "${runtime_root}"
 DESTDIR="${runtime_root}" cmake --install "${build_dir}" --prefix /usr
