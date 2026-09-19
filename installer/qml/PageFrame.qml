@@ -96,11 +96,6 @@ Item {
             return qsTr("Review this page before continuing. Nothing is written to disk until the final confirmation.")
         }
     }
-    function openDocumentation(url, description) {
-        statusMessage = Qt.openUrlExternally(url)
-                ? description : qsTr("Could not open the documentation browser.")
-    }
-
     onStatusMessageChanged: if (statusMessage.length) snackbar.open()
     Component.onCompleted: MeoTheme.isDarkMode = false
 
@@ -405,19 +400,19 @@ Item {
                 }
                 MeoListItem {
                     width: parent.width
-                    implicitHeight: frame.dp(44)
+                    implicitHeight: frame.dp(62)
                     headline: qsTr("ArchWiki: Installation guide")
-                    leadingIcon: "open_in_new"
-                    interactive: true
-                    onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/Installation_guide", qsTr("Opened the ArchWiki installation guide.")); helpPopup.close() }
+                    supportingText: "https://wiki.archlinux.org/title/Installation_guide"
+                    leadingIcon: "description"
+                    interactive: false
                 }
                 MeoListItem {
                     width: parent.width
-                    implicitHeight: frame.dp(44)
+                    implicitHeight: frame.dp(62)
                     headline: qsTr("ArchWiki: Network configuration")
+                    supportingText: "https://wiki.archlinux.org/title/Network_configuration"
                     leadingIcon: "wifi"
-                    interactive: true
-                    onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/Network_configuration", qsTr("Opened the ArchWiki network guide.")); helpPopup.close() }
+                    interactive: false
                 }
                 MeoListItem {
                     width: parent.width
