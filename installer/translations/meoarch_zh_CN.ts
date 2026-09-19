@@ -861,6 +861,18 @@
         <translation>[命令异常终止]
 </translation>
     </message>
+    <message>
+        <source>Checking Internet access…</source>
+        <translation>正在检查互联网连接…</translation>
+    </message>
+    <message>
+        <source>Internet access is working. Checking the MeoArch package source…</source>
+        <translation>互联网连接正常，正在检查 MeoArch 软件源…</translation>
+    </message>
+    <message>
+        <source>Checking Internet access and required package sources…</source>
+        <translation>正在检查互联网连接和所需的软件源…</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
@@ -1508,6 +1520,22 @@
         <location filename="../qml/pages/NetworkPage.qml" line="209"/>
         <source>Connect to %1</source>
         <translation>连接到 %1</translation>
+    </message>
+    <message>
+        <source>Package source unavailable</source>
+        <translation>软件源不可用</translation>
+    </message>
+    <message>
+        <source>Continue after Internet access and the required package source have been verified</source>
+        <translation>确认互联网和所需软件源可用后继续</translation>
+    </message>
+    <message>
+        <source>Internet access works, but the required MeoArch package source is unavailable</source>
+        <translation>互联网连接正常，但所需的 MeoArch 软件源不可用</translation>
+    </message>
+    <message>
+        <source>Checks an official Arch Linux source first, then checks the required MeoArch package source</source>
+        <translation>先检查官方 Arch Linux 来源，再检查所需的 MeoArch 软件源</translation>
     </message>
 </context>
 <context>
