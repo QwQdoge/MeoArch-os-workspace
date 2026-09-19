@@ -834,6 +834,33 @@
         <source>This partition is mounted.</source>
         <translation>此分区已挂载。</translation>
     </message>
+
+    <message>
+        <source>The embedded diagnostic console is not available in this Live image.</source>
+        <translation>此 Live 镜像中没有可用的内置诊断控制台。</translation>
+    </message>
+    <message>
+        <source>Diagnostic commands are limited to 2048 characters.</source>
+        <translation>诊断命令最多 2048 个字符。</translation>
+    </message>
+    <message>
+        <source>Could not start the diagnostic command.
+</source>
+        <translation>无法启动诊断命令。
+</translation>
+    </message>
+    <message>
+        <source>[exit %1]
+</source>
+        <translation>[退出码 %1]
+</translation>
+    </message>
+    <message>
+        <source>[command crashed]
+</source>
+        <translation>[命令异常终止]
+</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
@@ -1262,6 +1289,11 @@
         <location filename="../qml/Main.qml" line="17"/>
         <source>MeoArch Installer</source>
         <translation>MeoArch 安装程序</translation>
+    </message>
+
+    <message>
+        <source>The interface did not finish loading. Retry; diagnostics are available from the in-installer command console once the page loads.</source>
+        <translation>界面未完成加载。请重试；页面加载后可使用安装器内置命令控制台进行诊断。</translation>
     </message>
 </context>
 <context>
@@ -1699,6 +1731,51 @@
         <location filename="../qml/PageFrame.qml" line="21"/>
         <source>Continue to the next installation step</source>
         <translation>继续到下一安装步骤</translation>
+    </message>
+
+    <message>
+        <source>Open diagnostic console</source>
+        <translation>打开诊断控制台</translation>
+    </message>
+    <message>
+        <source>Runs diagnostic commands inside the Cage installer as the unprivileged Live user</source>
+        <translation>在 Cage 安装器内以普通 Live 用户运行诊断命令</translation>
+    </message>
+    <message>
+        <source>Live diagnostic console</source>
+        <translation>Live 诊断控制台</translation>
+    </message>
+    <message>
+        <source>Commands run inside this Cage session as the unprivileged live user. Use it for network and hardware checks.</source>
+        <translation>命令会在当前 Cage 会话中以普通 live 用户运行，可用于检查网络和硬件。</translation>
+    </message>
+    <message>
+        <source>Command</source>
+        <translation>命令</translation>
+    </message>
+    <message>
+        <source>Example: ip route</source>
+        <translation>例如：ip route</translation>
+    </message>
+    <message>
+        <source>Running…</source>
+        <translation>正在运行…</translation>
+    </message>
+    <message>
+        <source>Run</source>
+        <translation>运行</translation>
+    </message>
+    <message>
+        <source>Clear</source>
+        <translation>清空</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <source>Live environment: Cage kiosk, not KDE Plasma</source>
+        <translation>Live 环境：Cage kiosk，不是 KDE Plasma</translation>
     </message>
 </context>
 <context>
