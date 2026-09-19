@@ -162,9 +162,13 @@ grep -q 'native installer host, MeoUI runtime, and repair payload' scripts/build
 grep -q '^lynis$' meoarch-os/packages.x86_64
 grep -q '^qtkeychain-qt6$' meoarch-os/packages.x86_64
 grep -q '^polkit-qt6$' meoarch-os/packages.x86_64
-! grep -q '^konsolefor package in alsa-utils pipewire-audio pipewire-pulse wireplumber; do
-  grep -q "^${package}$" meoarch-os/packages.x86_64
-  grep -q "\"${package}\"" installer/backend/generate-config.py
+for package_name in curl gnupg openssl; do
+  grep -q "^${package_name}$" meoarch-os/packages.x86_64
+done
+! grep -q '^konsole$' meoarch-os/packages.x86_64
+for package_name in alsa-utils pipewire-audio pipewire-pulse wireplumber; do
+  grep -q "^${package_name}$" meoarch-os/packages.x86_64
+  grep -q "\"${package_name}\"" installer/backend/generate-config.py
 done
 ! grep -q '^libplasma$' meoarch-os/packages.x86_64
 grep -q 'MEO_KDE_SOURCE_DIR' installer/live-system/CMakeLists.txt
