@@ -163,6 +163,15 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertEqual([partition["mountpoint"] for partition in partitions], ["/boot", "/"])
         self.assertEqual(partitions[1]["size"]["value"], 64509)
 
+    def test_full_disk_layout_rejects_less_than_sixteen_gib(self):
+        self.selections["disk"].update({
+            "mode": "erase",
+            "stableId": "/dev/vda",
+            "devicePath": "/dev/vda",
+            "sizeBytes": 15 * 1024 * 1024 * 1024,
+        })
+        self.assertIsNone(MODULE.build_default_disk_layout(self.selections))
+
     def test_existing_partition_plan_only_rebuilds_the_selected_root(self):
         gib = 1024 * 1024 * 1024
         self.selections["disk"].update({
