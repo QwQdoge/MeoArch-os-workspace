@@ -27,7 +27,7 @@ if(WIN32)
 endif()
 
 target_link_libraries(meoarch-installer-app PRIVATE
-    Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Network KF6::I18n
+    Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Network KF6::I18n KF6::I18nQml
 )
 target_compile_definitions(meoarch-installer-app PRIVATE
     MEOARCH_QML_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../qml"
