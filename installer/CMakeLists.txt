@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 6.6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Network)
-find_package(Qt6Keychain CONFIG REQUIRED)
 find_package(KF6I18n REQUIRED)
 qt_standard_project_setup(REQUIRES 6.6)
 
