@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 import MeoUI 1.0
 import ".."
 import "../components"
