@@ -196,7 +196,7 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
                                                {QStringLiteral("timezone"), QStringLiteral("UTC")},
                                                {QStringLiteral("keyboardLayout"), QStringLiteral("us")}}},
         {QStringLiteral("network"), QVariantMap{{QStringLiteral("mode"), QStringLiteral("networkmanager")},
-                                                  {QStringLiteral("handoffEnabled"), true}}},
+                                                  {QStringLiteral("handoffEnabled"), false}}},
         {QStringLiteral("privacy"), QVariantMap{{QStringLiteral("firewall"), true}}},
         {QStringLiteral("software"), QVariantMap{{QStringLiteral("profile"), QStringLiteral("recommended")},
                                                    {QStringLiteral("channel"), QStringLiteral("stable")},
@@ -367,7 +367,7 @@ QString InstallerController::selectedDisk() const { return section(QStringLitera
 
 bool InstallerController::networkHandoffEnabled() const
 {
-    return section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), true).toBool()
+    return section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), false).toBool()
            && m_networkHandoffState == QStringLiteral("ready");
 }
 
@@ -477,9 +477,9 @@ void InstallerController::setNetworkHandoffEnabled(const bool enabled)
 
 void InstallerController::disableNetworkHandoff()
 {
-    // A visible default must never turn into a hidden failing installation
-    // choice. Keep the default checked while an active profile is still being
-    // discovered, but clear it once the real profile is known unsupported.
+    // Network transfer is privacy-sensitive and opt-in. If a previously
+    // selected profile becomes unavailable, clear that explicit choice rather
+    // than carrying stale credentials into plan generation.
     if (section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), true).toBool())
         writeSelection(QStringLiteral("network"), QStringLiteral("handoffEnabled"), false);
 }
