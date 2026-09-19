@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import MeoUI 1.0
 import ".."
@@ -144,17 +145,18 @@ PageFrame {
                 Repeater {
                     model: page.applicationsForTier("system")
                     delegate: Column {
+                        id: systemApplication
                         required property var modelData
                         width: parent.width
                         spacing: 0
                         MeoCheckbox {
-                            text: modelData.name + (page.applicationIsDefault(modelData) ? qsTr(" · Included") : "")
+                            text: systemApplication.modelData.name + (page.applicationIsDefault(systemApplication.modelData) ? qsTr(" · Included") : "")
                             controlled: true
-                            checked: page.applicationIsSelected(modelData)
-                            enabled: !page.applicationIsDefault(modelData)
-                            onToggled: checked => page.setApplication(modelData, checked)
+                            checked: page.applicationIsSelected(systemApplication.modelData)
+                            enabled: !page.applicationIsDefault(systemApplication.modelData)
+                            onToggled: checked => page.setApplication(systemApplication.modelData, checked)
                         }
-                        MeoText { width: parent.width; text: page.applicationDetail(modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
+                        MeoText { width: parent.width; text: page.applicationDetail(systemApplication.modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
                     }
                 }
             }
@@ -172,11 +174,12 @@ PageFrame {
                 Repeater {
                     model: page.applicationsForTier("recommended")
                     delegate: Column {
+                        id: recommendedApplication
                         required property var modelData
                         width: parent.width
                         spacing: 0
-                        MeoCheckbox { text: modelData.name; controlled: true; checked: page.applicationIsSelected(modelData); onToggled: checked => page.setApplication(modelData, checked) }
-                        MeoText { width: parent.width; text: page.applicationDetail(modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
+                        MeoCheckbox { text: recommendedApplication.modelData.name; controlled: true; checked: page.applicationIsSelected(recommendedApplication.modelData); onToggled: checked => page.setApplication(recommendedApplication.modelData, checked) }
+                        MeoText { width: parent.width; text: page.applicationDetail(recommendedApplication.modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
                     }
                 }
             }
@@ -195,11 +198,12 @@ PageFrame {
                 Repeater {
                     model: page.applicationsForTier("third-party")
                     delegate: Column {
+                        id: thirdPartyApplication
                         required property var modelData
                         width: parent.width
                         spacing: 0
-                        MeoCheckbox { text: modelData.name; controlled: true; checked: page.applicationIsSelected(modelData); onToggled: checked => page.setApplication(modelData, checked) }
-                        MeoText { width: parent.width; text: page.applicationDetail(modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
+                        MeoCheckbox { text: thirdPartyApplication.modelData.name; controlled: true; checked: page.applicationIsSelected(thirdPartyApplication.modelData); onToggled: checked => page.setApplication(thirdPartyApplication.modelData, checked) }
+                        MeoText { width: parent.width; text: page.applicationDetail(thirdPartyApplication.modelData); typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
                     }
                 }
             }
