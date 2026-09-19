@@ -164,7 +164,7 @@ Window {
             MeoText {
                 visible: root.startupTimedOut
                 width: parent.width
-                text: qsTr("The interface did not finish loading. Retry, or open the debug terminal from the boot status screen.")
+                text: qsTr("The interface did not finish loading. Retry; diagnostics are available from the in-installer command console once the page loads.")
                 horizontalAlignment: Text.AlignHCenter
                 typeRole: "body"
                 typeSize: "small"
