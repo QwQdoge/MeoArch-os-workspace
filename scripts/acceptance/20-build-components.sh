@@ -121,10 +121,14 @@ fi
   echo "Qt 6 qmllint was not found; refusing to validate Qt 6 QML with a Qt 5 parser." >&2
   exit 2
 }
+mapfile -t installer_qml_files < <(find "${repo_root}/installer/qml" -type f -name '*.qml' -print | sort)
+[ "${#installer_qml_files[@]}" -gt 0 ] || {
+  echo "No installer QML files were found for validation." >&2
+  exit 2
+}
 "${qmllint_bin}" -i "${repo_root}/build/meo-system/qml/Meo/System/qmldir" \
   -I "${runtime}/lib/qt6/qml" -I "${repo_root}/build/meo-system/qml" \
-  -I "${repo_root}/installer/qml" "${repo_root}/installer/qml/Main.qml" \
-  "${repo_root}/repair/qml/Main.qml" \
-  "${repo_root}/installer/qml/pages/NetworkPage.qml" "${repo_root}/installer/qml/pages/DiskSelectionPage.qml"
+  -I "${repo_root}/installer/qml" \
+  "${installer_qml_files[@]}" "${repo_root}/repair/qml/Main.qml"
 
 echo "PASS: component build and shared runtime" | tee "${evidence_dir}/status.txt"
