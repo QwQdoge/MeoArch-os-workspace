@@ -906,6 +906,11 @@ void InstallerController::detectNetwork()
     });
 }
 
+void InstallerController::retryNetwork()
+{
+    detectNetwork();
+}
+
 void InstallerController::runDiagnosticCommand(const QString &command)
 {
     const QString normalized = command.trimmed();
