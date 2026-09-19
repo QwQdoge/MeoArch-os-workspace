@@ -392,10 +392,9 @@ Item {
                 MeoListItem {
                     width: parent.width
                     implicitHeight: frame.dp(44)
-                    headline: qsTr("Cage kiosk environment")
+                    headline: qsTr("Live environment: Cage kiosk, not KDE Plasma")
                     leadingIcon: "fullscreen"
                     interactive: false
-                    supportingText: qsTr("The Live installer runs directly in Cage, not in a KDE Plasma desktop session.")
                 }
             }
         }
