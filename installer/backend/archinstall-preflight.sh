@@ -154,7 +154,7 @@ if ! command -v curl >/dev/null 2>&1; then
   write_status "missing" "curl is unavailable; Internet reachability cannot be verified safely." 127
   exit 0
 fi
-if ! curl --fail --silent --show-error --location --max-time 20 --head "${mirror_probe}" >>"${log_file}" 2>&1; then
+if ! curl --fail --silent --show-error --location --max-time 20 --range 0-0 --output /dev/null "${mirror_probe}" >>"${log_file}" 2>&1; then
   write_status "failed" "An Arch mirror is not reachable. Check the Internet connection and retry." 21
   exit 0
 fi
