@@ -240,6 +240,18 @@
         <source>It remains unavailable until creation, resizing, encryption, recovery, and rollback have one tested transaction path. Use only the safe choices on this page.</source>
         <translation>在创建、调整大小、加密、恢复和回滚共用一条经过测试的事务路径前，它会保持不可用。请仅使用本页的安全选项。</translation>
     </message>
+    <message>
+        <source>Checking whether the Internet and MeoArch package source are available…</source>
+        <translation>正在检查互联网和 MeoArch 软件源是否可用…</translation>
+    </message>
+    <message>
+        <source>Internet access and the MeoArch package source are ready.</source>
+        <translation>互联网和 MeoArch 软件源均已可用。</translation>
+    </message>
+    <message>
+        <source>Internet access is working, but the MeoArch package source could not be verified. Try again later or check the repository configuration.</source>
+        <translation>互联网连接正常，但无法验证 MeoArch 软件源。请稍后重试或检查软件源配置。</translation>
+    </message>
 </context>
 <context>
     <name>FinishPage</name>
@@ -1293,6 +1305,22 @@
         <location filename="../qml/pages/NetworkPage.qml" line="38"/>
         <source>Internet connection required</source>
         <translation>需要互联网连接</translation>
+    </message>
+    <message>
+        <source>MeoArch package source unavailable</source>
+        <translation>MeoArch 软件源不可用</translation>
+    </message>
+    <message>
+        <source>Wi-Fi is not available</source>
+        <translation>Wi-Fi 不可用</translation>
+    </message>
+    <message>
+        <source>This device is connected through Ethernet. Wi-Fi is not required.</source>
+        <translation>此设备已通过有线网络连接，不需要 Wi-Fi。</translation>
+    </message>
+    <message>
+        <source>No Wi-Fi adapter was detected. Connect Ethernet or attach a supported Wi-Fi adapter.</source>
+        <translation>未检测到 Wi-Fi 适配器。请连接有线网络或接入受支持的 Wi-Fi 适配器。</translation>
     </message>
     <message>
         <source>Network connection detected</source>
