@@ -86,6 +86,21 @@ QML 外壳从 Welcome 到 Finish 共包含 12 个引导页面，覆盖语言、�
 隐私、磁盘、账户、软件、更新通道、复核和安装状态。共享背景、居中卡片、
 顶部操作、底部导航和居中电源对话框定义在 `installer/qml/PageFrame.qml`。
 
+
+### Cage 内置诊断控制台
+
+Live 安装环境是单个 Cage kiosk 会话，不是 KDE Plasma 桌面。Cage 会把安装器
+作为主要且唯一的图形应用运行，因此另外启动 Konsole、xterm、浏览器或普通
+桌面窗口并不是可靠的诊断方式。
+
+安装器右上角的终端按钮现在会直接在 `PageFrame.qml` 内打开命令控制台。
+可以输入 `ip route`、`nmcli device status`、`getent ahosts HOST`、
+`curl -v URL` 等普通命令，并在安装器内部查看输出，不需要离开 Cage。
+
+安装器本身仍由 root 管理，但这个控制台不会提供 root shell。命令通过
+`setpriv` 以普通 `live` 用户运行，同时启用 `no_new_privs` 并清除附加组。
+真实安装和电源操作仍然只能经过原有的受控 controller 路径。
+
 ## 安全契约
 
 默认开发启动保持非破坏性。真实安装和系统电源操作必须由 ISO kiosk 启动器
