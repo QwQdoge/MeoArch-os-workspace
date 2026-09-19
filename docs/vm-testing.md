@@ -69,6 +69,30 @@ the matching `tmp/` run:
 ./scripts/acceptance/65-capture-step.sh 03-disk
 ```
 
+
+### Live diagnostics inside Cage
+
+The Live ISO is a Cage kiosk, not a general KDE Plasma desktop session. Do not
+depend on opening Konsole, xterm, or another graphical window while validating
+the installer.
+
+Use the terminal action in the installer's top bar. It opens an embedded command
+console inside the existing Cage surface and runs commands as the unprivileged
+`live` user. The **Run network checks** action records NetworkManager state,
+routes, DNS resolution, a public HTTPS request, the Meo package domain, and the
+exact `meo.db` repository path. Arbitrary non-interactive commands can also be
+entered manually, for example:
+
+```sh
+nmcli device status
+ip route
+getent ahosts packages.meoarch.org
+curl -v --range 0-0 https://packages.meoarch.org/meo/os/x86_64/meo.db -o /dev/null
+```
+
+The embedded console is deliberately not a root shell and is not a replacement
+for the privileged installer backend.
+
 For installation, select only the 64 GiB QEMU NVMe disk. After a clean
 shutdown, boot the same disk without the ISO and record proof that the installed
 root and bootloader are used. Do not inspect a disk read-write while QEMU is
