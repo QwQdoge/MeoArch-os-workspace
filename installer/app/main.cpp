@@ -15,7 +15,7 @@
 #include <QTextStream>
 #include <QTranslator>
 #include <QQmlContext>
-#include <KLocalization>
+#include <KLocalizedQmlContext>
 #include <algorithm>
 #include <memory>
 
