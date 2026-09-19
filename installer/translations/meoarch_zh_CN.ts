@@ -1777,6 +1777,10 @@
         <source>Live environment: Cage kiosk, not KDE Plasma</source>
         <translation>Live 环境：Cage kiosk，不是 KDE Plasma</translation>
     </message>
+    <message>
+        <source>Run network checks</source>
+        <translation>运行网络检查</translation>
+    </message>
 </context>
 <context>
     <name>PagePlaceholder</name>
