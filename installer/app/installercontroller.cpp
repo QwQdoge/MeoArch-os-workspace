@@ -167,6 +167,8 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
     // the unprivileged Live user with no_new_privs and an empty capability
     // bounding set; the root-owned installer process never exposes a root shell.
     m_diagnosticConsoleAvailable = QFileInfo(QStringLiteral("/usr/bin/setpriv")).isExecutable()
+                                   && QFileInfo(QStringLiteral("/usr/bin/timeout")).isExecutable()
+                                   && QFileInfo(QStringLiteral("/usr/bin/env")).isExecutable()
                                    && QFileInfo(QStringLiteral("/usr/bin/bash")).isExecutable();
 
     // The production kiosk itself is root-owned.  Never hand its credentials
@@ -396,7 +398,7 @@ void InstallerController::retranslateUserFacingState()
         m_hardwareSummary = tr("Automatic PCI detection will select graphics drivers.");
 
     if (m_networkState == QStringLiteral("checking"))
-        m_networkDetail = tr("Checking whether the Internet and MeoArch package source are available…");
+        m_networkDetail = tr("Checking Internet access and required package sources…");
     else if (m_networkState == QStringLiteral("online"))
         m_networkDetail = tr("Internet access and the MeoArch package source are ready.");
     else if (m_networkState == QStringLiteral("repository"))
@@ -405,8 +407,10 @@ void InstallerController::retranslateUserFacingState()
         m_networkDetail = tr("This network may require a sign-in page before installation can continue.");
     else if (m_networkState == QStringLiteral("offline"))
         m_networkDetail = tr("Internet access could not be verified. Check the connection and try again.");
-    else
+    else if (m_networkState == QStringLiteral("no-interface"))
         m_networkDetail = tr("No active network interface was detected.");
+    else
+        m_networkDetail = tr("Network status is unavailable.");
 
     loadSoftwareCatalog();
     refreshNetworkHandoff();
@@ -480,7 +484,7 @@ void InstallerController::disableNetworkHandoff()
     // Network transfer is privacy-sensitive and opt-in. If a previously
     // selected profile becomes unavailable, clear that explicit choice rather
     // than carrying stale credentials into plan generation.
-    if (section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), true).toBool())
+    if (section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), false).toBool())
         writeSelection(QStringLiteral("network"), QStringLiteral("handoffEnabled"), false);
 }
 void InstallerController::setSelectedDisk(const QString &id)
@@ -802,6 +806,7 @@ void InstallerController::detectNetwork()
     if (m_connectivityReply) {
         m_connectivityReply->abort();
         m_connectivityReply->deleteLater();
+        m_connectivityReply = nullptr;
     }
 
     bool hasActiveInterface = false;
@@ -816,7 +821,7 @@ void InstallerController::detectNetwork()
     }
 
     if (!hasActiveInterface) {
-        m_networkState = QStringLiteral("offline");
+        m_networkState = QStringLiteral("no-interface");
         m_networkDetail = tr("No active network interface was detected.");
         emit networkStateChanged();
         refreshNetworkHandoff();
@@ -824,55 +829,96 @@ void InstallerController::detectNetwork()
     }
 
     m_networkState = QStringLiteral("checking");
-    m_networkDetail = tr("Checking whether the Internet and MeoArch package source are available…");
+    m_networkDetail = tr("Checking Internet access…");
     emit networkStateChanged();
 
-    // Check the exact signed repository the installer needs, but use a tiny
-    // ranged GET rather than HEAD. Some CDNs and object-storage frontends
-    // handle GET correctly while rejecting or mishandling HEAD requests.
-    QNetworkRequest request(QUrl(QStringLiteral("https://packages.meoarch.org/meo/os/x86_64/meo.db")));
-    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-                         QNetworkRequest::NoLessSafeRedirectPolicy);
-    request.setHeader(QNetworkRequest::UserAgentHeader,
-                      QStringLiteral("MeoArch-Installer-Connectivity/2"));
-    request.setRawHeader("Range", "bytes=0-0");
-
     const quint64 generation = m_connectivityGeneration;
-    QNetworkReply *reply = m_connectivityManager->get(request);
-    m_connectivityReply = reply;
-    QTimer::singleShot(10000, reply, [reply] {
-        if (reply->isRunning())
-            reply->abort();
+
+    auto checkRepository = [this, generation] {
+        if (generation != m_connectivityGeneration)
+            return;
+
+        m_networkDetail = tr("Internet access is working. Checking the MeoArch package source…");
+        emit networkStateChanged();
+
+        QNetworkRequest request(QUrl(QStringLiteral("https://packages.meoarch.org/meo/os/x86_64/meo.db")));
+        request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                             QNetworkRequest::NoLessSafeRedirectPolicy);
+        request.setHeader(QNetworkRequest::UserAgentHeader,
+                          QStringLiteral("MeoArch-Installer-Connectivity/3"));
+        request.setRawHeader("Range", "bytes=0-0");
+
+        QNetworkReply *reply = m_connectivityManager->get(request);
+        m_connectivityReply = reply;
+        QTimer::singleShot(10000, reply, [reply] {
+            if (reply->isRunning())
+                reply->abort();
+        });
+
+        connect(reply, &QNetworkReply::finished, this, [this, reply, generation] {
+            if (generation != m_connectivityGeneration) {
+                reply->deleteLater();
+                return;
+            }
+
+            const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+            if (reply->error() == QNetworkReply::NoError && status >= 200 && status < 300) {
+                m_networkState = QStringLiteral("online");
+                m_networkDetail = tr("Internet access and the MeoArch package source are ready.");
+            } else {
+                // The independent Arch probe already succeeded. A failure here
+                // is a repository/CDN problem, not proof that the user's
+                // Internet connection is offline.
+                m_networkState = QStringLiteral("repository");
+                m_networkDetail = tr("Internet access is working, but the MeoArch package source could not be verified. Try again later or check the repository configuration.");
+            }
+
+            m_connectivityReply = nullptr;
+            emit networkStateChanged();
+            refreshNetworkHandoff();
+            reply->deleteLater();
+        });
+    };
+
+    // Verify general Internet reachability independently from Meo infrastructure.
+    // A one-byte GET avoids relying on HEAD behavior at mirrors and CDNs.
+    QNetworkRequest internetRequest(QUrl(QStringLiteral(
+        "https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db")));
+    internetRequest.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                                 QNetworkRequest::NoLessSafeRedirectPolicy);
+    internetRequest.setHeader(QNetworkRequest::UserAgentHeader,
+                              QStringLiteral("MeoArch-Installer-Connectivity/3"));
+    internetRequest.setRawHeader("Range", "bytes=0-0");
+
+    QNetworkReply *internetReply = m_connectivityManager->get(internetRequest);
+    m_connectivityReply = internetReply;
+    QTimer::singleShot(10000, internetReply, [internetReply] {
+        if (internetReply->isRunning())
+            internetReply->abort();
     });
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, generation] {
+    connect(internetReply, &QNetworkReply::finished, this,
+            [this, internetReply, generation, checkRepository] {
         if (generation != m_connectivityGeneration) {
-            reply->deleteLater();
+            internetReply->deleteLater();
             return;
         }
 
-        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-        const bool httpSuccess = status >= 200 && status < 300;
-        const bool reachedHttpServer = status >= 400 && status < 500;
+        const int status = internetReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const bool internetReady = internetReply->error() == QNetworkReply::NoError
+                                   && status >= 200 && status < 300;
+        m_connectivityReply = nullptr;
+        internetReply->deleteLater();
 
-        if (reply->error() == QNetworkReply::NoError && httpSuccess) {
-            m_networkState = QStringLiteral("online");
-            m_networkDetail = tr("Internet access and the MeoArch package source are ready.");
-        } else if (reachedHttpServer) {
-            // DNS, routing and TLS all worked, so this is not an Internet
-            // failure. Keep installation blocked because the required package
-            // source itself is unavailable or misconfigured.
-            m_networkState = QStringLiteral("repository");
-            m_networkDetail = tr("Internet access is working, but the MeoArch package source could not be verified. Try again later or check the repository configuration.");
-        } else {
+        if (!internetReady) {
             m_networkState = QStringLiteral("offline");
             m_networkDetail = tr("Internet access could not be verified. Check the connection and try again.");
+            emit networkStateChanged();
+            refreshNetworkHandoff();
+            return;
         }
 
-        m_connectivityReply = nullptr;
-        emit networkStateChanged();
-        refreshNetworkHandoff();
-        reply->deleteLater();
+        checkRepository();
     });
 }
 
@@ -943,7 +989,11 @@ void InstallerController::runDiagnosticCommand(const QString &command)
         QStringLiteral("--regid=live"),
         QStringLiteral("--clear-groups"),
         QStringLiteral("--no-new-privs"),
+        QStringLiteral("/usr/bin/timeout"),
+        QStringLiteral("--signal=TERM"),
+        QStringLiteral("60s"),
         QStringLiteral("/usr/bin/env"),
+        QStringLiteral("-i"),
         QStringLiteral("HOME=/home/live"),
         QStringLiteral("USER=live"),
         QStringLiteral("LOGNAME=live"),
@@ -1007,7 +1057,8 @@ void InstallerController::refreshNetworkHandoff()
 {
     m_networkHandoffSource.clear();
     m_networkHandoffKind.clear();
-    if (m_networkState != QStringLiteral("online")) {
+    if (m_networkState != QStringLiteral("online")
+        && m_networkState != QStringLiteral("repository")) {
         // The presentation getter makes an unavailable profile look disabled,
         // but installation consumes the persisted value directly. Clear the
         // default here too so an offline or portal-only Live session cannot
@@ -1071,7 +1122,7 @@ bool InstallerController::stageNetworkHandoff()
                                        .absoluteFilePath(QStringLiteral("meoarch-installer/generated"));
     const QString staged = QDir(stateDirectory).absoluteFilePath(QStringLiteral("network-handoff.nmconnection"));
     QFile::remove(staged);
-    if (!section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), true).toBool())
+    if (!section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), false).toBool())
         return true;
     if (m_networkHandoffState != QStringLiteral("ready") || m_networkHandoffSource.isEmpty()) {
         setError(tr("The selected network can no longer be safely remembered. Turn off network transfer or reconnect."));
