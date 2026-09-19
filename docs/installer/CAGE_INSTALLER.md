@@ -95,6 +95,25 @@ channel, review, and installation states. The shared background, centered card,
 top actions, footer navigation, and centered power dialog are defined in
 `installer/qml/PageFrame.qml`.
 
+
+### In-Cage diagnostic console
+
+The Live installer is a single Cage kiosk session, not a KDE Plasma desktop.
+Launching Konsole, xterm, a browser, or another normal desktop window is not a
+reliable diagnostic path because Cage is intentionally hosting the installer as
+its single application.
+
+The terminal action in the installer therefore opens an embedded command
+console inside `PageFrame.qml`. It accepts normal shell commands such as
+`ip route`, `nmcli device status`, `getent ahosts HOST`, and `curl -v URL`
+and displays their combined output without leaving the installer.
+
+The root-owned installer does not expose a root shell. Diagnostic commands are
+started through `setpriv` as the unprivileged `live` user with
+`no_new_privs` and cleared supplementary groups. This console is for
+diagnostics only; privileged installation and power actions remain on their
+separate reviewed controller paths.
+
 ## Safety Contract
 
 The default development launch remains non-destructive. Real installation and
