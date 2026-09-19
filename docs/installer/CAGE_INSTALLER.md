@@ -87,6 +87,23 @@ Important properties:
 The service is designed for a kiosk installer environment, not a general desktop
 session.
 
+
+## Boot-to-Cage visual handoff
+
+Normal Live boot intentionally stays visually minimal. Plymouth paints a pure
+black background with only the centered MeoArch logo. It does not show the old
+spinner, progress bar, footer, or routine status text; boot failures may still
+replace the quiet splash with an error diagnostic.
+
+The Plymouth logo fades toward black near the graphical-target handoff. When
+Cage starts the installer, `Main.qml` first paints the same black/logo surface
+for a short moment and fades that overlay away into the installer UI. This
+two-sided handoff avoids a bright wallpaper flash or an unpainted compositor
+frame between Plymouth and Cage.
+
+No synthetic blur is required for this path. If a future reviewed static
+background adds restrained soft color, pure black remains the fallback.
+
 ## Current UI Mapping
 
 The QML shell contains twelve guided pages from Welcome through Finish,
