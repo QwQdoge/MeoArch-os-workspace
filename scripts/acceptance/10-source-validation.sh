@@ -175,6 +175,9 @@ grep -q 'MEO_KDE_SOURCE_DIR' installer/live-system/CMakeLists.txt
 grep -q 'systemstatehub.cpp' installer/live-system/CMakeLists.txt
 grep -q 'qmlRegisterSingletonType<SystemStateHub>' installer/live-system/meosystemliveplugin.cpp
 grep -q 'runDiagnosticCommand' installer/app/installercontroller.cpp
+grep -q '#include <KLocalizedQmlContext>' installer/app/main.cpp
+grep -q 'KLocalization::setupLocalizedContext(&engine)' installer/app/main.cpp
+! rg -q 'KLocalizedContext' installer/app/main.cpp
 ! rg -q 'openDebugTerminal|debugTerminalAvailable|debugTerminalMessage' installer/app
 grep -q 'openDiagnosticTty' installer/app/repaircontroller.cpp
 grep -q 'TTYPath=/dev/tty3' installer/app/repaircontroller.cpp
