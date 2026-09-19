@@ -23,6 +23,7 @@ Window {
     property int startupAttempt: 0
     property bool startupTimedOut: false
     property string screenshotPath: ""
+    property bool handoffSplashVisible: true
     readonly property bool startupPending: pageHost.readyPageKey.length === 0
     readonly property var controller: root.visualPreview ? Installer.PreviewController : root.installerController
     readonly property var pages: [
@@ -49,6 +50,53 @@ Window {
         }
         if (screenshotPath.length) {
             MeoTheme.reduceMotion = true
+        }
+        handoffTimer.start()
+    }
+
+    Timer {
+        id: handoffTimer
+        interval: 700
+        repeat: false
+        onTriggered: root.handoffSplashVisible = false
+    }
+
+    // Cage replaces Plymouth on the DRM session. Keep the first installer
+    // frame visually identical to the boot splash, then fade it away so the
+    // compositor handoff does not flash the wallpaper or an unpainted frame.
+    Rectangle {
+        id: handoffSplash
+        z: 1000
+        anchors.fill: parent
+        color: "black"
+        opacity: root.handoffSplashVisible ? 1 : 0
+        visible: opacity > 0.001
+
+        Behavior on opacity {
+            NumberAnimation {
+                duration: MeoTheme.reduceMotion ? 0 : 380
+                easing.type: Easing.InOutQuad
+            }
+        }
+
+        Image {
+            id: handoffLogo
+            anchors.centerIn: parent
+            width: 180 * MeoTheme.globalScale
+            height: 78 * MeoTheme.globalScale
+            source: root.assetsRoot + "icons/Logo.png"
+            fillMode: Image.PreserveAspectFit
+            opacity: 0
+
+            SequentialAnimation on opacity {
+                running: true
+                PauseAnimation { duration: 80 }
+                NumberAnimation {
+                    to: 1
+                    duration: MeoTheme.reduceMotion ? 0 : 260
+                    easing.type: Easing.OutQuad
+                }
+            }
         }
     }
 
