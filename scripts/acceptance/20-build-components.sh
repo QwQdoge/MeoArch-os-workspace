@@ -56,6 +56,11 @@ live_system_plugin="${repo_root}/build/meo-system-live/qml/Meo/System/libmeosyst
 [ -f "${plugin}" ]
 [ -f "${runtime}/lib/qt6/qml/MeoUI/qmldir" ]
 [ -f "${runtime}/lib/qt6/qml/MeoUI/meoui_module.qmltypes" ]
+if ! grep -q 'controlled' "${runtime}/lib/qt6/qml/MeoUI/meoui_module.qmltypes"; then
+  echo "Generated MeoUI qmltypes do not expose the MeoCheckbox controlled property." >&2
+  echo "Update the MeoUI checkout used by installer/CMakeLists.txt and rebuild." >&2
+  exit 1
+fi
 [ -f "${repo_root}/build/meo-system/qml/Meo/System/qmldir" ]
 [ -f "${repo_root}/build/meo-system/qml/Meo/System/plugins.qmltypes" ]
 [ -f "${live_system_plugin}" ]
