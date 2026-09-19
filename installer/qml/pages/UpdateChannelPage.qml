@@ -1,5 +1,4 @@
 import QtQuick
-import MeoUI 1.0
 import ".."
 import "../components"
 
@@ -28,7 +27,7 @@ PageFrame {
             wrapValue: true
             selected: page.channel === "stable"
             selectionIndicator: true
-            onClicked: controller.setSelection("software", "channel", "stable")
+            onClicked: page.controller.setSelection("software", "channel", "stable")
         }
         SelectionCard {
             width: parent.width
@@ -37,7 +36,7 @@ PageFrame {
             wrapValue: true
             selected: page.channel === "beta"
             selectionIndicator: true
-            onClicked: controller.setSelection("software", "channel", "beta")
+            onClicked: page.controller.setSelection("software", "channel", "beta")
         }
         InfoBanner {
             visible: page.channel === "beta"
