@@ -36,6 +36,7 @@ cage
 seatd
 clonezilla
 cloud-init
+curl
 cryptsetup
 darkhttpd
 ddrescue
@@ -58,6 +59,7 @@ fsarchiver
 gpart
 gpm
 gptfdisk
+gnupg
 grml-zsh-config
 grub
 hdparm
@@ -107,6 +109,7 @@ open-vm-tools
 openconnect
 openpgp-card-tools
 openssh
+openssl
 openvpn
 partclone
 parted
