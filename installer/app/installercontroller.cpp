@@ -941,11 +941,8 @@ void InstallerController::runDiagnosticCommand(const QString &command)
     const QStringList arguments{
         QStringLiteral("--reuid=live"),
         QStringLiteral("--regid=live"),
-        QStringLiteral("--init-groups"),
+        QStringLiteral("--clear-groups"),
         QStringLiteral("--no-new-privs"),
-        QStringLiteral("--bounding-set=-all"),
-        QStringLiteral("--inh-caps=-all"),
-        QStringLiteral("--ambient-caps=-all"),
         QStringLiteral("/usr/bin/env"),
         QStringLiteral("HOME=/home/live"),
         QStringLiteral("USER=live"),
