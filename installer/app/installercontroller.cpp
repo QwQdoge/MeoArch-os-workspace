@@ -1025,8 +1025,22 @@ void InstallerController::refreshNetworkHandoff()
             emit networkHandoffChanged();
             return;
         }
-        const QStringList fields = output.split(QLatin1Char(':'));
-        if (fields.size() != 3 || (fields.at(2) != QStringLiteral("802-11-wireless") && fields.at(2) != QStringLiteral("802-3-ethernet"))) {
+        QStringList fields;
+        const QStringList activeLines = output.split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+        for (const QString &line : activeLines) {
+            const QStringList candidate = line.split(QLatin1Char(':'));
+            if (candidate.size() == 3
+                && (candidate.at(2) == QStringLiteral("802-11-wireless")
+                    || candidate.at(2) == QStringLiteral("802-3-ethernet"))) {
+                fields = candidate;
+                // Prefer Wi-Fi when both Wi-Fi and Ethernet are active because
+                // its saved secret is the profile users are most likely to
+                // need after installation.
+                if (candidate.at(2) == QStringLiteral("802-11-wireless"))
+                    break;
+            }
+        }
+        if (fields.size() != 3) {
             disableNetworkHandoff();
             m_networkHandoffState = QStringLiteral("unsupported");
             m_networkHandoffMessage = tr("VPN, enterprise Wi-Fi, and advanced network profiles must be configured after installation.");
