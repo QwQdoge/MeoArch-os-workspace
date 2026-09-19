@@ -9,10 +9,15 @@ import "../components"
 PageFrame {
     id: page
     primaryEnabled: page.controller && page.controller.networkState === "online"
-    primaryLabel: primaryEnabled ? qsTr("Continue") : qsTr("Connect to continue")
+    primaryLabel: primaryEnabled ? qsTr("Continue")
+                                  : page.controller && page.controller.networkState === "repository"
+                                    ? qsTr("Package source unavailable")
+                                    : qsTr("Connect to continue")
     primaryAccessibleDescription: primaryEnabled
-                                  ? qsTr("Continue after Internet access has been verified")
-                                  : qsTr("Connect to the Internet before continuing with installation")
+                                  ? qsTr("Continue after Internet access and the required package source have been verified")
+                                  : page.controller && page.controller.networkState === "repository"
+                                    ? qsTr("Internet access works, but the required MeoArch package source is unavailable")
+                                    : qsTr("Connect to the Internet before continuing with installation")
 
     function signalIcon(strength) {
         if (strength >= 70) return "signal_wifi_4_bar"
@@ -42,8 +47,8 @@ PageFrame {
                   : page.controller && page.controller.networkState === "checking" ? "info" : "error"
         }
         InfoBanner {
-            visible: page.controller && page.controller.networkState !== "online"
-                     && page.controller.networkState !== "checking"
+            visible: page.controller && (page.controller.networkState === "offline"
+                                           || page.controller.networkState === "no-interface")
             width: parent.width
             tone: "info"
             title: qsTr("Offline installation is not available")
@@ -59,7 +64,9 @@ PageFrame {
         }
         InfoBanner {
             width: parent.width
-            visible: page.controller && page.controller.networkState === "online"
+            visible: page.controller
+                     && (page.controller.networkState === "online"
+                         || page.controller.networkState === "repository")
                      && page.controller.networkHandoffState !== "ready"
             title: qsTr("This network will not be copied")
             message: page.controller ? page.controller.networkHandoffMessage : ""
@@ -72,7 +79,7 @@ PageFrame {
             type: "tonal"
             loading: page.controller && page.controller.networkState === "checking"
             enabled: page.controller && page.controller.networkState !== "checking"
-            Accessible.description: qsTr("Checks an official MeoArch package source without sending account, device, or hardware information")
+            Accessible.description: qsTr("Checks an official Arch Linux source first, then checks the required MeoArch package source")
             onClicked: page.controller.retryNetwork()
         }
         SelectionCard {
