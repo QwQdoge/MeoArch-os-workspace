@@ -204,6 +204,7 @@ PageFrame {
                 Repeater {
                     model: page.summaryRows
                     delegate: Column {
+                        id: summaryRow
                         required property var modelData
                         required property int index
                         width: parent.width
@@ -212,32 +213,32 @@ PageFrame {
                         MeoListItem {
                             width: parent.width
                             implicitHeight: page.compactHeight ? page.dp(48) : page.dp(52)
-                            headline: modelData.title
-                            supportingText: modelData.value
-                            interactive: modelData.pageIndex >= 0
+                            headline: summaryRow.modelData.title
+                            supportingText: summaryRow.modelData.value
+                            interactive: summaryRow.modelData.pageIndex >= 0
                             isSegmented: true
-                            roundingStrategy: index === 0 ? "top"
-                                              : index === page.summaryRows.length - 1 ? "bottom" : "middle"
-                            Accessible.description: modelData.pageIndex >= 0
+                            roundingStrategy: summaryRow.index === 0 ? "top"
+                                              : summaryRow.index === page.summaryRows.length - 1 ? "bottom" : "middle"
+                            Accessible.description: summaryRow.modelData.pageIndex >= 0
                                                     ? qsTr("Select to edit this choice") : ""
                             trailingComponent: Component {
                                 MeoIcon {
-                                    visible: modelData.pageIndex >= 0
+                                    visible: summaryRow.modelData.pageIndex >= 0
                                     icon: "edit"
                                     size: page.dp(20)
                                     color: MeoTheme.primary
                                 }
                             }
                             onClicked: {
-                                if (modelData.pageIndex >= 0)
-                                    page.navigateRequested(modelData.pageIndex)
+                                if (summaryRow.modelData.pageIndex >= 0)
+                                    page.navigateRequested(summaryRow.modelData.pageIndex)
                             }
                         }
                         MeoDivider {
                             width: parent.width - page.dp(32)
                             height: Math.max(1, MeoTheme.strokeWidthThin)
                             anchors.horizontalCenter: parent.horizontalCenter
-                            visible: index < page.summaryRows.length - 1
+                            visible: summaryRow.index < page.summaryRows.length - 1
                             opacity: 0.72
                         }
                     }
