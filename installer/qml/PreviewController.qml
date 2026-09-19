@@ -23,9 +23,10 @@ QtObject {
     property string networkDetail: qsTr("Visual preview data")
     property string networkHandoffState: "ready"
     property string networkHandoffMessage: qsTr("This current network can be remembered after installation.")
-    property bool networkHandoffEnabled: true
-    property bool debugTerminalAvailable: true
-    property string debugTerminalMessage: qsTr("Preview only")
+    property bool networkHandoffEnabled: false
+    property bool diagnosticConsoleAvailable: true
+    property bool diagnosticConsoleRunning: false
+    property string diagnosticConsoleOutput: qsTr("Preview only — commands are not executed.")
     property string selectedDisk: "preview-disk-0"
     property string hardwareSummary: qsTr("Automatic PCI detection will select graphics drivers.")
     property bool hardwareDetecting: false
@@ -136,7 +137,10 @@ QtObject {
     }
     function retryNetwork() { networkState = "connected" }
     function refreshDisks() {}
-    function openDebugTerminal() { debugTerminalMessage = qsTr("Preview only: a Live-session terminal would open here.") }
+    function runDiagnosticCommand(command) {
+        diagnosticConsoleOutput += "\n$ " + command + "\n" + qsTr("Preview only — command not executed.")
+    }
+    function clearDiagnosticConsole() { diagnosticConsoleOutput = "" }
     function setSelection(section, key, value) {
         const next = Object.assign({}, values)
         next[section + "." + key] = value
