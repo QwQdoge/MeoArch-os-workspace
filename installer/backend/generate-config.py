@@ -184,7 +184,7 @@ def build_default_disk_layout(selections):
         total_mib = int(disk.get("sizeBytes", 0)) // (1024 * 1024)
     except (TypeError, ValueError):
         return None
-    if total_mib < 8192:
+    if total_mib < 16 * 1024:
         return None
     allocatable_mib = total_mib - 1027
     separate_home = mode == "guided" and bool(disk.get("separateHome", True))
