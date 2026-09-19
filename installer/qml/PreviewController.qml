@@ -135,7 +135,7 @@ QtObject {
         setSelection("disk", "efiPartition", efi)
         setSelection("disk", "mode", "partition")
     }
-    function retryNetwork() { networkState = "connected" }
+    function retryNetwork() { networkState = "online" }
     function refreshDisks() {}
     function runDiagnosticCommand(command) {
         diagnosticConsoleOutput += "\n$ " + command + "\n" + qsTr("Preview only — command not executed.")
