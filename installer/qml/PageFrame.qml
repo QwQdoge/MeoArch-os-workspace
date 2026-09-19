@@ -248,6 +248,36 @@ Item {
                 }
             }
 
+            Row {
+                width: parent.width
+                spacing: frame.dp(8)
+
+                MeoButton {
+                    text: qsTr("Run network checks")
+                    icon.name: "network_check"
+                    type: "tonal"
+                    enabled: frame.controller && !frame.controller.diagnosticConsoleRunning
+                    onClicked: frame.controller.runDiagnosticCommand(
+                        "printf '=== NetworkManager ===\\n'; " +
+                        "nmcli device status 2>&1; " +
+                        "printf '\\n=== Routes ===\\n'; ip route 2>&1; " +
+                        "printf '\\n=== DNS ===\\n'; " +
+                        "getent ahosts archlinux.org 2>&1 | head -n 4; " +
+                        "getent ahosts packages.meoarch.org 2>&1 | head -n 4; " +
+                        "printf '\\n=== Public HTTPS ===\\n'; " +
+                        "curl -sS -o /dev/null --connect-timeout 5 --max-time 10 " +
+                        "-w 'archlinux.org: HTTP %{http_code} IP %{remote_ip}\\n' https://archlinux.org/ 2>&1; " +
+                        "printf '\\n=== Meo domain ===\\n'; " +
+                        "curl -sS -o /dev/null --connect-timeout 5 --max-time 10 " +
+                        "-w 'packages.meoarch.org: HTTP %{http_code} IP %{remote_ip}\\n' https://packages.meoarch.org/ 2>&1; " +
+                        "printf '\\n=== Meo repository ===\\n'; " +
+                        "curl -sS -r 0-0 -o /dev/null --connect-timeout 5 --max-time 10 " +
+                        "-w 'meo.db: HTTP %{http_code} IP %{remote_ip}\\n' " +
+                        "https://packages.meoarch.org/meo/os/x86_64/meo.db 2>&1"
+                    )
+                }
+            }
+
             MeoMotionSurface {
                 width: parent.width
                 height: diagnosticPopup.height - frame.dp(210)
