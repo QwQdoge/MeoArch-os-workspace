@@ -55,8 +55,6 @@ class InstallerController final : public QObject
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
     Q_PROPERTY(bool realInstallEnabled READ realInstallEnabled CONSTANT)
     Q_PROPERTY(bool systemActionsEnabled READ systemActionsEnabled CONSTANT)
-    Q_PROPERTY(bool debugTerminalAvailable READ debugTerminalAvailable NOTIFY debugTerminalChanged)
-    Q_PROPERTY(QString debugTerminalMessage READ debugTerminalMessage NOTIFY debugTerminalChanged)
     Q_PROPERTY(bool diagnosticConsoleAvailable READ diagnosticConsoleAvailable CONSTANT)
     Q_PROPERTY(bool diagnosticConsoleRunning READ diagnosticConsoleRunning NOTIFY diagnosticConsoleChanged)
     Q_PROPERTY(QString diagnosticConsoleOutput READ diagnosticConsoleOutput NOTIFY diagnosticConsoleChanged)
@@ -101,8 +99,6 @@ public:
     QString errorMessage() const { return m_errorMessage; }
     bool realInstallEnabled() const { return m_realInstallEnabled; }
     bool systemActionsEnabled() const { return m_systemActionsEnabled; }
-    bool debugTerminalAvailable() const { return !m_debugTerminalProgram.isEmpty(); }
-    QString debugTerminalMessage() const { return m_debugTerminalMessage; }
     bool diagnosticConsoleAvailable() const { return m_diagnosticConsoleAvailable; }
     bool diagnosticConsoleRunning() const { return !m_diagnosticProcess.isNull(); }
     QString diagnosticConsoleOutput() const { return m_diagnosticConsoleOutput; }
@@ -129,7 +125,6 @@ public:
                                  const QString &password, const QString &confirmation);
     Q_INVOKABLE void retryNetwork();
     Q_INVOKABLE void refreshDisks();
-    Q_INVOKABLE void openDebugTerminal();
     Q_INVOKABLE void runDiagnosticCommand(const QString &command);
     Q_INVOKABLE void clearDiagnosticConsole();
     Q_INVOKABLE void prepareInstallation();
@@ -155,7 +150,6 @@ signals:
     void accountFailed();
     void installationChanged();
     void errorMessageChanged();
-    void debugTerminalChanged();
     void diagnosticConsoleChanged();
     void localizedContentChanged();
 
@@ -187,7 +181,6 @@ private:
     bool hasSystemLocale(const QString &id) const;
     void applyRegionPreset(const QString &alpha2);
     void markLocaleOverride(const QString &key);
-    void refreshDebugTerminalMessage();
 
     QVariantList m_uiLanguages;
     QVariantList m_systemLocales;
@@ -205,8 +198,6 @@ private:
     QString m_networkHandoffMessage;
     QString m_networkHandoffSource;
     QString m_networkHandoffKind;
-    QString m_debugTerminalProgram;
-    QString m_debugTerminalMessage;
     bool m_diagnosticConsoleAvailable = false;
     QString m_diagnosticConsoleOutput;
     QPointer<QProcess> m_diagnosticProcess;
