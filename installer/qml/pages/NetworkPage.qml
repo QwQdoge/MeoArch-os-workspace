@@ -34,6 +34,7 @@ PageFrame {
             width: parent.width
             title: page.controller && page.controller.networkState === "online" ? qsTr("Internet connection detected")
                    : page.controller && page.controller.networkState === "checking" ? qsTr("Checking Internet connection")
+                   : page.controller && page.controller.networkState === "repository" ? qsTr("MeoArch package source unavailable")
                    : page.controller && page.controller.networkState === "portal" ? qsTr("Network sign-in may be required")
                    : qsTr("Internet connection required")
             message: page.controller ? page.controller.networkDetail : qsTr("Network status is unavailable.")
@@ -101,8 +102,8 @@ PageFrame {
                 spacing: page.dp(8)
                 MeoSwitch {
                     id: wifiSwitch
-                    checked: MeoSystem.SystemState.wirelessEnabled
-                    enabled: MeoSystem.SystemState.networkAvailable
+                    checked: MeoSystem.SystemState.wirelessAvailable && MeoSystem.SystemState.wirelessEnabled
+                    enabled: MeoSystem.SystemState.wirelessAvailable
                     Accessible.name: qsTr("Wi-Fi enabled")
                     onToggled: checkedState => { MeoSystem.SystemState.wirelessEnabled = checkedState }
                 }
@@ -111,7 +112,7 @@ PageFrame {
                     icon.name: "refresh"
                     type: "tonal"
                     Accessible.name: qsTr("Scan for Wi-Fi networks")
-                    enabled: MeoSystem.SystemState.wirelessEnabled && !MeoSystem.SystemState.wifiScanning && !MeoSystem.SystemState.networkBusy
+                    enabled: MeoSystem.SystemState.wirelessAvailable && MeoSystem.SystemState.wirelessEnabled && !MeoSystem.SystemState.wifiScanning && !MeoSystem.SystemState.networkBusy
                     onClicked: MeoSystem.SystemState.requestWifiScan()
                 }
             }
@@ -126,7 +127,16 @@ PageFrame {
             }
         }
         InfoBanner {
-            visible: MeoSystem.SystemState.operationError.length > 0
+            visible: !MeoSystem.SystemState.wirelessAvailable
+            width: parent.width
+            tone: "info"
+            title: qsTr("Wi-Fi is not available")
+            message: MeoSystem.SystemState.networkConnected
+                     ? qsTr("This device is connected through Ethernet. Wi-Fi is not required.")
+                     : qsTr("No Wi-Fi adapter was detected. Connect Ethernet or attach a supported Wi-Fi adapter.")
+        }
+        InfoBanner {
+            visible: MeoSystem.SystemState.wirelessAvailable && MeoSystem.SystemState.operationError.length > 0
             width: parent.width
             tone: "error"
             title: qsTr("Network operation failed")
@@ -134,7 +144,7 @@ PageFrame {
         }
         ListView {
             id: networkList
-            visible: MeoSystem.SystemState.wirelessEnabled
+            visible: MeoSystem.SystemState.wirelessAvailable && MeoSystem.SystemState.wirelessEnabled
             width: parent.width
             height: Math.min(contentHeight, page.compactHeight ? page.dp(200) : page.dp(270))
             clip: true
@@ -165,7 +175,7 @@ PageFrame {
             }
         }
         MeoButton {
-            visible: MeoSystem.SystemState.wirelessEnabled && MeoSystem.SystemState.wifiNetworks.length === 0
+            visible: MeoSystem.SystemState.wirelessAvailable && MeoSystem.SystemState.wirelessEnabled && MeoSystem.SystemState.wifiNetworks.length === 0
             text: MeoSystem.SystemState.wifiScanning ? qsTr("Scanning…") : qsTr("Scan for networks")
             type: "tonal"
             loading: MeoSystem.SystemState.wifiScanning
