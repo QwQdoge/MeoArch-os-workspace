@@ -161,6 +161,14 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
     const QString initialUiLanguage = systemLocale.language() == QLocale::Chinese
         ? QStringLiteral("zh_CN") : QStringLiteral("en");
     m_connectivityManager = new QNetworkAccessManager(this);
+    // The Live installer runs inside a single Cage kiosk surface, so spawning
+    // Konsole/xterm does not provide a usable diagnostic path. Offer an
+    // embedded command console instead. Commands are deliberately executed as
+    // the unprivileged Live user with no_new_privs and an empty capability
+    // bounding set; the root-owned installer process never exposes a root shell.
+    m_diagnosticConsoleAvailable = QFileInfo(QStringLiteral("/usr/bin/setpriv")).isExecutable()
+                                   && QFileInfo(QStringLiteral("/usr/bin/bash")).isExecutable();
+
     // The production kiosk itself is root-owned.  Never hand its credentials
     // to an interactive shell: anyone at the installer would otherwise be
     // able to bypass the guarded installation path.  Preview/developer runs
@@ -906,6 +914,97 @@ void InstallerController::openDebugTerminal()
     m_debugTerminalMessage = tr("Debug terminal opened in the Live session.");
     emit debugTerminalChanged();
 }
+
+void InstallerController::runDiagnosticCommand(const QString &command)
+{
+    const QString normalized = command.trimmed();
+    if (!m_diagnosticConsoleAvailable) {
+        setError(tr("The embedded diagnostic console is not available in this Live image."));
+        return;
+    }
+    if (normalized.isEmpty() || m_diagnosticProcess)
+        return;
+    if (normalized.size() > 2048) {
+        setError(tr("Diagnostic commands are limited to 2048 characters."));
+        return;
+    }
+
+    m_diagnosticConsoleOutput += QStringLiteral("$ ") + normalized + QLatin1Char('\n');
+    if (m_diagnosticConsoleOutput.size() > 65536)
+        m_diagnosticConsoleOutput = m_diagnosticConsoleOutput.right(65536);
+    emit diagnosticConsoleChanged();
+
+    auto *process = new QProcess(this);
+    m_diagnosticProcess = process;
+    process->setProcessChannelMode(QProcess::MergedChannels);
+
+    const QStringList arguments{
+        QStringLiteral("--reuid=live"),
+        QStringLiteral("--regid=live"),
+        QStringLiteral("--init-groups"),
+        QStringLiteral("--no-new-privs"),
+        QStringLiteral("--bounding-set=-all"),
+        QStringLiteral("--inh-caps=-all"),
+        QStringLiteral("--ambient-caps=-all"),
+        QStringLiteral("/usr/bin/env"),
+        QStringLiteral("HOME=/home/live"),
+        QStringLiteral("USER=live"),
+        QStringLiteral("LOGNAME=live"),
+        QStringLiteral("PATH=/usr/local/sbin:/usr/local/bin:/usr/bin"),
+        QStringLiteral("/usr/bin/bash"),
+        QStringLiteral("--noprofile"),
+        QStringLiteral("--norc"),
+        QStringLiteral("-lc"),
+        normalized
+    };
+
+    connect(process, &QProcess::readyReadStandardOutput, this, [this, process] {
+        if (process != m_diagnosticProcess)
+            return;
+        m_diagnosticConsoleOutput += QString::fromUtf8(process->readAllStandardOutput());
+        if (m_diagnosticConsoleOutput.size() > 65536)
+            m_diagnosticConsoleOutput = m_diagnosticConsoleOutput.right(65536);
+        emit diagnosticConsoleChanged();
+    });
+    connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
+        if (process != m_diagnosticProcess || error != QProcess::FailedToStart)
+            return;
+        m_diagnosticConsoleOutput += tr("Could not start the diagnostic command.\n");
+        m_diagnosticProcess = nullptr;
+        emit diagnosticConsoleChanged();
+        process->deleteLater();
+    });
+    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
+        if (process != m_diagnosticProcess) {
+            process->deleteLater();
+            return;
+        }
+        const QByteArray remaining = process->readAllStandardOutput();
+        if (!remaining.isEmpty())
+            m_diagnosticConsoleOutput += QString::fromUtf8(remaining);
+        if (status == QProcess::NormalExit)
+            m_diagnosticConsoleOutput += tr("[exit %1]\n").arg(exitCode);
+        else
+            m_diagnosticConsoleOutput += tr("[command crashed]\n");
+        if (m_diagnosticConsoleOutput.size() > 65536)
+            m_diagnosticConsoleOutput = m_diagnosticConsoleOutput.right(65536);
+        m_diagnosticProcess = nullptr;
+        emit diagnosticConsoleChanged();
+        process->deleteLater();
+    });
+
+    process->start(QStringLiteral("/usr/bin/setpriv"), arguments);
+    emit diagnosticConsoleChanged();
+}
+
+void InstallerController::clearDiagnosticConsole()
+{
+    if (m_diagnosticProcess)
+        return;
+    m_diagnosticConsoleOutput.clear();
+    emit diagnosticConsoleChanged();
+}
+
 
 void InstallerController::refreshNetworkHandoff()
 {
