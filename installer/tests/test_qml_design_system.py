@@ -406,7 +406,6 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('QStringLiteral("-i")', controller)
         self.assertNotIn('QStringLiteral("konsole")', controller)
         self.assertNotIn('QStringLiteral("xterm")', controller)
-        self.assertNotIn('QStringLiteral("konsole")', controller)
         self.assertNotIn("openDebugTerminal", header)
         self.assertNotIn("\nkonsole\n", f"\n{packages}\n")
         self.assertTrue((QML_ROOT.parents[1] / "assets/wallpapers/installer_background.png").is_file())
