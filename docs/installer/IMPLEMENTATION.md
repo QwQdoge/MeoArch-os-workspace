@@ -19,7 +19,7 @@ default mode is a simulated installation and cannot modify a disk.
    `realInstallReady` value is true.
 
 The real path additionally requires `--enable-real-install`; power actions require
-`--enable-system-actions`. Missing disk geometry or a missing yescrypt user hash
+`--enable-system-actions`. Missing disk geometry or a missing validated account password hash
 keeps the generated manifest in preview state.
 
 ## Visual reference boundary
@@ -34,7 +34,7 @@ reference in the MeoUI source.
 
 ## Runtime catalogs
 
-- UI languages: exactly 11 packaged entries.
+- UI languages: exactly 2 reviewed packaged entries (English and Simplified Chinese).
 - System locales: UTF-8 entries parsed from `/usr/share/i18n/SUPPORTED`.
 - Countries and regions: ISO 3166-1 from `iso-codes`.
 - Time zones: canonical entries from `zone1970.tab`, with `zone.tab` fallback, plus UTC.
@@ -52,7 +52,7 @@ Wi-Fi secret, and disk passphrase stay in memory. The credential artifact is a s
 The optional single-profile NetworkManager handoff is the sole exception to
 “keep Wi-Fi secrets in memory”: it is an existing NetworkManager connection
 file, copied only after explicit user consent to a root-only temporary file and
-then into the installed system. It is not serialized into selections, plans,
+then into the installed system. The transfer toggle is off by default. It is not serialized into selections, plans,
 summaries, or logs, and it is removed on all installer exits.
 
 ## Development checks
