@@ -15,7 +15,7 @@
 #include <QTextStream>
 #include <QTranslator>
 #include <QQmlContext>
-#include <KLocalizedContext>
+#include <KLocalization>
 #include <algorithm>
 #include <memory>
 
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
     // Plasma's maintained timezone selector uses KDE's i18n helpers.  Install
     // the same QML context into the Cage installer host rather than making a
     // local fork of that component just to replace its translated labels.
-    engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
+    KLocalization::setupLocalizedContext(&engine);
     const auto loadLanguage = [&engine, &loadCatalogs, &normalizedUiLanguage](const QString &language) {
         const QString normalizedLanguage = normalizedUiLanguage(language);
         const QLocale locale(normalizedLanguage);
