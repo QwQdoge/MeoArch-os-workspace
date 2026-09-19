@@ -166,16 +166,14 @@ Item {
         spacing: frame.dp(8)
 
         MeoIconButton {
-            visible: frame.controller && frame.controller.debugTerminalAvailable
+            id: diagnosticButton
+            visible: frame.controller && frame.controller.diagnosticConsoleAvailable
             icon.name: "terminal"
             size: frame.topActionSize
             type: frame.topActionType
-            Accessible.name: qsTr("Open debug terminal")
-            Accessible.description: qsTr("Opens a real terminal in the Live session for diagnostics")
-            onClicked: {
-                frame.controller.openDebugTerminal()
-                frame.statusMessage = frame.controller.debugTerminalMessage
-            }
+            Accessible.name: qsTr("Open diagnostic console")
+            Accessible.description: qsTr("Runs diagnostic commands inside the Cage installer as the unprivileged Live user")
+            onClicked: diagnosticPopup.openFrom(diagnosticButton)
         }
         MeoIconButton {
             id: helpButton
@@ -201,6 +199,127 @@ Item {
             type: frame.topActionType
             Accessible.name: qsTr("Power")
             onClicked: powerPopup.openFrom(powerButton)
+        }
+    }
+
+    MeoMotionPopup {
+        id: diagnosticPopup
+        presentation: MeoMotionPopup.Dialog
+        x: (frame.width - width) / 2
+        y: (frame.height - height) / 2
+        width: Math.min(frame.dp(760), frame.width - frame.pageMargin * 2)
+        height: Math.min(frame.dp(620), frame.height - frame.pageMargin * 2)
+        padding: frame.dp(20)
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        contentItem: Column {
+            id: diagnosticContent
+            width: parent.width
+            spacing: frame.dp(12)
+
+            Row {
+                width: parent.width
+                spacing: frame.dp(12)
+
+                MeoIcon {
+                    icon: "terminal"
+                    size: frame.dp(28)
+                    color: MeoTheme.contentOnSurface
+                }
+                Column {
+                    width: parent.width - frame.dp(40)
+                    spacing: frame.dp(2)
+                    MeoText {
+                        width: parent.width
+                        text: qsTr("Live diagnostic console")
+                        typeRole: "title"
+                        typeSize: "small"
+                        emphasized: true
+                        color: MeoTheme.contentOnSurface
+                    }
+                    MeoText {
+                        width: parent.width
+                        text: qsTr("Commands run inside this Cage session as the unprivileged live user. Use it for network and hardware checks.")
+                        typeRole: "body"
+                        typeSize: "small"
+                        color: MeoTheme.contentOnSurfaceVariant
+                        wrapMode: Text.WordWrap
+                    }
+                }
+            }
+
+            MeoMotionSurface {
+                width: parent.width
+                height: diagnosticPopup.height - frame.dp(210)
+                radius: MeoTheme.shapeLarge
+                color: MeoTheme.surfaceContainerLowest
+                elevation: 0
+
+                TextArea {
+                    id: diagnosticOutput
+                    anchors.fill: parent
+                    anchors.margins: frame.dp(12)
+                    readOnly: true
+                    selectByMouse: true
+                    wrapMode: TextEdit.WrapAnywhere
+                    text: frame.controller ? frame.controller.diagnosticConsoleOutput : ""
+                    color: MeoTheme.contentOnSurface
+                    selectionColor: MeoTheme.primaryContainer
+                    selectedTextColor: MeoTheme.contentOnPrimaryContainer
+                    font.family: "monospace"
+                    font.pixelSize: frame.dp(13)
+                    background: null
+                    onTextChanged: cursorPosition = length
+                }
+            }
+
+            Row {
+                width: parent.width
+                spacing: frame.dp(8)
+
+                MeoTextField {
+                    id: diagnosticCommand
+                    width: parent.width - runDiagnosticButton.width - frame.dp(8)
+                    label: qsTr("Command")
+                    placeholderText: qsTr("Example: ip route")
+                    enabled: frame.controller && !frame.controller.diagnosticConsoleRunning
+                    onAccepted: {
+                        if (text.trim().length > 0 && frame.controller) {
+                            frame.controller.runDiagnosticCommand(text)
+                            text = ""
+                        }
+                    }
+                }
+                MeoButton {
+                    id: runDiagnosticButton
+                    text: frame.controller && frame.controller.diagnosticConsoleRunning
+                          ? qsTr("Running…") : qsTr("Run")
+                    type: "filled"
+                    loading: frame.controller && frame.controller.diagnosticConsoleRunning
+                    enabled: frame.controller && !frame.controller.diagnosticConsoleRunning
+                             && diagnosticCommand.text.trim().length > 0
+                    onClicked: {
+                        frame.controller.runDiagnosticCommand(diagnosticCommand.text)
+                        diagnosticCommand.text = ""
+                    }
+                }
+            }
+
+            Row {
+                anchors.right: parent.right
+                spacing: frame.dp(8)
+                MeoButton {
+                    text: qsTr("Clear")
+                    type: "text"
+                    enabled: frame.controller && !frame.controller.diagnosticConsoleRunning
+                    onClicked: frame.controller.clearDiagnosticConsole()
+                }
+                MeoButton {
+                    text: qsTr("Close")
+                    type: "tonal"
+                    onClicked: diagnosticPopup.close()
+                }
+            }
         }
     }
 
@@ -273,10 +392,10 @@ Item {
                 MeoListItem {
                     width: parent.width
                     implicitHeight: frame.dp(44)
-                    headline: qsTr("ArchWiki: KDE Plasma")
-                    leadingIcon: "desktop_windows"
-                    interactive: true
-                    onClicked: { frame.openDocumentation("https://wiki.archlinux.org/title/KDE", qsTr("Opened the ArchWiki KDE guide.")); helpPopup.close() }
+                    headline: qsTr("Cage kiosk environment")
+                    leadingIcon: "fullscreen"
+                    interactive: false
+                    supportingText: qsTr("The Live installer runs directly in Cage, not in a KDE Plasma desktop session.")
                 }
             }
         }
