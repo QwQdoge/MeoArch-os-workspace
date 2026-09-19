@@ -280,7 +280,7 @@ Item {
 
             MeoMotionSurface {
                 width: parent.width
-                height: diagnosticPopup.height - frame.dp(210)
+                height: Math.max(frame.dp(180), diagnosticPopup.height - frame.dp(285))
                 radius: MeoTheme.shapeLarge
                 color: MeoTheme.surfaceContainerLowest
                 elevation: 0
