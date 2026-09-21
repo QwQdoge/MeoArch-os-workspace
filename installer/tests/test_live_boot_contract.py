@@ -9,6 +9,8 @@ ARCHISO_HOOKS = ROOT / "meoarch-os/airootfs/etc/mkinitcpio.conf.d/archiso.conf"
 PLYMOUTH_SCRIPT = ROOT / "themes/plymouth/meoarch/meoarch.script"
 GENERATE_CONFIG = ROOT / "installer/backend/generate-config.py"
 VERIFY_TARGET = ROOT / "installer/backend/verify-target.py"
+SYNC_INSTALLER = ROOT / "scripts/sync-installer-to-airootfs.sh"
+APPLY_TARGET = ROOT / "installer/backend/apply-target-customizations.sh"
 
 
 def grub_kernel_options(title_prefix: str) -> str:
@@ -55,6 +57,16 @@ class LiveBootContractTests(unittest.TestCase):
             grub_kernel_options('Diagnostics and repair - no installation'),
             expected.replace("meoarch.mode=install", "meoarch.mode=repair"),
         )
+
+    def test_installed_grub_theme_keeps_its_background_asset(self):
+        theme = (ROOT / "meoarch-os/grub/themes/meoarch/theme.txt").read_text(encoding="utf-8")
+        sync = SYNC_INSTALLER.read_text(encoding="utf-8")
+        apply = APPLY_TARGET.read_text(encoding="utf-8")
+        verify = VERIFY_TARGET.read_text(encoding="utf-8")
+        self.assertIn('desktop-image: "../../splash.png"', theme)
+        self.assertIn('boot-splash.png', sync)
+        self.assertIn('boot_splash_source', apply)
+        self.assertIn('"boot/grub/splash.png"', verify)
 
     def test_live_initramfs_and_theme_keep_plymouth_enabled(self):
         hooks = ARCHISO_HOOKS.read_text(encoding="utf-8")
