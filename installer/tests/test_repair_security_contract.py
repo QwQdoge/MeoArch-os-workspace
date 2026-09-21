@@ -94,6 +94,9 @@ class RepairSecurityContractTests(unittest.TestCase):
         self.assertIn("smartctl -H", storage)
         self.assertIn("nvme smart-log", storage)
         self.assertIn("storage.smart_failed", storage)
+        self.assertIn('storage_root="/mnt"', storage)
+        self.assertIn("storage.target_root_nearly_full", storage)
+        self.assertIn("check_root_filesystem=0", storage)
         self.assertIn("graphics.nvidia_drm_modeset_disabled", graphics)
 
     def test_audio_and_display_guided_repairs_are_evidence_first(self):
@@ -347,8 +350,12 @@ class RepairSecurityContractTests(unittest.TestCase):
         self.assertIn("-size +0c", check)
         self.assertIn("boot.target_boot_not_mounted", check)
         self.assertIn("boot.boot_not_mounted", check)
-        self.assertIn("findmnt -rn /mnt/boot", check)
-        self.assertIn("findmnt -rn /boot", check)
+        self.assertIn("detect_loader()", check)
+        self.assertIn("boot.loader_grub", check)
+        self.assertIn("boot.loader_limine", check)
+        self.assertIn("boot.loader_systemd_boot", check)
+        self.assertIn('findmnt -rn "${root}/boot"', check)
+        self.assertIn("boot.offline_service_state", check)
         self.assertIn(
             'codes.contains(QStringLiteral("boot.initramfs_missing"))', controller
         )
@@ -505,6 +512,9 @@ class RepairSecurityContractTests(unittest.TestCase):
         self.assertIn("Q_PROPERTY(QString accountConnectionState", header)
         self.assertIn("org.freedesktop.NetworkManager", source)
         self.assertIn("Connectivity", source)
+        self.assertIn("properties.setTimeout(500)", source)
+        self.assertIn("org.meo.repair-status/v1", REPAIR_MAIN.read_text(encoding="utf-8"))
+        self.assertIn("statusRequested", REPAIR_MAIN.read_text(encoding="utf-8"))
         self.assertIn("mountedTargetAvailable", qml)
         self.assertIn("accountConnectionState", qml)
         self.assertIn("networkConnectionState", qml)
