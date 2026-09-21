@@ -272,11 +272,15 @@ grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
 grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^After=systemd-user-sessions.service systemd-logind.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Wants=NetworkManager.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-! grep -q '^ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^Type=notify$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^NotifyAccess=all$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^StartLimitIntervalSec=90s$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^StartLimitBurst=3$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '&QQuickWindow::frameSwapped' installer/app/main.cpp
 grep -q '&QQuickWindow::frameSwapped' repair/app/main.cpp
+grep -q '/usr/bin/systemd-notify' installer/app/main.cpp
+grep -q '/usr/bin/systemd-notify' repair/app/main.cpp
 grep -q 'QTimer::singleShot(20000' installer/app/main.cpp
 grep -q 'QTimer::singleShot(20000' repair/app/main.cpp
 grep -q 'app.exit(70)' installer/app/main.cpp
