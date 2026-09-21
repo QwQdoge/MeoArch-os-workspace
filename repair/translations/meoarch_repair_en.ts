@@ -322,5 +322,17 @@
     <message><source>电脑没有可用的 IPv4 或 IPv6 默认网络路线。</source><translation>The computer has no usable IPv4 or IPv6 default route.</translation></message>
     <message><source>Live 环境中还没有挂载可检查的已安装系统。</source><translation>No installed system is mounted for package checks in the Live environment.</translation></message>
     <message><source>没有在 /mnt 找到已挂载的目标系统。</source><translation>No mounted target system was found at /mnt.</translation></message>
+    <message><source>Meo Account · 已连接</source><translation>Meo Account · Connected</translation></message>
+    <message><source>Meo Account · 连接中</source><translation>Meo Account · Connecting</translation></message>
+    <message><source>Meo Account · 可登录</source><translation>Meo Account · Available</translation></message>
+    <message><source>Meo Account · 连接错误</source><translation>Meo Account · Connection error</translation></message>
+    <message><source>Meo Account · 未配置</source><translation>Meo Account · Not configured</translation></message>
+    <message><source>检测到系统使用 GRUB 引导。</source><translation>GRUB boot loader detected.</translation></message>
+    <message><source>检测到系统使用 Limine 引导。</source><translation>Limine boot loader detected.</translation></message>
+    <message><source>检测到系统使用 systemd-boot 引导。</source><translation>systemd-boot detected.</translation></message>
+    <message><source>没有找到可识别的 GRUB、Limine 或 systemd-boot 配置。</source><translation>No recognizable GRUB, Limine, or systemd-boot configuration was found.</translation></message>
+    <message><source>Live 模式不会把自身的失败服务状态当作目标系统故障。</source><translation>Live mode does not treat failed Live services as installed-target failures.</translation></message>
+    <message><source>已挂载目标系统的根分区空间已使用至少 90%。</source><translation>The mounted target root filesystem is at least 90% full.</translation></message>
+    <message><source>Live 环境没有在 /mnt 找到已挂载的目标系统根分区。</source><translation>No installed target root filesystem is mounted at /mnt.</translation></message>
   </context>
 </TS>
