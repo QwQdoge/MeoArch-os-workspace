@@ -11,12 +11,28 @@ Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
 
 logo_image = Image("logo.png");
 logo_sprite = Sprite();
+logo_glow_image = 0;
+logo_glow_sprite = Sprite();
 logo_opacity = 0.0;
 boot_progress = 0.0;
 is_error_state = 0;
 frame_count = 0;
 
 if (logo_image) {
+    # Use a slightly enlarged copy of the logo as a low-opacity halo. This
+    # stays intentionally subtle and avoids a separate animation asset.
+    logo_glow_image = logo_image.Scale(
+        logo_image.GetWidth() * 1.08,
+        logo_image.GetHeight() * 1.08
+    );
+    if (logo_glow_image) {
+        logo_glow_sprite.SetImage(logo_glow_image);
+        logo_glow_sprite.SetX(screen_width / 2 - logo_glow_image.GetWidth() / 2);
+        logo_glow_sprite.SetY(screen_height / 2 - logo_glow_image.GetHeight() / 2);
+        logo_glow_sprite.SetZ(9);
+        logo_glow_sprite.SetOpacity(0.0);
+    }
+
     logo_sprite.SetImage(logo_image);
     logo_sprite.SetX(screen_width / 2 - logo_image.GetWidth() / 2);
     logo_sprite.SetY(screen_height / 2 - logo_image.GetHeight() / 2);
@@ -55,6 +71,14 @@ fun refresh_callback() {
             logo_opacity = Math.Max(0.0, logo_opacity - 0.045);
         }
 
+        # A very slow, shallow breathing halo adds depth without creating a
+        # spinner-like distraction. It fades with the main logo at handoff.
+        if (logo_glow_sprite) {
+            glow_opacity = logo_opacity * (
+                0.08 + (Math.Cos(frame_count * 0.08) + 1.0) * 0.02
+            );
+            logo_glow_sprite.SetOpacity(glow_opacity);
+        }
         logo_sprite.SetOpacity(logo_opacity);
     }
 }
@@ -74,6 +98,8 @@ fun message_callback(text) {
 
     if (String(text).SubString(0, 6) == "ERROR:") {
         is_error_state = 1;
+        if (logo_glow_sprite)
+            logo_glow_sprite.SetOpacity(0.0);
         if (logo_sprite)
             logo_sprite.SetOpacity(0.28);
         set_error_text(text);
@@ -98,6 +124,8 @@ fun quit_callback() {
     # Plymouth cannot guarantee a multi-frame animation after quit is requested,
     # so the regular refresh loop performs the visible fade before graphical
     # target. Finish on black if quit arrives first.
+    if (logo_glow_sprite)
+        logo_glow_sprite.SetOpacity(0.0);
     if (logo_sprite)
         logo_sprite.SetOpacity(0.0);
     status_sprite.SetOpacity(0.0);
