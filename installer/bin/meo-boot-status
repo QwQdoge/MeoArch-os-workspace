@@ -131,7 +131,9 @@ def handle_failure(unit_name, safe_code=None):
     message = fail_info["message"]
     code = safe_code or fail_info["code"]
 
-    display_text = f"ERROR:{unit_name}:{code}:{title}:{message}"
+    # Keep unit/code in the JSON audit state. Plymouth should show a concise
+    # human-facing failure instead of an internal colon-delimited debug record.
+    display_text = f"ERROR: {title} - {message}"
     run_plymouth_cmd("display-message", f"--text={display_text}")
     run_plymouth_cmd("message", f"--text={display_text}")
 
