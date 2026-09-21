@@ -209,5 +209,26 @@
     <message><source>The plan, policy, or evidence snapshot changed; execution was blocked.</source><translation>方案、策略或证据快照已更改；已阻止执行。</translation></message>
     <message><source>The confirmed plan expired; run diagnostics and review a new plan.</source><translation>已确认的方案已过期；请重新运行诊断并复核新方案。</translation></message>
     <message><source>The bound plan hash changed; execution was blocked.</source><translation>已绑定的方案哈希已更改；已阻止执行。</translation></message>
+    <message><source>NetworkManager is unavailable.</source><translation>NetworkManager 不可用。</translation></message>
+    <message><source>A network is connected, but sign-in through a captive portal is required.</source><translation>网络已连接，但需要通过门户登录页面完成认证。</translation></message>
+    <message><source>NetworkManager reports global connectivity.</source><translation>NetworkManager 报告已连接互联网。</translation></message>
+    <message><source>A local network is connected, but full internet access is not confirmed.</source><translation>已连接本地网络，但尚未确认完整互联网访问。</translation></message>
+    <message><source>NetworkManager is connecting.</source><translation>NetworkManager 正在连接。</translation></message>
+    <message><source>No active network connection is available.</source><translation>当前没有可用的活动网络连接。</translation></message>
+    <message><source>Live + target overview</source><translation>Live 与目标系统概览</translation></message>
+    <message><source>System quick check</source><translation>系统快速检查</translation></message>
+    <message><source>Check the Live environment and the mounted installed target without changing either</source><translation>检查 Live 环境和已挂载的安装系统，不更改任何一方</translation></message>
+    <message><source>Run every read-only diagnostic category on this installed system</source><translation>在当前已安装系统上运行所有只读诊断类别</translation></message>
+    <message><source>Live network</source><translation>Live 网络</translation></message>
+    <message><source>Connection, captive portal, routes, DNS, and NetworkManager</source><translation>连接、门户认证、路由、DNS 和 NetworkManager</translation></message>
+    <message><source>Installed target boot</source><translation>目标系统启动</translation></message>
+    <message><source>Boot loader, initramfs, and boot mounts under /mnt</source><translation>检查 /mnt 下目标系统的引导器、initramfs 和启动挂载</translation></message>
+    <message><source>Boot loader, initramfs, mounts, and failed units</source><translation>引导器、initramfs、挂载和失败的系统服务</translation></message>
+    <message><source>Installed target packages</source><translation>目标系统软件包</translation></message>
+    <message><source>Package database, signing keys, and file integrity</source><translation>软件包数据库、签名密钥和文件完整性</translation></message>
+    <message><source>Disks and installed target</source><translation>磁盘与目标系统</translation></message>
+    <message><source>Capacity, mounts, SMART, NVMe, and Btrfs signals</source><translation>容量、挂载、SMART、NVMe 和 Btrfs 状态</translation></message>
+    <message><source>GPU drivers, kernel messages, and the current graphical session</source><translation>显卡驱动、内核消息和当前图形会话</translation></message>
+    <message><source>Security posture of the current Live environment</source><translation>当前 Live 环境的安全状态</translation></message>
   </context>
 </TS>
