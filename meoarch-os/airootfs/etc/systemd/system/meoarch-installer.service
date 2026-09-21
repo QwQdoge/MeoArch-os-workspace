@@ -10,7 +10,7 @@ Conflicts=systemd-networkd.service systemd-networkd.socket
 OnFailure=meo-boot-status-failure@meoarch-installer.service
 # A failed Cage/client pair may be restarted a few times for transient GPU or
 # compositor startup faults, but must not loop indefinitely behind a blank TTY.
-StartLimitIntervalSec=30s
+StartLimitIntervalSec=90s
 StartLimitBurst=3
 
 [Service]
