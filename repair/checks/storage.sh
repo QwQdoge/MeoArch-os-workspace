@@ -10,6 +10,7 @@ df -hT 2>&1 || true
 
 scope="${MEOARCH_REPAIR_SCOPE:-system}"
 storage_root="/"
+check_root_filesystem=1
 root_finding_code="storage.root_nearly_full"
 root_description="The root filesystem is at least 90 percent full."
 if [ "${scope}" = "live" ]; then
@@ -20,16 +21,21 @@ if [ "${scope}" = "live" ]; then
     echo "[storage] mounted installed target capacity"
     df -hT /mnt 2>&1 || true
   else
+    check_root_filesystem=0
     echo "MEO_FINDING|warning|storage.target_not_mounted|No installed system root is mounted at /mnt."
   fi
 fi
 
-root_percent="$(df --output=pcent "${storage_root}" 2>/dev/null | tail -n 1 | tr -dc '0-9')"
-if [ -n "${root_percent}" ] && [ "${root_percent}" -ge 90 ]; then
-  printf 'MEO_FINDING|warning|%s|%s\n' "${root_finding_code}" "${root_description}"
+if [ "${check_root_filesystem}" -eq 1 ]; then
+  root_percent="$(df --output=pcent "${storage_root}" 2>/dev/null | tail -n 1 | tr -dc '0-9')"
+  if [ -n "${root_percent}" ] && [ "${root_percent}" -ge 90 ]; then
+    printf 'MEO_FINDING|warning|%s|%s\n' "${root_finding_code}" "${root_description}"
+  fi
 fi
 
-if findmnt -n -o FSTYPE "${storage_root}" 2>/dev/null | grep -qx btrfs && command -v btrfs >/dev/null 2>&1; then
+if [ "${check_root_filesystem}" -eq 1 ] \
+   && findmnt -n -o FSTYPE "${storage_root}" 2>/dev/null | grep -qx btrfs \
+   && command -v btrfs >/dev/null 2>&1; then
   echo "[storage] btrfs device stats for ${storage_root}"
   btrfs_stats="$(btrfs device stats "${storage_root}" 2>&1 || true)"
   printf '%s\n' "${btrfs_stats}"
