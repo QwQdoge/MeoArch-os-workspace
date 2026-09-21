@@ -419,8 +419,9 @@ int main(int argc, char *argv[])
         auto firstFrameReady = std::make_shared<bool>(false);
         QObject::connect(window, &QQuickWindow::frameSwapped, window, [firstFrameReady] {
             *firstFrameReady = true;
-            QProcess::startDetached(QStringLiteral("/usr/lib/meoarch/meo-boot-status"),
-                                    {QStringLiteral("stage"), QStringLiteral("ready")});
+            QProcess::startDetached(QStringLiteral("/usr/bin/systemd-notify"),
+                                    {QStringLiteral("--ready"),
+                                     QStringLiteral("--status=MeoArch Repair UI is visible")});
         }, Qt::SingleShotConnection);
         QTimer::singleShot(20000, window, [firstFrameReady, &app] {
             if (!*firstFrameReady)
