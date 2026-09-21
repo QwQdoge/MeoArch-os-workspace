@@ -706,7 +706,7 @@ Window {
     }
 
     Timer {
-        interval: 5000
+        interval: 10000
         repeat: true
         running: root.visible
         onTriggered: root.repairController.refreshEnvironmentState()
@@ -922,6 +922,7 @@ Window {
             icon: root.networkStatusIcon()
             visualStyle: root.repairController.networkConnectionState === "online"
                          ? "filled" : "outlined"
+            Accessible.description: root.repairController.networkConnectionMessage
         }
         MeoChip {
             visible: root.repairController.liveEnvironment
