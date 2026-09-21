@@ -114,6 +114,8 @@ RepairController::RepairController(QObject *parent)
             ? tr("TTY control is unavailable because this Live repair session does not have the required root tools.")
             : tr("TTY control is available only in the Live repair environment so it cannot disrupt an installed desktop session.");
 
+    refreshEnvironmentState();
+
     m_checkCategories = {
         QVariantMap{{QStringLiteral("id"), QStringLiteral("all")},
                     {QStringLiteral("title"), tr("Quick check")},
@@ -253,6 +255,78 @@ bool RepairController::accountConfigured() const
     const QUrl url(m_supabaseUrl);
     return url.isValid() && url.scheme() == QStringLiteral("https") && !url.host().isEmpty()
         && !m_publishableKey.isEmpty();
+}
+
+
+QString RepairController::accountConnectionState() const
+{
+    if (!accountConfigured())
+        return QStringLiteral("not_configured");
+    if (m_authState == QStringLiteral("signed_in"))
+        return QStringLiteral("connected");
+    if (m_authState == QStringLiteral("signing_in") || m_authState == QStringLiteral("mfa_required"))
+        return QStringLiteral("connecting");
+    if (m_authState == QStringLiteral("error"))
+        return QStringLiteral("error");
+    return QStringLiteral("available");
+}
+
+void RepairController::refreshEnvironmentState()
+{
+    const bool targetAvailable =
+        QFileInfo(QStringLiteral("/mnt/etc/os-release")).isFile()
+        && QFileInfo(QStringLiteral("/mnt/usr")).isDir();
+
+    QString networkState = QStringLiteral("unavailable");
+    QString networkMessage = tr("NetworkManager is unavailable.");
+
+    QDBusInterface properties(QStringLiteral("org.freedesktop.NetworkManager"),
+                              QStringLiteral("/org/freedesktop/NetworkManager"),
+                              QStringLiteral("org.freedesktop.DBus.Properties"),
+                              QDBusConnection::systemBus());
+    if (properties.isValid()) {
+        const QDBusReply<QDBusVariant> stateReply =
+            properties.call(QStringLiteral("Get"),
+                            QStringLiteral("org.freedesktop.NetworkManager"),
+                            QStringLiteral("State"));
+        const QDBusReply<QDBusVariant> connectivityReply =
+            properties.call(QStringLiteral("Get"),
+                            QStringLiteral("org.freedesktop.NetworkManager"),
+                            QStringLiteral("Connectivity"));
+        if (stateReply.isValid()) {
+            // NetworkManager NMState: 20 disconnected, 40 connecting,
+            // 50 local, 60 site, 70 global. NMConnectivity: 1 none,
+            // 2 portal, 3 limited, 4 full.
+            const uint state = stateReply.value().variant().toUInt();
+            const uint connectivity = connectivityReply.isValid()
+                ? connectivityReply.value().variant().toUInt() : 0;
+            if (connectivity == 2) {
+                networkState = QStringLiteral("portal");
+                networkMessage = tr("A network is connected, but sign-in through a captive portal is required.");
+            } else if (state >= 70 && (connectivity == 4 || connectivity == 0)) {
+                networkState = QStringLiteral("online");
+                networkMessage = tr("NetworkManager reports global connectivity.");
+            } else if (state >= 50 || connectivity == 3) {
+                networkState = QStringLiteral("limited");
+                networkMessage = tr("A local network is connected, but full internet access is not confirmed.");
+            } else if (state == 40) {
+                networkState = QStringLiteral("connecting");
+                networkMessage = tr("NetworkManager is connecting.");
+            } else {
+                networkState = QStringLiteral("offline");
+                networkMessage = tr("No active network connection is available.");
+            }
+        }
+    }
+
+    const bool changed = m_mountedTargetAvailable != targetAvailable
+        || m_networkConnectionState != networkState
+        || m_networkConnectionMessage != networkMessage;
+    m_mountedTargetAvailable = targetAvailable;
+    m_networkConnectionState = networkState;
+    m_networkConnectionMessage = networkMessage;
+    if (changed)
+        emit environmentChanged();
 }
 
 QUrl RepairController::authUrl(const QString &path) const
