@@ -535,7 +535,9 @@ class RepairSecurityContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("ConditionKernelCommandLine=meoarch.mode=console", getty)
         self.assertIn("--autologin root", getty)
-        self.assertNotIn("ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready", service)
+        self.assertIn("Type=notify", service)
+        self.assertIn("NotifyAccess=all", service)
+        self.assertIn("ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready", service)
         self.assertIn("meoarch.mode=console", service)
 
     def test_live_image_uses_lynis_not_openqa(self):
