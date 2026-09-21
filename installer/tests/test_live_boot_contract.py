@@ -82,6 +82,9 @@ class LiveBootContractTests(unittest.TestCase):
         self.assertIn('left = 50%-380', theme)
         self.assertIn('width = 760', theme)
         self.assertNotIn('menu_pixmap_style = "panel_*.png"', theme)
+        self.assertIn('desktop-image-scale-method: "crop"', theme)
+        self.assertIn('desktop-image-h-align: "center"', theme)
+        self.assertIn('desktop-image-v-align: "center"', theme)
         self.assertIn('selected_item_pixmap_style = "select_*.png"', theme)
         self.assertIn('selected_item_color = "#FFFFFF"', theme)
 
