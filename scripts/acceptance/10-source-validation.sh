@@ -202,6 +202,8 @@ grep -q 'MeoArch Sans Bold 24' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Everything has a GUI. Every choice is yours.' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Window.SetBackgroundTopColor(0.0, 0.0, 0.0)' themes/plymouth/meoarch/meoarch.script
 grep -q 'logo_image = Image("logo.png")' themes/plymouth/meoarch/meoarch.script
+grep -q 'logo_glow_image = logo_image.Scale' themes/plymouth/meoarch/meoarch.script
+grep -q 'Math.Cos(frame_count \* 0.08)' themes/plymouth/meoarch/meoarch.script
 ! rg -q 'spinner_image|progress_bar_image|background.png' themes/plymouth/meoarch/meoarch.script
 cmp -s themes/plymouth/meoarch/meoarch.script meoarch-os/airootfs/usr/share/plymouth/themes/meoarch/meoarch.script
 ! rg -q 'STAGE:' themes/plymouth/meoarch installer/bin/meo-boot-status
