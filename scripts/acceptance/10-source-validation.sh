@@ -152,7 +152,10 @@ grep -q 'declared sibling MeoKDE desktop assets' scripts/verify-staging-provenan
 grep -q '^ExecStart=/usr/local/bin/choose-mirror$' meoarch-os/airootfs/etc/systemd/system/choose-mirror.service
 grep -q '^ExecStart=/usr/local/bin/livecd-sound -u$' meoarch-os/airootfs/etc/systemd/system/livecd-alsa-unmuter.service
 grep -q '^ExecStart=/usr/local/bin/livecd-sound -p$' meoarch-os/airootfs/etc/systemd/system/livecd-talk.service
-grep -q 'Installation_guide' meoarch-os/airootfs/etc/motd
+grep -q 'NetworkManager' meoarch-os/airootfs/etc/motd
+grep -q 'nmcli' meoarch-os/airootfs/etc/motd
+! grep -q 'wiki.archlinux.org/title/Installation_guide' meoarch-os/airootfs/etc/motd
+! grep -q 'iwctl' meoarch-os/airootfs/etc/motd
 ! rg -q 'installer\.py' meoarch-os installer/bin scripts/sync-installer-to-airootfs.sh scripts/verify-staging-provenance.sh
 ! rg -q 'meoarch-installer-live' meoarch-os installer/bin scripts/sync-installer-to-airootfs.sh scripts/verify-staging-provenance.sh
 ! test -e meoarch-os/airootfs/etc/xdg/autostart/meoarch-installer.desktop
@@ -202,7 +205,11 @@ grep -q 'selected_item_pixmap_style = "select_\*.png"' meoarch-os/grub/themes/me
 ! grep -q 'menu_pixmap_style = "panel_\*.png"' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'selected_item_color = "#FFFFFF"' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'assets/icons/Logo.svg' meoarch-os/grub/themes/meoarch/generate-assets.sh
+grep -q 'syslinux/splash.png' meoarch-os/grub/themes/meoarch/generate-assets.sh
 ! grep -q -- '-annotate' meoarch-os/grub/themes/meoarch/generate-assets.sh
+grep -q '#ff6750a4' meoarch-os/syslinux/archiso_head.cfg
+grep -q '#ff49454f' meoarch-os/syslinux/archiso_head.cfg
+grep -q 'display_text = f"ERROR: {title} - {message}"' installer/bin/meo-boot-status
 grep -q 'MeoArch Sans Bold 24' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Everything has a GUI. Every choice is yours.' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Window.SetBackgroundTopColor(0.0, 0.0, 0.0)' themes/plymouth/meoarch/meoarch.script
