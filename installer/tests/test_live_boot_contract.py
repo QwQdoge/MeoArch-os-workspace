@@ -1,4 +1,5 @@
 from pathlib import Path
+import struct
 import unittest
 
 
@@ -11,7 +12,20 @@ GENERATE_CONFIG = ROOT / "installer/backend/generate-config.py"
 VERIFY_TARGET = ROOT / "installer/backend/verify-target.py"
 SYNC_INSTALLER = ROOT / "scripts/sync-installer-to-airootfs.sh"
 APPLY_TARGET = ROOT / "installer/backend/apply-target-customizations.sh"
+GRUB_THEME = ROOT / "meoarch-os/grub/themes/meoarch/theme.txt"
+GRUB_GENERATOR = ROOT / "meoarch-os/grub/themes/meoarch/generate-assets.sh"
+GRUB_BRAND = ROOT / "meoarch-os/grub/themes/meoarch/brand.png"
+GRUB_SPLASH = ROOT / "meoarch-os/grub/splash.png"
+CANONICAL_LOGO = ROOT / "assets/icons/Logo.svg"
 
+
+
+
+def png_size(path: Path) -> tuple[int, int]:
+    data = path.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR":
+        raise AssertionError(f"not a PNG: {path}")
+    return struct.unpack(">II", data[16:24])
 
 def grub_kernel_options(title_prefix: str) -> str:
     active = False
@@ -42,6 +56,22 @@ class LiveBootContractTests(unittest.TestCase):
             "meoarch-os/grub/themes/meoarch/meoarch-sans-bold-24.pf2",
         ):
             self.assertTrue((ROOT / relative).is_file(), relative)
+
+    def test_grub_visual_assets_use_canonical_logo_and_dynamic_menu(self):
+        theme = GRUB_THEME.read_text(encoding="utf-8")
+        generator = GRUB_GENERATOR.read_text(encoding="utf-8")
+        logo = CANONICAL_LOGO.read_text(encoding="utf-8")
+
+        self.assertEqual(png_size(GRUB_BRAND), (260, 117))
+        self.assertEqual(png_size(GRUB_SPLASH), (1920, 1080))
+        self.assertIn('fill="#B69DF8"', logo)
+        self.assertIn('assets/icons/Logo.svg', generator)
+        self.assertNotIn('-annotate', generator)
+        self.assertIn('splash.png', generator)
+        self.assertIn('left = 24%', theme)
+        self.assertNotIn('menu_pixmap_style = "panel_*.png"', theme)
+        self.assertIn('selected_item_pixmap_style = "select_*.png"', theme)
+        self.assertIn('selected_item_color = "#FFFFFF"', theme)
 
     def test_normal_and_repair_entries_keep_plymouth_kernel_contract(self):
         expected = (
