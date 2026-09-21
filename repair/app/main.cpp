@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <QLocale>
 #include <QQmlApplicationEngine>
+#include <QProcess>
 #include <QQuickWindow>
 #include <QSettings>
 #include <QTextStream>
@@ -393,6 +394,12 @@ int main(int argc, char *argv[])
     });
 
     auto *window = qobject_cast<QQuickWindow *>(rootObject);
+    if (window && controller.liveEnvironment()) {
+        QObject::connect(window, &QQuickWindow::frameSwapped, window, [] {
+            QProcess::startDetached(QStringLiteral("/usr/lib/meoarch/meo-boot-status"),
+                                    {QStringLiteral("stage"), QStringLiteral("ready")});
+        }, Qt::SingleShotConnection);
+    }
     if (window && arguments.contains(QStringLiteral("--kiosk")))
         window->showFullScreen();
     const QString screenshot = optionValue(arguments, QStringLiteral("--screenshot"));
