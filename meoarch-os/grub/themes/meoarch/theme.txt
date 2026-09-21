@@ -2,6 +2,9 @@
 # firmware-dependent icon fonts: the boot options remain plain text.
 
 desktop-image: "../../splash.png"
+desktop-image-scale-method: "crop"
+desktop-image-h-align: "center"
+desktop-image-v-align: "center"
 desktop-color: "#E8E2F4"
 title-text: ""
 message-color: "#F7F2FA"
