@@ -37,7 +37,21 @@ Window {
     readonly property var currentWizardQuestion: wizardQuestionIndex >= 0
                                                  && wizardQuestionIndex < guidedQuestions.length
                                                ? guidedQuestions[wizardQuestionIndex] : ({})
-    readonly property var helpCategoryGroups: [
+    readonly property var helpCategoryGroups: repairController.liveEnvironment ? [
+        {
+            "title": qsTr("Live 环境"),
+            "rows": root.categoryRows(["audio", "display", "network", "graphics", "security"])
+        },
+        {
+            "title": repairController.mountedTargetAvailable
+                     ? qsTr("已安装系统 · /mnt") : qsTr("已安装系统 · 尚未挂载"),
+            "rows": root.categoryRows(["boot", "packages", "storage"])
+        },
+        {
+            "title": qsTr("概览"),
+            "rows": root.categoryRows(["all"])
+        }
+    ] : [
         {
             "title": qsTr("常见问题"),
             "rows": root.categoryRows(["audio", "display", "network"])
@@ -224,6 +238,35 @@ Window {
         return root.repairController.localProvider === "ollama"
                 || root.repairController.hasLocalCredential
                 || root.repairController.hasSessionCredential
+    }
+    function networkStatusLabel() {
+        const state = root.repairController.networkConnectionState
+        if (state === "online") return qsTr("网络 · 已联网")
+        if (state === "portal") return qsTr("网络 · 需要登录")
+        if (state === "limited") return qsTr("网络 · 受限")
+        if (state === "connecting") return qsTr("网络 · 连接中")
+        if (state === "offline") return qsTr("网络 · 离线")
+        return qsTr("网络 · 不可用")
+    }
+    function networkStatusIcon() {
+        const state = root.repairController.networkConnectionState
+        if (state === "online") return "wifi"
+        if (state === "portal") return "captive_portal"
+        if (state === "limited") return "wifi_find"
+        if (state === "connecting") return "sync"
+        return "wifi_off"
+    }
+    function accountStatusLabel() {
+        const state = root.repairController.accountConnectionState
+        if (state === "connected") return qsTr("账号 · 已连接")
+        if (state === "connecting") return qsTr("账号 · 连接中")
+        if (state === "available") return qsTr("账号 · 可登录")
+        if (state === "error") return qsTr("账号 · 连接错误")
+        return qsTr("账号 · 未配置")
+    }
+    function accountStatusIcon() {
+        return root.repairController.accountConnectionState === "connected"
+                ? "account_circle" : "person_off"
     }
     function categoryLabel(category) {
         if (category === "audio") return qsTr("声音")
@@ -633,6 +676,7 @@ Window {
 
     Component.onCompleted: {
         MeoTheme.isDarkMode = false
+        repairController.refreshEnvironmentState()
         chooseCategory(initialCategory)
         selectedProvider = repairController.localProvider
         providerPicker.currentIndex = providerIndex(selectedProvider)
@@ -652,6 +696,13 @@ Window {
             if (previewWizardStage === "repair-approval")
                 wizardStage = "repair_approval"
         }
+    }
+
+    Timer {
+        interval: 5000
+        repeat: true
+        running: root.visible
+        onTriggered: root.repairController.refreshEnvironmentState()
     }
 
     Connections {
@@ -818,12 +869,6 @@ Window {
                 color: MeoTheme.contentOnSurfaceVariant
             }
         }
-        MeoChip {
-            visible: root.width >= root.dp(1080)
-            label: root.repairController.liveEnvironment ? qsTr("Live 修复") : qsTr("系统修复")
-            icon: root.repairController.liveEnvironment ? "usb" : "desktop_windows"
-            selected: true
-        }
         MeoIconButton {
             visible: root.advancedMode && root.repairController.diagnosticTtyAvailable
             icon.name: "terminal"; type: "outlined"; size: "l"
@@ -846,6 +891,51 @@ Window {
             onClicked: {
                 root.repairController.setAiSource("account")
             }
+        }
+    }
+
+    RowLayout {
+        id: statusStrip
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: appBar.bottom
+        anchors.leftMargin: root.dp(28)
+        anchors.rightMargin: root.dp(20)
+        anchors.topMargin: root.dp(2)
+        height: root.dp(42)
+        spacing: root.dp(8)
+
+        MeoChip {
+            label: root.repairController.liveEnvironment ? qsTr("Live 环境") : qsTr("已安装系统")
+            icon: root.repairController.liveEnvironment ? "usb" : "desktop_windows"
+            selected: true
+        }
+        MeoChip {
+            label: root.networkStatusLabel()
+            icon: root.networkStatusIcon()
+            visualStyle: root.repairController.networkConnectionState === "online"
+                         ? "filled" : "outlined"
+        }
+        MeoChip {
+            visible: root.repairController.liveEnvironment
+            label: root.repairController.mountedTargetAvailable
+                   ? qsTr("目标系统 · 已挂载") : qsTr("目标系统 · 未挂载")
+            icon: root.repairController.mountedTargetAvailable ? "hard_drive" : "drive_file_move"
+            visualStyle: root.repairController.mountedTargetAvailable ? "filled" : "outlined"
+        }
+        MeoChip {
+            label: root.accountStatusLabel()
+            icon: root.accountStatusIcon()
+            visualStyle: root.repairController.accountConnectionState === "connected"
+                         ? "filled" : "outlined"
+        }
+        Item { Layout.fillWidth: true }
+        MeoIconButton {
+            icon.name: "refresh"
+            type: "standard"
+            size: "m"
+            Accessible.name: qsTr("刷新环境、网络和目标系统状态")
+            onClicked: root.repairController.refreshEnvironmentState()
         }
     }
 
@@ -879,7 +969,7 @@ Window {
         visible: !root.advancedMode
         enabled: !root.advancedMode
         anchors.left: parent.left; anchors.right: parent.right
-        anchors.top: appBar.bottom; anchors.bottom: parent.bottom
+        anchors.top: statusStrip.bottom; anchors.bottom: parent.bottom
         anchors.leftMargin: root.dp(24); anchors.rightMargin: root.dp(24)
         anchors.topMargin: root.dp(8); anchors.bottomMargin: root.dp(20)
         clip: true
@@ -1645,7 +1735,7 @@ Window {
         visible: root.advancedMode
         enabled: root.advancedMode
         anchors.left: parent.left; anchors.right: parent.right
-        anchors.top: appBar.bottom; anchors.bottom: parent.bottom
+        anchors.top: statusStrip.bottom; anchors.bottom: parent.bottom
         anchors.leftMargin: root.dp(20); anchors.rightMargin: root.dp(20)
         anchors.topMargin: root.dp(12); anchors.bottomMargin: root.dp(20)
         spacing: root.dp(18)
