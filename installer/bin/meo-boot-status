@@ -37,10 +37,6 @@ STAGES = {
         "progress": 68,
         "message": "Starting system background services...",
     },
-    "desktop": {
-        "progress": 86,
-        "message": "Starting desktop environment...",
-    },
     "installer": {
         "progress": 95,
         "message": "Starting MeoArch Kiosk Installer...",
