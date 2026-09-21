@@ -8,11 +8,22 @@ message-color: "#F7F2FA"
 message-bg-color: "#211A2B"
 
 + image {
+    # brand.png is rasterized directly from assets/icons/Logo.svg.
     left = 8%
-    top = 10%
-    width = 520
-    height = 104
+    top = 7%
+    width = 260
+    height = 117
     file = "brand.png"
+}
+
++ label {
+    left = 8%
+    top = 20%
+    width = 60%
+    align = "left"
+    color = "#1D192B"
+    font = "MeoArch Sans Bold 24"
+    text = "MeoArch OS"
 }
 
 + label {
@@ -31,8 +42,8 @@ message-bg-color: "#211A2B"
     width = 52%
     height = 46%
 
-    item_color = "#F7F2FA"
-    selected_item_color = "#FFFFFF"
+    item_color = "#49454F"
+    selected_item_color = "#1D192B"
     item_font = "MeoArch Sans Regular 24"
     selected_item_font = "MeoArch Sans Bold 24"
     item_height = 36
