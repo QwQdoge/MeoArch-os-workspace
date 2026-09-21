@@ -197,6 +197,7 @@ grep -q 'Q_PROPERTY(QString networkConnectionState' installer/app/repaircontroll
 grep -q 'Q_PROPERTY(QString accountConnectionState' installer/app/repaircontroller.h
 grep -q 'org.freedesktop.NetworkManager' installer/app/repaircontroller.cpp
 grep -q 'QStringLiteral("Connectivity")' installer/app/repaircontroller.cpp
+grep -q 'properties.setTimeout(500)' installer/app/repaircontroller.cpp
 grep -q 'org.meo.repair-status/v1' repair/app/main.cpp
 grep -q 'statusRequested' repair/app/main.cpp
 grep -q 'Diagnostic subject: Live Environment' repair/checks/all.sh
@@ -205,6 +206,12 @@ grep -q 'network.captive_portal' repair/checks/network.sh
 grep -q 'network.limited_connectivity' repair/checks/network.sh
 grep -q 'ip -6 route show' repair/checks/network.sh
 grep -q 'packages.target_not_mounted' repair/checks/packages.sh
+grep -q 'boot.loader_grub' repair/checks/boot.sh
+grep -q 'boot.loader_limine' repair/checks/boot.sh
+grep -q 'boot.loader_systemd_boot' repair/checks/boot.sh
+grep -q 'boot.offline_service_state' repair/checks/boot.sh
+grep -q 'storage.target_root_nearly_full' repair/checks/storage.sh
+grep -q 'check_root_filesystem=0' repair/checks/storage.sh
 grep -q 'structured_diagnostic_findings' installer/app/repaircontroller.cpp
 grep -q 'actionSupportedByEvidence' installer/app/repaircontroller.cpp
 grep -q 'org.meo.repair-plan-binding/v1' installer/app/repaircontroller.cpp
@@ -266,8 +273,14 @@ grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/syst
 grep -q '^After=systemd-user-sessions.service systemd-logind.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Wants=NetworkManager.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 ! grep -q '^ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^StartLimitIntervalSec=90s$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^StartLimitBurst=3$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '&QQuickWindow::frameSwapped' installer/app/main.cpp
 grep -q '&QQuickWindow::frameSwapped' repair/app/main.cpp
+grep -q 'QTimer::singleShot(20000' installer/app/main.cpp
+grep -q 'QTimer::singleShot(20000' repair/app/main.cpp
+grep -q 'app.exit(70)' installer/app/main.cpp
+grep -q 'app.exit(70)' repair/app/main.cpp
 grep -q '^StartLimitIntervalSec=30s$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^StartLimitBurst=3$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Environment=XDG_RUNTIME_DIR=/run/meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
