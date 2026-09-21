@@ -54,8 +54,9 @@ class TargetBootTests(unittest.TestCase):
             dbus_service.write_text("[D-BUS Service]\nName=org.meo.SessionAction1\n")
             boot_theme = root / "boot-theme"
             boot_theme.mkdir()
-            (boot_theme / "theme.txt").write_text("desktop-image: background.png\n")
+            (boot_theme / "theme.txt").write_text("desktop-image: ../../splash.png\n")
             (boot_theme / "brand.png").write_bytes(b"fixture")
+            (root / "boot-splash.png").write_bytes(b"fixture-splash")
             (generated / "target-customizations.json").write_text(json.dumps({
                 "username": "tester", "fullName": "", "automaticLogin": False,
                 "loginManager": "plasma-login-manager", "firewall": False,
@@ -78,25 +79,27 @@ class TargetBootTests(unittest.TestCase):
             self.assertFalse((target / "etc/os-release").is_symlink())
             calls = (root / "calls").read_text() if (root / "calls").exists() else ""
             grub_defaults = (target / "etc/default/grub").read_text()
-            return result, calls, grub_defaults
+            grub_splash = (target / "boot/grub/splash.png").read_bytes() if (target / "boot/grub/splash.png").is_file() else None
+            return result, calls, grub_defaults, grub_splash
 
     def test_package_managed_target_needs_no_desktop_source_copy(self):
-        result, calls, grub_defaults = self.run_target()
+        result, calls, grub_defaults, grub_splash = self.run_target()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("/usr/bin/grub-mkconfig -o /boot/grub/grub.cfg", calls)
         self.assertIn("/usr/bin/mkinitcpio -P", calls)
         self.assertIn("/usr/bin/lsinitcpio /boot/initramfs-linux.img", calls)
         self.assertIn("GRUB_TIMEOUT=3", grub_defaults)
         self.assertIn('GRUB_THEME="/boot/grub/themes/meoarch/theme.txt"', grub_defaults)
+        self.assertEqual(grub_splash, b"fixture-splash")
 
     def test_initramfs_failure_is_not_reported_as_success(self):
-        result, calls, _ = self.run_target(failure=17)
+        result, calls, _, _ = self.run_target(failure=17)
         self.assertEqual(result.returncode, 17, result.stderr)
         self.assertNotIn("lsinitcpio", calls)
         self.assertNotIn("customizations applied", result.stdout)
 
     def test_incomplete_live_theme_fails_before_initramfs(self):
-        result, calls, _ = self.run_target(omit_asset=True)
+        result, calls, _, _ = self.run_target(omit_asset=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("logo.png", result.stderr)
         self.assertEqual(calls, "")
