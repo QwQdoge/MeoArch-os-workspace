@@ -8,6 +8,7 @@ trap 'rm -rf -- "$asset_tmp"' EXIT
 repo_root="$(cd -- "$script_dir/../../../.." && pwd)"
 logo_svg="$repo_root/assets/icons/Logo.svg"
 splash_png="$script_dir/../../splash.png"
+syslinux_splash_png="$repo_root/meoarch-os/syslinux/splash.png"
 
 [ -f "$logo_svg" ] || {
     echo "Canonical MeoArch logo is missing: $logo_svg" >&2
@@ -24,12 +25,18 @@ magick -background none "$logo_svg" \
 # Abstract Pixel/Material-style background only. Menu text, logo, and selection
 # states are rendered by GRUB so the bitmap never bakes in fake UI.
 magick -size 1920x1080 xc:'#FAF9FC' \
-    -fill 'rgba(194,207,255,0.48)' -draw 'ellipse 80,40 650,420 0,360' \
-    -fill 'rgba(227,211,255,0.34)' -draw 'ellipse 120,480 470,840 0,360' \
-    -fill 'rgba(217,193,255,0.38)' -draw 'ellipse 1650,420 2110,820 0,360' \
-    -fill 'rgba(248,198,228,0.30)' -draw 'ellipse 1750,760 2100,1110 0,360' \
-    -fill 'rgba(194,207,255,0.28)' -draw 'ellipse 1450,930 1810,1290 0,360' \
+    -fill '#E9EDFF' -draw 'ellipse 70,40 560,390 0,360' \
+    -fill '#F3EAF9' -draw 'ellipse 80,680 360,280 0,360' \
+    -fill '#EDE4FA' -draw 'ellipse 1880,460 460,330 0,360' \
+    -fill '#F8E8F2' -draw 'ellipse 1840,930 360,300 0,360' \
+    -fill '#E5EAFF' -draw 'ellipse 1550,1020 320,250 0,360' \
     -strip -depth 8 "$splash_png"
+
+# Syslinux uses a 4:3 VESA menu. Derive its background from the same source so
+# BIOS and UEFI boot paths keep one visual language.
+magick "$splash_png" \
+    -resize '640x480^' -gravity center -extent 640x480 \
+    -strip -depth 8 "$syslinux_splash_png"
 
 magick -size 96x96 xc:none \
     -fill 'rgba(103,80,164,0.96)' \
