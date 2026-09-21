@@ -9,9 +9,8 @@ message-bg-color: "#211A2B"
 
 + image {
     # brand.png is rasterized directly from assets/icons/Logo.svg.
-    left = 50%-380
-    top = 7%
     left = 50%-130
+    top = 7%
     width = 260
     height = 117
     file = "brand.png"
