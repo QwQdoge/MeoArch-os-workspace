@@ -39,7 +39,6 @@ ExecStartPre=/usr/bin/usermod -aG audio,seat,tty live
 # a production launch by supplying command-line flags.
 ExecStartPre=/usr/bin/install -m 0600 -o root -g root /dev/null /run/meoarch-installer/production-capability
 ExecStart=/usr/local/bin/meoarch-installer-kiosk
-ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready
 Restart=on-failure
 RestartSec=2
 
