@@ -26,7 +26,7 @@ class TargetBootTests(unittest.TestCase):
             with self.subTest(text=text), self.assertRaises(ValueError):
                 hooks.configure(text)
 
-    def run_target(self, failure=0, omit_asset=False):
+    def run_target(self, failure=0, omit_asset=None):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             target, runtime, generated, commands = [root / name for name in ("target", "runtime", "generated", "commands")]
@@ -44,7 +44,7 @@ class TargetBootTests(unittest.TestCase):
             theme = runtime / "share/plymouth/themes/meoarch"
             theme.mkdir(parents=True)
             for filename in ("meoarch.plymouth", "meoarch.script", "background.png", "logo.png", "spinner.png", "warning.png", "progress_box.png", "progress_bar.png"):
-                if not (omit_asset and filename == "logo.png"):
+                if filename != omit_asset:
                     (theme / filename).write_bytes(b"fixture")
             (runtime / "bin").mkdir(parents=True)
             (runtime / "bin/meo-session-actiond").write_bytes(b"fixture")
@@ -99,10 +99,15 @@ class TargetBootTests(unittest.TestCase):
         self.assertNotIn("customizations applied", result.stdout)
 
     def test_incomplete_live_theme_fails_before_initramfs(self):
-        result, calls, _, _ = self.run_target(omit_asset=True)
+        result, calls, _, _ = self.run_target(omit_asset="logo.png")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("logo.png", result.stderr)
         self.assertEqual(calls, "")
+
+    def test_unused_legacy_plymouth_asset_is_not_a_target_blocker(self):
+        result, calls, _, _ = self.run_target(omit_asset="spinner.png")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("/usr/bin/mkinitcpio -P", calls)
 
     def test_target_customizations_reject_a_symlinked_system_directory(self):
         with tempfile.TemporaryDirectory() as directory:
