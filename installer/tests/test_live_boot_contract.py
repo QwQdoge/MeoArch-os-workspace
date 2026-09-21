@@ -6,6 +6,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 PROFILE = ROOT / "meoarch-os/profiledef.sh"
 GRUB = ROOT / "meoarch-os/grub/grub.cfg"
+GRUB_LOOPBACK = ROOT / "meoarch-os/grub/loopback.cfg"
 ARCHISO_HOOKS = ROOT / "meoarch-os/airootfs/etc/mkinitcpio.conf.d/archiso.conf"
 PLYMOUTH_SCRIPT = ROOT / "themes/plymouth/meoarch/meoarch.script"
 GENERATE_CONFIG = ROOT / "installer/backend/generate-config.py"
@@ -127,6 +128,19 @@ class LiveBootContractTests(unittest.TestCase):
             grub_kernel_options('Diagnostics and repair - no installation'),
             expected.replace("meoarch.mode=install", "meoarch.mode=repair"),
         )
+
+    def test_loopback_install_and_repair_keep_quiet_plymouth_handoff(self):
+        loopback = GRUB_LOOPBACK.read_text(encoding="utf-8")
+        common = "quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1"
+        self.assertIn(f"meoarch.mode=install {common}", loopback)
+        self.assertIn(f"meoarch.mode=repair {common}", loopback)
+        # The speech-reader path intentionally stays unsilenced.
+        speech_line = next(
+            line for line in loopback.splitlines()
+            if "meoarch.mode=install accessibility=on" in line
+        )
+        self.assertNotIn(" quiet ", speech_line)
+        self.assertNotIn(" splash ", speech_line)
 
     def test_installed_grub_theme_keeps_its_background_asset(self):
         theme = (ROOT / "meoarch-os/grub/themes/meoarch/theme.txt").read_text(encoding="utf-8")
