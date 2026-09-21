@@ -205,6 +205,8 @@ grep -q 'meoarch.mode=repair' meoarch-os/grub/grub.cfg
 grep -q 'themes/meoarch/theme.txt' meoarch-os/grub/grub.cfg
 grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/grub.cfg
 grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/loopback.cfg
+grep -q 'meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1' meoarch-os/grub/loopback.cfg
+grep -q 'meoarch.mode=repair quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1' meoarch-os/grub/loopback.cfg
 grep -q 'selected_item_pixmap_style = "select_\*.png"' meoarch-os/grub/themes/meoarch/theme.txt
 ! grep -q 'menu_pixmap_style = "panel_\*.png"' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'selected_item_color = "#FFFFFF"' meoarch-os/grub/themes/meoarch/theme.txt
