@@ -21,6 +21,8 @@ SYSLINUX_HEAD = ROOT / "meoarch-os/syslinux/archiso_head.cfg"
 LIVE_MOTD = ROOT / "meoarch-os/airootfs/etc/motd"
 BOOT_STATUS = ROOT / "installer/bin/meo-boot-status"
 LIVE_IWD_ENABLE = ROOT / "meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/iwd.service"
+LIVE_SSHD_ENABLE = ROOT / "meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/sshd.service"
+BUILD_ISO = ROOT / "scripts/build-iso.sh"
 CANONICAL_LOGO = ROOT / "assets/icons/Logo.svg"
 
 
@@ -100,6 +102,16 @@ class LiveBootContractTests(unittest.TestCase):
         self.assertIn("\nwpa_supplicant\n", "\n" + packages + "\n")
         self.assertFalse(LIVE_IWD_ENABLE.exists())
         self.assertFalse(LIVE_IWD_ENABLE.is_symlink())
+
+    def test_production_live_ssh_is_off_but_acceptance_can_enable_it(self):
+        build = BUILD_ISO.read_text(encoding="utf-8")
+        sshd_config = (ROOT / "meoarch-os/airootfs/etc/ssh/sshd_config.d/10-archiso.conf").read_text(encoding="utf-8")
+        self.assertFalse(LIVE_SSHD_ENABLE.exists())
+        self.assertFalse(LIVE_SSHD_ENABLE.is_symlink())
+        self.assertIn("/usr/lib/systemd/system/sshd.service", build)
+        self.assertIn("MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY", build)
+        self.assertIn("PasswordAuthentication no", sshd_config)
+        self.assertIn("PermitRootLogin no", sshd_config)
 
     def test_normal_and_repair_entries_keep_plymouth_kernel_contract(self):
         expected = (
