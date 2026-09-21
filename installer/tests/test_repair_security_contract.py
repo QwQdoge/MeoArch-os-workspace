@@ -488,6 +488,45 @@ class RepairSecurityContractTests(unittest.TestCase):
                 source = (REPO_ROOT / relative).read_text(encoding="utf-8")
                 self.assertIn("meoarch.mode=install", source)
                 self.assertIn("meoarch.mode=repair", source)
+                self.assertIn("meoarch.mode=console", source)
+                self.assertIn("systemd.unit=multi-user.target", source)
+
+    def test_repair_scope_is_explicit_and_connection_state_is_local(self):
+        source = CONTROLLER.read_text(encoding="utf-8")
+        header = (REPO_ROOT / "installer/app/repaircontroller.h").read_text(encoding="utf-8")
+        qml = REPAIR_QML.read_text(encoding="utf-8")
+        aggregate = (REPO_ROOT / "repair/checks/all.sh").read_text(encoding="utf-8")
+        packages = (REPO_ROOT / "repair/checks/packages.sh").read_text(encoding="utf-8")
+        network = (REPO_ROOT / "repair/checks/network.sh").read_text(encoding="utf-8")
+
+        self.assertIn("Q_PROPERTY(QString repairScope", header)
+        self.assertIn("Q_PROPERTY(bool mountedTargetAvailable", header)
+        self.assertIn("Q_PROPERTY(QString networkConnectionState", header)
+        self.assertIn("Q_PROPERTY(QString accountConnectionState", header)
+        self.assertIn("org.freedesktop.NetworkManager", source)
+        self.assertIn("Connectivity", source)
+        self.assertIn("mountedTargetAvailable", qml)
+        self.assertIn("accountConnectionState", qml)
+        self.assertIn("networkConnectionState", qml)
+        self.assertIn("Diagnostic subject: Live Environment", aggregate)
+        self.assertIn("Diagnostic subject: Mounted Installed System", aggregate)
+        self.assertIn('MEOARCH_REPAIR_SCOPE:-system}" = "live"', packages)
+        self.assertIn("network.captive_portal", network)
+        self.assertIn("network.limited_connectivity", network)
+        self.assertIn("ip -6 route show", network)
+
+    def test_console_getty_is_conditioned_on_explicit_boot_mode(self):
+        getty = (
+            REPO_ROOT
+            / "meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/10-meoarch-console.conf"
+        ).read_text(encoding="utf-8")
+        service = (
+            REPO_ROOT / "meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service"
+        ).read_text(encoding="utf-8")
+        self.assertIn("ConditionKernelCommandLine=meoarch.mode=console", getty)
+        self.assertIn("--autologin root", getty)
+        self.assertNotIn("ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready", service)
+        self.assertIn("meoarch.mode=console", service)
 
     def test_live_image_uses_lynis_not_openqa(self):
         packages = {
