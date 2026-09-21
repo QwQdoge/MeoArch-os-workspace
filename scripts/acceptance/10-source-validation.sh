@@ -209,7 +209,6 @@ grep -q 'syslinux/splash.png' meoarch-os/grub/themes/meoarch/generate-assets.sh
 ! grep -q -- '-annotate' meoarch-os/grub/themes/meoarch/generate-assets.sh
 grep -q '#ff6750a4' meoarch-os/syslinux/archiso_head.cfg
 grep -q '#ff49454f' meoarch-os/syslinux/archiso_head.cfg
-grep -q 'display_text = f"ERROR: {title} - {message}"' installer/bin/meo-boot-status
 grep -q 'MeoArch Sans Bold 24' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Everything has a GUI. Every choice is yours.' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Window.SetBackgroundTopColor(0.0, 0.0, 0.0)' themes/plymouth/meoarch/meoarch.script
@@ -217,6 +216,15 @@ grep -q 'logo_image = Image("logo.png")' themes/plymouth/meoarch/meoarch.script
 grep -q 'logo_glow_image = logo_image.Scale' themes/plymouth/meoarch/meoarch.script
 grep -q 'Math.Cos(frame_count \* 0.08)' themes/plymouth/meoarch/meoarch.script
 ! rg -q 'spinner_image|progress_bar_image|background.png' themes/plymouth/meoarch/meoarch.script
+grep -q 'display_text = f"ERROR: {title} - {message}"' installer/bin/meo-boot-status
+for stale_theme_asset in \
+  themes/plymouth/meoarch/background.png \
+  themes/plymouth/meoarch/spinner.png \
+  themes/plymouth/meoarch/warning.png \
+  themes/plymouth/meoarch/progress_box.png \
+  themes/plymouth/meoarch/progress_bar.png; do
+  ! test -e "${stale_theme_asset}"
+done
 cmp -s themes/plymouth/meoarch/meoarch.script meoarch-os/airootfs/usr/share/plymouth/themes/meoarch/meoarch.script
 ! rg -q 'STAGE:' themes/plymouth/meoarch installer/bin/meo-boot-status
 grep -q 'GRUB_TIMEOUT.*3' installer/backend/apply-target-customizations.sh
@@ -265,146 +273,13 @@ if rg -q -e '^sddm$' -e '^plasma-login-manager$' -e '^plasma-(desktop|workspace)
   echo "Cage-only Live package profile includes a Plasma session component." >&2
   exit 1
 fi
-grep -q '^seatd
-! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
-test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
-! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
-
-grep -q "bootmodes=('bios.syslinux'" meoarch-os/profiledef.sh
-grep -q "'uefi.grub')" meoarch-os/profiledef.sh
-! grep -q "'uefi.systemd-boot'" meoarch-os/profiledef.sh
-grep -q '^airootfs_image_type="squashfs"$' meoarch-os/profiledef.sh
-expected_live_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1'
-bios_live_options="$(awk '/^LABEL arch$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
-uefi_live_options="$(awk '/^menuentry "Install MeoArch OS - graphical setup/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\/%INSTALL_DIR%\/boot\/%ARCH%\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
-[ "${bios_live_options}" = "${expected_live_options}" ]
-[ "${uefi_live_options}" = "${expected_live_options}" ]
-expected_repair_options="${expected_live_options/meoarch.mode=install/meoarch.mode=repair}"
-bios_repair_options="$(awk '/^LABEL archrepair$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
-uefi_repair_options="$(awk '/^menuentry "Diagnostics and repair - no installation/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\/%INSTALL_DIR%\/boot\/%ARCH%\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
-[ "${bios_repair_options}" = "${expected_repair_options}" ]
-[ "${uefi_repair_options}" = "${expected_repair_options}" ]
-grep -q '^APPEND .*meoarch.mode=install accessibility=on$' meoarch-os/syslinux/archiso_sys-linux.cfg
-for hook in base udev plymouth microcode modconf kms archiso block filesystems keyboard; do
-  grep -Eq "(^|[[:space:]\\(])${hook}([[:space:]\\)])" meoarch-os/airootfs/etc/mkinitcpio.conf.d/archiso.conf
-done
-
-duplicates="$(sed '/^[[:space:]]*#/d;/^[[:space:]]*$/d' meoarch-os/packages.x86_64 |
-  sort | uniq -d)"
-if [ -n "${duplicates}" ]; then
-  echo "Duplicate packages:"
-  echo "${duplicates}"
-  exit 1
-fi
-
-"${python_command}" -m unittest discover -s installer/tests -v
-find scripts installer repair -type f -name '*.sh' -print0 |
-  xargs -0 -n1 bash -n
-"${python_command}" - <<'PY'
-import json
-from pathlib import Path
-for root in ("installer", "meoarch-os"):
-    for path in Path(root).rglob("*.json"):
-        with path.open(encoding="utf-8") as handle:
-            json.load(handle)
-PY
-git diff --check
-echo "PASS: source validation" | tee "${evidence_dir}/status.txt"
- meoarch-os/packages.x86_64
-grep -q '^networkmanager
-! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
-test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
-! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
-
-grep -q "bootmodes=('bios.syslinux'" meoarch-os/profiledef.sh
-grep -q "'uefi.grub')" meoarch-os/profiledef.sh
-! grep -q "'uefi.systemd-boot'" meoarch-os/profiledef.sh
-grep -q '^airootfs_image_type="squashfs"$' meoarch-os/profiledef.sh
-expected_live_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1'
-bios_live_options="$(awk '/^LABEL arch$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
-uefi_live_options="$(awk '/^menuentry "Install MeoArch OS - graphical setup/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\/%INSTALL_DIR%\/boot\/%ARCH%\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
-[ "${bios_live_options}" = "${expected_live_options}" ]
-[ "${uefi_live_options}" = "${expected_live_options}" ]
-expected_repair_options="${expected_live_options/meoarch.mode=install/meoarch.mode=repair}"
-bios_repair_options="$(awk '/^LABEL archrepair$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
-uefi_repair_options="$(awk '/^menuentry "Diagnostics and repair - no installation/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\/%INSTALL_DIR%\/boot\/%ARCH%\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
-[ "${bios_repair_options}" = "${expected_repair_options}" ]
-[ "${uefi_repair_options}" = "${expected_repair_options}" ]
-grep -q '^APPEND .*meoarch.mode=install accessibility=on$' meoarch-os/syslinux/archiso_sys-linux.cfg
-for hook in base udev plymouth microcode modconf kms archiso block filesystems keyboard; do
-  grep -Eq "(^|[[:space:]\\(])${hook}([[:space:]\\)])" meoarch-os/airootfs/etc/mkinitcpio.conf.d/archiso.conf
-done
-
-duplicates="$(sed '/^[[:space:]]*#/d;/^[[:space:]]*$/d' meoarch-os/packages.x86_64 |
-  sort | uniq -d)"
-if [ -n "${duplicates}" ]; then
-  echo "Duplicate packages:"
-  echo "${duplicates}"
-  exit 1
-fi
-
-"${python_command}" -m unittest discover -s installer/tests -v
-find scripts installer repair -type f -name '*.sh' -print0 |
-  xargs -0 -n1 bash -n
-"${python_command}" - <<'PY'
-import json
-from pathlib import Path
-for root in ("installer", "meoarch-os"):
-    for path in Path(root).rglob("*.json"):
-        with path.open(encoding="utf-8") as handle:
-            json.load(handle)
-PY
-git diff --check
-echo "PASS: source validation" | tee "${evidence_dir}/status.txt"
- meoarch-os/packages.x86_64
-grep -q '^wpa_supplicant
-! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
-test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
-! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
-
-grep -q "bootmodes=('bios.syslinux'" meoarch-os/profiledef.sh
-grep -q "'uefi.grub')" meoarch-os/profiledef.sh
-! grep -q "'uefi.systemd-boot'" meoarch-os/profiledef.sh
-grep -q '^airootfs_image_type="squashfs"$' meoarch-os/profiledef.sh
-expected_live_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1'
-bios_live_options="$(awk '/^LABEL arch$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
-uefi_live_options="$(awk '/^menuentry "Install MeoArch OS - graphical setup/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\/%INSTALL_DIR%\/boot\/%ARCH%\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
-[ "${bios_live_options}" = "${expected_live_options}" ]
-[ "${uefi_live_options}" = "${expected_live_options}" ]
-expected_repair_options="${expected_live_options/meoarch.mode=install/meoarch.mode=repair}"
-bios_repair_options="$(awk '/^LABEL archrepair$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
-uefi_repair_options="$(awk '/^menuentry "Diagnostics and repair - no installation/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\/%INSTALL_DIR%\/boot\/%ARCH%\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
-[ "${bios_repair_options}" = "${expected_repair_options}" ]
-[ "${uefi_repair_options}" = "${expected_repair_options}" ]
-grep -q '^APPEND .*meoarch.mode=install accessibility=on$' meoarch-os/syslinux/archiso_sys-linux.cfg
-for hook in base udev plymouth microcode modconf kms archiso block filesystems keyboard; do
-  grep -Eq "(^|[[:space:]\\(])${hook}([[:space:]\\)])" meoarch-os/airootfs/etc/mkinitcpio.conf.d/archiso.conf
-done
-
-duplicates="$(sed '/^[[:space:]]*#/d;/^[[:space:]]*$/d' meoarch-os/packages.x86_64 |
-  sort | uniq -d)"
-if [ -n "${duplicates}" ]; then
-  echo "Duplicate packages:"
-  echo "${duplicates}"
-  exit 1
-fi
-
-"${python_command}" -m unittest discover -s installer/tests -v
-find scripts installer repair -type f -name '*.sh' -print0 |
-  xargs -0 -n1 bash -n
-"${python_command}" - <<'PY'
-import json
-from pathlib import Path
-for root in ("installer", "meoarch-os"):
-    for path in Path(root).rglob("*.json"):
-        with path.open(encoding="utf-8") as handle:
-            json.load(handle)
-PY
-git diff --check
-echo "PASS: source validation" | tee "${evidence_dir}/status.txt"
- meoarch-os/packages.x86_64
+grep -q '^seatd$' meoarch-os/packages.x86_64
+grep -q '^networkmanager$' meoarch-os/packages.x86_64
+grep -q '^wpa_supplicant$' meoarch-os/packages.x86_64
 ! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/iwd.service
 ! test -L meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/iwd.service
+! grep -q '^ExecStartPre=.*meo-boot-status stage desktop' installer/data/systemd/dropins/plasmalogin.service.d/10-meo-boot-status.conf
+grep -q '^OnFailure=meo-boot-status-failure@plasmalogin.service$' installer/data/systemd/dropins/plasmalogin.service.d/10-meo-boot-status.conf
 ! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
 ! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
