@@ -262,12 +262,12 @@ grep -q "'uefi.grub')" meoarch-os/profiledef.sh
 grep -q '^airootfs_image_type="squashfs"$' meoarch-os/profiledef.sh
 expected_live_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1'
 bios_live_options="$(awk '/^LABEL arch$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
-uefi_live_options="$(awk '/^menuentry "Install MeoArch OS - graphical setup/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\\/%INSTALL_DIR%\\/boot\\/%ARCH%\\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
+uefi_live_options="$(awk '/^menuentry "Install MeoArch OS - graphical setup/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\/%INSTALL_DIR%\/boot\/%ARCH%\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
 [ "${bios_live_options}" = "${expected_live_options}" ]
 [ "${uefi_live_options}" = "${expected_live_options}" ]
 expected_repair_options="${expected_live_options/meoarch.mode=install/meoarch.mode=repair}"
 bios_repair_options="$(awk '/^LABEL archrepair$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
-uefi_repair_options="$(awk '/^menuentry "Diagnostics and repair - no installation/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\\/%INSTALL_DIR%\\/boot\\/%ARCH%\\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
+uefi_repair_options="$(awk '/^menuentry "Diagnostics and repair - no installation/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\/%INSTALL_DIR%\/boot\/%ARCH%\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
 [ "${bios_repair_options}" = "${expected_repair_options}" ]
 [ "${uefi_repair_options}" = "${expected_repair_options}" ]
 grep -q '^APPEND .*meoarch.mode=install accessibility=on$' meoarch-os/syslinux/archiso_sys-linux.cfg
