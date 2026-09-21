@@ -299,6 +299,7 @@ void RepairController::refreshEnvironmentState()
                               QStringLiteral("/org/freedesktop/NetworkManager"),
                               QStringLiteral("org.freedesktop.DBus.Properties"),
                               QDBusConnection::systemBus());
+    properties.setTimeout(500);
     if (properties.isValid()) {
         const QDBusReply<QDBusVariant> stateReply =
             properties.call(QStringLiteral("Get"),
