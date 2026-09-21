@@ -159,10 +159,16 @@ class LiveBootContractTests(unittest.TestCase):
         repair = REPAIR_MAIN.read_text(encoding="utf-8")
 
         self.assertNotIn("ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready", unit)
+        self.assertIn("StartLimitIntervalSec=90s", unit)
+        self.assertIn("StartLimitBurst=3", unit)
         self.assertIn("&QQuickWindow::frameSwapped", installer)
         self.assertIn("&QQuickWindow::frameSwapped", repair)
         self.assertIn('QStringLiteral("stage"), QStringLiteral("ready")', installer)
         self.assertIn('QStringLiteral("stage"), QStringLiteral("ready")', repair)
+        self.assertIn("QTimer::singleShot(20000", installer)
+        self.assertIn("QTimer::singleShot(20000", repair)
+        self.assertIn("app.exit(70)", installer)
+        self.assertIn("app.exit(70)", repair)
 
     def test_loopback_install_and_repair_keep_quiet_plymouth_handoff(self):
         loopback = GRUB_LOOPBACK.read_text(encoding="utf-8")
