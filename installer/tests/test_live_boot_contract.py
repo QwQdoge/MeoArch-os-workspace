@@ -20,6 +20,7 @@ SYSLINUX_SPLASH = ROOT / "meoarch-os/syslinux/splash.png"
 SYSLINUX_HEAD = ROOT / "meoarch-os/syslinux/archiso_head.cfg"
 LIVE_MOTD = ROOT / "meoarch-os/airootfs/etc/motd"
 BOOT_STATUS = ROOT / "installer/bin/meo-boot-status"
+LIVE_IWD_ENABLE = ROOT / "meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/iwd.service"
 CANONICAL_LOGO = ROOT / "assets/icons/Logo.svg"
 
 
@@ -92,6 +93,13 @@ class LiveBootContractTests(unittest.TestCase):
         self.assertNotIn("wiki.archlinux.org/title/Installation_guide", motd)
         self.assertIn('display_text = f"ERROR: {title} - {message}"', status)
         self.assertNotIn('ERROR:{unit_name}:{code}', status)
+
+    def test_networkmanager_does_not_compete_with_standalone_iwd(self):
+        packages = (ROOT / "meoarch-os/packages.x86_64").read_text(encoding="utf-8")
+        self.assertIn("\nnetworkmanager\n", "\n" + packages + "\n")
+        self.assertIn("\nwpa_supplicant\n", "\n" + packages + "\n")
+        self.assertFalse(LIVE_IWD_ENABLE.exists())
+        self.assertFalse(LIVE_IWD_ENABLE.is_symlink())
 
     def test_normal_and_repair_entries_keep_plymouth_kernel_contract(self):
         expected = (
