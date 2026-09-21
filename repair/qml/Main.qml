@@ -258,11 +258,11 @@ Window {
     }
     function accountStatusLabel() {
         const state = root.repairController.accountConnectionState
-        if (state === "connected") return qsTr("账号 · 已连接")
-        if (state === "connecting") return qsTr("账号 · 连接中")
-        if (state === "available") return qsTr("账号 · 可登录")
-        if (state === "error") return qsTr("账号 · 连接错误")
-        return qsTr("账号 · 未配置")
+        if (state === "connected") return qsTr("Meo Account · 已连接")
+        if (state === "connecting") return qsTr("Meo Account · 连接中")
+        if (state === "available") return qsTr("Meo Account · 可登录")
+        if (state === "error") return qsTr("Meo Account · 连接错误")
+        return qsTr("Meo Account · 未配置")
     }
     function accountStatusIcon() {
         return root.repairController.accountConnectionState === "connected"
@@ -307,12 +307,19 @@ Window {
             "packages.files_inconsistent": qsTr("部分软件包文件缺失或已经改变。"),
             "packages.keyring_unreadable": qsTr("系统无法正常读取软件包签名密钥。"),
             "boot.failed_units": qsTr("一个或多个系统服务启动失败。"),
+            "boot.loader_grub": qsTr("检测到系统使用 GRUB 引导。"),
+            "boot.loader_limine": qsTr("检测到系统使用 Limine 引导。"),
+            "boot.loader_systemd_boot": qsTr("检测到系统使用 systemd-boot 引导。"),
+            "boot.loader_unknown": qsTr("没有找到可识别的 GRUB、Limine 或 systemd-boot 配置。"),
+            "boot.offline_service_state": qsTr("Live 模式不会把自身的失败服务状态当作目标系统故障。"),
             "boot.target_boot_missing": qsTr("已挂载系统缺少启动目录。"),
             "boot.target_boot_not_mounted": qsTr("已安装系统的启动分区尚未挂载。"),
             "boot.boot_not_mounted": qsTr("系统需要的启动分区目前没有挂载。"),
             "boot.initramfs_missing": qsTr("系统缺少可用的启动初始镜像。"),
             "boot.manager_reload_needed": qsTr("系统服务配置已经改变，需要重新载入。"),
             "storage.root_nearly_full": qsTr("系统磁盘空间已使用至少 90%。"),
+            "storage.target_root_nearly_full": qsTr("已挂载目标系统的根分区空间已使用至少 90%。"),
+            "storage.target_not_mounted": qsTr("Live 环境没有在 /mnt 找到已挂载的目标系统根分区。"),
             "storage.btrfs_device_errors": qsTr("Btrfs 检测到非零设备错误。"),
             "storage.smart_failed": qsTr("磁盘健康检查报告硬件故障。"),
             "storage.nvme_critical_warning": qsTr("NVMe 磁盘报告严重健康警告。"),
