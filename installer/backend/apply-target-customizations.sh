@@ -273,7 +273,7 @@ if [ ! -f "${boot_splash_source}" ] || [ -L "${boot_splash_source}" ]; then
   echo "Meo GRUB background is missing or unsafe: ${boot_splash_source}." >&2
   exit 13
 fi
-for theme_file in meoarch.plymouth meoarch.script background.png logo.png spinner.png warning.png progress_box.png progress_bar.png; do
+for theme_file in meoarch.plymouth meoarch.script logo.png; do
   [ -s "${runtime_source}/share/plymouth/themes/meoarch/$theme_file" ] || {
     echo "Required live Plymouth asset is missing: $theme_file" >&2; exit 13;
   }
