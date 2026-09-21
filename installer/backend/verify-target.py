@@ -24,7 +24,7 @@ REQUIRED_FILES = (
     "usr/share/fcitx5/themes/MeoInputMethod-Light/theme.conf",
     "usr/share/meo-desktop/input-method/ibus/gtk.css.in", "etc/plymouth/plymouthd.conf",
     "usr/share/plymouth/themes/meoarch/meoarch.plymouth", "usr/share/plymouth/themes/meoarch/meoarch.script",
-    "boot/grub/themes/meoarch/theme.txt",
+    "boot/grub/themes/meoarch/theme.txt", "boot/grub/splash.png",
     "usr/share/plasma/look-and-feel/org.meo.desktop/contents/splash/Splash.qml",
     "usr/share/plasma/look-and-feel/org.meo.desktop/contents/logout/Logout.qml",
     "usr/share/dbus-1/services/org.meo.SessionAction1.service",
