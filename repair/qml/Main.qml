@@ -294,8 +294,15 @@ Window {
         const code = finding.code || ""
         const labels = {
             "network.manager_inactive": qsTr("网络管理服务没有运行。"),
-            "network.no_default_route": qsTr("电脑没有可用的默认网络路线。"),
+            "network.captive_portal": qsTr("网络已经连接，但还需要在登录页面完成认证。"),
+            "network.limited_connectivity": qsTr("当前网络只有受限连接，无法确认完整互联网访问。"),
+            "network.no_internet": qsTr("NetworkManager 报告当前没有互联网连接。"),
+            "network.connectivity_unknown": qsTr("系统目前无法确认互联网连接状态。"),
+            "network.wifi_disabled": qsTr("检测到 Wi-Fi 设备，但无线功能目前已关闭。"),
+            "network.no_default_route": qsTr("电脑没有可用的 IPv4 或 IPv6 默认网络路线。"),
             "network.no_dns_server": qsTr("电脑没有可用的 DNS 服务器。"),
+            "packages.target_not_mounted": qsTr("Live 环境中还没有挂载可检查的已安装系统。"),
+            "scope.target_not_mounted": qsTr("没有在 /mnt 找到已挂载的目标系统。"),
             "packages.database_inconsistent": qsTr("软件包数据库存在不一致。"),
             "packages.files_inconsistent": qsTr("部分软件包文件缺失或已经改变。"),
             "packages.keyring_unreadable": qsTr("系统无法正常读取软件包签名密钥。"),
