@@ -8,8 +8,11 @@ iso_application="MeoArch OS Live/Rescue ISO"
 iso_version="$(date --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y.%m.%d)"
 install_dir="arch"
 buildmodes=('iso')
+# Keep the legacy BIOS path for broad rescue-media compatibility. UEFI uses
+# GRUB so the Live installer, diagnostics entry, and MeoArch boot theme share
+# one branded menu instead of falling back to systemd-boot's text-only menu.
 bootmodes=('bios.syslinux'
-           'uefi.systemd-boot')
+           'uefi.grub')
 pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
 airootfs_image_tool_options=('-comp' 'xz' '-Xbcj' 'x86' '-b' '1M' '-Xdict-size' '1M')
