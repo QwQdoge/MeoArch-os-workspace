@@ -272,6 +272,18 @@ int main(int argc, char *argv[])
                          controller.retranslateUserFacingState();
                      });
 
+    // Do not dismiss Plymouth merely because Cage managed to exec this
+    // process. The first swapped Qt Quick frame is the earliest point at which
+    // the graphical handoff is actually visible to the user.
+    if (productionRequested) {
+        if (auto *quickWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().constFirst())) {
+            QObject::connect(quickWindow, &QQuickWindow::frameSwapped, quickWindow, [] {
+                QProcess::startDetached(QStringLiteral("/usr/lib/meoarch/meo-boot-status"),
+                                        {QStringLiteral("stage"), QStringLiteral("ready")});
+            }, Qt::SingleShotConnection);
+        }
+    }
+
     // Keep visual-regression capture in the C++ host.  Let the source-page
     // fonts and window-level wallpaper settle before grabbing the first frame.
     QString screenshotPath;
