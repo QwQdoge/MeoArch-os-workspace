@@ -16,6 +16,10 @@ GRUB_THEME = ROOT / "meoarch-os/grub/themes/meoarch/theme.txt"
 GRUB_GENERATOR = ROOT / "meoarch-os/grub/themes/meoarch/generate-assets.sh"
 GRUB_BRAND = ROOT / "meoarch-os/grub/themes/meoarch/brand.png"
 GRUB_SPLASH = ROOT / "meoarch-os/grub/splash.png"
+SYSLINUX_SPLASH = ROOT / "meoarch-os/syslinux/splash.png"
+SYSLINUX_HEAD = ROOT / "meoarch-os/syslinux/archiso_head.cfg"
+LIVE_MOTD = ROOT / "meoarch-os/airootfs/etc/motd"
+BOOT_STATUS = ROOT / "installer/bin/meo-boot-status"
 CANONICAL_LOGO = ROOT / "assets/icons/Logo.svg"
 
 
@@ -64,14 +68,30 @@ class LiveBootContractTests(unittest.TestCase):
 
         self.assertEqual(png_size(GRUB_BRAND), (260, 117))
         self.assertEqual(png_size(GRUB_SPLASH), (1920, 1080))
+        self.assertEqual(png_size(SYSLINUX_SPLASH), (640, 480))
         self.assertIn('fill="#B69DF8"', logo)
         self.assertIn('assets/icons/Logo.svg', generator)
         self.assertNotIn('-annotate', generator)
         self.assertIn('splash.png', generator)
+        self.assertIn('syslinux/splash.png', generator)
         self.assertIn('left = 24%', theme)
         self.assertNotIn('menu_pixmap_style = "panel_*.png"', theme)
         self.assertIn('selected_item_pixmap_style = "select_*.png"', theme)
         self.assertIn('selected_item_color = "#FFFFFF"', theme)
+
+    def test_bios_menu_and_live_shell_keep_meoarch_product_language(self):
+        syslinux = SYSLINUX_HEAD.read_text(encoding="utf-8")
+        motd = LIVE_MOTD.read_text(encoding="utf-8")
+        status = BOOT_STATUS.read_text(encoding="utf-8")
+
+        self.assertIn("#ff6750a4", syslinux)
+        self.assertIn("#ff49454f", syslinux)
+        self.assertIn("NetworkManager", motd)
+        self.assertIn("nmcli", motd)
+        self.assertNotIn("iwctl", motd)
+        self.assertNotIn("wiki.archlinux.org/title/Installation_guide", motd)
+        self.assertIn('display_text = f"ERROR: {title} - {message}"', status)
+        self.assertNotIn('ERROR:{unit_name}:{code}', status)
 
     def test_normal_and_repair_entries_keep_plymouth_kernel_contract(self):
         expected = (
