@@ -61,6 +61,8 @@ class LiveBootContractTests(unittest.TestCase):
         self.assertIn("udev plymouth", hooks)
         script = PLYMOUTH_SCRIPT.read_text(encoding="utf-8")
         self.assertIn('logo_image = Image("logo.png")', script)
+        self.assertIn("logo_glow_image = logo_image.Scale", script)
+        self.assertIn("Math.Cos(frame_count * 0.08)", script)
         self.assertIn("Plymouth.SetBootProgressFunction", script)
         self.assertIn("Plymouth.SetQuitFunction", script)
 
