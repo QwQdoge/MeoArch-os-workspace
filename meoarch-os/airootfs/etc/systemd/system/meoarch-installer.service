@@ -14,7 +14,8 @@ StartLimitIntervalSec=90s
 StartLimitBurst=3
 
 [Service]
-Type=simple
+Type=notify
+NotifyAccess=all
 User=root
 TTYPath=/dev/tty1
 StandardInput=tty
@@ -40,6 +41,10 @@ ExecStartPre=/usr/bin/usermod -aG audio,seat,tty live
 # a production launch by supplying command-line flags.
 ExecStartPre=/usr/bin/install -m 0600 -o root -g root /dev/null /run/meoarch-installer/production-capability
 ExecStart=/usr/local/bin/meoarch-installer-kiosk
+# The Cage child calls systemd-notify only after its first Qt Quick frame has
+# reached the compositor. ExecStartPost therefore remains root-owned while
+# still representing a real graphical handoff.
+ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready
 Restart=on-failure
 RestartSec=2
 
