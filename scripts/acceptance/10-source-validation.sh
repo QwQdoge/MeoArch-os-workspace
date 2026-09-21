@@ -54,6 +54,7 @@ required=(
   meoarch-os/profiledef.sh
   meoarch-os/packages.x86_64
   meoarch-os/grub/themes/meoarch/theme.txt
+  meoarch-os/grub/themes/meoarch/generate-assets.sh
   meoarch-os/grub/themes/meoarch/brand.png
   meoarch-os/grub/themes/meoarch/meoarch-sans-regular-24.pf2
   meoarch-os/grub/themes/meoarch/meoarch-sans-bold-24.pf2
@@ -198,6 +199,10 @@ grep -q 'themes/meoarch/theme.txt' meoarch-os/grub/grub.cfg
 grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/grub.cfg
 grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/loopback.cfg
 grep -q 'selected_item_pixmap_style = "select_\*.png"' meoarch-os/grub/themes/meoarch/theme.txt
+! grep -q 'menu_pixmap_style = "panel_\*.png"' meoarch-os/grub/themes/meoarch/theme.txt
+grep -q 'selected_item_color = "#FFFFFF"' meoarch-os/grub/themes/meoarch/theme.txt
+grep -q 'assets/icons/Logo.svg' meoarch-os/grub/themes/meoarch/generate-assets.sh
+! grep -q -- '-annotate' meoarch-os/grub/themes/meoarch/generate-assets.sh
 grep -q 'MeoArch Sans Bold 24' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Everything has a GUI. Every choice is yours.' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Window.SetBackgroundTopColor(0.0, 0.0, 0.0)' themes/plymouth/meoarch/meoarch.script
