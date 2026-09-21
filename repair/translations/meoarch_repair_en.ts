@@ -295,5 +295,32 @@
     <message><source>使用此设备的语言</source><translation>Use this device's language</translation></message>
     <message><source>简体中文</source><translation>Simplified Chinese</translation></message>
     <message><source>English</source><translation>English</translation></message>
+    <message><source>Live 环境</source><translation>Live environment</translation></message>
+    <message><source>已安装系统 · /mnt</source><translation>Installed system · /mnt</translation></message>
+    <message><source>已安装系统 · 尚未挂载</source><translation>Installed system · not mounted</translation></message>
+    <message><source>概览</source><translation>Overview</translation></message>
+    <message><source>网络 · 已联网</source><translation>Network · Online</translation></message>
+    <message><source>网络 · 需要登录</source><translation>Network · Sign-in required</translation></message>
+    <message><source>网络 · 受限</source><translation>Network · Limited</translation></message>
+    <message><source>网络 · 连接中</source><translation>Network · Connecting</translation></message>
+    <message><source>网络 · 离线</source><translation>Network · Offline</translation></message>
+    <message><source>网络 · 不可用</source><translation>Network · Unavailable</translation></message>
+    <message><source>账号 · 已连接</source><translation>Account · Connected</translation></message>
+    <message><source>账号 · 连接中</source><translation>Account · Connecting</translation></message>
+    <message><source>账号 · 可登录</source><translation>Account · Available</translation></message>
+    <message><source>账号 · 连接错误</source><translation>Account · Connection error</translation></message>
+    <message><source>账号 · 未配置</source><translation>Account · Not configured</translation></message>
+    <message><source>已安装系统</source><translation>Installed system</translation></message>
+    <message><source>目标系统 · 已挂载</source><translation>Target system · Mounted</translation></message>
+    <message><source>目标系统 · 未挂载</source><translation>Target system · Not mounted</translation></message>
+    <message><source>刷新环境、网络和目标系统状态</source><translation>Refresh environment, network, and target-system status</translation></message>
+    <message><source>网络已经连接，但还需要在登录页面完成认证。</source><translation>The network is connected, but browser sign-in is still required.</translation></message>
+    <message><source>当前网络只有受限连接，无法确认完整互联网访问。</source><translation>The current network has limited connectivity; full internet access is not confirmed.</translation></message>
+    <message><source>NetworkManager 报告当前没有互联网连接。</source><translation>NetworkManager reports no internet connection.</translation></message>
+    <message><source>系统目前无法确认互联网连接状态。</source><translation>The system cannot currently confirm internet connectivity.</translation></message>
+    <message><source>检测到 Wi-Fi 设备，但无线功能目前已关闭。</source><translation>A Wi-Fi device was detected, but Wi-Fi is currently disabled.</translation></message>
+    <message><source>电脑没有可用的 IPv4 或 IPv6 默认网络路线。</source><translation>The computer has no usable IPv4 or IPv6 default route.</translation></message>
+    <message><source>Live 环境中还没有挂载可检查的已安装系统。</source><translation>No installed system is mounted for package checks in the Live environment.</translation></message>
+    <message><source>没有在 /mnt 找到已挂载的目标系统。</source><translation>No mounted target system was found at /mnt.</translation></message>
   </context>
 </TS>
