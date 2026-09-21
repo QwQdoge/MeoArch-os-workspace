@@ -281,8 +281,9 @@ int main(int argc, char *argv[])
             QObject::connect(quickWindow, &QQuickWindow::frameSwapped, quickWindow,
                              [firstFrameReady] {
                 *firstFrameReady = true;
-                QProcess::startDetached(QStringLiteral("/usr/lib/meoarch/meo-boot-status"),
-                                        {QStringLiteral("stage"), QStringLiteral("ready")});
+                QProcess::startDetached(QStringLiteral("/usr/bin/systemd-notify"),
+                                        {QStringLiteral("--ready"),
+                                         QStringLiteral("--status=MeoArch installer UI is visible")});
             }, Qt::SingleShotConnection);
             QTimer::singleShot(20000, quickWindow, [firstFrameReady, &app] {
                 if (!*firstFrameReady)
