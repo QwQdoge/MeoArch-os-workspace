@@ -277,10 +277,17 @@ int main(int argc, char *argv[])
     // the graphical handoff is actually visible to the user.
     if (productionRequested) {
         if (auto *quickWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().constFirst())) {
-            QObject::connect(quickWindow, &QQuickWindow::frameSwapped, quickWindow, [] {
+            auto firstFrameReady = std::make_shared<bool>(false);
+            QObject::connect(quickWindow, &QQuickWindow::frameSwapped, quickWindow,
+                             [firstFrameReady] {
+                *firstFrameReady = true;
                 QProcess::startDetached(QStringLiteral("/usr/lib/meoarch/meo-boot-status"),
                                         {QStringLiteral("stage"), QStringLiteral("ready")});
             }, Qt::SingleShotConnection);
+            QTimer::singleShot(20000, quickWindow, [firstFrameReady, &app] {
+                if (!*firstFrameReady)
+                    app.exit(70);
+            });
         }
     }
 
