@@ -25,8 +25,7 @@ detect_loader() {
 
 check_boot_tree() {
   local root="$1"
-  local target_code_prefix="$2"
-  local description="$3"
+  local description="$2"
   local boot_expected=0
 
   [ -d "${root}/etc" ] || {
@@ -60,10 +59,12 @@ check_boot_tree() {
 }
 
 if [ "${scope}" = "live" ]; then
-  check_boot_tree "${target_root}" "target" "mounted installed target"
+  check_boot_tree "${target_root}" "mounted installed target"
   if [ -d "${target_root}/etc" ]; then
     echo "[boot] mounted target filesystems"
-    findmnt "${target_root}" "${target_root}/boot" "${target_root}/boot/efi" 2>&1 || true
+    for mount_path in "${target_root}" "${target_root}/boot" "${target_root}/boot/efi"; do
+      findmnt "${mount_path}" 2>&1 || true
+    done
     sed -n '1,120p' "${target_root}/etc/fstab" 2>&1 || true
   fi
   echo "MEO_FINDING|info|boot.offline_service_state|Failed-unit state belongs to the running Live environment and is not used as evidence about the offline installed target."
@@ -71,7 +72,7 @@ if [ "${scope}" = "live" ]; then
 fi
 
 echo "[boot] firmware and loader"
-check_boot_tree "/" "system" "installed system"
+check_boot_tree "/" "installed system"
 if command -v bootctl >/dev/null 2>&1; then
   bootctl status --no-pager 2>&1 || true
 fi
