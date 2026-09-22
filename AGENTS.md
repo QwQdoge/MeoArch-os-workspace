@@ -6,14 +6,17 @@ existing worktrees, package inputs, builds, and historical material.
 
 ## Ownership
 
-- Shared QML components, tokens, and reusable showcase behavior belong in
-  $HOME/Projects/meo-ui.
-- Plasma/KWin-specific integration and Meo.System belong in
-  $HOME/Projects/meo-kde.
+- Shared QML components, tokens, and reusable showcase behavior belong in the MeoUI repository; resolve an external checkout with `$MEO_UI_ROOT` when needed.
+- Plasma/KWin-specific integration and Meo.System belong in the meo-kde repository; resolve an external checkout with `$MEO_KDE_ROOT` when needed.
 - ArchISO assembly, installer code, repair tooling, and ISO staging belong
   here.
 - Do not copy a sibling project into this worktree or create an untracked
   replacement of a sibling component.
+
+## Portable workspace roots
+
+- Never assume a developer username, home directory, checkout location, or Obsidian vault path.
+- Resolve external project records from `$MEO_DOCS_ROOT`, generated artifacts from `$MEO_OUTPUT_ROOT`, MeoUI from `$MEO_UI_ROOT`, and meo-kde from `$MEO_KDE_ROOT`. If a variable is unset, do not invent a machine-specific absolute path.
 
 ## Repository filing rules
 
@@ -24,14 +27,13 @@ existing worktrees, package inputs, builds, and historical material.
 - Do not create root-level plan files, audit reports, architecture drafts,
   agent journals, screenshots, logs, or one-off notes.
 - Put plans, decisions, audit reports, work journals, and historical evidence
-  under $HOME/Documents/Obsidian Vault/MeoArch/Projects/meo-arch-os-workspace/.
+  under `$MEO_DOCS_ROOT/Projects/meo-arch-os-workspace/`.
   Use its numbered folders: 00-inbox, 01-overview, 02-decisions, 03-work,
   04-validation, and 99-archive.
 
 ## Output rules
 
-New durable output belongs only under
-$HOME/Projects/outputs/meo-arch-os-workspace/:
+New durable output belongs only under `$MEO_OUTPUT_ROOT/meo-arch-os-workspace/`:
 
 | Kind | Path |
 | --- | --- |
