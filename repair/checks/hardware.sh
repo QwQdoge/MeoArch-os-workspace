@@ -6,8 +6,25 @@ printf 'Architecture: %s\n' "$(uname -m 2>/dev/null || echo unknown)"
 printf 'Kernel: %s\n' "$(uname -r 2>/dev/null || echo unknown)"
 if [ -d /sys/firmware/efi ]; then
   echo "Firmware boot mode: UEFI"
+  secure_boot_file="$(find /sys/firmware/efi/efivars -maxdepth 1 -type f -name 'SecureBoot-*' -print -quit 2>/dev/null || true)"
+  if [ -n "${secure_boot_file}" ] && command -v od >/dev/null 2>&1; then
+    secure_boot_value="$(od -An -j4 -N1 -tu1 "${secure_boot_file}" 2>/dev/null | tr -d '[:space:]' || true)"
+    case "${secure_boot_value}" in
+      1) echo "Secure Boot: enabled" ;;
+      0) echo "Secure Boot: disabled" ;;
+      *) echo "Secure Boot: unknown" ;;
+    esac
+  else
+    echo "Secure Boot: unavailable"
+  fi
 else
   echo "Firmware boot mode: legacy/BIOS or unavailable"
+  echo "Secure Boot: unavailable outside UEFI"
+fi
+if [ -e /sys/class/tpm/tpm0 ]; then
+  echo "TPM: detected"
+else
+  echo "TPM: not detected"
 fi
 if command -v systemd-detect-virt >/dev/null 2>&1; then
   virtualization="$(systemd-detect-virt 2>/dev/null || true)"
