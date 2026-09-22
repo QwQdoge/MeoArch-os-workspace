@@ -246,7 +246,8 @@ grep -q 'polkit.Result.YES' repair/data/org.meo.repair-live.rules
 ! grep -q 'org.meo.repair-live.policy' repair/CMakeLists.txt
 ! rg -q '^Before=getty@tty1.service$|^Conflicts=.*getty@tty1.service' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 ! test -e meoarch-os/airootfs/etc/systemd/system/getty@tty1.service
-grep -q '^ConditionKernelCommandLine=meoarch.mode=tty
+grep -Fq 'ConditionKernelCommandLine=meoarch.mode=tty' meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
+grep -Fq -- '--autologin root' meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
 for unit in systemd-networkd.service systemd-networkd.socket systemd-networkd-varlink.socket systemd-networkd-varlink-metrics.socket systemd-networkd-resolve-hook.socket; do
   test "$(readlink "meoarch-os/airootfs/etc/systemd/system/${unit}")" = '/dev/null'
 done
