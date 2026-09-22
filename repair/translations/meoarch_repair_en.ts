@@ -334,5 +334,58 @@
     <message><source>Live 模式不会把自身的失败服务状态当作目标系统故障。</source><translation>Live mode does not treat failed Live services as installed-target failures.</translation></message>
     <message><source>已挂载目标系统的根分区空间已使用至少 90%。</source><translation>The mounted target root filesystem is at least 90% full.</translation></message>
     <message><source>Live 环境没有在 /mnt 找到已挂载的目标系统根分区。</source><translation>No installed target root filesystem is mounted at /mnt.</translation></message>
+    <message><source>诊断对象 · 已安装系统（/mnt）</source><translation>Diagnostic subject · Installed system (/mnt)</translation></message>
+    <message><source>诊断对象 · 已安装系统（尚未挂载）</source><translation>Diagnostic subject · Installed system (not mounted)</translation></message>
+    <message><source>诊断对象 · 当前 Live 环境</source><translation>Diagnostic subject · Current Live environment</translation></message>
+    <message><source>诊断对象 · Live 环境 + 已安装系统</source><translation>Diagnostic subject · Live environment + installed system</translation></message>
+    <message><source>诊断对象 · 当前已安装系统</source><translation>Diagnostic subject · Current installed system</translation></message>
+    <message><source>此检查读取 /mnt 下的目标系统，不把 Live 系统本身当作目标。</source><translation>This check reads the target system under /mnt and does not treat the Live system itself as the target.</translation></message>
+    <message><source>需要先把已安装系统挂载到 /mnt；当前只会返回有限的目标检查信息。</source><translation>Mount the installed system at /mnt first; only limited target information is available right now.</translation></message>
+    <message><source>此检查只描述当前从安装介质启动的 Live 系统。</source><translation>This check describes only the current Live system booted from the installation media.</translation></message>
+    <message><source>概览会明确分段显示 Live 环境与 /mnt 下的已安装系统。</source><translation>The overview clearly separates the Live environment from the installed system under /mnt.</translation></message>
+    <message><source>此检查描述当前正在运行的已安装 MeoArch 系统。</source><translation>This check describes the currently running installed MeoArch system.</translation></message>
+    <message><source>正常</source><translation>Healthy</translation></message>
+    <message><source>需要注意</source><translation>Needs attention</translation></message>
+    <message><source>信息</source><translation>Info</translation></message>
+    <message><source>处理中</source><translation>In progress</translation></message>
+    <message><source>不可用</source><translation>Unavailable</translation></message>
+    <message><source>Live 图形会话使用 Cage；进入显示器诊断可读取当前图形与 DRM 状态。</source><translation>The Live graphical session uses Cage; open display diagnostics to inspect the current graphics and DRM state.</translation></message>
+    <message><source>打开显示器诊断以读取当前 KScreen 布局。</source><translation>Open display diagnostics to read the current KScreen layout.</translation></message>
+    <message><source>%1 个已连接显示器，%2 个已启用。</source><translation>%1 connected display(s), %2 enabled.</translation></message>
+    <message><source>音频服务可用 · 音量 %1%</source><translation>Audio service available · Volume %1%</translation></message>
+    <message><source>当前会话没有可用音频输出。</source><translation>No audio output is available in the current session.</translation></message>
+    <message><source>Meo Account</source><translation>Meo Account</translation></message>
+    <message><source>可选登录；本地诊断不依赖账号。</source><translation>Sign-in is optional; local diagnostics do not depend on an account.</translation></message>
+    <message><source>此构建未配置 Account 服务。</source><translation>Account service is not configured in this build.</translation></message>
+    <message><source>存储</source><translation>Storage</translation></message>
+    <message><source>启动与服务</source><translation>Startup &amp; services</translation></message>
+    <message><source>时间同步</source><translation>Time sync</translation></message>
+    <message><source>电源</source><translation>Power</translation></message>
+    <message><source>设备状态</source><translation>Device status</translation></message>
+    <message><source>刷新状态</source><translation>Refresh status</translation></message>
+    <message><source>查看%1诊断</source><translation>Open %1 diagnostics</translation></message>
+    <message><source>网络连接</source><translation>Network connection</translation></message>
+    <message><source>已连接：</source><translation>Connected:</translation></message>
+    <message><source>已有活动网络连接 · </source><translation>Active network connection · </translation></message>
+    <message><source>可以直接在这里连接 Wi‑Fi；以太网会自动显示为活动连接。</source><translation>Connect to Wi‑Fi here; Ethernet appears automatically as an active connection.</translation></message>
+    <message><source>Wi‑Fi</source><translation>Wi‑Fi</translation></message>
+    <message><source>扫描 Wi‑Fi 网络</source><translation>Scan Wi‑Fi networks</translation></message>
+    <message><source>没有检测到 Wi‑Fi</source><translation>No Wi‑Fi detected</translation></message>
+    <message><source>当前可能通过以太网连接；无需 Wi‑Fi。</source><translation>The system may currently be connected through Ethernet; Wi‑Fi is not required.</translation></message>
+    <message><source>连接以太网，或接入系统支持的 Wi‑Fi 适配器。</source><translation>Connect Ethernet or attach a supported Wi‑Fi adapter.</translation></message>
+    <message><source>网络操作失败</source><translation>Network operation failed</translation></message>
+    <message><source>正在扫描 Wi‑Fi……</source><translation>Scanning for Wi‑Fi…</translation></message>
+    <message><source>正在连接……</source><translation>Connecting…</translation></message>
+    <message><source>已连接</source><translation>Connected</translation></message>
+    <message><source>连接中……</source><translation>Connecting…</translation></message>
+    <message><source>已保存 · </source><translation>Saved · </translation></message>
+    <message><source>断开</source><translation>Disconnect</translation></message>
+    <message><source>连接</source><translation>Connect</translation></message>
+    <message><source>输入密码</source><translation>Enter password</translation></message>
+    <message><source>正在扫描……</source><translation>Scanning…</translation></message>
+    <message><source>扫描网络</source><translation>Scan networks</translation></message>
+    <message><source>连接到 %1</source><translation>Connect to %1</translation></message>
+    <message><source>Wi‑Fi 密码</source><translation>Wi‑Fi password</translation></message>
+    <message><source>取消</source><translation>Cancel</translation></message>
   </context>
 </TS>
