@@ -79,18 +79,30 @@ PageFrame {
                         {
                             "icon": "wifi",
                             "title": qsTr("Network"),
-                            "value": MeoSystem.SystemState.networkConnected
-                                     ? (MeoSystem.SystemState.networkName.length
-                                        ? MeoSystem.SystemState.networkName
-                                        : qsTr("Connected"))
-                                     : qsTr("Not connected")
+                            "value": page.controller && page.controller.networkState === "online"
+                                     ? qsTr("Ready")
+                                     : page.controller && page.controller.networkState === "repository"
+                                       ? qsTr("Internet connected")
+                                       : page.controller && page.controller.networkState === "checking"
+                                         ? qsTr("Checking…")
+                                         : page.controller && page.controller.networkState === "portal"
+                                           ? qsTr("Sign-in required")
+                                           : page.controller && page.controller.networkState === "no-interface"
+                                             ? qsTr("No active interface")
+                                             : MeoSystem.SystemState.networkConnected
+                                               ? (MeoSystem.SystemState.networkName.length
+                                                  ? MeoSystem.SystemState.networkName
+                                                  : qsTr("Connected"))
+                                               : qsTr("Offline")
                         },
                         {
                             "icon": "memory",
                             "title": qsTr("Hardware"),
                             "value": page.controller && page.controller.hardwareDetecting
                                      ? qsTr("Checking…")
-                                     : qsTr("Detected")
+                                     : page.controller && page.controller.hardwareDetected
+                                       ? qsTr("Detected")
+                                       : qsTr("Pending")
                         },
                         {
                             "icon": "account_circle",
