@@ -2941,5 +2941,61 @@ PipeWire · NetworkManager
         <source>Get Started</source>
         <translation>开始使用</translation>
     </message>
+    <message>
+        <source>Live environment check</source>
+        <translation>Live 环境检查</translation>
+    </message>
+    <message>
+        <source>LIVE</source>
+        <translation>LIVE</translation>
+    </message>
+    <message>
+        <source>Environment</source>
+        <translation>环境</translation>
+    </message>
+    <message>
+        <source>Live ISO</source>
+        <translation>Live ISO</translation>
+    </message>
+    <message>
+        <source>Unknown</source>
+        <translation>未知</translation>
+    </message>
+    <message>
+        <source>Network</source>
+        <translation>网络</translation>
+    </message>
+    <message>
+        <source>Connected</source>
+        <translation>已连接</translation>
+    </message>
+    <message>
+        <source>Not connected</source>
+        <translation>未连接</translation>
+    </message>
+    <message>
+        <source>Hardware</source>
+        <translation>硬件</translation>
+    </message>
+    <message>
+        <source>Checking…</source>
+        <translation>正在检查…</translation>
+    </message>
+    <message>
+        <source>Detected</source>
+        <translation>已检测到</translation>
+    </message>
+    <message>
+        <source>Meo Account</source>
+        <translation>Meo 账号</translation>
+    </message>
+    <message>
+        <source>After installation</source>
+        <translation>安装后设置</translation>
+    </message>
+    <message>
+        <source>Live checks are temporary. Meo Account and installed-system health checks run only after installation.</source>
+        <translation>Live 环境中的检查是临时的。Meo 账号和已安装系统的健康检查仅在安装完成后运行。</translation>
+    </message>
 </context>
 </TS>
