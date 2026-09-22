@@ -129,6 +129,10 @@ grep -A5 'qt_add_qml_module(meoui_module' "${meoui_source}/CMakeLists.txt" | gre
 grep -q 'SOVERSION 0' "${meoui_source}/CMakeLists.txt"
 grep -q '"schemaVersion": 1' installer/data/default_selections.json
 grep -q 'import Meo.System 1.0' installer/qml/pages/NetworkPage.qml
+grep -q 'import Meo.System 1.0' installer/qml/pages/WelcomePage.qml
+grep -q 'runtimeEnvironment READ runtimeEnvironment' installer/app/installercontroller.h
+grep -q 'Live environment check' installer/qml/pages/WelcomePage.qml
+grep -q 'After installation' installer/qml/pages/WelcomePage.qml
 ! rg -q 'readonly property var wifiNetworks' installer/qml/pages/NetworkPage.qml
 ! rg -q 'preview-disk' installer/app/installercontroller.cpp
 grep -q 'for plasmoid in org.meo.topbar org.meo.timecenter; do' scripts/sync-installer-to-airootfs.sh
