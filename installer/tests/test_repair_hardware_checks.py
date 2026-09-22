@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CHECKS = ROOT / "repair/checks"
 CMAKE = ROOT / "repair/CMakeLists.txt"
+LIVE_PACKAGES = ROOT / "meoarch-os/packages.x86_64"
 
 
 class RepairHardwareChecksContractTests(unittest.TestCase):
@@ -14,6 +15,7 @@ class RepairHardwareChecksContractTests(unittest.TestCase):
         cls.hardware = (CHECKS / "hardware.sh").read_text(encoding="utf-8")
         cls.all_checks = (CHECKS / "all.sh").read_text(encoding="utf-8")
         cls.cmake = CMAKE.read_text(encoding="utf-8")
+        cls.live_packages = LIVE_PACKAGES.read_text(encoding="utf-8").splitlines()
 
     def test_package_update_view_is_read_only(self):
         self.assertIn("pacman -Qu", self.packages)
@@ -35,6 +37,7 @@ class RepairHardwareChecksContractTests(unittest.TestCase):
             "XDG session type",
         ):
             self.assertIn(marker, self.graphics)
+        self.assertIn("pciutils", self.live_packages)
 
     def test_hardware_inventory_is_read_only(self):
         for marker in (
