@@ -230,5 +230,23 @@
     <message><source>Capacity, mounts, SMART, NVMe, and Btrfs signals</source><translation>容量、挂载、SMART、NVMe 和 Btrfs 状态</translation></message>
     <message><source>GPU drivers, kernel messages, and the current graphical session</source><translation>显卡驱动、内核消息和当前图形会话</translation></message>
     <message><source>Security posture of the current Live environment</source><translation>当前 Live 环境的安全状态</translation></message>
+    <message><source>Storage information is unavailable.</source><translation>存储信息不可用。</translation></message>
+    <message><source>%1 GB free of %2 GB on the installed target mounted at /mnt.</source><translation>已挂载到 /mnt 的目标系统剩余 %1 GB，共 %2 GB。</translation></message>
+    <message><source>%1 GB free of %2 GB on the current system.</source><translation>当前系统剩余 %1 GB，共 %2 GB。</translation></message>
+    <message><source>Mount the installed system at /mnt to inspect its root storage.</source><translation>请将已安装系统挂载到 /mnt，以检查其根分区存储。</translation></message>
+    <message><source>The installed system is not mounted at /mnt.</source><translation>已安装系统尚未挂载到 /mnt。</translation></message>
+    <message><source>A boot-loader layout is present on the mounted installed target.</source><translation>已挂载的目标系统中存在可识别的引导器布局。</translation></message>
+    <message><source>No known GRUB, systemd-boot, or Limine layout was found under /mnt/boot.</source><translation>在 /mnt/boot 下没有找到已知的 GRUB、systemd-boot 或 Limine 布局。</translation></message>
+    <message><source>systemd reports no failed system services.</source><translation>systemd 未报告失败的系统服务。</translation></message>
+    <message><source>systemd reports %1 failed system service(s).</source><translation>systemd 报告有 %1 个失败的系统服务。</translation></message>
+    <message><source>The current system service state could not be read quickly.</source><translation>无法在短时间内读取当前系统服务状态。</translation></message>
+    <message><source>Time synchronization state is unavailable.</source><translation>时间同步状态不可用。</translation></message>
+    <message><source>The system clock is synchronized through NTP.</source><translation>系统时钟已通过 NTP 同步。</translation></message>
+    <message><source>The system clock is not currently synchronized through NTP.</source><translation>系统时钟当前未通过 NTP 同步。</translation></message>
+    <message><source>No battery was detected; this may be a desktop or virtual machine.</source><translation>未检测到电池；这可能是台式机或虚拟机。</translation></message>
+    <message><source>Battery: %1%.</source><translation>电池：%1%。</translation></message>
+    <message><source>Battery: %1% · %2.</source><translation>电池：%1% · %2。</translation></message>
+    <message><source>A battery is present.</source><translation>检测到电池。</translation></message>
+    <message><source>Battery status: %1.</source><translation>电池状态：%1。</translation></message>
   </context>
 </TS>
