@@ -13,7 +13,7 @@ if command -v lspci >/dev/null 2>&1; then
   fi
 else
   gpu_pci=""
-  echo "lspci is unavailable."
+  echo "lspci is unavailable; using DRM sysfs driver bindings below."
 fi
 
 echo "[graphics] DRM nodes"
@@ -22,6 +22,25 @@ render_count="$(find /dev/dri -maxdepth 1 -type c -name 'renderD*' 2>/dev/null |
 printf 'DRM render nodes: %s\n' "${render_count}"
 if [ ! -e /dev/dri/card0 ] && [ ! -e /dev/dri/renderD128 ]; then
   echo "MEO_FINDING|warning|graphics.no_drm_device|No DRM graphics device node is available."
+fi
+
+echo "[graphics] DRM sysfs driver bindings"
+drm_card_count=0
+for card_path in /sys/class/drm/card*; do
+  [ -e "${card_path}" ] || continue
+  card_name="$(basename "${card_path}")"
+  [[ "${card_name}" =~ ^card[0-9]+$ ]] || continue
+  [ -e "${card_path}/device" ] || continue
+  drm_card_count=$((drm_card_count + 1))
+  driver_path="$(readlink -f "${card_path}/device/driver" 2>/dev/null || true)"
+  driver_name="${driver_path##*/}"
+  vendor_id="$(cat "${card_path}/device/vendor" 2>/dev/null || true)"
+  device_id="$(cat "${card_path}/device/device" 2>/dev/null || true)"
+  printf '%s: driver=%s vendor=%s device=%s\n' \
+    "${card_name}" "${driver_name:-unbound}" "${vendor_id:-unknown}" "${device_id:-unknown}"
+done
+if [ "${drm_card_count}" -eq 0 ]; then
+  echo "No DRM card sysfs binding was available."
 fi
 
 echo "[graphics] loaded modules"
