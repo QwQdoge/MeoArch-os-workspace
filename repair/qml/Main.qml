@@ -256,6 +256,12 @@ Window {
         if (state === "connecting") return "sync"
         return "wifi_off"
     }
+    function networkSignalIcon(strength) {
+        if (strength >= 70) return "signal_wifi_4_bar"
+        if (strength >= 40) return "network_wifi_3_bar"
+        if (strength >= 20) return "network_wifi_2_bar"
+        return "network_wifi_1_bar"
+    }
     function accountStatusLabel() {
         const state = root.repairController.accountConnectionState
         if (state === "connected") return qsTr("Meo Account · 已连接")
@@ -1883,6 +1889,166 @@ Window {
 
                 MeoCard {
                     Layout.fillWidth: true
+                    visible: root.selectedCategory === "network"
+                    type: "elevated"
+                    padding: root.dp(20)
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: root.dp(12)
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: root.dp(12)
+                            MeoIcon {
+                                icon: SystemState.networkConnected ? "wifi" : "wifi_off"
+                                size: 30
+                                color: SystemState.networkConnected ? MeoTheme.primary
+                                                                     : MeoTheme.contentOnSurfaceVariant
+                            }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+                                MeoText {
+                                    text: qsTr("网络连接")
+                                    typeRole: "title"; typeSize: "small"; emphasized: true
+                                    color: MeoTheme.contentOnSurface
+                                }
+                                MeoText {
+                                    Layout.fillWidth: true
+                                    text: SystemState.networkConnected
+                                          ? (SystemState.networkName.length > 0
+                                             ? qsTr("已连接：") + SystemState.networkName + " · " + SystemState.networkStatus
+                                             : qsTr("已有活动网络连接 · ") + SystemState.networkStatus)
+                                          : qsTr("可以直接在这里连接 Wi‑Fi；以太网会自动显示为活动连接。")
+                                    wrapMode: Text.WordWrap
+                                    typeRole: "body"; typeSize: "small"
+                                    color: MeoTheme.contentOnSurfaceVariant
+                                }
+                            }
+                            MeoSwitch {
+                                checked: SystemState.wirelessAvailable && SystemState.wirelessEnabled
+                                enabled: SystemState.wirelessAvailable && !SystemState.networkBusy
+                                Accessible.name: qsTr("Wi‑Fi")
+                                onToggled: checkedState => { SystemState.wirelessEnabled = checkedState }
+                            }
+                            MeoIconButton {
+                                icon.name: "refresh"
+                                type: "tonal"
+                                Accessible.name: qsTr("扫描 Wi‑Fi 网络")
+                                enabled: SystemState.wirelessAvailable
+                                         && SystemState.wirelessEnabled
+                                         && !SystemState.wifiScanning
+                                         && !SystemState.networkBusy
+                                onClicked: SystemState.requestWifiScan()
+                            }
+                        }
+
+                        MeoBanner {
+                            Layout.fillWidth: true
+                            visible: !SystemState.wirelessAvailable
+                            title: qsTr("没有检测到 Wi‑Fi")
+                            text: SystemState.networkConnected
+                                  ? qsTr("当前可能通过以太网连接；无需 Wi‑Fi。")
+                                  : qsTr("连接以太网，或接入系统支持的 Wi‑Fi 适配器。")
+                            icon: "lan"
+                        }
+
+                        MeoBanner {
+                            Layout.fillWidth: true
+                            visible: SystemState.operationError.length > 0
+                            title: qsTr("网络操作失败")
+                            text: SystemState.operationError
+                            icon: "error"
+                            tone: "error"
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            visible: SystemState.wifiScanning || SystemState.networkBusy
+                            MeoLoadingIndicator { indeterminate: true; size: "s" }
+                            MeoText {
+                                Layout.fillWidth: true
+                                text: SystemState.wifiScanning ? qsTr("正在扫描 Wi‑Fi……") : qsTr("正在连接……")
+                                typeRole: "body"; typeSize: "small"
+                                color: MeoTheme.contentOnSurfaceVariant
+                            }
+                        }
+
+                        Repeater {
+                            model: SystemState.wirelessAvailable && SystemState.wirelessEnabled
+                                   ? SystemState.wifiNetworks : []
+                            delegate: MeoCard {
+                                id: repairWifiCard
+                                required property var modelData
+                                Layout.fillWidth: true
+                                type: modelData.connected ? "filled" : "outlined"
+                                compact: true
+                                padding: root.dp(12)
+
+                                RowLayout {
+                                    width: parent.width
+                                    spacing: root.dp(10)
+                                    MeoIcon {
+                                        icon: root.networkSignalIcon(repairWifiCard.modelData.strength)
+                                        size: 22
+                                        color: repairWifiCard.modelData.connected
+                                               ? MeoTheme.primary : MeoTheme.contentOnSurfaceVariant
+                                    }
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 0
+                                        MeoText {
+                                            text: repairWifiCard.modelData.ssid
+                                            typeRole: "body"; typeSize: "medium"; emphasized: true
+                                            color: MeoTheme.contentOnSurface
+                                        }
+                                        MeoText {
+                                            text: repairWifiCard.modelData.connected ? qsTr("已连接")
+                                                  : repairWifiCard.modelData.connecting ? qsTr("连接中……")
+                                                  : repairWifiCard.modelData.saved ? qsTr("已保存 · ") + repairWifiCard.modelData.securityLabel
+                                                  : repairWifiCard.modelData.securityLabel
+                                            typeRole: "body"; typeSize: "small"
+                                            color: MeoTheme.contentOnSurfaceVariant
+                                        }
+                                    }
+                                    MeoButton {
+                                        text: repairWifiCard.modelData.connected ? qsTr("断开")
+                                              : repairWifiCard.modelData.saved || !repairWifiCard.modelData.secured
+                                                ? qsTr("连接") : qsTr("输入密码")
+                                        type: repairWifiCard.modelData.connected ? "outlined" : "tonal"
+                                        enabled: !root.visualPreview && !SystemState.networkBusy
+                                        onClicked: {
+                                            SystemState.clearOperationError()
+                                            if (repairWifiCard.modelData.connected) {
+                                                SystemState.disconnectWifi()
+                                            } else if (repairWifiCard.modelData.saved || !repairWifiCard.modelData.secured) {
+                                                SystemState.connectWifi(repairWifiCard.modelData.ssid, "")
+                                            } else {
+                                                wifiPasswordDialog.ssid = repairWifiCard.modelData.ssid
+                                                wifiPasswordDialog.open()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        MeoButton {
+                            visible: SystemState.wirelessAvailable
+                                     && SystemState.wirelessEnabled
+                                     && SystemState.wifiNetworks.length === 0
+                            text: SystemState.wifiScanning ? qsTr("正在扫描……") : qsTr("扫描网络")
+                            type: "tonal"
+                            loading: SystemState.wifiScanning
+                            enabled: !SystemState.wifiScanning && !SystemState.networkBusy
+                            onClicked: SystemState.requestWifiScan()
+                        }
+                    }
+                }
+
+                MeoCard {
+                    Layout.fillWidth: true
                     visible: root.selectedCategory === "audio"
                              && (root.auditComplete || root.visualPreview)
                              && (root.visualPreview || root.repairController.selectedCategory === "audio")
@@ -2800,6 +2966,58 @@ Window {
                     }
                 }
                 Item { Layout.preferredHeight: root.dp(8) }
+            }
+        }
+    }
+
+    MeoMotionPopup {
+        id: wifiPasswordDialog
+        presentation: MeoMotionPopup.Dialog
+        property string ssid: ""
+        anchors.centerIn: Overlay.overlay
+        width: Math.min(root.dp(500), Overlay.overlay ? Overlay.overlay.width - root.dp(48) : root.dp(500))
+        padding: root.dp(28)
+        closePolicy: Popup.CloseOnEscape
+
+        contentItem: ColumnLayout {
+            spacing: root.dp(16)
+            MeoText {
+                Layout.fillWidth: true
+                text: qsTr("连接到 %1").arg(wifiPasswordDialog.ssid)
+                typeRole: "title"; typeSize: "medium"; emphasized: true
+                color: MeoTheme.contentOnSurface
+            }
+            MeoTextField {
+                id: repairWifiPassword
+                Layout.fillWidth: true
+                type: "outlined"
+                size: "l"
+                label: qsTr("Wi‑Fi 密码")
+                echoMode: TextInput.Password
+                isPassword: true
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Item { Layout.fillWidth: true }
+                MeoButton {
+                    text: qsTr("取消")
+                    type: "text"
+                    onClicked: {
+                        repairWifiPassword.clear()
+                        wifiPasswordDialog.close()
+                    }
+                }
+                MeoButton {
+                    text: qsTr("连接")
+                    type: "filled"
+                    enabled: repairWifiPassword.text.length > 0 && !SystemState.networkBusy
+                    onClicked: {
+                        SystemState.clearOperationError()
+                        SystemState.connectWifi(wifiPasswordDialog.ssid, repairWifiPassword.text)
+                        repairWifiPassword.clear()
+                        wifiPasswordDialog.close()
+                    }
+                }
             }
         }
     }
