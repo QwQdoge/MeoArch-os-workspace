@@ -1,5 +1,7 @@
 import QtQuick
+import QtQuick.Layouts
 import MeoUI 1.0
+import Meo.System 1.0 as MeoSystem
 import ".."
 
 PageFrame {
@@ -40,6 +42,89 @@ PageFrame {
             typeRole: "body"
             typeSize: "big"
             wrapMode: Text.WordWrap
+        }
+
+        MeoCard {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: Math.min(parent.width, page.dp(520))
+            type: "outlined"
+            Accessible.name: qsTr("Live environment check")
+
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: page.dp(10)
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    MeoIcon { icon: "fact_check"; size: page.dp(22); color: MeoTheme.primary }
+                    MeoText {
+                        Layout.fillWidth: true
+                        text: qsTr("Live environment check")
+                        typeRole: "title"
+                        typeSize: "small"
+                        emphasized: true
+                    }
+                    MeoBadge { text: qsTr("LIVE") }
+                }
+
+                Repeater {
+                    model: [
+                        {
+                            "icon": "computer",
+                            "title": qsTr("Environment"),
+                            "value": page.controller && page.controller.runtimeEnvironment === "live"
+                                     ? qsTr("Live ISO")
+                                     : qsTr("Unknown")
+                        },
+                        {
+                            "icon": "wifi",
+                            "title": qsTr("Network"),
+                            "value": MeoSystem.SystemState.networkConnected
+                                     ? (MeoSystem.SystemState.networkName.length
+                                        ? MeoSystem.SystemState.networkName
+                                        : qsTr("Connected"))
+                                     : qsTr("Not connected")
+                        },
+                        {
+                            "icon": "memory",
+                            "title": qsTr("Hardware"),
+                            "value": page.controller && page.controller.hardwareDetecting
+                                     ? qsTr("Checking…")
+                                     : qsTr("Detected")
+                        },
+                        {
+                            "icon": "account_circle",
+                            "title": qsTr("Meo Account"),
+                            "value": qsTr("After installation")
+                        }
+                    ]
+
+                    delegate: RowLayout {
+                        id: liveCheckRow
+                        required property var modelData
+                        Layout.fillWidth: true
+                        spacing: page.dp(10)
+                        MeoIcon { icon: liveCheckRow.modelData.icon; size: page.dp(18); color: MeoTheme.contentOnSurfaceVariant }
+                        MeoText { Layout.fillWidth: true; text: liveCheckRow.modelData.title; typeRole: "body"; typeSize: "small" }
+                        MeoText {
+                            text: liveCheckRow.modelData.value
+                            typeRole: "label"
+                            typeSize: "small"
+                            emphasized: true
+                            color: MeoTheme.contentOnSurfaceVariant
+                        }
+                    }
+                }
+
+                MeoText {
+                    Layout.fillWidth: true
+                    text: qsTr("Live checks are temporary. Meo Account and installed-system health checks run only after installation.")
+                    typeRole: "label"
+                    typeSize: "small"
+                    color: MeoTheme.contentOnSurfaceVariant
+                    wrapMode: Text.WordWrap
+                }
+            }
         }
 
         MeoMotionSurface {
