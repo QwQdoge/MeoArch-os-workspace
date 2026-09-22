@@ -248,5 +248,9 @@
     <message><source>Battery: %1% · %2.</source><translation>电池：%1% · %2。</translation></message>
     <message><source>A battery is present.</source><translation>检测到电池。</translation></message>
     <message><source>Battery status: %1.</source><translation>电池状态：%1。</translation></message>
+    <message><source>Charging</source><translation>充电中</translation></message>
+    <message><source>Discharging</source><translation>放电中</translation></message>
+    <message><source>Full</source><translation>已充满</translation></message>
+    <message><source>Not charging</source><translation>未充电</translation></message>
   </context>
 </TS>
