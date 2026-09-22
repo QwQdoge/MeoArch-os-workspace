@@ -18,6 +18,8 @@ show_local_update_view() {
   local output=""
   local newest=""
   local count=0
+  local now=""
+  local age_days=""
 
   echo "[packages] local sync database update view"
   echo "This is read-only and does not refresh repository metadata."
@@ -28,6 +30,14 @@ show_local_update_view() {
       newest="${newest%%.*}"
       if [[ "${newest}" =~ ^[0-9]+$ ]]; then
         printf 'Newest local sync database file: %s\n' "$(date -d "@${newest}" '+%Y-%m-%d %H:%M:%S %z' 2>/dev/null || echo unknown)"
+        now="$(date +%s 2>/dev/null || true)"
+        if [[ "${now}" =~ ^[0-9]+$ ]] && [ "${now}" -ge "${newest}" ]; then
+          age_days="$(((now - newest) / 86400))"
+          printf 'Local sync database age: %s day(s).\n' "${age_days}"
+          if [ "${age_days}" -gt 7 ]; then
+            echo "The local repository metadata is older than 7 days, so the upgrade count may be stale."
+          fi
+        fi
       fi
     else
       echo "No local repository sync database files were found."
