@@ -184,6 +184,31 @@ Window {
                   "description": root.categoryDescription(category),
                   "icon": root.categoryIcon(category) })
     }
+    function diagnosticSubjectLabel(category) {
+        const scope = root.categoryMetadata(category).scope
+        if (scope === "target")
+            return root.repairController.mountedTargetAvailable
+                    ? qsTr("诊断对象 · 已安装系统（/mnt）")
+                    : qsTr("诊断对象 · 已安装系统（尚未挂载）")
+        if (scope === "live")
+            return qsTr("诊断对象 · 当前 Live 环境")
+        if (scope === "mixed")
+            return qsTr("诊断对象 · Live 环境 + 已安装系统")
+        return qsTr("诊断对象 · 当前已安装系统")
+    }
+    function diagnosticSubjectDescription(category) {
+        const scope = root.categoryMetadata(category).scope
+        if (scope === "target")
+            return root.repairController.mountedTargetAvailable
+                    ? qsTr("此检查读取 /mnt 下的目标系统，不把 Live 系统本身当作目标。")
+                    : qsTr("需要先把已安装系统挂载到 /mnt；当前只会返回有限的目标检查信息。")
+        if (scope === "live")
+            return qsTr("此检查只描述当前从安装介质启动的 Live 系统。")
+        if (scope === "mixed")
+            return qsTr("概览会明确分段显示 Live 环境与 /mnt 下的已安装系统。")
+        return qsTr("此检查描述当前正在运行的已安装 MeoArch 系统。")
+    }
+
     function categoryRows(ids) {
         const result = []
         for (let index = 0; index < ids.length; ++index) {
@@ -1818,6 +1843,22 @@ Window {
                     }
                 }
 
+                MeoBanner {
+                    Layout.fillWidth: true
+                    title: root.diagnosticSubjectLabel(root.selectedCategory)
+                    text: root.diagnosticSubjectDescription(root.selectedCategory)
+                    icon: root.categoryMetadata(root.selectedCategory).scope === "target"
+                          ? "hard_drive"
+                          : root.categoryMetadata(root.selectedCategory).scope === "live"
+                            ? "usb"
+                            : root.categoryMetadata(root.selectedCategory).scope === "mixed"
+                              ? "splitscreen"
+                              : "desktop_windows"
+                    tone: root.categoryMetadata(root.selectedCategory).scope === "target"
+                          && !root.repairController.mountedTargetAvailable
+                          ? "warning" : "tonal"
+                }
+
                 MeoGroupedList {
                     Layout.fillWidth: true
                     visible: root.compactLayout
@@ -2967,6 +3008,13 @@ Window {
                 }
                 Item { Layout.preferredHeight: root.dp(8) }
             }
+        }
+    }
+
+    Connections {
+        target: SystemState
+        function onNetworkChanged() {
+            root.repairController.refreshEnvironmentState()
         }
     }
 
