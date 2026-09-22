@@ -20,6 +20,8 @@ class RepairHardwareChecksContractTests(unittest.TestCase):
     def test_package_update_view_is_read_only(self):
         self.assertIn("pacman -Qu", self.packages)
         self.assertIn("does not refresh repository metadata", self.packages)
+        self.assertIn("Local sync database age", self.packages)
+        self.assertIn("older than 7 days", self.packages)
         for forbidden in ("pacman -Sy", "pacman -Syu", "pacman -Su", "checkupdates -d"):
             self.assertNotIn(forbidden, self.packages)
 
@@ -47,9 +49,13 @@ class RepairHardwareChecksContractTests(unittest.TestCase):
             "lsblk -d",
             "ip -brief link",
             "/sys/class/power_supply",
+            "/sys/firmware/efi/efivars",
+            "/sys/class/tpm/tpm0",
             "systemd-detect-virt",
         ):
             self.assertIn(marker, self.hardware)
+        self.assertIn("Secure Boot: enabled", self.hardware)
+        self.assertIn("TPM: detected", self.hardware)
         for forbidden in (
             "mount ",
             "umount ",
