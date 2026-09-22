@@ -299,6 +299,123 @@ Window {
         return root.repairController.accountConnectionState === "connected"
                 ? "account_circle" : "person_off"
     }
+    function healthStatusLabel(state) {
+        if (state === "healthy") return qsTr("正常")
+        if (state === "warning") return qsTr("需要注意")
+        if (state === "info") return qsTr("信息")
+        if (state === "connecting") return qsTr("处理中")
+        return qsTr("不可用")
+    }
+    function healthStatusIcon(state, fallbackIcon) {
+        if (state === "healthy") return "check_circle"
+        if (state === "warning") return "warning"
+        if (state === "connecting") return "sync"
+        if (state === "unavailable" || state === "unknown") return "help"
+        return fallbackIcon
+    }
+    function overviewCards() {
+        let displayState = "unavailable"
+        let displayDetail = root.repairController.liveEnvironment
+                            ? qsTr("Live 图形会话使用 Cage；进入显示器诊断可读取当前图形与 DRM 状态。")
+                            : qsTr("打开显示器诊断以读取当前 KScreen 布局。")
+        if (root.repairController.displayOutputs.length > 0) {
+            let enabled = 0
+            for (let index = 0; index < root.repairController.displayOutputs.length; ++index) {
+                if (root.repairController.displayOutputs[index].enabled)
+                    ++enabled
+            }
+            displayState = enabled === root.repairController.displayOutputs.length
+                           ? "healthy" : "warning"
+            displayDetail = qsTr("%1 个已连接显示器，%2 个已启用。")
+                            .arg(root.repairController.displayOutputs.length).arg(enabled)
+        }
+
+        const networkState = root.repairController.networkConnectionState === "online"
+                             ? "healthy"
+                             : root.repairController.networkConnectionState === "connecting"
+                               ? "connecting"
+                               : root.repairController.networkConnectionState === "unavailable"
+                                 ? "unavailable" : "warning"
+        const accountState = root.repairController.accountConnectionState === "connected"
+                             ? "healthy"
+                             : root.repairController.accountConnectionState === "connecting"
+                               ? "connecting"
+                               : root.repairController.accountConnectionState === "error"
+                                 ? "warning"
+                                 : root.repairController.accountConnectionState === "available"
+                                   ? "info" : "unavailable"
+        const audioState = !SystemState.audioAvailable ? "unavailable"
+                           : (SystemState.audioMuted || SystemState.volumePercent === 0)
+                             ? "warning" : "healthy"
+        const audioDetail = SystemState.audioAvailable
+                            ? (SystemState.audioDevice.length > 0
+                               ? SystemState.audioDevice + " · " + SystemState.volumePercent + "%"
+                               : qsTr("音频服务可用 · 音量 %1%").arg(SystemState.volumePercent))
+                            : qsTr("当前会话没有可用音频输出。")
+
+        return [
+            {
+                "title": qsTr("网络"),
+                "state": networkState,
+                "icon": root.networkStatusIcon(),
+                "detail": root.repairController.networkConnectionMessage,
+                "category": "network"
+            },
+            {
+                "title": qsTr("Meo Account"),
+                "state": accountState,
+                "icon": root.accountStatusIcon(),
+                "detail": root.repairController.signedIn
+                          ? root.repairController.accountEmail
+                          : root.repairController.accountConfigured
+                            ? qsTr("可选登录；本地诊断不依赖账号。")
+                            : qsTr("此构建未配置 Account 服务。"),
+                "category": ""
+            },
+            {
+                "title": qsTr("声音"),
+                "state": audioState,
+                "icon": SystemState.audioMuted ? "volume_off" : "volume_up",
+                "detail": audioDetail,
+                "category": "audio"
+            },
+            {
+                "title": qsTr("显示器"),
+                "state": displayState,
+                "icon": "desktop_windows",
+                "detail": displayDetail,
+                "category": "display"
+            },
+            {
+                "title": qsTr("存储"),
+                "state": root.repairController.storageHealthState,
+                "icon": "hard_drive",
+                "detail": root.repairController.storageHealthMessage,
+                "category": "storage"
+            },
+            {
+                "title": qsTr("启动与服务"),
+                "state": root.repairController.bootHealthState,
+                "icon": "rocket_launch",
+                "detail": root.repairController.bootHealthMessage,
+                "category": "boot"
+            },
+            {
+                "title": qsTr("时间同步"),
+                "state": root.repairController.timeHealthState,
+                "icon": "schedule",
+                "detail": root.repairController.timeHealthMessage,
+                "category": "security"
+            },
+            {
+                "title": qsTr("电源"),
+                "state": root.repairController.powerHealthState,
+                "icon": "battery_full",
+                "detail": root.repairController.powerHealthMessage,
+                "category": ""
+            }
+        ]
+    }
     function categoryLabel(category) {
         if (category === "audio") return qsTr("声音")
         if (category === "display") return qsTr("显示器")
@@ -722,6 +839,8 @@ Window {
     Component.onCompleted: {
         MeoTheme.isDarkMode = false
         repairController.refreshEnvironmentState()
+        if (!repairController.liveEnvironment)
+            repairController.refreshDisplayOutputs()
         chooseCategory(initialCategory)
         selectedProvider = repairController.localProvider
         providerPicker.currentIndex = providerIndex(selectedProvider)
@@ -1857,6 +1976,99 @@ Window {
                     tone: root.categoryMetadata(root.selectedCategory).scope === "target"
                           && !root.repairController.mountedTargetAvailable
                           ? "warning" : "tonal"
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    visible: root.selectedCategory === "all"
+                    spacing: root.dp(10)
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        MeoText {
+                            text: qsTr("设备状态")
+                            typeRole: "title"; typeSize: "medium"; emphasized: true
+                            color: MeoTheme.contentOnSurface
+                        }
+                        Item { Layout.fillWidth: true }
+                        MeoButton {
+                            text: qsTr("刷新状态")
+                            type: "text"
+                            icon.name: "refresh"
+                            enabled: !root.workflowBusy
+                            onClicked: {
+                                root.repairController.refreshEnvironmentState()
+                                if (!root.repairController.liveEnvironment)
+                                    root.repairController.refreshDisplayOutputs()
+                            }
+                        }
+                    }
+
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: width >= root.dp(760) ? 2 : 1
+                        columnSpacing: root.dp(10)
+                        rowSpacing: root.dp(10)
+
+                        Repeater {
+                            model: root.overviewCards()
+                            delegate: MeoCard {
+                                id: healthCard
+                                required property var modelData
+                                Layout.fillWidth: true
+                                Layout.minimumHeight: root.dp(116)
+                                type: healthCard.modelData.state === "warning" ? "outlined" : "filled"
+                                padding: root.dp(16)
+
+                                RowLayout {
+                                    width: parent.width
+                                    spacing: root.dp(12)
+                                    MeoIcon {
+                                        icon: root.healthStatusIcon(healthCard.modelData.state,
+                                                                    healthCard.modelData.icon)
+                                        size: 28
+                                        color: healthCard.modelData.state === "warning"
+                                               ? MeoTheme.error : MeoTheme.primary
+                                    }
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 2
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            MeoText {
+                                                text: healthCard.modelData.title
+                                                typeRole: "title"; typeSize: "small"; emphasized: true
+                                                color: MeoTheme.contentOnSurface
+                                            }
+                                            Item { Layout.fillWidth: true }
+                                            MeoText {
+                                                text: root.healthStatusLabel(healthCard.modelData.state)
+                                                typeRole: "label"; typeSize: "small"; emphasized: true
+                                                color: healthCard.modelData.state === "warning"
+                                                       ? MeoTheme.error : MeoTheme.contentOnSurfaceVariant
+                                            }
+                                        }
+                                        MeoText {
+                                            Layout.fillWidth: true
+                                            text: healthCard.modelData.detail
+                                            wrapMode: Text.WordWrap
+                                            maximumLineCount: 3
+                                            elide: Text.ElideRight
+                                            typeRole: "body"; typeSize: "small"
+                                            color: MeoTheme.contentOnSurfaceVariant
+                                        }
+                                    }
+                                    MeoIconButton {
+                                        visible: healthCard.modelData.category.length > 0
+                                        icon.name: "chevron_right"
+                                        type: "standard"
+                                        Accessible.name: qsTr("查看%1诊断").arg(healthCard.modelData.title)
+                                        onClicked: root.chooseCategory(healthCard.modelData.category)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 MeoGroupedList {
