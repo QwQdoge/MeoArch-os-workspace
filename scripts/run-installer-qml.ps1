@@ -1,5 +1,6 @@
 param(
     [string]$QtBin = $env:QT_BIN_DIR,
+    [string]$QtRoot = $env:QT_ROOT_DIR,
     [switch]$EnableSystemActions,
     [switch]$EnableArchinstallPreflight,
     [switch]$Wait
@@ -12,7 +13,10 @@ $MainQml = Join-Path $RepoRoot "installer\qml\Main.qml"
 $InstallerQmlDir = Join-Path $RepoRoot "installer\qml"
 
 function Find-QmlRuntime {
-    param([string]$PreferredQtBin)
+    param(
+        [string]$PreferredQtBin,
+        [string]$PreferredQtRoot
+    )
 
     if (-not [string]::IsNullOrWhiteSpace($PreferredQtBin)) {
         $candidate = Join-Path $PreferredQtBin "qml.exe"
@@ -22,19 +26,28 @@ function Find-QmlRuntime {
     $fromPath = Get-Command qml.exe -ErrorAction SilentlyContinue
     if ($fromPath) { return $fromPath.Source }
 
-    foreach ($path in @(
-        "C:\Qt\6.11.1\mingw_64\bin\qml.exe",
-        "C:\Qt\6.10.0\mingw_64\bin\qml.exe",
-        "C:\Qt\6.9.0\mingw_64\bin\qml.exe",
-        "C:\Qt\6.8.0\mingw_64\bin\qml.exe"
-    )) {
-        if (Test-Path -LiteralPath $path) { return $path }
+    $roots = @()
+    if (-not [string]::IsNullOrWhiteSpace($PreferredQtRoot)) {
+        $roots += $PreferredQtRoot
+    }
+    if (Test-Path -LiteralPath "C:\Qt") {
+        $roots += "C:\Qt"
     }
 
-    throw "qml.exe was not found. Set QT_BIN_DIR or pass -QtBin C:\Path\To\Qt\bin."
+    foreach ($root in ($roots | Select-Object -Unique)) {
+        if (-not (Test-Path -LiteralPath $root)) { continue }
+
+        $candidate = Get-ChildItem -LiteralPath $root -Filter qml.exe -File -Recurse -ErrorAction SilentlyContinue |
+            Where-Object { $_.DirectoryName -match '[\\/]bin$' } |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+        if ($candidate) { return $candidate.FullName }
+    }
+
+    throw "qml.exe was not found. Set QT_BIN_DIR, put qml.exe on PATH, or set QT_ROOT_DIR to the Qt installation root."
 }
 
-$QmlExe = Find-QmlRuntime $QtBin
+$QmlExe = Find-QmlRuntime $QtBin $QtRoot
 $QtBinDir = Split-Path -Parent $QmlExe
 $env:PATH = "$QtBinDir;$env:PATH"
 
