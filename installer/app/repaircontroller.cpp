@@ -20,6 +20,7 @@
 #include <QRegularExpression>
 #include <QSet>
 #include <QSettings>
+#include <QStorageInfo>
 #include <QUrl>
 #include <QUuid>
 #include <qt6keychain/keychain.h>
@@ -335,12 +336,159 @@ void RepairController::refreshEnvironmentState()
         }
     }
 
+    const QString storageRoot = m_liveEnvironment && targetAvailable
+        ? QStringLiteral("/mnt") : QStringLiteral("/");
+    QString storageState = QStringLiteral("unavailable");
+    QString storageMessage = tr("Storage information is unavailable.");
+    const QStorageInfo storage(storageRoot);
+    if (storage.isValid() && storage.isReady() && storage.bytesTotal() > 0) {
+        const qint64 total = storage.bytesTotal();
+        const qint64 available = storage.bytesAvailable();
+        const double freeRatio = static_cast<double>(available) / static_cast<double>(total);
+        const auto gib = [](qint64 bytes) {
+            return QString::number(static_cast<double>(bytes) / (1024.0 * 1024.0 * 1024.0), 'f', 1);
+        };
+        storageState = (freeRatio < 0.10 || available < 5LL * 1024 * 1024 * 1024)
+            ? QStringLiteral("warning") : QStringLiteral("healthy");
+        storageMessage = m_liveEnvironment && targetAvailable
+            ? tr("%1 GB free of %2 GB on the installed target mounted at /mnt.")
+                  .arg(gib(available), gib(total))
+            : tr("%1 GB free of %2 GB on the current system.")
+                  .arg(gib(available), gib(total));
+    } else if (m_liveEnvironment && !targetAvailable) {
+        storageMessage = tr("Mount the installed system at /mnt to inspect its root storage.");
+    }
+
+    QString bootState = QStringLiteral("unavailable");
+    QString bootMessage;
+    if (m_liveEnvironment) {
+        if (!targetAvailable) {
+            bootMessage = tr("The installed system is not mounted at /mnt.");
+        } else {
+            const QStringList bootMarkers = {
+                QStringLiteral("/mnt/boot/grub"),
+                QStringLiteral("/mnt/boot/EFI"),
+                QStringLiteral("/mnt/boot/loader"),
+                QStringLiteral("/mnt/boot/limine.conf"),
+                QStringLiteral("/mnt/boot/limine")
+            };
+            bool loaderFound = false;
+            for (const QString &path : bootMarkers) {
+                if (QFileInfo::exists(path)) {
+                    loaderFound = true;
+                    break;
+                }
+            }
+            bootState = loaderFound ? QStringLiteral("healthy") : QStringLiteral("warning");
+            bootMessage = loaderFound
+                ? tr("A boot-loader layout is present on the mounted installed target.")
+                : tr("No known GRUB, systemd-boot, or Limine layout was found under /mnt/boot.");
+        }
+    } else {
+        QProcess failedUnits;
+        failedUnits.setProcessChannelMode(QProcess::MergedChannels);
+        failedUnits.start(QStringLiteral("/usr/bin/systemctl"),
+                          {QStringLiteral("--failed"), QStringLiteral("--no-legend"),
+                           QStringLiteral("--plain")});
+        if (failedUnits.waitForStarted(300) && failedUnits.waitForFinished(900)) {
+            const QString output = QString::fromUtf8(failedUnits.readAll()).trimmed();
+            const QStringList lines = output.split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+            bootState = lines.isEmpty() ? QStringLiteral("healthy") : QStringLiteral("warning");
+            bootMessage = lines.isEmpty()
+                ? tr("systemd reports no failed system services.")
+                : tr("systemd reports %1 failed system service(s).").arg(lines.size());
+        } else {
+            failedUnits.kill();
+            failedUnits.waitForFinished(100);
+            bootMessage = tr("The current system service state could not be read quickly.");
+        }
+    }
+
+    QString timeState = QStringLiteral("unavailable");
+    QString timeMessage = tr("Time synchronization state is unavailable.");
+    QProcess timeCheck;
+    timeCheck.setProcessChannelMode(QProcess::MergedChannels);
+    timeCheck.start(QStringLiteral("/usr/bin/timedatectl"),
+                    {QStringLiteral("show"), QStringLiteral("-p"),
+                     QStringLiteral("NTPSynchronized"), QStringLiteral("--value")});
+    if (timeCheck.waitForStarted(300) && timeCheck.waitForFinished(700)) {
+        const QString synchronized = QString::fromUtf8(timeCheck.readAll()).trimmed().toLower();
+        if (synchronized == QStringLiteral("yes")) {
+            timeState = QStringLiteral("healthy");
+            timeMessage = tr("The system clock is synchronized through NTP.");
+        } else if (synchronized == QStringLiteral("no")) {
+            timeState = QStringLiteral("warning");
+            timeMessage = tr("The system clock is not currently synchronized through NTP.");
+        }
+    } else {
+        timeCheck.kill();
+        timeCheck.waitForFinished(100);
+    }
+
+    QString powerState = QStringLiteral("info");
+    QString powerMessage = tr("No battery was detected; this may be a desktop or virtual machine.");
+    const QDir powerDirectory(QStringLiteral("/sys/class/power_supply"));
+    const QFileInfoList supplies = powerDirectory.entryInfoList(
+        QDir::Dirs | QDir::NoDotAndDotDot | QDir::Readable);
+    for (const QFileInfo &supply : supplies) {
+        QFile typeFile(supply.filePath() + QStringLiteral("/type"));
+        if (!typeFile.open(QIODevice::ReadOnly | QIODevice::Text))
+            continue;
+        const QString type = QString::fromUtf8(typeFile.readAll()).trimmed();
+        if (type.compare(QStringLiteral("Battery"), Qt::CaseInsensitive) != 0)
+            continue;
+
+        QFile capacityFile(supply.filePath() + QStringLiteral("/capacity"));
+        QFile statusFile(supply.filePath() + QStringLiteral("/status"));
+        const bool capacityReadable = capacityFile.open(QIODevice::ReadOnly | QIODevice::Text);
+        const bool statusReadable = statusFile.open(QIODevice::ReadOnly | QIODevice::Text);
+        bool capacityOk = false;
+        const int capacity = capacityReadable
+            ? QString::fromUtf8(capacityFile.readAll()).trimmed().toInt(&capacityOk) : -1;
+        const QString status = statusReadable
+            ? QString::fromUtf8(statusFile.readAll()).trimmed() : QString();
+
+        if (capacityOk) {
+            const bool low = capacity < 20
+                && status.compare(QStringLiteral("Charging"), Qt::CaseInsensitive) != 0
+                && status.compare(QStringLiteral("Full"), Qt::CaseInsensitive) != 0;
+            powerState = low ? QStringLiteral("warning") : QStringLiteral("healthy");
+            powerMessage = status.isEmpty()
+                ? tr("Battery: %1%.").arg(capacity)
+                : tr("Battery: %1% · %2.").arg(capacity).arg(status);
+        } else {
+            powerState = QStringLiteral("healthy");
+            powerMessage = status.isEmpty()
+                ? tr("A battery is present.")
+                : tr("Battery status: %1.").arg(status);
+        }
+        break;
+    }
+
     const bool changed = m_mountedTargetAvailable != targetAvailable
         || m_networkConnectionState != networkState
-        || m_networkConnectionMessage != networkMessage;
+        || m_networkConnectionMessage != networkMessage
+        || m_storageHealthState != storageState
+        || m_storageHealthMessage != storageMessage
+        || m_bootHealthState != bootState
+        || m_bootHealthMessage != bootMessage
+        || m_timeHealthState != timeState
+        || m_timeHealthMessage != timeMessage
+        || m_powerHealthState != powerState
+        || m_powerHealthMessage != powerMessage;
+
     m_mountedTargetAvailable = targetAvailable;
     m_networkConnectionState = networkState;
     m_networkConnectionMessage = networkMessage;
+    m_storageHealthState = storageState;
+    m_storageHealthMessage = storageMessage;
+    m_bootHealthState = bootState;
+    m_bootHealthMessage = bootMessage;
+    m_timeHealthState = timeState;
+    m_timeHealthMessage = timeMessage;
+    m_powerHealthState = powerState;
+    m_powerHealthMessage = powerMessage;
+
     if (changed)
         emit environmentChanged();
 }
