@@ -134,6 +134,7 @@ grep -q 'runtimeEnvironment READ runtimeEnvironment' installer/app/installercont
 grep -q 'hardwareDetected READ hardwareDetected' installer/app/installercontroller.h
 grep -q 'Live environment check' installer/qml/pages/WelcomePage.qml
 grep -q 'After installation' installer/qml/pages/WelcomePage.qml
+! rg -q 'org\.meo\.Accounts1|requestAuthentication\(|access_token|refresh_token|client_secret' installer/qml installer/app
 ! rg -q 'readonly property var wifiNetworks' installer/qml/pages/NetworkPage.qml
 ! rg -q 'preview-disk' installer/app/installercontroller.cpp
 grep -q 'for plasmoid in org.meo.topbar org.meo.timecenter; do' scripts/sync-installer-to-airootfs.sh
