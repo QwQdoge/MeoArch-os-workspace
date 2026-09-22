@@ -21,7 +21,7 @@ run_category() {
 if [ "${scope}" = "live" ]; then
   printf '===== Diagnostic subject: Live Environment =====\n'
   echo 'MEO_FINDING|info|scope.live_environment|Hardware, session, network, graphics, audio, and Live security checks describe the currently booted Live environment.'
-  for category in audio display network graphics security; do
+  for category in hardware audio display network graphics security; do
     run_category "${category}"
   done
 
@@ -37,7 +37,7 @@ if [ "${scope}" = "live" ]; then
 else
   printf '===== Diagnostic subject: Installed System =====\n'
   echo 'MEO_FINDING|info|scope.installed_system|All checks describe the currently running installed MeoArch system.'
-  for category in audio display network boot packages storage graphics security; do
+  for category in hardware audio display network boot packages storage graphics security; do
     run_category "${category}"
   done
 fi
