@@ -131,6 +131,7 @@ grep -q '"schemaVersion": 1' installer/data/default_selections.json
 grep -q 'import Meo.System 1.0' installer/qml/pages/NetworkPage.qml
 grep -q 'import Meo.System 1.0' installer/qml/pages/WelcomePage.qml
 grep -q 'runtimeEnvironment READ runtimeEnvironment' installer/app/installercontroller.h
+grep -q 'hardwareDetected READ hardwareDetected' installer/app/installercontroller.h
 grep -q 'Live environment check' installer/qml/pages/WelcomePage.qml
 grep -q 'After installation' installer/qml/pages/WelcomePage.qml
 ! rg -q 'readonly property var wifiNetworks' installer/qml/pages/NetworkPage.qml
