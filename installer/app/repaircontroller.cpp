@@ -368,6 +368,8 @@ void RepairController::refreshEnvironmentState()
             const QStringList bootMarkers = {
                 QStringLiteral("/mnt/boot/grub"),
                 QStringLiteral("/mnt/boot/EFI"),
+                QStringLiteral("/mnt/boot/efi/EFI"),
+                QStringLiteral("/mnt/efi/EFI"),
                 QStringLiteral("/mnt/boot/loader"),
                 QStringLiteral("/mnt/boot/limine.conf"),
                 QStringLiteral("/mnt/boot/limine")
@@ -447,20 +449,29 @@ void RepairController::refreshEnvironmentState()
             ? QString::fromUtf8(capacityFile.readAll()).trimmed().toInt(&capacityOk) : -1;
         const QString status = statusReadable
             ? QString::fromUtf8(statusFile.readAll()).trimmed() : QString();
+        QString statusLabel = status;
+        if (status.compare(QStringLiteral("Charging"), Qt::CaseInsensitive) == 0)
+            statusLabel = tr("Charging");
+        else if (status.compare(QStringLiteral("Discharging"), Qt::CaseInsensitive) == 0)
+            statusLabel = tr("Discharging");
+        else if (status.compare(QStringLiteral("Full"), Qt::CaseInsensitive) == 0)
+            statusLabel = tr("Full");
+        else if (status.compare(QStringLiteral("Not charging"), Qt::CaseInsensitive) == 0)
+            statusLabel = tr("Not charging");
 
         if (capacityOk) {
             const bool low = capacity < 20
                 && status.compare(QStringLiteral("Charging"), Qt::CaseInsensitive) != 0
                 && status.compare(QStringLiteral("Full"), Qt::CaseInsensitive) != 0;
             powerState = low ? QStringLiteral("warning") : QStringLiteral("healthy");
-            powerMessage = status.isEmpty()
+            powerMessage = statusLabel.isEmpty()
                 ? tr("Battery: %1%.").arg(capacity)
-                : tr("Battery: %1% · %2.").arg(capacity).arg(status);
+                : tr("Battery: %1% · %2.").arg(capacity).arg(statusLabel);
         } else {
             powerState = QStringLiteral("healthy");
-            powerMessage = status.isEmpty()
+            powerMessage = statusLabel.isEmpty()
                 ? tr("A battery is present.")
-                : tr("Battery status: %1.").arg(status);
+                : tr("Battery status: %1.").arg(statusLabel);
         }
         break;
     }
