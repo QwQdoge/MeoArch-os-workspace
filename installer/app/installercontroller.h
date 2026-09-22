@@ -50,6 +50,7 @@ class InstallerController final : public QObject
     Q_PROPERTY(QString preflightMessage READ preflightMessage NOTIFY preflightChanged)
     Q_PROPERTY(QVariantMap installPlan READ installPlan NOTIFY preflightChanged)
     Q_PROPERTY(bool readyToInstall READ readyToInstall NOTIFY preflightChanged)
+    Q_PROPERTY(QString runtimeEnvironment READ runtimeEnvironment CONSTANT)
     Q_PROPERTY(bool productionMode READ productionMode CONSTANT)
     Q_PROPERTY(bool previewMode READ previewMode CONSTANT)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
@@ -102,6 +103,7 @@ public:
     bool diagnosticConsoleAvailable() const { return m_diagnosticConsoleAvailable; }
     bool diagnosticConsoleRunning() const { return !m_diagnosticProcess.isNull(); }
     QString diagnosticConsoleOutput() const { return m_diagnosticConsoleOutput; }
+    QString runtimeEnvironment() const { return QStringLiteral("live"); }
     bool productionMode() const { return m_productionMode; }
     bool previewMode() const { return !m_productionMode; }
 
