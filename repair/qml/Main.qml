@@ -178,11 +178,13 @@ Window {
             if (categories[index].id === category)
                 return ({ "id": category, "title": root.categoryLabel(category),
                           "description": root.categoryDescription(category),
-                          "icon": categories[index].icon })
+                          "icon": categories[index].icon,
+                          "scope": categories[index].scope || "system" })
         }
         return ({ "id": category, "title": root.categoryLabel(category),
                   "description": root.categoryDescription(category),
-                  "icon": root.categoryIcon(category) })
+                  "icon": root.categoryIcon(category),
+                  "scope": root.repairController.liveEnvironment ? "live" : "system" })
     }
     function diagnosticSubjectLabel(category) {
         const scope = root.categoryMetadata(category).scope
