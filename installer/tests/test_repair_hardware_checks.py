@@ -33,6 +33,9 @@ class RepairHardwareChecksContractTests(unittest.TestCase):
         for marker in (
             "Kernel driver in use",
             "DRM render nodes",
+            "DRM sysfs driver bindings",
+            "/sys/class/drm/card*",
+            "device/driver",
             "nvidia_drm/parameters/modeset",
             "amdgpu|radeon",
             "i915|xe",
