@@ -57,6 +57,8 @@ required=(
   meoarch-os/grub/themes/meoarch/brand.png
   meoarch-os/grub/themes/meoarch/meoarch-sans-regular-24.pf2
   meoarch-os/grub/themes/meoarch/meoarch-sans-bold-24.pf2
+  meoarch-os/efiboot/loader/entries/03-archiso-tty-linux.conf
+  meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
   installer/qml/Main.qml
   installer/live-system/CMakeLists.txt
   installer/live-system/meosystemliveplugin.cpp
@@ -197,6 +199,10 @@ grep -q 'meoarch.mode=repair' meoarch-os/grub/grub.cfg
 grep -q 'themes/meoarch/theme.txt' meoarch-os/grub/grub.cfg
 grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/grub.cfg
 grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/loopback.cfg
+grep -q 'MeoArch OS - terminal only' meoarch-os/grub/grub.cfg
+grep -q 'meoarch.mode=tty systemd.unit=multi-user.target plymouth.enable=0' meoarch-os/grub/grub.cfg
+grep -q 'MeoArch OS - terminal only' meoarch-os/grub/loopback.cfg
+grep -q 'meoarch.mode=tty systemd.unit=multi-user.target plymouth.enable=0' meoarch-os/grub/loopback.cfg
 grep -q 'selected_item_pixmap_style = "select_\*.png"' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'MeoArch Sans Bold 24' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Everything has a GUI. Every choice is yours.' meoarch-os/grub/themes/meoarch/theme.txt
@@ -239,7 +245,70 @@ grep -q 'polkit.Result.YES' repair/data/org.meo.repair-live.rules
 ! grep -q 'org.meo.repair-live.rules' repair/CMakeLists.txt
 ! grep -q 'org.meo.repair-live.policy' repair/CMakeLists.txt
 ! rg -q '^Before=getty@tty1.service$|^Conflicts=.*getty@tty1.service' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-test "$(readlink meoarch-os/airootfs/etc/systemd/system/getty@tty1.service)" = '/dev/null'
+! test -e meoarch-os/airootfs/etc/systemd/system/getty@tty1.service
+grep -q '^ConditionKernelCommandLine=meoarch.mode=tty
+for unit in systemd-networkd.service systemd-networkd.socket systemd-networkd-varlink.socket systemd-networkd-varlink-metrics.socket systemd-networkd-resolve-hook.socket; do
+  test "$(readlink "meoarch-os/airootfs/etc/systemd/system/${unit}")" = '/dev/null'
+done
+grep -q '^PLYMOUTH_COMMAND_TIMEOUT_SECONDS = 1$' installer/bin/meo-boot-status
+for milestone in early storage services; do
+  grep -q '^TimeoutStartSec=5s$' "installer/data/systemd/meo-boot-${milestone}.service"
+done
+if rg -q -e '^sddm$' -e '^plasma-login-manager$' -e '^plasma-(desktop|workspace)$' -e '^kwin$' meoarch-os/packages.x86_64; then
+  echo "Cage-only Live package profile includes a Plasma session component." >&2
+  exit 1
+fi
+grep -q '^seatd$' meoarch-os/packages.x86_64
+! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
+test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
+! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
+
+grep -q "bootmodes=('bios.syslinux'" meoarch-os/profiledef.sh
+grep -q "'uefi.systemd-boot')" meoarch-os/profiledef.sh
+grep -q '^airootfs_image_type="squashfs"$' meoarch-os/profiledef.sh
+expected_live_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1'
+bios_live_options="$(awk '/^LABEL arch$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
+uefi_live_options="$(sed -n 's/^options  //p' meoarch-os/efiboot/loader/entries/01-archiso-linux.conf)"
+[ "${bios_live_options}" = "${expected_live_options}" ]
+[ "${uefi_live_options}" = "${expected_live_options}" ]
+expected_repair_options="${expected_live_options/meoarch.mode=install/meoarch.mode=repair}"
+bios_repair_options="$(awk '/^LABEL archrepair$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
+uefi_repair_options="$(sed -n 's/^options  //p' meoarch-os/efiboot/loader/entries/02-archiso-repair-linux.conf)"
+[ "${bios_repair_options}" = "${expected_repair_options}" ]
+expected_tty_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=tty systemd.unit=multi-user.target plymouth.enable=0 systemd.show_status=1 loglevel=4 vt.global_cursor_default=1'
+bios_tty_options="$(awk '/^LABEL archtty$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
+uefi_tty_options="$(sed -n 's/^options  //p' meoarch-os/efiboot/loader/entries/03-archiso-tty-linux.conf)"
+[ "${bios_tty_options}" = "${expected_tty_options}" ]
+[ "${uefi_tty_options}" = "${expected_tty_options}" ]
+[ "${uefi_repair_options}" = "${expected_repair_options}" ]
+grep -q '^APPEND .*meoarch.mode=install accessibility=on$' meoarch-os/syslinux/archiso_sys-linux.cfg
+for hook in base udev plymouth microcode modconf kms archiso block filesystems keyboard; do
+  grep -Eq "(^|[[:space:]\\(])${hook}([[:space:]\\)])" meoarch-os/airootfs/etc/mkinitcpio.conf.d/archiso.conf
+done
+
+duplicates="$(sed '/^[[:space:]]*#/d;/^[[:space:]]*$/d' meoarch-os/packages.x86_64 |
+  sort | uniq -d)"
+if [ -n "${duplicates}" ]; then
+  echo "Duplicate packages:"
+  echo "${duplicates}"
+  exit 1
+fi
+
+"${python_command}" -m unittest discover -s installer/tests -v
+find scripts installer repair -type f -name '*.sh' -print0 |
+  xargs -0 -n1 bash -n
+"${python_command}" - <<'PY'
+import json
+from pathlib import Path
+for root in ("installer", "meoarch-os"):
+    for path in Path(root).rglob("*.json"):
+        with path.open(encoding="utf-8") as handle:
+            json.load(handle)
+PY
+git diff --check
+echo "PASS: source validation" | tee "${evidence_dir}/status.txt"
+ meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
+grep -Fq 'ExecStart=-/usr/bin/agetty --noreset --noclear --autologin root - ${TERM}' meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
 for unit in systemd-networkd.service systemd-networkd.socket systemd-networkd-varlink.socket systemd-networkd-varlink-metrics.socket systemd-networkd-resolve-hook.socket; do
   test "$(readlink "meoarch-os/airootfs/etc/systemd/system/${unit}")" = '/dev/null'
 done
