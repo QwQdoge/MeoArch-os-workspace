@@ -29,6 +29,38 @@ The ISO synchronization script builds and stages the current local Meo.System
 runtime from the sibling Meo KDE source together with MeoUI. It does not edit
 either sibling working tree.
 
+### Runtime check boundary
+
+Runtime checks are intentionally split rather than shared as one ambiguous
+"system detection" flow:
+
+- **Live ISO** owns installation-time checks only: Live runtime identity,
+  hardware discovery, NetworkManager connectivity, repository/captive-portal
+  reachability, storage eligibility, and installer preflight. The Live welcome
+  screen identifies itself as `runtimeEnvironment=live`.
+- **Installed Meo** owns post-install checks in `MeoSettings`/`meo-welcome`:
+  machine-wide NetworkManager connectivity (including Ethernet and VPN),
+  Meo Account broker state, fingerprint availability, display/settings routes,
+  updates, and recovery.
+- Meo Account authentication is deliberately **not** offered from the Live ISO.
+  The Live filesystem is ephemeral and must not become an OAuth/token owner.
+  Account connection starts only from the installed system, where the
+  `org.meo.Accounts1` broker remains the credential boundary.
+
+This split also keeps the two meanings of "account" separate: the installer
+creates the local Unix account required for the target system, while Meo Account
+is an optional cloud identity connected after installation.
+
+### Terminal-only boot path
+
+The graphical installer remains the default. An explicit `meoarch.mode=tty`
+entry is provided for GRUB, systemd-boot, Syslinux, and GRUB loopback boot.
+It selects `systemd.unit=multi-user.target`, disables Plymouth, and enables the
+normal Arch-style tty1 root autologin. tty1 is no longer permanently masked;
+its getty is guarded by `ConditionKernelCommandLine=meoarch.mode=tty`, so Cage
+retains tty1 during graphical install/repair without blocking the console-only
+fallback.
+
 ## Installation plan and secrets
 
 The native controller persists only non-secret selections to
