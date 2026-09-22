@@ -198,6 +198,13 @@ grep -q 'Q_PROPERTY(QString accountConnectionState' installer/app/repaircontroll
 grep -q 'org.freedesktop.NetworkManager' installer/app/repaircontroller.cpp
 grep -q 'QStringLiteral("Connectivity")' installer/app/repaircontroller.cpp
 grep -q 'properties.setTimeout(500)' installer/app/repaircontroller.cpp
+grep -q 'function diagnosticSubjectLabel(category)' repair/qml/Main.qml
+grep -q '诊断对象 · 当前 Live 环境' repair/qml/Main.qml
+grep -q '诊断对象 · 已安装系统（/mnt）' repair/qml/Main.qml
+grep -q 'SystemState.requestWifiScan()' repair/qml/Main.qml
+grep -q 'SystemState.connectWifi' repair/qml/Main.qml
+grep -q 'SystemState.disconnectWifi()' repair/qml/Main.qml
+grep -q 'function onNetworkChanged()' repair/qml/Main.qml
 grep -q 'org.meo.repair-status/v1' repair/app/main.cpp
 grep -q 'statusRequested' repair/app/main.cpp
 grep -q 'Diagnostic subject: Live Environment' repair/checks/all.sh
