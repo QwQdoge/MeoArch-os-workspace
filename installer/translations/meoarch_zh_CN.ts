@@ -2997,5 +2997,29 @@ PipeWire · NetworkManager
         <source>Live checks are temporary. Meo Account and installed-system health checks run only after installation.</source>
         <translation>Live 环境中的检查是临时的。Meo 账号和已安装系统的健康检查仅在安装完成后运行。</translation>
     </message>
+    <message>
+        <source>Ready</source>
+        <translation>就绪</translation>
+    </message>
+    <message>
+        <source>Internet connected</source>
+        <translation>互联网已连接</translation>
+    </message>
+    <message>
+        <source>Sign-in required</source>
+        <translation>需要网页登录</translation>
+    </message>
+    <message>
+        <source>No active interface</source>
+        <translation>没有活动网络接口</translation>
+    </message>
+    <message>
+        <source>Offline</source>
+        <translation>离线</translation>
+    </message>
+    <message>
+        <source>Pending</source>
+        <translation>待检查</translation>
+    </message>
 </context>
 </TS>
