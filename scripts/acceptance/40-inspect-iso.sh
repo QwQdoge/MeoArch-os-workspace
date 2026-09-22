@@ -47,6 +47,7 @@ grep -q '/arch/x86_64/airootfs.sfs' "${evidence_dir}/files.txt"
 # retains GRUB theme assets for other targets, but they are not ISO payload.
 grep -q '/loader/entries/01-archiso-linux.conf' "${evidence_dir}/files.txt"
 grep -q '/loader/entries/02-archiso-repair-linux.conf' "${evidence_dir}/files.txt"
+grep -q '/loader/entries/03-archiso-tty-linux.conf' "${evidence_dir}/files.txt"
 
 xorriso -osirrox on -indev "${iso_path}" \
   -extract /arch/x86_64/airootfs.sfs "${extract_dir}/airootfs.sfs"
@@ -96,6 +97,8 @@ for excluded_package in plasma-desktop plasma-login-manager plasma-workspace sdd
   fi
 done
 grep -q 'etc/systemd/system/graphical.target.wants/meoarch-installer.service' \
+  "${evidence_dir}/airootfs-files.txt"
+grep -q 'etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf' \
   "${evidence_dir}/airootfs-files.txt"
 if grep -q 'etc/systemd/system/multi-user.target.wants/meoarch-installer.service' \
   "${evidence_dir}/airootfs-files.txt"; then
@@ -202,6 +205,7 @@ for action in rebuild-initramfs refresh-pacman-keyring reload-systemd-manager re
 done
 for path in \
   etc/systemd/system/meoarch-installer.service \
+  etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf \
   usr/local/bin/meoarch-installer-kiosk \
   usr/local/bin/meoarch-repair-session \
   usr/lib/systemd/user/plasma-polkit-agent.service; do
@@ -210,6 +214,8 @@ for path in \
 done
 cmp "${repo_root}/meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service" \
   "${extract_dir}/meoarch-installer.service"
+cmp "${repo_root}/meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf" \
+  "${extract_dir}/meoarch-tty.conf"
 cmp "${repo_root}/installer/bin/meoarch-installer-kiosk" \
   "${extract_dir}/meoarch-installer-kiosk"
 cmp "${repo_root}/installer/bin/meoarch-repair-session" \
