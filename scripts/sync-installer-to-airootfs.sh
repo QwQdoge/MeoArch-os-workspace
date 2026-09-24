@@ -197,6 +197,7 @@ if [ -d "${installer_src}/bootstrap" ]; then
 fi
 cp -a "${installer_src}/app" "${installer_dst}/app"
 cp -a "${repo_root}/meoarch-os/grub/themes/meoarch" "${installer_dst}/boot-theme"
+install -Dm644 "${repo_root}/meoarch-os/grub/splash.png" "${installer_dst}/boot-splash.png"
 install -Dm600 "${installer_src}/data/account.env.example" \
   "${airootfs}/etc/meoarch/account.env"
 if [ -d "${repo_root}/build/installer-host/translations" ]; then

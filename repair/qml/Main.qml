@@ -37,7 +37,21 @@ Window {
     readonly property var currentWizardQuestion: wizardQuestionIndex >= 0
                                                  && wizardQuestionIndex < guidedQuestions.length
                                                ? guidedQuestions[wizardQuestionIndex] : ({})
-    readonly property var helpCategoryGroups: [
+    readonly property var helpCategoryGroups: repairController.liveEnvironment ? [
+        {
+            "title": qsTr("Live 环境"),
+            "rows": root.categoryRows(["audio", "display", "network", "graphics", "security"])
+        },
+        {
+            "title": repairController.mountedTargetAvailable
+                     ? qsTr("已安装系统 · /mnt") : qsTr("已安装系统 · 尚未挂载"),
+            "rows": root.categoryRows(["boot", "packages", "storage"])
+        },
+        {
+            "title": qsTr("概览"),
+            "rows": root.categoryRows(["all"])
+        }
+    ] : [
         {
             "title": qsTr("常见问题"),
             "rows": root.categoryRows(["audio", "display", "network"])
@@ -164,12 +178,39 @@ Window {
             if (categories[index].id === category)
                 return ({ "id": category, "title": root.categoryLabel(category),
                           "description": root.categoryDescription(category),
-                          "icon": categories[index].icon })
+                          "icon": categories[index].icon,
+                          "scope": categories[index].scope || "system" })
         }
         return ({ "id": category, "title": root.categoryLabel(category),
                   "description": root.categoryDescription(category),
-                  "icon": root.categoryIcon(category) })
+                  "icon": root.categoryIcon(category),
+                  "scope": root.repairController.liveEnvironment ? "live" : "system" })
     }
+    function diagnosticSubjectLabel(category) {
+        const scope = root.categoryMetadata(category).scope
+        if (scope === "target")
+            return root.repairController.mountedTargetAvailable
+                    ? qsTr("诊断对象 · 已安装系统（/mnt）")
+                    : qsTr("诊断对象 · 已安装系统（尚未挂载）")
+        if (scope === "live")
+            return qsTr("诊断对象 · 当前 Live 环境")
+        if (scope === "mixed")
+            return qsTr("诊断对象 · Live 环境 + 已安装系统")
+        return qsTr("诊断对象 · 当前已安装系统")
+    }
+    function diagnosticSubjectDescription(category) {
+        const scope = root.categoryMetadata(category).scope
+        if (scope === "target")
+            return root.repairController.mountedTargetAvailable
+                    ? qsTr("此检查读取 /mnt 下的目标系统，不把 Live 系统本身当作目标。")
+                    : qsTr("需要先把已安装系统挂载到 /mnt；当前只会返回有限的目标检查信息。")
+        if (scope === "live")
+            return qsTr("此检查只描述当前从安装介质启动的 Live 系统。")
+        if (scope === "mixed")
+            return qsTr("概览会明确分段显示 Live 环境与 /mnt 下的已安装系统。")
+        return qsTr("此检查描述当前正在运行的已安装 MeoArch 系统。")
+    }
+
     function categoryRows(ids) {
         const result = []
         for (let index = 0; index < ids.length; ++index) {
@@ -225,6 +266,158 @@ Window {
                 || root.repairController.hasLocalCredential
                 || root.repairController.hasSessionCredential
     }
+    function networkStatusLabel() {
+        const state = root.repairController.networkConnectionState
+        if (state === "online") return qsTr("网络 · 已联网")
+        if (state === "portal") return qsTr("网络 · 需要登录")
+        if (state === "limited") return qsTr("网络 · 受限")
+        if (state === "connecting") return qsTr("网络 · 连接中")
+        if (state === "offline") return qsTr("网络 · 离线")
+        return qsTr("网络 · 不可用")
+    }
+    function networkStatusIcon() {
+        const state = root.repairController.networkConnectionState
+        if (state === "online") return "wifi"
+        if (state === "portal") return "captive_portal"
+        if (state === "limited") return "wifi_find"
+        if (state === "connecting") return "sync"
+        return "wifi_off"
+    }
+    function networkSignalIcon(strength) {
+        if (strength >= 70) return "signal_wifi_4_bar"
+        if (strength >= 40) return "network_wifi_3_bar"
+        if (strength >= 20) return "network_wifi_2_bar"
+        return "network_wifi_1_bar"
+    }
+    function accountStatusLabel() {
+        const state = root.repairController.accountConnectionState
+        if (state === "connected") return qsTr("Meo Account · 已连接")
+        if (state === "connecting") return qsTr("Meo Account · 连接中")
+        if (state === "available") return qsTr("Meo Account · 可登录")
+        if (state === "error") return qsTr("Meo Account · 连接错误")
+        return qsTr("Meo Account · 未配置")
+    }
+    function accountStatusIcon() {
+        return root.repairController.accountConnectionState === "connected"
+                ? "account_circle" : "person_off"
+    }
+    function healthStatusLabel(state) {
+        if (state === "healthy") return qsTr("正常")
+        if (state === "warning") return qsTr("需要注意")
+        if (state === "info") return qsTr("信息")
+        if (state === "connecting") return qsTr("处理中")
+        return qsTr("不可用")
+    }
+    function healthStatusIcon(state, fallbackIcon) {
+        if (state === "healthy") return "check_circle"
+        if (state === "warning") return "warning"
+        if (state === "connecting") return "sync"
+        if (state === "unavailable" || state === "unknown") return "help"
+        return fallbackIcon
+    }
+    function overviewCards() {
+        let displayState = "unavailable"
+        let displayDetail = root.repairController.liveEnvironment
+                            ? qsTr("Live 图形会话使用 Cage；进入显示器诊断可读取当前图形与 DRM 状态。")
+                            : qsTr("打开显示器诊断以读取当前 KScreen 布局。")
+        if (root.repairController.displayOutputs.length > 0) {
+            let enabled = 0
+            for (let index = 0; index < root.repairController.displayOutputs.length; ++index) {
+                if (root.repairController.displayOutputs[index].enabled)
+                    ++enabled
+            }
+            displayState = enabled === root.repairController.displayOutputs.length
+                           ? "healthy" : "warning"
+            displayDetail = qsTr("%1 个已连接显示器，%2 个已启用。")
+                            .arg(root.repairController.displayOutputs.length).arg(enabled)
+        }
+
+        const networkState = root.repairController.networkConnectionState === "online"
+                             ? "healthy"
+                             : root.repairController.networkConnectionState === "connecting"
+                               ? "connecting"
+                               : root.repairController.networkConnectionState === "unavailable"
+                                 ? "unavailable" : "warning"
+        const accountState = root.repairController.accountConnectionState === "connected"
+                             ? "healthy"
+                             : root.repairController.accountConnectionState === "connecting"
+                               ? "connecting"
+                               : root.repairController.accountConnectionState === "error"
+                                 ? "warning"
+                                 : root.repairController.accountConnectionState === "available"
+                                   ? "info" : "unavailable"
+        const audioState = !SystemState.audioAvailable ? "unavailable"
+                           : (SystemState.audioMuted || SystemState.volumePercent === 0)
+                             ? "warning" : "healthy"
+        const audioDetail = SystemState.audioAvailable
+                            ? (SystemState.audioDevice.length > 0
+                               ? SystemState.audioDevice + " · " + SystemState.volumePercent + "%"
+                               : qsTr("音频服务可用 · 音量 %1%").arg(SystemState.volumePercent))
+                            : qsTr("当前会话没有可用音频输出。")
+
+        return [
+            {
+                "title": qsTr("网络"),
+                "state": networkState,
+                "icon": root.networkStatusIcon(),
+                "detail": root.repairController.networkConnectionMessage,
+                "category": "network"
+            },
+            {
+                "title": qsTr("Meo Account"),
+                "state": accountState,
+                "icon": root.accountStatusIcon(),
+                "detail": root.repairController.signedIn
+                          ? root.repairController.accountEmail
+                          : root.repairController.accountConfigured
+                            ? qsTr("可选登录；本地诊断不依赖账号。")
+                            : qsTr("此构建未配置 Account 服务。"),
+                "category": ""
+            },
+            {
+                "title": qsTr("声音"),
+                "state": audioState,
+                "icon": SystemState.audioMuted ? "volume_off" : "volume_up",
+                "detail": audioDetail,
+                "category": "audio"
+            },
+            {
+                "title": qsTr("显示器"),
+                "state": displayState,
+                "icon": "desktop_windows",
+                "detail": displayDetail,
+                "category": "display"
+            },
+            {
+                "title": qsTr("存储"),
+                "state": root.repairController.storageHealthState,
+                "icon": "hard_drive",
+                "detail": root.repairController.storageHealthMessage,
+                "category": "storage"
+            },
+            {
+                "title": qsTr("启动与服务"),
+                "state": root.repairController.bootHealthState,
+                "icon": "rocket_launch",
+                "detail": root.repairController.bootHealthMessage,
+                "category": "boot"
+            },
+            {
+                "title": qsTr("时间同步"),
+                "state": root.repairController.timeHealthState,
+                "icon": "schedule",
+                "detail": root.repairController.timeHealthMessage,
+                "category": "security"
+            },
+            {
+                "title": qsTr("电源"),
+                "state": root.repairController.powerHealthState,
+                "icon": "battery_full",
+                "detail": root.repairController.powerHealthMessage,
+                "category": ""
+            }
+        ]
+    }
     function categoryLabel(category) {
         if (category === "audio") return qsTr("声音")
         if (category === "display") return qsTr("显示器")
@@ -251,18 +444,32 @@ Window {
         const code = finding.code || ""
         const labels = {
             "network.manager_inactive": qsTr("网络管理服务没有运行。"),
-            "network.no_default_route": qsTr("电脑没有可用的默认网络路线。"),
+            "network.captive_portal": qsTr("网络已经连接，但还需要在登录页面完成认证。"),
+            "network.limited_connectivity": qsTr("当前网络只有受限连接，无法确认完整互联网访问。"),
+            "network.no_internet": qsTr("NetworkManager 报告当前没有互联网连接。"),
+            "network.connectivity_unknown": qsTr("系统目前无法确认互联网连接状态。"),
+            "network.wifi_disabled": qsTr("检测到 Wi-Fi 设备，但无线功能目前已关闭。"),
+            "network.no_default_route": qsTr("电脑没有可用的 IPv4 或 IPv6 默认网络路线。"),
             "network.no_dns_server": qsTr("电脑没有可用的 DNS 服务器。"),
+            "packages.target_not_mounted": qsTr("Live 环境中还没有挂载可检查的已安装系统。"),
+            "scope.target_not_mounted": qsTr("没有在 /mnt 找到已挂载的目标系统。"),
             "packages.database_inconsistent": qsTr("软件包数据库存在不一致。"),
             "packages.files_inconsistent": qsTr("部分软件包文件缺失或已经改变。"),
             "packages.keyring_unreadable": qsTr("系统无法正常读取软件包签名密钥。"),
             "boot.failed_units": qsTr("一个或多个系统服务启动失败。"),
+            "boot.loader_grub": qsTr("检测到系统使用 GRUB 引导。"),
+            "boot.loader_limine": qsTr("检测到系统使用 Limine 引导。"),
+            "boot.loader_systemd_boot": qsTr("检测到系统使用 systemd-boot 引导。"),
+            "boot.loader_unknown": qsTr("没有找到可识别的 GRUB、Limine 或 systemd-boot 配置。"),
+            "boot.offline_service_state": qsTr("Live 模式不会把自身的失败服务状态当作目标系统故障。"),
             "boot.target_boot_missing": qsTr("已挂载系统缺少启动目录。"),
             "boot.target_boot_not_mounted": qsTr("已安装系统的启动分区尚未挂载。"),
             "boot.boot_not_mounted": qsTr("系统需要的启动分区目前没有挂载。"),
             "boot.initramfs_missing": qsTr("系统缺少可用的启动初始镜像。"),
             "boot.manager_reload_needed": qsTr("系统服务配置已经改变，需要重新载入。"),
             "storage.root_nearly_full": qsTr("系统磁盘空间已使用至少 90%。"),
+            "storage.target_root_nearly_full": qsTr("已挂载目标系统的根分区空间已使用至少 90%。"),
+            "storage.target_not_mounted": qsTr("Live 环境没有在 /mnt 找到已挂载的目标系统根分区。"),
             "storage.btrfs_device_errors": qsTr("Btrfs 检测到非零设备错误。"),
             "storage.smart_failed": qsTr("磁盘健康检查报告硬件故障。"),
             "storage.nvme_critical_warning": qsTr("NVMe 磁盘报告严重健康警告。"),
@@ -633,6 +840,9 @@ Window {
 
     Component.onCompleted: {
         MeoTheme.isDarkMode = false
+        repairController.refreshEnvironmentState()
+        if (!repairController.liveEnvironment)
+            repairController.refreshDisplayOutputs()
         chooseCategory(initialCategory)
         selectedProvider = repairController.localProvider
         providerPicker.currentIndex = providerIndex(selectedProvider)
@@ -652,6 +862,13 @@ Window {
             if (previewWizardStage === "repair-approval")
                 wizardStage = "repair_approval"
         }
+    }
+
+    Timer {
+        interval: 10000
+        repeat: true
+        running: root.visible
+        onTriggered: root.repairController.refreshEnvironmentState()
     }
 
     Connections {
@@ -818,12 +1035,6 @@ Window {
                 color: MeoTheme.contentOnSurfaceVariant
             }
         }
-        MeoChip {
-            visible: root.width >= root.dp(1080)
-            label: root.repairController.liveEnvironment ? qsTr("Live 修复") : qsTr("系统修复")
-            icon: root.repairController.liveEnvironment ? "usb" : "desktop_windows"
-            selected: true
-        }
         MeoIconButton {
             visible: root.advancedMode && root.repairController.diagnosticTtyAvailable
             icon.name: "terminal"; type: "outlined"; size: "l"
@@ -846,6 +1057,52 @@ Window {
             onClicked: {
                 root.repairController.setAiSource("account")
             }
+        }
+    }
+
+    RowLayout {
+        id: statusStrip
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: appBar.bottom
+        anchors.leftMargin: root.dp(28)
+        anchors.rightMargin: root.dp(20)
+        anchors.topMargin: root.dp(2)
+        height: root.dp(42)
+        spacing: root.dp(8)
+
+        MeoChip {
+            label: root.repairController.liveEnvironment ? qsTr("Live 环境") : qsTr("已安装系统")
+            icon: root.repairController.liveEnvironment ? "usb" : "desktop_windows"
+            selected: true
+        }
+        MeoChip {
+            label: root.networkStatusLabel()
+            icon: root.networkStatusIcon()
+            visualStyle: root.repairController.networkConnectionState === "online"
+                         ? "filled" : "outlined"
+            Accessible.description: root.repairController.networkConnectionMessage
+        }
+        MeoChip {
+            visible: root.repairController.liveEnvironment
+            label: root.repairController.mountedTargetAvailable
+                   ? qsTr("目标系统 · 已挂载") : qsTr("目标系统 · 未挂载")
+            icon: root.repairController.mountedTargetAvailable ? "hard_drive" : "drive_file_move"
+            visualStyle: root.repairController.mountedTargetAvailable ? "filled" : "outlined"
+        }
+        MeoChip {
+            label: root.accountStatusLabel()
+            icon: root.accountStatusIcon()
+            visualStyle: root.repairController.accountConnectionState === "connected"
+                         ? "filled" : "outlined"
+        }
+        Item { Layout.fillWidth: true }
+        MeoIconButton {
+            icon.name: "refresh"
+            type: "standard"
+            size: "m"
+            Accessible.name: qsTr("刷新环境、网络和目标系统状态")
+            onClicked: root.repairController.refreshEnvironmentState()
         }
     }
 
@@ -879,7 +1136,7 @@ Window {
         visible: !root.advancedMode
         enabled: !root.advancedMode
         anchors.left: parent.left; anchors.right: parent.right
-        anchors.top: appBar.bottom; anchors.bottom: parent.bottom
+        anchors.top: statusStrip.bottom; anchors.bottom: parent.bottom
         anchors.leftMargin: root.dp(24); anchors.rightMargin: root.dp(24)
         anchors.topMargin: root.dp(8); anchors.bottomMargin: root.dp(20)
         clip: true
@@ -1645,7 +1902,7 @@ Window {
         visible: root.advancedMode
         enabled: root.advancedMode
         anchors.left: parent.left; anchors.right: parent.right
-        anchors.top: appBar.bottom; anchors.bottom: parent.bottom
+        anchors.top: statusStrip.bottom; anchors.bottom: parent.bottom
         anchors.leftMargin: root.dp(20); anchors.rightMargin: root.dp(20)
         anchors.topMargin: root.dp(12); anchors.bottomMargin: root.dp(20)
         spacing: root.dp(18)
@@ -1704,6 +1961,115 @@ Window {
                         visible: root.workflowBusy
                         size: "m"
                         withContainer: true
+                    }
+                }
+
+                MeoBanner {
+                    Layout.fillWidth: true
+                    title: root.diagnosticSubjectLabel(root.selectedCategory)
+                    text: root.diagnosticSubjectDescription(root.selectedCategory)
+                    icon: root.categoryMetadata(root.selectedCategory).scope === "target"
+                          ? "hard_drive"
+                          : root.categoryMetadata(root.selectedCategory).scope === "live"
+                            ? "usb"
+                            : root.categoryMetadata(root.selectedCategory).scope === "mixed"
+                              ? "splitscreen"
+                              : "desktop_windows"
+                    tone: root.categoryMetadata(root.selectedCategory).scope === "target"
+                          && !root.repairController.mountedTargetAvailable
+                          ? "warning" : "tonal"
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    visible: root.selectedCategory === "all"
+                    spacing: root.dp(10)
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        MeoText {
+                            text: qsTr("设备状态")
+                            typeRole: "title"; typeSize: "medium"; emphasized: true
+                            color: MeoTheme.contentOnSurface
+                        }
+                        Item { Layout.fillWidth: true }
+                        MeoButton {
+                            text: qsTr("刷新状态")
+                            type: "text"
+                            icon.name: "refresh"
+                            enabled: !root.workflowBusy
+                            onClicked: {
+                                root.repairController.refreshEnvironmentState()
+                                if (!root.repairController.liveEnvironment)
+                                    root.repairController.refreshDisplayOutputs()
+                            }
+                        }
+                    }
+
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: width >= root.dp(760) ? 2 : 1
+                        columnSpacing: root.dp(10)
+                        rowSpacing: root.dp(10)
+
+                        Repeater {
+                            model: root.overviewCards()
+                            delegate: MeoCard {
+                                id: healthCard
+                                required property var modelData
+                                Layout.fillWidth: true
+                                Layout.minimumHeight: root.dp(116)
+                                type: healthCard.modelData.state === "warning" ? "outlined" : "filled"
+                                padding: root.dp(16)
+
+                                RowLayout {
+                                    width: parent.width
+                                    spacing: root.dp(12)
+                                    MeoIcon {
+                                        icon: root.healthStatusIcon(healthCard.modelData.state,
+                                                                    healthCard.modelData.icon)
+                                        size: 28
+                                        color: healthCard.modelData.state === "warning"
+                                               ? MeoTheme.error : MeoTheme.primary
+                                    }
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 2
+                                        RowLayout {
+                                            Layout.fillWidth: true
+                                            MeoText {
+                                                text: healthCard.modelData.title
+                                                typeRole: "title"; typeSize: "small"; emphasized: true
+                                                color: MeoTheme.contentOnSurface
+                                            }
+                                            Item { Layout.fillWidth: true }
+                                            MeoText {
+                                                text: root.healthStatusLabel(healthCard.modelData.state)
+                                                typeRole: "label"; typeSize: "small"; emphasized: true
+                                                color: healthCard.modelData.state === "warning"
+                                                       ? MeoTheme.error : MeoTheme.contentOnSurfaceVariant
+                                            }
+                                        }
+                                        MeoText {
+                                            Layout.fillWidth: true
+                                            text: healthCard.modelData.detail
+                                            wrapMode: Text.WordWrap
+                                            maximumLineCount: 3
+                                            elide: Text.ElideRight
+                                            typeRole: "body"; typeSize: "small"
+                                            color: MeoTheme.contentOnSurfaceVariant
+                                        }
+                                    }
+                                    MeoIconButton {
+                                        visible: healthCard.modelData.category.length > 0
+                                        icon.name: "chevron_right"
+                                        type: "standard"
+                                        Accessible.name: qsTr("查看%1诊断").arg(healthCard.modelData.title)
+                                        onClicked: root.chooseCategory(healthCard.modelData.category)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -1774,6 +2140,166 @@ Window {
                     title: qsTr("登录 MeoArch Account，使用已配置的 AI 帮助")
                     text: qsTr("未登录也可以完成所有本地检查。登录后，可使用账号中的模型连接准备和复核修复方案。")
                     icon: "account_circle"
+                }
+
+                MeoCard {
+                    Layout.fillWidth: true
+                    visible: root.selectedCategory === "network"
+                    type: "elevated"
+                    padding: root.dp(20)
+
+                    ColumnLayout {
+                        width: parent.width
+                        spacing: root.dp(12)
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: root.dp(12)
+                            MeoIcon {
+                                icon: SystemState.networkConnected ? "wifi" : "wifi_off"
+                                size: 30
+                                color: SystemState.networkConnected ? MeoTheme.primary
+                                                                     : MeoTheme.contentOnSurfaceVariant
+                            }
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                spacing: 0
+                                MeoText {
+                                    text: qsTr("网络连接")
+                                    typeRole: "title"; typeSize: "small"; emphasized: true
+                                    color: MeoTheme.contentOnSurface
+                                }
+                                MeoText {
+                                    Layout.fillWidth: true
+                                    text: SystemState.networkConnected
+                                          ? (SystemState.networkName.length > 0
+                                             ? qsTr("已连接：") + SystemState.networkName + " · " + SystemState.networkStatus
+                                             : qsTr("已有活动网络连接 · ") + SystemState.networkStatus)
+                                          : qsTr("可以直接在这里连接 Wi‑Fi；以太网会自动显示为活动连接。")
+                                    wrapMode: Text.WordWrap
+                                    typeRole: "body"; typeSize: "small"
+                                    color: MeoTheme.contentOnSurfaceVariant
+                                }
+                            }
+                            MeoSwitch {
+                                checked: SystemState.wirelessAvailable && SystemState.wirelessEnabled
+                                enabled: SystemState.wirelessAvailable && !SystemState.networkBusy
+                                Accessible.name: qsTr("Wi‑Fi")
+                                onToggled: checkedState => { SystemState.wirelessEnabled = checkedState }
+                            }
+                            MeoIconButton {
+                                icon.name: "refresh"
+                                type: "tonal"
+                                Accessible.name: qsTr("扫描 Wi‑Fi 网络")
+                                enabled: SystemState.wirelessAvailable
+                                         && SystemState.wirelessEnabled
+                                         && !SystemState.wifiScanning
+                                         && !SystemState.networkBusy
+                                onClicked: SystemState.requestWifiScan()
+                            }
+                        }
+
+                        MeoBanner {
+                            Layout.fillWidth: true
+                            visible: !SystemState.wirelessAvailable
+                            title: qsTr("没有检测到 Wi‑Fi")
+                            text: SystemState.networkConnected
+                                  ? qsTr("当前可能通过以太网连接；无需 Wi‑Fi。")
+                                  : qsTr("连接以太网，或接入系统支持的 Wi‑Fi 适配器。")
+                            icon: "lan"
+                        }
+
+                        MeoBanner {
+                            Layout.fillWidth: true
+                            visible: SystemState.operationError.length > 0
+                            title: qsTr("网络操作失败")
+                            text: SystemState.operationError
+                            icon: "error"
+                            tone: "error"
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            visible: SystemState.wifiScanning || SystemState.networkBusy
+                            MeoLoadingIndicator { indeterminate: true; size: "s" }
+                            MeoText {
+                                Layout.fillWidth: true
+                                text: SystemState.wifiScanning ? qsTr("正在扫描 Wi‑Fi……") : qsTr("正在连接……")
+                                typeRole: "body"; typeSize: "small"
+                                color: MeoTheme.contentOnSurfaceVariant
+                            }
+                        }
+
+                        Repeater {
+                            model: SystemState.wirelessAvailable && SystemState.wirelessEnabled
+                                   ? SystemState.wifiNetworks : []
+                            delegate: MeoCard {
+                                id: repairWifiCard
+                                required property var modelData
+                                Layout.fillWidth: true
+                                type: modelData.connected ? "filled" : "outlined"
+                                compact: true
+                                padding: root.dp(12)
+
+                                RowLayout {
+                                    width: parent.width
+                                    spacing: root.dp(10)
+                                    MeoIcon {
+                                        icon: root.networkSignalIcon(repairWifiCard.modelData.strength)
+                                        size: 22
+                                        color: repairWifiCard.modelData.connected
+                                               ? MeoTheme.primary : MeoTheme.contentOnSurfaceVariant
+                                    }
+                                    ColumnLayout {
+                                        Layout.fillWidth: true
+                                        spacing: 0
+                                        MeoText {
+                                            text: repairWifiCard.modelData.ssid
+                                            typeRole: "body"; typeSize: "medium"; emphasized: true
+                                            color: MeoTheme.contentOnSurface
+                                        }
+                                        MeoText {
+                                            text: repairWifiCard.modelData.connected ? qsTr("已连接")
+                                                  : repairWifiCard.modelData.connecting ? qsTr("连接中……")
+                                                  : repairWifiCard.modelData.saved ? qsTr("已保存 · ") + repairWifiCard.modelData.securityLabel
+                                                  : repairWifiCard.modelData.securityLabel
+                                            typeRole: "body"; typeSize: "small"
+                                            color: MeoTheme.contentOnSurfaceVariant
+                                        }
+                                    }
+                                    MeoButton {
+                                        text: repairWifiCard.modelData.connected ? qsTr("断开")
+                                              : repairWifiCard.modelData.saved || !repairWifiCard.modelData.secured
+                                                ? qsTr("连接") : qsTr("输入密码")
+                                        type: repairWifiCard.modelData.connected ? "outlined" : "tonal"
+                                        enabled: !root.visualPreview && !SystemState.networkBusy
+                                        onClicked: {
+                                            SystemState.clearOperationError()
+                                            if (repairWifiCard.modelData.connected) {
+                                                SystemState.disconnectWifi()
+                                            } else if (repairWifiCard.modelData.saved || !repairWifiCard.modelData.secured) {
+                                                SystemState.connectWifi(repairWifiCard.modelData.ssid, "")
+                                            } else {
+                                                wifiPasswordDialog.ssid = repairWifiCard.modelData.ssid
+                                                wifiPasswordDialog.open()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        MeoButton {
+                            visible: SystemState.wirelessAvailable
+                                     && SystemState.wirelessEnabled
+                                     && SystemState.wifiNetworks.length === 0
+                            text: SystemState.wifiScanning ? qsTr("正在扫描……") : qsTr("扫描网络")
+                            type: "tonal"
+                            loading: SystemState.wifiScanning
+                            enabled: !SystemState.wifiScanning && !SystemState.networkBusy
+                            onClicked: SystemState.requestWifiScan()
+                        }
+                    }
                 }
 
                 MeoCard {
@@ -2695,6 +3221,65 @@ Window {
                     }
                 }
                 Item { Layout.preferredHeight: root.dp(8) }
+            }
+        }
+    }
+
+    Connections {
+        target: SystemState
+        function onNetworkChanged() {
+            root.repairController.refreshEnvironmentState()
+        }
+    }
+
+    MeoMotionPopup {
+        id: wifiPasswordDialog
+        presentation: MeoMotionPopup.Dialog
+        property string ssid: ""
+        anchors.centerIn: Overlay.overlay
+        width: Math.min(root.dp(500), Overlay.overlay ? Overlay.overlay.width - root.dp(48) : root.dp(500))
+        padding: root.dp(28)
+        closePolicy: Popup.CloseOnEscape
+
+        contentItem: ColumnLayout {
+            spacing: root.dp(16)
+            MeoText {
+                Layout.fillWidth: true
+                text: qsTr("连接到 %1").arg(wifiPasswordDialog.ssid)
+                typeRole: "title"; typeSize: "medium"; emphasized: true
+                color: MeoTheme.contentOnSurface
+            }
+            MeoTextField {
+                id: repairWifiPassword
+                Layout.fillWidth: true
+                type: "outlined"
+                size: "l"
+                label: qsTr("Wi‑Fi 密码")
+                echoMode: TextInput.Password
+                isPassword: true
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                Item { Layout.fillWidth: true }
+                MeoButton {
+                    text: qsTr("取消")
+                    type: "text"
+                    onClicked: {
+                        repairWifiPassword.clear()
+                        wifiPasswordDialog.close()
+                    }
+                }
+                MeoButton {
+                    text: qsTr("连接")
+                    type: "filled"
+                    enabled: repairWifiPassword.text.length > 0 && !SystemState.networkBusy
+                    onClicked: {
+                        SystemState.clearOperationError()
+                        SystemState.connectWifi(wifiPasswordDialog.ssid, repairWifiPassword.text)
+                        repairWifiPassword.clear()
+                        wifiPasswordDialog.close()
+                    }
+                }
             }
         }
     }

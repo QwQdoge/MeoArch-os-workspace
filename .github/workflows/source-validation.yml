@@ -1,0 +1,51 @@
+name: Source validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - boot/live-grub-contracts
+
+permissions:
+  contents: read
+
+concurrency:
+  group: source-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: Installer and repair contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out workspace
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install repository preflight tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnupg libarchive-tools
+
+      - name: Compile Python sources
+        run: python -m compileall -q installer repair
+
+      - name: Run installer contracts
+        run: python -m unittest discover -s installer/tests -p 'test_*.py' -v
+
+      - name: Run repair static contracts
+        run: python -m unittest discover -s repair/tests -p 'test_*.py' -v
+
+      - name: Check changed shell entrypoints
+        shell: bash
+        run: |
+          bash -n scripts/build-iso.sh
+          bash -n scripts/sync-installer-to-airootfs.sh
+          bash -n installer/backend/apply-target-customizations.sh

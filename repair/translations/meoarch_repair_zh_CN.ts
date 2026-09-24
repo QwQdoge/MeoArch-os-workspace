@@ -209,5 +209,48 @@
     <message><source>The plan, policy, or evidence snapshot changed; execution was blocked.</source><translation>方案、策略或证据快照已更改；已阻止执行。</translation></message>
     <message><source>The confirmed plan expired; run diagnostics and review a new plan.</source><translation>已确认的方案已过期；请重新运行诊断并复核新方案。</translation></message>
     <message><source>The bound plan hash changed; execution was blocked.</source><translation>已绑定的方案哈希已更改；已阻止执行。</translation></message>
+    <message><source>NetworkManager is unavailable.</source><translation>NetworkManager 不可用。</translation></message>
+    <message><source>A network is connected, but sign-in through a captive portal is required.</source><translation>网络已连接，但需要通过门户登录页面完成认证。</translation></message>
+    <message><source>NetworkManager reports global connectivity.</source><translation>NetworkManager 报告已连接互联网。</translation></message>
+    <message><source>A local network is connected, but full internet access is not confirmed.</source><translation>已连接本地网络，但尚未确认完整互联网访问。</translation></message>
+    <message><source>NetworkManager is connecting.</source><translation>NetworkManager 正在连接。</translation></message>
+    <message><source>No active network connection is available.</source><translation>当前没有可用的活动网络连接。</translation></message>
+    <message><source>Live + target overview</source><translation>Live 与目标系统概览</translation></message>
+    <message><source>System quick check</source><translation>系统快速检查</translation></message>
+    <message><source>Check the Live environment and the mounted installed target without changing either</source><translation>检查 Live 环境和已挂载的安装系统，不更改任何一方</translation></message>
+    <message><source>Run every read-only diagnostic category on this installed system</source><translation>在当前已安装系统上运行所有只读诊断类别</translation></message>
+    <message><source>Live network</source><translation>Live 网络</translation></message>
+    <message><source>Connection, captive portal, routes, DNS, and NetworkManager</source><translation>连接、门户认证、路由、DNS 和 NetworkManager</translation></message>
+    <message><source>Installed target boot</source><translation>目标系统启动</translation></message>
+    <message><source>Boot loader, initramfs, and boot mounts under /mnt</source><translation>检查 /mnt 下目标系统的引导器、initramfs 和启动挂载</translation></message>
+    <message><source>Boot loader, initramfs, mounts, and failed units</source><translation>引导器、initramfs、挂载和失败的系统服务</translation></message>
+    <message><source>Installed target packages</source><translation>目标系统软件包</translation></message>
+    <message><source>Package database, signing keys, and file integrity</source><translation>软件包数据库、签名密钥和文件完整性</translation></message>
+    <message><source>Disks and installed target</source><translation>磁盘与目标系统</translation></message>
+    <message><source>Capacity, mounts, SMART, NVMe, and Btrfs signals</source><translation>容量、挂载、SMART、NVMe 和 Btrfs 状态</translation></message>
+    <message><source>GPU drivers, kernel messages, and the current graphical session</source><translation>显卡驱动、内核消息和当前图形会话</translation></message>
+    <message><source>Security posture of the current Live environment</source><translation>当前 Live 环境的安全状态</translation></message>
+    <message><source>Storage information is unavailable.</source><translation>存储信息不可用。</translation></message>
+    <message><source>%1 GB free of %2 GB on the installed target mounted at /mnt.</source><translation>已挂载到 /mnt 的目标系统剩余 %1 GB，共 %2 GB。</translation></message>
+    <message><source>%1 GB free of %2 GB on the current system.</source><translation>当前系统剩余 %1 GB，共 %2 GB。</translation></message>
+    <message><source>Mount the installed system at /mnt to inspect its root storage.</source><translation>请将已安装系统挂载到 /mnt，以检查其根分区存储。</translation></message>
+    <message><source>The installed system is not mounted at /mnt.</source><translation>已安装系统尚未挂载到 /mnt。</translation></message>
+    <message><source>A boot-loader layout is present on the mounted installed target.</source><translation>已挂载的目标系统中存在可识别的引导器布局。</translation></message>
+    <message><source>No known GRUB, systemd-boot, or Limine layout was found under /mnt/boot.</source><translation>在 /mnt/boot 下没有找到已知的 GRUB、systemd-boot 或 Limine 布局。</translation></message>
+    <message><source>systemd reports no failed system services.</source><translation>systemd 未报告失败的系统服务。</translation></message>
+    <message><source>systemd reports %1 failed system service(s).</source><translation>systemd 报告有 %1 个失败的系统服务。</translation></message>
+    <message><source>The current system service state could not be read quickly.</source><translation>无法在短时间内读取当前系统服务状态。</translation></message>
+    <message><source>Time synchronization state is unavailable.</source><translation>时间同步状态不可用。</translation></message>
+    <message><source>The system clock is synchronized through NTP.</source><translation>系统时钟已通过 NTP 同步。</translation></message>
+    <message><source>The system clock is not currently synchronized through NTP.</source><translation>系统时钟当前未通过 NTP 同步。</translation></message>
+    <message><source>No battery was detected; this may be a desktop or virtual machine.</source><translation>未检测到电池；这可能是台式机或虚拟机。</translation></message>
+    <message><source>Battery: %1%.</source><translation>电池：%1%。</translation></message>
+    <message><source>Battery: %1% · %2.</source><translation>电池：%1% · %2。</translation></message>
+    <message><source>A battery is present.</source><translation>检测到电池。</translation></message>
+    <message><source>Battery status: %1.</source><translation>电池状态：%1。</translation></message>
+    <message><source>Charging</source><translation>充电中</translation></message>
+    <message><source>Discharging</source><translation>放电中</translation></message>
+    <message><source>Full</source><translation>已充满</translation></message>
+    <message><source>Not charging</source><translation>未充电</translation></message>
   </context>
 </TS>

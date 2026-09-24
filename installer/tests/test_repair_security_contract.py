@@ -94,6 +94,9 @@ class RepairSecurityContractTests(unittest.TestCase):
         self.assertIn("smartctl -H", storage)
         self.assertIn("nvme smart-log", storage)
         self.assertIn("storage.smart_failed", storage)
+        self.assertIn('storage_root="/mnt"', storage)
+        self.assertIn("storage.target_root_nearly_full", storage)
+        self.assertIn("check_root_filesystem=0", storage)
         self.assertIn("graphics.nvidia_drm_modeset_disabled", graphics)
 
     def test_audio_and_display_guided_repairs_are_evidence_first(self):
@@ -347,8 +350,12 @@ class RepairSecurityContractTests(unittest.TestCase):
         self.assertIn("-size +0c", check)
         self.assertIn("boot.target_boot_not_mounted", check)
         self.assertIn("boot.boot_not_mounted", check)
-        self.assertIn("findmnt -rn /mnt/boot", check)
-        self.assertIn("findmnt -rn /boot", check)
+        self.assertIn("detect_loader()", check)
+        self.assertIn("boot.loader_grub", check)
+        self.assertIn("boot.loader_limine", check)
+        self.assertIn("boot.loader_systemd_boot", check)
+        self.assertIn('findmnt -rn "${root}/boot"', check)
+        self.assertIn("boot.offline_service_state", check)
         self.assertIn(
             'codes.contains(QStringLiteral("boot.initramfs_missing"))', controller
         )
@@ -488,6 +495,51 @@ class RepairSecurityContractTests(unittest.TestCase):
                 source = (REPO_ROOT / relative).read_text(encoding="utf-8")
                 self.assertIn("meoarch.mode=install", source)
                 self.assertIn("meoarch.mode=repair", source)
+                self.assertIn("meoarch.mode=tty", source)
+                self.assertIn("systemd.unit=multi-user.target", source)
+
+    def test_repair_scope_is_explicit_and_connection_state_is_local(self):
+        source = CONTROLLER.read_text(encoding="utf-8")
+        header = (REPO_ROOT / "installer/app/repaircontroller.h").read_text(encoding="utf-8")
+        qml = REPAIR_QML.read_text(encoding="utf-8")
+        aggregate = (REPO_ROOT / "repair/checks/all.sh").read_text(encoding="utf-8")
+        packages = (REPO_ROOT / "repair/checks/packages.sh").read_text(encoding="utf-8")
+        network = (REPO_ROOT / "repair/checks/network.sh").read_text(encoding="utf-8")
+
+        self.assertIn("Q_PROPERTY(QString repairScope", header)
+        self.assertIn("Q_PROPERTY(bool mountedTargetAvailable", header)
+        self.assertIn("Q_PROPERTY(QString networkConnectionState", header)
+        self.assertIn("Q_PROPERTY(QString accountConnectionState", header)
+        self.assertIn("org.freedesktop.NetworkManager", source)
+        self.assertIn("Connectivity", source)
+        self.assertIn("properties.setTimeout(500)", source)
+        self.assertIn("org.meo.repair-status/v1", REPAIR_MAIN.read_text(encoding="utf-8"))
+        self.assertIn("statusRequested", REPAIR_MAIN.read_text(encoding="utf-8"))
+        self.assertIn("mountedTargetAvailable", qml)
+        self.assertIn("accountConnectionState", qml)
+        self.assertIn("networkConnectionState", qml)
+        self.assertIn("Diagnostic subject: Live Environment", aggregate)
+        self.assertIn("Diagnostic subject: Mounted Installed System", aggregate)
+        self.assertIn('MEOARCH_REPAIR_SCOPE:-system}" = "live"', packages)
+        self.assertIn("network.captive_portal", network)
+        self.assertIn("network.limited_connectivity", network)
+        self.assertIn("ip -6 route show", network)
+
+    def test_tty_getty_is_conditioned_on_explicit_boot_mode(self):
+        getty = (
+            REPO_ROOT
+            / "meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf"
+        ).read_text(encoding="utf-8")
+        service = (
+            REPO_ROOT / "meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service"
+        ).read_text(encoding="utf-8")
+        self.assertIn("ConditionKernelCommandLine=meoarch.mode=tty", getty)
+        self.assertIn("--autologin root", getty)
+        self.assertIn("Type=notify", service)
+        self.assertIn("NotifyAccess=all", service)
+        self.assertIn("ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready", service)
+        self.assertNotIn("Conflicts=getty@tty1.service", service)
+        self.assertNotIn("Before=getty@tty1.service", service)
 
     def test_live_image_uses_lynis_not_openqa(self):
         packages = {

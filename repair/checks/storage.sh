@@ -8,14 +8,36 @@ echo "[storage] filesystems"
 findmnt --real --output TARGET,SOURCE,FSTYPE,OPTIONS 2>&1 || true
 df -hT 2>&1 || true
 
-root_percent="$(df --output=pcent / 2>/dev/null | tail -n 1 | tr -dc '0-9')"
-if [ -n "${root_percent}" ] && [ "${root_percent}" -ge 90 ]; then
-  echo "MEO_FINDING|warning|storage.root_nearly_full|The root filesystem is at least 90 percent full."
+scope="${MEOARCH_REPAIR_SCOPE:-system}"
+storage_root="/"
+check_root_filesystem=1
+root_finding_code="storage.root_nearly_full"
+root_description="The root filesystem is at least 90 percent full."
+if [ "${scope}" = "live" ]; then
+  if [ -d /mnt/etc ] && findmnt -rn /mnt >/dev/null 2>&1; then
+    storage_root="/mnt"
+    root_finding_code="storage.target_root_nearly_full"
+    root_description="The mounted installed system root filesystem is at least 90 percent full."
+    echo "[storage] mounted installed target capacity"
+    df -hT /mnt 2>&1 || true
+  else
+    check_root_filesystem=0
+    echo "MEO_FINDING|warning|storage.target_not_mounted|No installed system root is mounted at /mnt."
+  fi
 fi
 
-if findmnt -n -o FSTYPE / 2>/dev/null | grep -qx btrfs && command -v btrfs >/dev/null 2>&1; then
-  echo "[storage] btrfs device stats"
-  btrfs_stats="$(btrfs device stats / 2>&1 || true)"
+if [ "${check_root_filesystem}" -eq 1 ]; then
+  root_percent="$(df --output=pcent "${storage_root}" 2>/dev/null | tail -n 1 | tr -dc '0-9')"
+  if [ -n "${root_percent}" ] && [ "${root_percent}" -ge 90 ]; then
+    printf 'MEO_FINDING|warning|%s|%s\n' "${root_finding_code}" "${root_description}"
+  fi
+fi
+
+if [ "${check_root_filesystem}" -eq 1 ] \
+   && findmnt -n -o FSTYPE "${storage_root}" 2>/dev/null | grep -qx btrfs \
+   && command -v btrfs >/dev/null 2>&1; then
+  echo "[storage] btrfs device stats for ${storage_root}"
+  btrfs_stats="$(btrfs device stats "${storage_root}" 2>&1 || true)"
   printf '%s\n' "${btrfs_stats}"
   if grep -Eq '[[:space:]][1-9][0-9]*$' <<<"${btrfs_stats}"; then
     echo "MEO_FINDING|warning|storage.btrfs_device_errors|Btrfs reported non-zero device error counters."
@@ -54,6 +76,3 @@ if command -v nvme >/dev/null 2>&1; then
   done
 fi
 
-if [ "${MEOARCH_REPAIR_SCOPE:-system}" = "live" ] && [ ! -d /mnt/etc ]; then
-  echo "MEO_FINDING|info|storage.target_not_mounted|Mount an installed system at /mnt to inspect or repair its boot files."
-fi

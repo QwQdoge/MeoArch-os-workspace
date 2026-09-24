@@ -272,6 +272,26 @@ int main(int argc, char *argv[])
                          controller.retranslateUserFacingState();
                      });
 
+    // Do not dismiss Plymouth merely because Cage managed to exec this
+    // process. The first swapped Qt Quick frame is the earliest point at which
+    // the graphical handoff is actually visible to the user.
+    if (productionRequested) {
+        if (auto *quickWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().constFirst())) {
+            auto firstFrameReady = std::make_shared<bool>(false);
+            QObject::connect(quickWindow, &QQuickWindow::frameSwapped, quickWindow,
+                             [firstFrameReady] {
+                *firstFrameReady = true;
+                QProcess::startDetached(QStringLiteral("/usr/bin/systemd-notify"),
+                                        {QStringLiteral("--ready"),
+                                         QStringLiteral("--status=MeoArch installer UI is visible")});
+            }, Qt::SingleShotConnection);
+            QTimer::singleShot(20000, quickWindow, [firstFrameReady, &app] {
+                if (!*firstFrameReady)
+                    app.exit(70);
+            });
+        }
+    }
+
     // Keep visual-regression capture in the C++ host.  Let the source-page
     // fonts and window-level wallpaper settle before grabbing the first frame.
     QString screenshotPath;

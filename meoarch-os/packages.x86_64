@@ -114,6 +114,7 @@ openvpn
 partclone
 parted
 partimage
+pciutils
 pcsclite
 plymouth
 ppp

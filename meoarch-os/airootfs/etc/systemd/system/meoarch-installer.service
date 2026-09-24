@@ -1,8 +1,8 @@
 [Unit]
 Description=MeoArch graphical installer kiosk
-# This Live-only kiosk owns tty1. The profile statically masks
-# getty@tty1.service, so systemd never arbitrates a runtime tty conflict
-# between a login prompt and Cage. Networking is requested in parallel.
+# This Live-only kiosk owns tty1 in graphical install/repair modes. The tty1
+# getty drop-in is eligible only when the bootloader explicitly selects
+# meoarch.mode=tty, so it cannot race Cage here. Networking is requested in parallel.
 After=systemd-user-sessions.service systemd-logind.service seatd.service
 Wants=NetworkManager.service seatd.service
 Conflicts=systemd-networkd.service systemd-networkd.socket
@@ -13,7 +13,8 @@ StartLimitIntervalSec=30s
 StartLimitBurst=3
 
 [Service]
-Type=simple
+Type=notify
+NotifyAccess=all
 User=root
 TTYPath=/dev/tty1
 StandardInput=tty
@@ -39,6 +40,9 @@ ExecStartPre=/usr/bin/usermod -aG audio,seat,tty live
 # a production launch by supplying command-line flags.
 ExecStartPre=/usr/bin/install -m 0600 -o root -g root /dev/null /run/meoarch-installer/production-capability
 ExecStart=/usr/local/bin/meoarch-installer-kiosk
+# The Cage child calls systemd-notify only after its first Qt Quick frame has
+# reached the compositor. ExecStartPost therefore remains root-owned while
+# still representing a real graphical handoff.
 ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready
 Restart=on-failure
 RestartSec=2

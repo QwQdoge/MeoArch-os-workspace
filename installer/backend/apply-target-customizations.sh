@@ -264,11 +264,16 @@ install_file 644 "$(dirname -- "${BASH_SOURCE[0]}")/../data/autostart/org.meo.we
 
 # Target System Plymouth Theme & Hook Configuration
 boot_theme_source="${MEOARCH_GRUB_THEME_SOURCE:-$(dirname -- "${BASH_SOURCE[0]}")/../boot-theme}"
+boot_splash_source="${MEOARCH_GRUB_SPLASH_SOURCE:-${boot_theme_source}/../boot-splash.png}"
 if [ ! -f "${boot_theme_source}/theme.txt" ] || [ ! -f "${boot_theme_source}/brand.png" ]; then
   echo "Meo GRUB theme is missing from ${boot_theme_source}." >&2
   exit 13
 fi
-for theme_file in meoarch.plymouth meoarch.script background.png logo.png spinner.png warning.png progress_box.png progress_bar.png; do
+if [ ! -f "${boot_splash_source}" ] || [ -L "${boot_splash_source}" ]; then
+  echo "Meo GRUB background is missing or unsafe: ${boot_splash_source}." >&2
+  exit 13
+fi
+for theme_file in meoarch.plymouth meoarch.script logo.png; do
   [ -s "${runtime_source}/share/plymouth/themes/meoarch/$theme_file" ] || {
     echo "Required live Plymouth asset is missing: $theme_file" >&2; exit 13;
   }
@@ -277,6 +282,7 @@ target_grub_theme="${target_root}/boot/grub/themes/meoarch"
 [ ! -L "${target_grub_theme}" ] || { echo "Refusing symlinked target GRUB theme." >&2; exit 13; }
 install -d "${target_grub_theme}" "${target_root}/boot/grub"
 cp -a "${boot_theme_source}/." "${target_grub_theme}/"
+install_file 644 "${boot_splash_source}" "${target_root}/boot/grub/splash.png"
 [ -f "${target_root}/etc/default/grub" ] || { echo "Target GRUB defaults are missing." >&2; exit 13; }
 python3 - "${target_root}/etc/default/grub" <<'PY'
 import re

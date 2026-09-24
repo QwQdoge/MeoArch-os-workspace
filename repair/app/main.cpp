@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <QLocale>
 #include <QQmlApplicationEngine>
+#include <QProcess>
 #include <QQuickWindow>
 #include <QSettings>
 #include <QTextStream>
@@ -82,6 +83,7 @@ void printUsage()
         << "  meoarch-repair --category audio        Open the sound troubleshooting flow\n"
         << "  meoarch-repair --cli --category all    Run fixed read-only checks\n"
         << "  meoarch-repair --cli --category=all    Equivalent inline form\n"
+        << "  meoarch-repair --status                Print environment, network, target, and account state\n"
         << "  meoarch-repair --list-categories       Print category metadata as JSON\n"
         << "  meoarch-repair --classify '没有声音'    Classify locally without running a check\n"
         << "  meoarch-repair --questions=audio       Print installed guided questions\n"
@@ -100,6 +102,7 @@ int main(int argc, char *argv[])
 {
     bool cliRequested = false;
     bool listRequested = false;
+    bool statusRequested = false;
     bool classifyRequested = false;
     bool questionsRequested = false;
     bool guidanceRequested = false;
@@ -109,6 +112,7 @@ int main(int argc, char *argv[])
         const QString argument = QString::fromLocal8Bit(argv[index]);
         cliRequested = cliRequested || argument == QStringLiteral("--cli");
         listRequested = listRequested || argument == QStringLiteral("--list-categories");
+        statusRequested = statusRequested || argument == QStringLiteral("--status");
         classifyRequested = classifyRequested || argument == QStringLiteral("--classify")
             || argument.startsWith(QStringLiteral("--classify="));
         questionsRequested = questionsRequested || argument == QStringLiteral("--questions")
@@ -123,7 +127,7 @@ int main(int argc, char *argv[])
         qputenv("MEOARCH_REPAIR_SCOPE", "live");
 
     std::unique_ptr<QCoreApplication> application;
-    if (cliRequested || listRequested || classifyRequested || questionsRequested
+    if (cliRequested || listRequested || statusRequested || classifyRequested || questionsRequested
         || guidanceRequested || helpRequested)
         application = std::make_unique<QCoreApplication>(argc, argv);
     else
@@ -138,6 +142,22 @@ int main(int argc, char *argv[])
     }
 
     RepairController controller;
+    if (statusRequested) {
+        controller.refreshEnvironmentState();
+        const QJsonObject output{
+            {QStringLiteral("schema"), QStringLiteral("org.meo.repair-status/v1")},
+            {QStringLiteral("scope"), controller.repairScope()},
+            {QStringLiteral("liveEnvironment"), controller.liveEnvironment()},
+            {QStringLiteral("targetMounted"), controller.mountedTargetAvailable()},
+            {QStringLiteral("network"), controller.networkConnectionState()},
+            {QStringLiteral("networkMessage"), controller.networkConnectionMessage()},
+            {QStringLiteral("account"), controller.accountConnectionState()},
+            {QStringLiteral("accountConfigured"), controller.accountConfigured()},
+            {QStringLiteral("signedIn"), controller.signedIn()}
+        };
+        QTextStream(stdout) << QJsonDocument(output).toJson(QJsonDocument::Indented);
+        return 0;
+    }
     if (guidanceRequested) {
         const QString category = optionValue(arguments, QStringLiteral("--evaluate-guidance"))
                                      .trimmed().toLower();
@@ -210,8 +230,10 @@ int main(int argc, char *argv[])
             completed = true;
             const QJsonObject output{
                 {QStringLiteral("schema"), QStringLiteral("org.meo.repair-check/v1")},
-                {QStringLiteral("scope"), controller.liveEnvironment()
-                     ? QStringLiteral("live") : QStringLiteral("system")},
+                {QStringLiteral("scope"), controller.repairScope()},
+                {QStringLiteral("targetMounted"), controller.mountedTargetAvailable()},
+                {QStringLiteral("network"), controller.networkConnectionState()},
+                {QStringLiteral("account"), controller.accountConnectionState()},
                 {QStringLiteral("category"), controller.selectedCategory()},
                 {QStringLiteral("state"), controller.auditState()},
                 {QStringLiteral("summary"), controller.auditSummary()},
@@ -393,6 +415,19 @@ int main(int argc, char *argv[])
     });
 
     auto *window = qobject_cast<QQuickWindow *>(rootObject);
+    if (window && controller.liveEnvironment()) {
+        auto firstFrameReady = std::make_shared<bool>(false);
+        QObject::connect(window, &QQuickWindow::frameSwapped, window, [firstFrameReady] {
+            *firstFrameReady = true;
+            QProcess::startDetached(QStringLiteral("/usr/bin/systemd-notify"),
+                                    {QStringLiteral("--ready"),
+                                     QStringLiteral("--status=MeoArch Repair UI is visible")});
+        }, Qt::SingleShotConnection);
+        QTimer::singleShot(20000, window, [firstFrameReady, &app] {
+            if (!*firstFrameReady)
+                app.exit(70);
+        });
+    }
     if (window && arguments.contains(QStringLiteral("--kiosk")))
         window->showFullScreen();
     const QString screenshot = optionValue(arguments, QStringLiteral("--screenshot"));

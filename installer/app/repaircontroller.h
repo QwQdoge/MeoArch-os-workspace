@@ -17,6 +17,19 @@ class RepairController final : public QObject
     Q_OBJECT
     Q_PROPERTY(bool accountConfigured READ accountConfigured CONSTANT)
     Q_PROPERTY(bool liveEnvironment READ liveEnvironment CONSTANT)
+    Q_PROPERTY(QString repairScope READ repairScope CONSTANT)
+    Q_PROPERTY(bool mountedTargetAvailable READ mountedTargetAvailable NOTIFY environmentChanged)
+    Q_PROPERTY(QString networkConnectionState READ networkConnectionState NOTIFY environmentChanged)
+    Q_PROPERTY(QString networkConnectionMessage READ networkConnectionMessage NOTIFY environmentChanged)
+    Q_PROPERTY(QString accountConnectionState READ accountConnectionState NOTIFY authChanged)
+    Q_PROPERTY(QString storageHealthState READ storageHealthState NOTIFY environmentChanged)
+    Q_PROPERTY(QString storageHealthMessage READ storageHealthMessage NOTIFY environmentChanged)
+    Q_PROPERTY(QString bootHealthState READ bootHealthState NOTIFY environmentChanged)
+    Q_PROPERTY(QString bootHealthMessage READ bootHealthMessage NOTIFY environmentChanged)
+    Q_PROPERTY(QString timeHealthState READ timeHealthState NOTIFY environmentChanged)
+    Q_PROPERTY(QString timeHealthMessage READ timeHealthMessage NOTIFY environmentChanged)
+    Q_PROPERTY(QString powerHealthState READ powerHealthState NOTIFY environmentChanged)
+    Q_PROPERTY(QString powerHealthMessage READ powerHealthMessage NOTIFY environmentChanged)
     Q_PROPERTY(QVariantList checkCategories READ checkCategories CONSTANT)
     Q_PROPERTY(QString selectedCategory READ selectedCategory NOTIFY auditChanged)
     Q_PROPERTY(QString checkLog READ checkLog NOTIFY auditChanged)
@@ -72,6 +85,19 @@ public:
 
     bool accountConfigured() const;
     bool liveEnvironment() const { return m_liveEnvironment; }
+    QString repairScope() const { return m_liveEnvironment ? QStringLiteral("live") : QStringLiteral("system"); }
+    bool mountedTargetAvailable() const { return m_mountedTargetAvailable; }
+    QString networkConnectionState() const { return m_networkConnectionState; }
+    QString networkConnectionMessage() const { return m_networkConnectionMessage; }
+    QString accountConnectionState() const;
+    QString storageHealthState() const { return m_storageHealthState; }
+    QString storageHealthMessage() const { return m_storageHealthMessage; }
+    QString bootHealthState() const { return m_bootHealthState; }
+    QString bootHealthMessage() const { return m_bootHealthMessage; }
+    QString timeHealthState() const { return m_timeHealthState; }
+    QString timeHealthMessage() const { return m_timeHealthMessage; }
+    QString powerHealthState() const { return m_powerHealthState; }
+    QString powerHealthMessage() const { return m_powerHealthMessage; }
     QVariantList checkCategories() const { return m_checkCategories; }
     QString selectedCategory() const { return m_selectedCategory; }
     QString checkLog() const { return m_checkLog; }
@@ -124,6 +150,7 @@ public:
     QString displayRecoveryMessage() const { return m_displayRecoveryMessage; }
     int displayRecoverySeconds() const { return m_displayRecoverySeconds; }
 
+    Q_INVOKABLE void refreshEnvironmentState();
     Q_INVOKABLE void signIn(const QString &email, const QString &password);
     Q_INVOKABLE void verifyTotp(const QString &code);
     Q_INVOKABLE void signOut();
@@ -157,6 +184,7 @@ public:
     Q_INVOKABLE void revertDisplayRecovery();
 
 signals:
+    void environmentChanged();
     void authChanged();
     void credentialsChanged();
     void auditChanged();
@@ -245,6 +273,17 @@ private:
 
     QProcess *m_auditProcess = nullptr;
     bool m_liveEnvironment = false;
+    bool m_mountedTargetAvailable = false;
+    QString m_networkConnectionState = QStringLiteral("unknown");
+    QString m_networkConnectionMessage;
+    QString m_storageHealthState = QStringLiteral("unknown");
+    QString m_storageHealthMessage;
+    QString m_bootHealthState = QStringLiteral("unknown");
+    QString m_bootHealthMessage;
+    QString m_timeHealthState = QStringLiteral("unknown");
+    QString m_timeHealthMessage;
+    QString m_powerHealthState = QStringLiteral("unknown");
+    QString m_powerHealthMessage;
     QVariantList m_checkCategories;
     QString m_selectedCategory = QStringLiteral("all");
     QString m_userProblem;

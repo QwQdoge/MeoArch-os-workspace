@@ -148,7 +148,7 @@ install(TARGETS meoarch-repair-privileged-service
         RUNTIME DESTINATION lib/meoarch-repair)
 install(DIRECTORY qml/ DESTINATION lib/meoarch-repair/qml)
 install(PROGRAMS
-    checks/all.sh checks/audio.sh checks/display.sh checks/network.sh checks/boot.sh checks/packages.sh
+    checks/all.sh checks/hardware.sh checks/audio.sh checks/display.sh checks/network.sh checks/boot.sh checks/packages.sh
     checks/storage.sh checks/graphics.sh checks/security.sh
     DESTINATION lib/meoarch-repair/checks
 )

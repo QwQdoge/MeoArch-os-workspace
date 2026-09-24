@@ -5,9 +5,12 @@
 #include <QDateTime>
 #include <QDir>
 #include <QDBusConnection>
+#include <QDBusInterface>
 #include <QDBusMessage>
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
+#include <QDBusReply>
+#include <QDBusVariant>
 #include <QFile>
 #include <QFileInfo>
 #include <QHostAddress>
@@ -20,6 +23,7 @@
 #include <QRegularExpression>
 #include <QSet>
 #include <QSettings>
+#include <QStorageInfo>
 #include <QUrl>
 #include <QUuid>
 #include <qt6keychain/keychain.h>
@@ -114,42 +118,59 @@ RepairController::RepairController(QObject *parent)
             ? tr("TTY control is unavailable because this Live repair session does not have the required root tools.")
             : tr("TTY control is available only in the Live repair environment so it cannot disrupt an installed desktop session.");
 
+    refreshEnvironmentState();
+
     m_checkCategories = {
         QVariantMap{{QStringLiteral("id"), QStringLiteral("all")},
-                    {QStringLiteral("title"), tr("Quick check")},
-                    {QStringLiteral("description"), tr("Run every read-only diagnostic category")},
+                    {QStringLiteral("title"), m_liveEnvironment ? tr("Live + target overview") : tr("System quick check")},
+                    {QStringLiteral("description"), m_liveEnvironment
+                        ? tr("Check the Live environment and the mounted installed target without changing either")
+                        : tr("Run every read-only diagnostic category on this installed system")},
+                    {QStringLiteral("scope"), m_liveEnvironment ? QStringLiteral("mixed") : QStringLiteral("system")},
                     {QStringLiteral("icon"), QStringLiteral("troubleshoot")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("audio")},
                     {QStringLiteral("title"), tr("Sound")},
                     {QStringLiteral("description"), tr("Outputs, mute, volume, and PipeWire services")},
+                    {QStringLiteral("scope"), m_liveEnvironment ? QStringLiteral("live") : QStringLiteral("system")},
                     {QStringLiteral("icon"), QStringLiteral("volume_up")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("display")},
                     {QStringLiteral("title"), tr("Displays")},
                     {QStringLiteral("description"), tr("Connected screens and disabled outputs")},
+                    {QStringLiteral("scope"), m_liveEnvironment ? QStringLiteral("live") : QStringLiteral("system")},
                     {QStringLiteral("icon"), QStringLiteral("desktop_windows")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("network")},
-                    {QStringLiteral("title"), tr("Network")},
-                    {QStringLiteral("description"), tr("Links, routes, DNS, and NetworkManager")},
+                    {QStringLiteral("title"), m_liveEnvironment ? tr("Live network") : tr("Network")},
+                    {QStringLiteral("description"), tr("Connection, captive portal, routes, DNS, and NetworkManager")},
+                    {QStringLiteral("scope"), m_liveEnvironment ? QStringLiteral("live") : QStringLiteral("system")},
                     {QStringLiteral("icon"), QStringLiteral("wifi")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("boot")},
-                    {QStringLiteral("title"), tr("Boot")},
-                    {QStringLiteral("description"), tr("Boot loader, mounts, and failed units")},
+                    {QStringLiteral("title"), m_liveEnvironment ? tr("Installed target boot") : tr("Boot")},
+                    {QStringLiteral("description"), m_liveEnvironment
+                        ? tr("Boot loader, initramfs, and boot mounts under /mnt")
+                        : tr("Boot loader, initramfs, mounts, and failed units")},
+                    {QStringLiteral("scope"), m_liveEnvironment ? QStringLiteral("target") : QStringLiteral("system")},
                     {QStringLiteral("icon"), QStringLiteral("rocket_launch")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("packages")},
-                    {QStringLiteral("title"), tr("Packages")},
-                    {QStringLiteral("description"), tr("Package database and file integrity")},
+                    {QStringLiteral("title"), m_liveEnvironment ? tr("Installed target packages") : tr("Packages")},
+                    {QStringLiteral("description"), tr("Package database, signing keys, and file integrity")},
+                    {QStringLiteral("scope"), m_liveEnvironment ? QStringLiteral("target") : QStringLiteral("system")},
                     {QStringLiteral("icon"), QStringLiteral("inventory_2")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("storage")},
-                    {QStringLiteral("title"), tr("Storage")},
-                    {QStringLiteral("description"), tr("Capacity, mounts, SMART, and Btrfs signals")},
+                    {QStringLiteral("title"), m_liveEnvironment ? tr("Disks and installed target") : tr("Storage")},
+                    {QStringLiteral("description"), tr("Capacity, mounts, SMART, NVMe, and Btrfs signals")},
+                    {QStringLiteral("scope"), m_liveEnvironment ? QStringLiteral("target") : QStringLiteral("system")},
                     {QStringLiteral("icon"), QStringLiteral("hard_drive")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("graphics")},
                     {QStringLiteral("title"), tr("Graphics")},
-                    {QStringLiteral("description"), tr("GPU drivers, kernel messages, and sessions")},
+                    {QStringLiteral("description"), tr("GPU drivers, kernel messages, and the current graphical session")},
+                    {QStringLiteral("scope"), m_liveEnvironment ? QStringLiteral("live") : QStringLiteral("system")},
                     {QStringLiteral("icon"), QStringLiteral("monitor")}},
         QVariantMap{{QStringLiteral("id"), QStringLiteral("security")},
                     {QStringLiteral("title"), tr("Security")},
-                    {QStringLiteral("description"), tr("Lynis hardening and security posture")},
+                    {QStringLiteral("description"), m_liveEnvironment
+                        ? tr("Security posture of the current Live environment")
+                        : tr("Lynis hardening and security posture")},
+                    {QStringLiteral("scope"), m_liveEnvironment ? QStringLiteral("live") : QStringLiteral("system")},
                     {QStringLiteral("icon"), QStringLiteral("health_and_safety")}},
     };
 
@@ -253,6 +274,237 @@ bool RepairController::accountConfigured() const
     const QUrl url(m_supabaseUrl);
     return url.isValid() && url.scheme() == QStringLiteral("https") && !url.host().isEmpty()
         && !m_publishableKey.isEmpty();
+}
+
+
+QString RepairController::accountConnectionState() const
+{
+    if (!accountConfigured())
+        return QStringLiteral("not_configured");
+    if (m_authState == QStringLiteral("signed_in"))
+        return QStringLiteral("connected");
+    if (m_authState == QStringLiteral("signing_in") || m_authState == QStringLiteral("mfa_required"))
+        return QStringLiteral("connecting");
+    if (m_authState == QStringLiteral("error"))
+        return QStringLiteral("error");
+    return QStringLiteral("available");
+}
+
+void RepairController::refreshEnvironmentState()
+{
+    const bool targetAvailable =
+        QFileInfo(QStringLiteral("/mnt/etc/os-release")).isFile()
+        && QFileInfo(QStringLiteral("/mnt/usr")).isDir();
+
+    QString networkState = QStringLiteral("unavailable");
+    QString networkMessage = tr("NetworkManager is unavailable.");
+
+    QDBusInterface properties(QStringLiteral("org.freedesktop.NetworkManager"),
+                              QStringLiteral("/org/freedesktop/NetworkManager"),
+                              QStringLiteral("org.freedesktop.DBus.Properties"),
+                              QDBusConnection::systemBus());
+    properties.setTimeout(500);
+    if (properties.isValid()) {
+        const QDBusReply<QDBusVariant> stateReply =
+            properties.call(QStringLiteral("Get"),
+                            QStringLiteral("org.freedesktop.NetworkManager"),
+                            QStringLiteral("State"));
+        const QDBusReply<QDBusVariant> connectivityReply =
+            properties.call(QStringLiteral("Get"),
+                            QStringLiteral("org.freedesktop.NetworkManager"),
+                            QStringLiteral("Connectivity"));
+        if (stateReply.isValid()) {
+            // NetworkManager NMState: 20 disconnected, 40 connecting,
+            // 50 local, 60 site, 70 global. NMConnectivity: 1 none,
+            // 2 portal, 3 limited, 4 full.
+            const uint state = stateReply.value().variant().toUInt();
+            const uint connectivity = connectivityReply.isValid()
+                ? connectivityReply.value().variant().toUInt() : 0;
+            if (connectivity == 2) {
+                networkState = QStringLiteral("portal");
+                networkMessage = tr("A network is connected, but sign-in through a captive portal is required.");
+            } else if (state >= 70 && (connectivity == 4 || connectivity == 0)) {
+                networkState = QStringLiteral("online");
+                networkMessage = tr("NetworkManager reports global connectivity.");
+            } else if (state >= 50 || connectivity == 3) {
+                networkState = QStringLiteral("limited");
+                networkMessage = tr("A local network is connected, but full internet access is not confirmed.");
+            } else if (state == 40) {
+                networkState = QStringLiteral("connecting");
+                networkMessage = tr("NetworkManager is connecting.");
+            } else {
+                networkState = QStringLiteral("offline");
+                networkMessage = tr("No active network connection is available.");
+            }
+        }
+    }
+
+    const QString storageRoot = m_liveEnvironment && targetAvailable
+        ? QStringLiteral("/mnt") : QStringLiteral("/");
+    QString storageState = QStringLiteral("unavailable");
+    QString storageMessage = tr("Storage information is unavailable.");
+    const QStorageInfo storage(storageRoot);
+    if (storage.isValid() && storage.isReady() && storage.bytesTotal() > 0) {
+        const qint64 total = storage.bytesTotal();
+        const qint64 available = storage.bytesAvailable();
+        const double freeRatio = static_cast<double>(available) / static_cast<double>(total);
+        const auto gib = [](qint64 bytes) {
+            return QString::number(static_cast<double>(bytes) / (1024.0 * 1024.0 * 1024.0), 'f', 1);
+        };
+        storageState = (freeRatio < 0.10 || available < 5LL * 1024 * 1024 * 1024)
+            ? QStringLiteral("warning") : QStringLiteral("healthy");
+        storageMessage = m_liveEnvironment && targetAvailable
+            ? tr("%1 GB free of %2 GB on the installed target mounted at /mnt.")
+                  .arg(gib(available), gib(total))
+            : tr("%1 GB free of %2 GB on the current system.")
+                  .arg(gib(available), gib(total));
+    } else if (m_liveEnvironment && !targetAvailable) {
+        storageMessage = tr("Mount the installed system at /mnt to inspect its root storage.");
+    }
+
+    QString bootState = QStringLiteral("unavailable");
+    QString bootMessage;
+    if (m_liveEnvironment) {
+        if (!targetAvailable) {
+            bootMessage = tr("The installed system is not mounted at /mnt.");
+        } else {
+            const QStringList bootMarkers = {
+                QStringLiteral("/mnt/boot/grub"),
+                QStringLiteral("/mnt/boot/EFI"),
+                QStringLiteral("/mnt/boot/efi/EFI"),
+                QStringLiteral("/mnt/efi/EFI"),
+                QStringLiteral("/mnt/boot/loader"),
+                QStringLiteral("/mnt/boot/limine.conf"),
+                QStringLiteral("/mnt/boot/limine")
+            };
+            bool loaderFound = false;
+            for (const QString &path : bootMarkers) {
+                if (QFileInfo::exists(path)) {
+                    loaderFound = true;
+                    break;
+                }
+            }
+            bootState = loaderFound ? QStringLiteral("healthy") : QStringLiteral("warning");
+            bootMessage = loaderFound
+                ? tr("A boot-loader layout is present on the mounted installed target.")
+                : tr("No known GRUB, systemd-boot, or Limine layout was found under /mnt/boot.");
+        }
+    } else {
+        QProcess failedUnits;
+        failedUnits.setProcessChannelMode(QProcess::MergedChannels);
+        failedUnits.start(QStringLiteral("/usr/bin/systemctl"),
+                          {QStringLiteral("--failed"), QStringLiteral("--no-legend"),
+                           QStringLiteral("--plain")});
+        if (failedUnits.waitForStarted(300) && failedUnits.waitForFinished(900)) {
+            const QString output = QString::fromUtf8(failedUnits.readAll()).trimmed();
+            const QStringList lines = output.split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+            bootState = lines.isEmpty() ? QStringLiteral("healthy") : QStringLiteral("warning");
+            bootMessage = lines.isEmpty()
+                ? tr("systemd reports no failed system services.")
+                : tr("systemd reports %1 failed system service(s).").arg(lines.size());
+        } else {
+            failedUnits.kill();
+            failedUnits.waitForFinished(100);
+            bootMessage = tr("The current system service state could not be read quickly.");
+        }
+    }
+
+    QString timeState = QStringLiteral("unavailable");
+    QString timeMessage = tr("Time synchronization state is unavailable.");
+    QProcess timeCheck;
+    timeCheck.setProcessChannelMode(QProcess::MergedChannels);
+    timeCheck.start(QStringLiteral("/usr/bin/timedatectl"),
+                    {QStringLiteral("show"), QStringLiteral("-p"),
+                     QStringLiteral("NTPSynchronized"), QStringLiteral("--value")});
+    if (timeCheck.waitForStarted(300) && timeCheck.waitForFinished(700)) {
+        const QString synchronized = QString::fromUtf8(timeCheck.readAll()).trimmed().toLower();
+        if (synchronized == QStringLiteral("yes")) {
+            timeState = QStringLiteral("healthy");
+            timeMessage = tr("The system clock is synchronized through NTP.");
+        } else if (synchronized == QStringLiteral("no")) {
+            timeState = QStringLiteral("warning");
+            timeMessage = tr("The system clock is not currently synchronized through NTP.");
+        }
+    } else {
+        timeCheck.kill();
+        timeCheck.waitForFinished(100);
+    }
+
+    QString powerState = QStringLiteral("info");
+    QString powerMessage = tr("No battery was detected; this may be a desktop or virtual machine.");
+    const QDir powerDirectory(QStringLiteral("/sys/class/power_supply"));
+    const QFileInfoList supplies = powerDirectory.entryInfoList(
+        QDir::Dirs | QDir::NoDotAndDotDot | QDir::Readable);
+    for (const QFileInfo &supply : supplies) {
+        QFile typeFile(supply.filePath() + QStringLiteral("/type"));
+        if (!typeFile.open(QIODevice::ReadOnly | QIODevice::Text))
+            continue;
+        const QString type = QString::fromUtf8(typeFile.readAll()).trimmed();
+        if (type.compare(QStringLiteral("Battery"), Qt::CaseInsensitive) != 0)
+            continue;
+
+        QFile capacityFile(supply.filePath() + QStringLiteral("/capacity"));
+        QFile statusFile(supply.filePath() + QStringLiteral("/status"));
+        const bool capacityReadable = capacityFile.open(QIODevice::ReadOnly | QIODevice::Text);
+        const bool statusReadable = statusFile.open(QIODevice::ReadOnly | QIODevice::Text);
+        bool capacityOk = false;
+        const int capacity = capacityReadable
+            ? QString::fromUtf8(capacityFile.readAll()).trimmed().toInt(&capacityOk) : -1;
+        const QString status = statusReadable
+            ? QString::fromUtf8(statusFile.readAll()).trimmed() : QString();
+        QString statusLabel = status;
+        if (status.compare(QStringLiteral("Charging"), Qt::CaseInsensitive) == 0)
+            statusLabel = tr("Charging");
+        else if (status.compare(QStringLiteral("Discharging"), Qt::CaseInsensitive) == 0)
+            statusLabel = tr("Discharging");
+        else if (status.compare(QStringLiteral("Full"), Qt::CaseInsensitive) == 0)
+            statusLabel = tr("Full");
+        else if (status.compare(QStringLiteral("Not charging"), Qt::CaseInsensitive) == 0)
+            statusLabel = tr("Not charging");
+
+        if (capacityOk) {
+            const bool low = capacity < 20
+                && status.compare(QStringLiteral("Charging"), Qt::CaseInsensitive) != 0
+                && status.compare(QStringLiteral("Full"), Qt::CaseInsensitive) != 0;
+            powerState = low ? QStringLiteral("warning") : QStringLiteral("healthy");
+            powerMessage = statusLabel.isEmpty()
+                ? tr("Battery: %1%.").arg(capacity)
+                : tr("Battery: %1% · %2.").arg(capacity).arg(statusLabel);
+        } else {
+            powerState = QStringLiteral("healthy");
+            powerMessage = statusLabel.isEmpty()
+                ? tr("A battery is present.")
+                : tr("Battery status: %1.").arg(statusLabel);
+        }
+        break;
+    }
+
+    const bool changed = m_mountedTargetAvailable != targetAvailable
+        || m_networkConnectionState != networkState
+        || m_networkConnectionMessage != networkMessage
+        || m_storageHealthState != storageState
+        || m_storageHealthMessage != storageMessage
+        || m_bootHealthState != bootState
+        || m_bootHealthMessage != bootMessage
+        || m_timeHealthState != timeState
+        || m_timeHealthMessage != timeMessage
+        || m_powerHealthState != powerState
+        || m_powerHealthMessage != powerMessage;
+
+    m_mountedTargetAvailable = targetAvailable;
+    m_networkConnectionState = networkState;
+    m_networkConnectionMessage = networkMessage;
+    m_storageHealthState = storageState;
+    m_storageHealthMessage = storageMessage;
+    m_bootHealthState = bootState;
+    m_bootHealthMessage = bootMessage;
+    m_timeHealthState = timeState;
+    m_timeHealthMessage = timeMessage;
+    m_powerHealthState = powerState;
+    m_powerHealthMessage = powerMessage;
+
+    if (changed)
+        emit environmentChanged();
 }
 
 QUrl RepairController::authUrl(const QString &path) const

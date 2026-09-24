@@ -5,20 +5,38 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 asset_tmp="$(mktemp -d)"
 trap 'rm -rf -- "$asset_tmp"' EXIT
 
-magick -size 760x152 xc:none \
-    -font /usr/share/fonts/noto/NotoSans-Bold.ttf \
-    -fill '#211A2B' -pointsize 64 -gravity northwest \
-    -annotate +0+0 'MeoArch' \
-    -font /usr/share/fonts/noto/NotoSans-Regular.ttf \
-    -fill '#49454F' -pointsize 25 \
-    -annotate +2+82 'Install  ·  Repair  ·  Recover' \
-    -depth 8 "PNG32:$script_dir/brand.png"
+repo_root="$(cd -- "$script_dir/../../../.." && pwd)"
+logo_svg="$repo_root/assets/icons/Logo.svg"
+splash_png="$script_dir/../../splash.png"
+syslinux_splash_png="$repo_root/meoarch-os/syslinux/splash.png"
 
-magick -size 96x96 xc:none \
-    -fill 'rgba(33,26,43,0.88)' \
-    -stroke 'rgba(255,255,255,0.24)' -strokewidth 2 \
-    -draw 'roundrectangle 1,1 94,94 22,22' \
-    -depth 8 "PNG32:$asset_tmp/panel.png"
+[ -f "$logo_svg" ] || {
+    echo "Canonical MeoArch logo is missing: $logo_svg" >&2
+    exit 1
+}
+
+# Keep the boot brand exact: rasterize the canonical repository SVG instead of
+# redrawing or typesetting a second logo.
+magick -background none "$logo_svg" \
+    -resize 260x117 \
+    -gravity center -extent 260x117 \
+    -strip -depth 8 "PNG32:$script_dir/brand.png"
+
+# Abstract Pixel/Material-style background only. Menu text, logo, and selection
+# states are rendered by GRUB so the bitmap never bakes in fake UI.
+magick -size 1920x1080 xc:'#FAF9FC' \
+    -fill '#E9EDFF' -draw 'ellipse 70,40 560,390 0,360' \
+    -fill '#F3EAF9' -draw 'ellipse 80,680 360,280 0,360' \
+    -fill '#EDE4FA' -draw 'ellipse 1880,460 460,330 0,360' \
+    -fill '#F8E8F2' -draw 'ellipse 1840,930 360,300 0,360' \
+    -fill '#E5EAFF' -draw 'ellipse 1550,1020 320,250 0,360' \
+    -strip -depth 8 "$splash_png"
+
+# Syslinux uses a 4:3 VESA menu. Derive its background from the same source so
+# BIOS and UEFI boot paths keep one visual language.
+magick "$splash_png" \
+    -resize '640x480^' -gravity center -extent 640x480 \
+    -strip -depth 8 "$syslinux_splash_png"
 
 magick -size 96x96 xc:none \
     -fill 'rgba(103,80,164,0.96)' \
@@ -40,7 +58,6 @@ slice_box() {
     magick "$source" -crop 32x32+64+64 +repage -depth 8 "PNG32:$script_dir/${stem}_se.png"
 }
 
-slice_box "$asset_tmp/panel.png" panel
 slice_box "$asset_tmp/select.png" select
 
 grub_mkfont="${GRUB_MKFONT:-$(command -v grub-mkfont || true)}"

@@ -1,0 +1,73 @@
+name: Component build
+
+on:
+  pull_request:
+    paths:
+      - 'installer/**'
+      - 'repair/**'
+      - 'scripts/acceptance/20-build-components.sh'
+      - 'scripts/build-installer-app.sh'
+      - '.github/workflows/component-build.yml'
+  push:
+    branches:
+      - boot/live-grub-contracts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: component-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Installer + repair runtime
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    timeout-minutes: 35
+    env:
+      HOME: /tmp/meo-ci-home
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm \
+            base-devel cmake ninja git extra-cmake-modules python \
+            qt6-base qt6-declarative qt6-tools qt6-shadertools \
+            kconfig kcoreaddons kguiaddons ki18n kirigami \
+            networkmanager-qt bluez-qt solid pulseaudio-qt \
+            libplasma plasma-workspace qtkeychain-qt6 polkit-qt6
+          mkdir -p "$HOME"
+
+      - name: Check out workspace
+        uses: actions/checkout@v6
+
+      - name: Check out MeoUI
+        uses: actions/checkout@v6
+        with:
+          repository: QwQdoge/MeoUI
+          ref: main
+          path: deps/meo-ui
+
+      - name: Check out MeoKDE
+        uses: actions/checkout@v6
+        with:
+          repository: QwQdoge/meo-kde
+          ref: main
+          path: deps/meo-kde
+
+      - name: Provide sibling project layout
+        run: |
+          ln -sfn "$PWD/deps/meo-ui" ../meo-ui
+          ln -sfn "$PWD/deps/meo-kde" ../meo-kde
+          test -f ../meo-ui/CMakeLists.txt
+          test -f ../meo-kde/native/system/CMakeLists.txt
+
+      - name: Build installer and shared runtimes
+        env:
+          MEOARCH_OUTPUT_ROOT: ${{ github.workspace }}/build/ci-output
+          MEOARCH_RUN_DIR: ${{ github.workspace }}/build/ci-output/validation/component-build
+        run: scripts/acceptance/20-build-components.sh
