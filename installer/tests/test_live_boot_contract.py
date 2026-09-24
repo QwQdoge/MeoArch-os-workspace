@@ -161,7 +161,7 @@ class LiveBootContractTests(unittest.TestCase):
         self.assertIn("Type=notify", unit)
         self.assertIn("NotifyAccess=all", unit)
         self.assertIn("ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready", unit)
-        self.assertIn("StartLimitIntervalSec=90s", unit)
+        self.assertIn("StartLimitIntervalSec=30s", unit)
         self.assertIn("StartLimitBurst=3", unit)
         self.assertIn("&QQuickWindow::frameSwapped", installer)
         self.assertIn("&QQuickWindow::frameSwapped", repair)
