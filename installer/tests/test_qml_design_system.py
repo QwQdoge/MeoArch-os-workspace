@@ -77,7 +77,13 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertNotIn("qml6", launcher)
         self.assertNotIn("qmlscene", launcher)
         self.assertIn("native MeoArch Installer host is missing", launcher)
-        self.assertNotIn("Repeater", welcome)
+        # The readiness card is a fixed four-row model. A bounded Repeater is
+        # acceptable here; unbounded/dynamic startup content is not.
+        self.assertIn('Accessible.name: qsTr("Live environment check")', welcome)
+        for label in ("Environment", "Network", "Hardware", "Meo Account"):
+            self.assertIn('qsTr("' + label + '")', welcome)
+        self.assertNotIn("ListView", welcome)
+        self.assertNotIn("Loader", welcome)
         self.assertIn('qsTr("Review first. Nothing changes until you confirm.")', welcome)
         self.assertLess(
             host.index("loadCatalogs(initialUiLanguage);"),
