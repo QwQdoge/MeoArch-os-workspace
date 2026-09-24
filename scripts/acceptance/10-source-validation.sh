@@ -54,11 +54,11 @@ required=(
   meoarch-os/profiledef.sh
   meoarch-os/packages.x86_64
   meoarch-os/grub/themes/meoarch/theme.txt
-  meoarch-os/grub/themes/meoarch/generate-assets.sh
   meoarch-os/grub/themes/meoarch/brand.png
-  meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/10-meoarch-console.conf
   meoarch-os/grub/themes/meoarch/meoarch-sans-regular-24.pf2
   meoarch-os/grub/themes/meoarch/meoarch-sans-bold-24.pf2
+  meoarch-os/efiboot/loader/entries/03-archiso-tty-linux.conf
+  meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
   installer/qml/Main.qml
   installer/live-system/CMakeLists.txt
   installer/live-system/meosystemliveplugin.cpp
@@ -129,6 +129,12 @@ grep -A5 'qt_add_qml_module(meoui_module' "${meoui_source}/CMakeLists.txt" | gre
 grep -q 'SOVERSION 0' "${meoui_source}/CMakeLists.txt"
 grep -q '"schemaVersion": 1' installer/data/default_selections.json
 grep -q 'import Meo.System 1.0' installer/qml/pages/NetworkPage.qml
+grep -q 'import Meo.System 1.0' installer/qml/pages/WelcomePage.qml
+grep -q 'runtimeEnvironment READ runtimeEnvironment' installer/app/installercontroller.h
+grep -q 'hardwareDetected READ hardwareDetected' installer/app/installercontroller.h
+grep -q 'Live environment check' installer/qml/pages/WelcomePage.qml
+grep -q 'After installation' installer/qml/pages/WelcomePage.qml
+! rg -q 'org\.meo\.Accounts1|requestAuthentication\(|access_token|refresh_token|client_secret' installer/qml installer/app
 ! rg -q 'readonly property var wifiNetworks' installer/qml/pages/NetworkPage.qml
 ! rg -q 'preview-disk' installer/app/installercontroller.cpp
 grep -q 'for plasmoid in org.meo.topbar org.meo.timecenter; do' scripts/sync-installer-to-airootfs.sh
@@ -146,11 +152,6 @@ grep -q 'Target dynamic color, application, or input-method integration is missi
 grep -q 'git archive --format=tar HEAD meoarch-os' scripts/build-iso.sh
 grep -q -- '--acceptance' scripts/build-iso.sh
 grep -q 'Refusing acceptance SSH instrumentation without --acceptance' scripts/build-iso.sh
-grep -q '/usr/lib/systemd/system/sshd.service' scripts/build-iso.sh
-! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/sshd.service
-! test -L meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/sshd.service
-grep -q '^PasswordAuthentication no$' meoarch-os/airootfs/etc/ssh/sshd_config.d/10-archiso.conf
-grep -q '^PermitRootLogin no$' meoarch-os/airootfs/etc/ssh/sshd_config.d/10-archiso.conf
 grep -q 'Acceptance ISO output must be isolated under' scripts/build-iso.sh
 grep -q 'realpath -m -- "${out_dir}"' scripts/build-iso.sh
 grep -q 'packages/iso/acceptance/' scripts/acceptance/30-build-iso.sh
@@ -158,10 +159,7 @@ grep -q 'declared sibling MeoKDE desktop assets' scripts/verify-staging-provenan
 grep -q '^ExecStart=/usr/local/bin/choose-mirror$' meoarch-os/airootfs/etc/systemd/system/choose-mirror.service
 grep -q '^ExecStart=/usr/local/bin/livecd-sound -u$' meoarch-os/airootfs/etc/systemd/system/livecd-alsa-unmuter.service
 grep -q '^ExecStart=/usr/local/bin/livecd-sound -p$' meoarch-os/airootfs/etc/systemd/system/livecd-talk.service
-grep -q 'NetworkManager' meoarch-os/airootfs/etc/motd
-grep -q 'nmcli' meoarch-os/airootfs/etc/motd
-! grep -q 'wiki.archlinux.org/title/Installation_guide' meoarch-os/airootfs/etc/motd
-! grep -q 'iwctl' meoarch-os/airootfs/etc/motd
+grep -q 'Installation_guide' meoarch-os/airootfs/etc/motd
 ! rg -q 'installer\.py' meoarch-os installer/bin scripts/sync-installer-to-airootfs.sh scripts/verify-staging-provenance.sh
 ! rg -q 'meoarch-installer-live' meoarch-os installer/bin scripts/sync-installer-to-airootfs.sh scripts/verify-staging-provenance.sh
 ! test -e meoarch-os/airootfs/etc/xdg/autostart/meoarch-installer.desktop
@@ -191,34 +189,6 @@ grep -q 'KLocalization::setupLocalizedContext(&engine)' installer/app/main.cpp
 ! rg -q 'openDebugTerminal|debugTerminalAvailable|debugTerminalMessage' installer/app
 grep -q 'openDiagnosticTty' installer/app/repaircontroller.cpp
 grep -q 'TTYPath=/dev/tty3' installer/app/repaircontroller.cpp
-grep -q 'Q_PROPERTY(QString repairScope' installer/app/repaircontroller.h
-grep -q 'Q_PROPERTY(bool mountedTargetAvailable' installer/app/repaircontroller.h
-grep -q 'Q_PROPERTY(QString networkConnectionState' installer/app/repaircontroller.h
-grep -q 'Q_PROPERTY(QString accountConnectionState' installer/app/repaircontroller.h
-grep -q 'org.freedesktop.NetworkManager' installer/app/repaircontroller.cpp
-grep -q 'QStringLiteral("Connectivity")' installer/app/repaircontroller.cpp
-grep -q 'properties.setTimeout(500)' installer/app/repaircontroller.cpp
-grep -q 'function diagnosticSubjectLabel(category)' repair/qml/Main.qml
-grep -q '诊断对象 · 当前 Live 环境' repair/qml/Main.qml
-grep -q '诊断对象 · 已安装系统（/mnt）' repair/qml/Main.qml
-grep -q 'SystemState.requestWifiScan()' repair/qml/Main.qml
-grep -q 'SystemState.connectWifi' repair/qml/Main.qml
-grep -q 'SystemState.disconnectWifi()' repair/qml/Main.qml
-grep -q 'function onNetworkChanged()' repair/qml/Main.qml
-grep -q 'org.meo.repair-status/v1' repair/app/main.cpp
-grep -q 'statusRequested' repair/app/main.cpp
-grep -q 'Diagnostic subject: Live Environment' repair/checks/all.sh
-grep -q 'Diagnostic subject: Mounted Installed System' repair/checks/all.sh
-grep -q 'network.captive_portal' repair/checks/network.sh
-grep -q 'network.limited_connectivity' repair/checks/network.sh
-grep -q 'ip -6 route show' repair/checks/network.sh
-grep -q 'packages.target_not_mounted' repair/checks/packages.sh
-grep -q 'boot.loader_grub' repair/checks/boot.sh
-grep -q 'boot.loader_limine' repair/checks/boot.sh
-grep -q 'boot.loader_systemd_boot' repair/checks/boot.sh
-grep -q 'boot.offline_service_state' repair/checks/boot.sh
-grep -q 'storage.target_root_nearly_full' repair/checks/storage.sh
-grep -q 'check_root_filesystem=0' repair/checks/storage.sh
 grep -q 'structured_diagnostic_findings' installer/app/repaircontroller.cpp
 grep -q 'actionSupportedByEvidence' installer/app/repaircontroller.cpp
 grep -q 'org.meo.repair-plan-binding/v1' installer/app/repaircontroller.cpp
@@ -235,33 +205,16 @@ grep -q 'meoarch.mode=repair' meoarch-os/grub/grub.cfg
 grep -q 'themes/meoarch/theme.txt' meoarch-os/grub/grub.cfg
 grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/grub.cfg
 grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/loopback.cfg
+grep -q 'MeoArch OS - terminal only' meoarch-os/grub/grub.cfg
+grep -q 'meoarch.mode=tty systemd.unit=multi-user.target plymouth.enable=0' meoarch-os/grub/grub.cfg
+grep -q 'MeoArch OS - terminal only' meoarch-os/grub/loopback.cfg
+grep -q 'meoarch.mode=tty systemd.unit=multi-user.target plymouth.enable=0' meoarch-os/grub/loopback.cfg
 grep -q 'selected_item_pixmap_style = "select_\*.png"' meoarch-os/grub/themes/meoarch/theme.txt
-! grep -q 'menu_pixmap_style = "panel_\*.png"' meoarch-os/grub/themes/meoarch/theme.txt
-grep -q 'selected_item_color = "#FFFFFF"' meoarch-os/grub/themes/meoarch/theme.txt
-grep -q 'desktop-image-scale-method: "crop"' meoarch-os/grub/themes/meoarch/theme.txt
-grep -q 'left = 50%-130' meoarch-os/grub/themes/meoarch/theme.txt
-grep -q 'left = 50%-380' meoarch-os/grub/themes/meoarch/theme.txt
-grep -q 'assets/icons/Logo.svg' meoarch-os/grub/themes/meoarch/generate-assets.sh
-grep -q 'syslinux/splash.png' meoarch-os/grub/themes/meoarch/generate-assets.sh
-! grep -q -- '-annotate' meoarch-os/grub/themes/meoarch/generate-assets.sh
-grep -q '#ff6750a4' meoarch-os/syslinux/archiso_head.cfg
-grep -q '#ff49454f' meoarch-os/syslinux/archiso_head.cfg
 grep -q 'MeoArch Sans Bold 24' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Everything has a GUI. Every choice is yours.' meoarch-os/grub/themes/meoarch/theme.txt
 grep -q 'Window.SetBackgroundTopColor(0.0, 0.0, 0.0)' themes/plymouth/meoarch/meoarch.script
 grep -q 'logo_image = Image("logo.png")' themes/plymouth/meoarch/meoarch.script
-grep -q 'logo_glow_image = logo_image.Scale' themes/plymouth/meoarch/meoarch.script
-grep -q 'Math.Cos(frame_count \* 0.08)' themes/plymouth/meoarch/meoarch.script
 ! rg -q 'spinner_image|progress_bar_image|background.png' themes/plymouth/meoarch/meoarch.script
-grep -q 'display_text = f"ERROR: {title} - {message}"' installer/bin/meo-boot-status
-for stale_theme_asset in \
-  themes/plymouth/meoarch/background.png \
-  themes/plymouth/meoarch/spinner.png \
-  themes/plymouth/meoarch/warning.png \
-  themes/plymouth/meoarch/progress_box.png \
-  themes/plymouth/meoarch/progress_bar.png; do
-  ! test -e "${stale_theme_asset}"
-done
 cmp -s themes/plymouth/meoarch/meoarch.script meoarch-os/airootfs/usr/share/plymouth/themes/meoarch/meoarch.script
 ! rg -q 'STAGE:' themes/plymouth/meoarch installer/bin/meo-boot-status
 grep -q 'GRUB_TIMEOUT.*3' installer/backend/apply-target-customizations.sh
@@ -279,19 +232,6 @@ grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
 grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^After=systemd-user-sessions.service systemd-logind.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Wants=NetworkManager.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-grep -q '^Type=notify$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-grep -q '^NotifyAccess=all$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-grep -q '^ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-grep -q '^StartLimitIntervalSec=90s$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-grep -q '^StartLimitBurst=3$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-grep -q '&QQuickWindow::frameSwapped' installer/app/main.cpp
-grep -q '&QQuickWindow::frameSwapped' repair/app/main.cpp
-grep -q '/usr/bin/systemd-notify' installer/app/main.cpp
-grep -q '/usr/bin/systemd-notify' repair/app/main.cpp
-grep -q 'QTimer::singleShot(20000' installer/app/main.cpp
-grep -q 'QTimer::singleShot(20000' repair/app/main.cpp
-grep -q 'app.exit(70)' installer/app/main.cpp
-grep -q 'app.exit(70)' repair/app/main.cpp
 grep -q '^StartLimitIntervalSec=30s$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^StartLimitBurst=3$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Environment=XDG_RUNTIME_DIR=/run/meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
@@ -312,8 +252,8 @@ grep -q 'polkit.Result.YES' repair/data/org.meo.repair-live.rules
 ! grep -q 'org.meo.repair-live.policy' repair/CMakeLists.txt
 ! rg -q '^Before=getty@tty1.service$|^Conflicts=.*getty@tty1.service' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 ! test -e meoarch-os/airootfs/etc/systemd/system/getty@tty1.service
-grep -q '^ConditionKernelCommandLine=meoarch.mode=console$' meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/10-meoarch-console.conf
-grep -q -- '--autologin root' meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/10-meoarch-console.conf
+grep -Fq 'ConditionKernelCommandLine=meoarch.mode=tty' meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
+grep -Fq -- '--autologin root' meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
 for unit in systemd-networkd.service systemd-networkd.socket systemd-networkd-varlink.socket systemd-networkd-varlink-metrics.socket systemd-networkd-resolve-hook.socket; do
   test "$(readlink "meoarch-os/airootfs/etc/systemd/system/${unit}")" = '/dev/null'
 done
@@ -326,38 +266,85 @@ if rg -q -e '^sddm$' -e '^plasma-login-manager$' -e '^plasma-(desktop|workspace)
   exit 1
 fi
 grep -q '^seatd$' meoarch-os/packages.x86_64
-grep -q '^networkmanager$' meoarch-os/packages.x86_64
-grep -q '^wpa_supplicant$' meoarch-os/packages.x86_64
-! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/iwd.service
-! test -L meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/iwd.service
-! grep -q '^ExecStartPre=.*meo-boot-status stage desktop' installer/data/systemd/dropins/plasmalogin.service.d/10-meo-boot-status.conf
-grep -q '^OnFailure=meo-boot-status-failure@plasmalogin.service$' installer/data/systemd/dropins/plasmalogin.service.d/10-meo-boot-status.conf
-! test -e installer/data/systemd/dropins/sddm.service.d/10-meo-boot-status.conf
 ! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
 ! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
 
 grep -q "bootmodes=('bios.syslinux'" meoarch-os/profiledef.sh
-grep -q "'uefi.grub')" meoarch-os/profiledef.sh
-! grep -q "'uefi.systemd-boot'" meoarch-os/profiledef.sh
+grep -q "'uefi.systemd-boot')" meoarch-os/profiledef.sh
 grep -q '^airootfs_image_type="squashfs"$' meoarch-os/profiledef.sh
 expected_live_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1'
 bios_live_options="$(awk '/^LABEL arch$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
-uefi_live_options="$(awk '/^menuentry "Install MeoArch OS - graphical setup/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\/%INSTALL_DIR%\/boot\/%ARCH%\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
+uefi_live_options="$(sed -n 's/^options  //p' meoarch-os/efiboot/loader/entries/01-archiso-linux.conf)"
 [ "${bios_live_options}" = "${expected_live_options}" ]
 [ "${uefi_live_options}" = "${expected_live_options}" ]
 expected_repair_options="${expected_live_options/meoarch.mode=install/meoarch.mode=repair}"
 bios_repair_options="$(awk '/^LABEL archrepair$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
-uefi_repair_options="$(awk '/^menuentry "Diagnostics and repair - no installation/ { entry=1; next } entry && /^[[:space:]]*linux / { sub(/^[[:space:]]*linux[[:space:]]+\/%INSTALL_DIR%\/boot\/%ARCH%\/vmlinuz-linux[[:space:]]+/, ""); print; exit }' meoarch-os/grub/grub.cfg)"
+uefi_repair_options="$(sed -n 's/^options  //p' meoarch-os/efiboot/loader/entries/02-archiso-repair-linux.conf)"
+[ "${bios_repair_options}" = "${expected_repair_options}" ]
+expected_tty_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=tty systemd.unit=multi-user.target plymouth.enable=0 systemd.show_status=1 loglevel=4 vt.global_cursor_default=1'
+bios_tty_options="$(awk '/^LABEL archtty$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
+uefi_tty_options="$(sed -n 's/^options  //p' meoarch-os/efiboot/loader/entries/03-archiso-tty-linux.conf)"
+[ "${bios_tty_options}" = "${expected_tty_options}" ]
+[ "${uefi_tty_options}" = "${expected_tty_options}" ]
+[ "${uefi_repair_options}" = "${expected_repair_options}" ]
+grep -q '^APPEND .*meoarch.mode=install accessibility=on$' meoarch-os/syslinux/archiso_sys-linux.cfg
+for hook in base udev plymouth microcode modconf kms archiso block filesystems keyboard; do
+  grep -Eq "(^|[[:space:]\\(])${hook}([[:space:]\\)])" meoarch-os/airootfs/etc/mkinitcpio.conf.d/archiso.conf
+done
+
+duplicates="$(sed '/^[[:space:]]*#/d;/^[[:space:]]*$/d' meoarch-os/packages.x86_64 |
+  sort | uniq -d)"
+if [ -n "${duplicates}" ]; then
+  echo "Duplicate packages:"
+  echo "${duplicates}"
+  exit 1
+fi
+
+"${python_command}" -m unittest discover -s installer/tests -v
+find scripts installer repair -type f -name '*.sh' -print0 |
+  xargs -0 -n1 bash -n
+"${python_command}" - <<'PY'
+import json
+from pathlib import Path
+for root in ("installer", "meoarch-os"):
+    for path in Path(root).rglob("*.json"):
+        with path.open(encoding="utf-8") as handle:
+            json.load(handle)
+PY
+git diff --check
+echo "PASS: source validation" | tee "${evidence_dir}/status.txt"
+ meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
+grep -Fq 'ExecStart=-/usr/bin/agetty --noreset --noclear --autologin root - ${TERM}' meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
+for unit in systemd-networkd.service systemd-networkd.socket systemd-networkd-varlink.socket systemd-networkd-varlink-metrics.socket systemd-networkd-resolve-hook.socket; do
+  test "$(readlink "meoarch-os/airootfs/etc/systemd/system/${unit}")" = '/dev/null'
+done
+grep -q '^PLYMOUTH_COMMAND_TIMEOUT_SECONDS = 1$' installer/bin/meo-boot-status
+for milestone in early storage services; do
+  grep -q '^TimeoutStartSec=5s$' "installer/data/systemd/meo-boot-${milestone}.service"
+done
+if rg -q -e '^sddm$' -e '^plasma-login-manager$' -e '^plasma-(desktop|workspace)$' -e '^kwin$' meoarch-os/packages.x86_64; then
+  echo "Cage-only Live package profile includes a Plasma session component." >&2
+  exit 1
+fi
+grep -q '^seatd$' meoarch-os/packages.x86_64
+! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
+test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
+! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
+
+grep -q "bootmodes=('bios.syslinux'" meoarch-os/profiledef.sh
+grep -q "'uefi.systemd-boot')" meoarch-os/profiledef.sh
+grep -q '^airootfs_image_type="squashfs"$' meoarch-os/profiledef.sh
+expected_live_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1'
+bios_live_options="$(awk '/^LABEL arch$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
+uefi_live_options="$(sed -n 's/^options  //p' meoarch-os/efiboot/loader/entries/01-archiso-linux.conf)"
+[ "${bios_live_options}" = "${expected_live_options}" ]
+[ "${uefi_live_options}" = "${expected_live_options}" ]
+expected_repair_options="${expected_live_options/meoarch.mode=install/meoarch.mode=repair}"
+bios_repair_options="$(awk '/^LABEL archrepair$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
+uefi_repair_options="$(sed -n 's/^options  //p' meoarch-os/efiboot/loader/entries/02-archiso-repair-linux.conf)"
 [ "${bios_repair_options}" = "${expected_repair_options}" ]
 [ "${uefi_repair_options}" = "${expected_repair_options}" ]
-console_options='meoarch.mode=console systemd.unit=multi-user.target'
-grep -q "Console - classic Live shell" meoarch-os/grub/grub.cfg
-grep -q "${console_options}" meoarch-os/grub/grub.cfg
-grep -q "${console_options}" meoarch-os/grub/loopback.cfg
-grep -q "${console_options}" meoarch-os/syslinux/archiso_sys-linux.cfg
-grep -q 'meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1' meoarch-os/grub/loopback.cfg
-grep -q 'meoarch.mode=repair quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1' meoarch-os/grub/loopback.cfg
 grep -q '^APPEND .*meoarch.mode=install accessibility=on$' meoarch-os/syslinux/archiso_sys-linux.cfg
 for hook in base udev plymouth microcode modconf kms archiso block filesystems keyboard; do
   grep -Eq "(^|[[:space:]\\(])${hook}([[:space:]\\)])" meoarch-os/airootfs/etc/mkinitcpio.conf.d/archiso.conf
