@@ -4,6 +4,14 @@ The root MIT License applies only to original MeoArch code, configuration, and
 documentation in this repository. Third-party files remain under their
 respective upstream licenses.
 
+## ArchISO profile
+
+- Portions of `meoarch-os/` are based on or adapted from the ArchISO releng
+  profile and remain licensed under GPL-3.0-or-later. A copy of the applicable
+  GPL v3 license text is preserved in `LICENSES/GPL-3.0-or-later.txt`.
+- MeoArch-specific original additions remain under the repository MIT License
+  unless a file or directory carries a different license notice.
+
 ## Vendored fonts and symbols
 
 - `assets/fonts/Comfortaa/` — Comfortaa, SIL Open Font License 1.1. The
