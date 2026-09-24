@@ -49,19 +49,19 @@ repository root from becoming a notebook or a download folder.
 | --- | --- |
 | Source, tests, or versioned assets | Their existing owning source directory in this repository. |
 | A contract tied to code or an operator workflow | docs/ or the code component's existing documentation directory. |
-| Plans, audits, decisions, agent journals, meeting notes, and historical reports | $HOME/Documents/Obsidian Vault/MeoArch/Projects/meo-arch-os-workspace/ |
-| Reproducible build work | $HOME/Projects/outputs/meo-arch-os-workspace/build/ |
-| Install/VM handoff material | $HOME/Projects/outputs/meo-arch-os-workspace/install/ |
-| Validation evidence | $HOME/Projects/outputs/meo-arch-os-workspace/validation/<UTC-run-id>/ |
-| Candidate ISOs and package-like deliverables | $HOME/Projects/outputs/meo-arch-os-workspace/packages/ |
-| Disposable generated work | $HOME/Projects/outputs/meo-arch-os-workspace/tmp/ |
+| Plans, audits, decisions, agent journals, meeting notes, and historical reports | `$MEO_DOCS_ROOT/Projects/meo-arch-os-workspace/` |
+| Reproducible build work | `$MEO_OUTPUT_ROOT/meo-arch-os-workspace/build/` |
+| Install/VM handoff material | `$MEO_OUTPUT_ROOT/meo-arch-os-workspace/install/` |
+| Validation evidence | `$MEO_OUTPUT_ROOT/meo-arch-os-workspace/validation/<UTC-run-id>/` |
+| Candidate ISOs and package-like deliverables | `$MEO_OUTPUT_ROOT/meo-arch-os-workspace/packages/` |
+| Disposable generated work | `$MEO_OUTPUT_ROOT/meo-arch-os-workspace/tmp/` |
 
 Use a UTC run identifier in the form YYYY-MM-DDTHHMMSSZ-short-label, such as
 2026-08-26T143015Z-installer-smoke, for every
-validation directory. In the Obsidian project folder, file incoming material in
-00-inbox, overview material in 01-overview, decisions in 02-decisions, work
-notes in 03-work, validation summaries in 04-validation, and superseded
-records in 99-archive.
+validation directory. In the project documentation folder, file incoming
+material in 00-inbox, overview material in 01-overview, decisions in
+02-decisions, work notes in 03-work, validation summaries in 04-validation, and
+superseded records in 99-archive.
 
 Existing root documents, artifacts, builds, ISO workspaces, and historical
 files are deliberately retained by this organization pass. Do not delete,
@@ -75,9 +75,17 @@ reviewed task and a recovery plan.
 - Do not run a destructive clean, publish an ISO, modify a live system, or
   deploy any component without explicit authorization.
 - Do not treat a generated ISO, screenshot, log, or static check as proof of a
-  successful installation. Record the exact level of validation in Obsidian.
+  successful installation. Record the exact level of validation in the project
+  documentation.
 - Keep credentials, user data, disk images containing user data, and secrets
   out of source control and shared evidence folders.
+
+## Licensing
+
+Original MeoArch code and configuration in this repository are licensed under
+the MIT License; see `LICENSE`. Vendored third-party material remains under its
+upstream license; see `THIRD_PARTY_NOTICES.md` and
+`docs/third-party-software.md`.
 
 For detailed build, installer, and release contracts, use the documents already
 under docs/ and installer/.
