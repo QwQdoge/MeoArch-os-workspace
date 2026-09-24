@@ -13,21 +13,23 @@ enabled.
 ./scripts/build-iso.sh
 ```
 
-The direct build defaults to
-`$HOME/Projects/outputs/meo-arch-os-workspace/packages/iso/`. For an
-acceptance candidate, use a named UTC run directory so the ISO, its checksum,
-and the matching validation record can be identified together:
+The direct build defaults to the workspace-adjacent output tree
+`$MEO_OUTPUT_ROOT/meo-arch-os-workspace/packages/iso/` when
+`MEO_OUTPUT_ROOT` is set; otherwise the scripts derive a portable output root
+next to the checkout. For an acceptance candidate, use a named UTC run
+directory so the ISO, its checksum, and the matching validation record can be
+identified together:
 
 ```bash
 run_id="$(date -u +%Y-%m-%dT%H%M%SZ)-candidate"
 MEOARCH_RUN_ID="${run_id}" ./scripts/acceptance/30-build-iso.sh
 ```
 
-That wrapper writes the candidate ISO to
-`$HOME/Projects/outputs/meo-arch-os-workspace/packages/iso/acceptance/<run-id>/`
-and its build log, status, size, SHA-256, and ISO path to
-`.../validation/<run-id>/iso/`. It does not clean the existing reproducible
-`build/archiso` workspace.
+That wrapper writes the candidate ISO under
+`$MEO_OUTPUT_ROOT/meo-arch-os-workspace/packages/iso/acceptance/<run-id>/`
+when the global output root is configured, and its build log, status, size,
+SHA-256, and ISO path under the matching `validation/<run-id>/iso/` directory.
+It does not clean the existing reproducible `build/archiso` workspace.
 
 For a direct build, explicitly select the same package destination rather than
 placing a release under the repository:
@@ -35,7 +37,7 @@ placing a release under the repository:
 ```bash
 run_id="$(date -u +%Y-%m-%dT%H%M%SZ)-manual-iso"
 ./scripts/build-iso.sh --output \
-  "$HOME/Projects/outputs/meo-arch-os-workspace/packages/iso/${run_id}"
+  "${MEO_OUTPUT_ROOT}/meo-arch-os-workspace/packages/iso/${run_id}"
 ```
 
 Force a clean component/profile/work rebuild:
@@ -52,9 +54,9 @@ directory.
 The script stages the profile below `build/archiso/profile`; it does not mutate
 the authoritative `meoarch-os` source tree. Direct-build logs and staging
 provenance are retained under
-`$HOME/Projects/outputs/meo-arch-os-workspace/validation/<UTC-run-id>-iso-build/logs/`.
-The acceptance wrapper additionally retains the run-specific hash/status
-evidence described above.
+`$MEO_OUTPUT_ROOT/meo-arch-os-workspace/validation/<UTC-run-id>-iso-build/logs/`
+when the global output root is configured. The acceptance wrapper additionally
+retains the run-specific hash/status evidence described above.
 
 ## Output
 
