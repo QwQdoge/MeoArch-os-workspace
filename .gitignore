@@ -78,6 +78,31 @@ env/
 *.sublime-project
 *.sublime-workspace
 
+# --- Secrets, credentials & machine-local config ---
+.env
+.env.*
+*.env
+!*.env.example
+!*.env.sample
+# This tracked file intentionally contains public/empty connection metadata only.
+!meoarch-os/airootfs/etc/meoarch/account.env
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.kdbx
+*.mobileprovision
+credentials*.json
+secrets*.json
+*.secrets.*
+.npmrc
+.pypirc
+.netrc
+auth.json
+private-keys-v1.d/
+
 # --- Logs, Temps & Dumps ---
 *.log
 *.tmp
