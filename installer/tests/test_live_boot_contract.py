@@ -22,7 +22,7 @@ SYSLINUX_HEAD = ROOT / "meoarch-os/syslinux/archiso_head.cfg"
 LIVE_MOTD = ROOT / "meoarch-os/airootfs/etc/motd"
 BOOT_STATUS = ROOT / "installer/bin/meo-boot-status"
 INSTALLER_SERVICE = ROOT / "meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service"
-CONSOLE_GETTY = ROOT / "meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/10-meoarch-console.conf"
+TTY_GETTY = ROOT / "meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf"
 INSTALLER_MAIN = ROOT / "installer/app/main.cpp"
 REPAIR_MAIN = ROOT / "repair/app/main.cpp"
 LIVE_IWD_ENABLE = ROOT / "meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/iwd.service"
@@ -138,18 +138,18 @@ class LiveBootContractTests(unittest.TestCase):
             expected.replace("meoarch.mode=install", "meoarch.mode=repair"),
         )
 
-    def test_console_mode_has_tty1_without_starting_cage(self):
+    def test_tty_mode_has_tty1_without_starting_cage(self):
         grub = GRUB.read_text(encoding="utf-8")
         loopback = GRUB_LOOPBACK.read_text(encoding="utf-8")
         syslinux = (ROOT / "meoarch-os/syslinux/archiso_sys-linux.cfg").read_text(encoding="utf-8")
-        getty = CONSOLE_GETTY.read_text(encoding="utf-8")
+        getty = TTY_GETTY.read_text(encoding="utf-8")
 
-        console_args = "meoarch.mode=console systemd.unit=multi-user.target"
-        self.assertIn("Console - classic Live shell", grub)
-        self.assertIn(console_args, grub)
-        self.assertIn(console_args, loopback)
-        self.assertIn(console_args, syslinux)
-        self.assertIn("ConditionKernelCommandLine=meoarch.mode=console", getty)
+        tty_args = "meoarch.mode=tty systemd.unit=multi-user.target plymouth.enable=0 systemd.show_status=1 loglevel=4 vt.global_cursor_default=1"
+        self.assertIn("MeoArch OS - terminal only", grub)
+        self.assertIn(tty_args, grub)
+        self.assertIn(tty_args, loopback)
+        self.assertIn(tty_args, syslinux)
+        self.assertIn("ConditionKernelCommandLine=meoarch.mode=tty", getty)
         self.assertIn("--autologin root", getty)
         self.assertFalse((ROOT / "meoarch-os/airootfs/etc/systemd/system/getty@tty1.service").exists())
 
