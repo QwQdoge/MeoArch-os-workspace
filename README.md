@@ -83,8 +83,10 @@ reviewed task and a recovery plan.
 ## Licensing
 
 Original MeoArch code and configuration in this repository are licensed under
-the MIT License; see `LICENSE`. Vendored third-party material remains under its
-upstream license; see `THIRD_PARTY_NOTICES.md` and
+the MIT License; see `LICENSE`. Portions of the `meoarch-os/` ArchISO profile
+that are derived from ArchISO remain under GPL-3.0-or-later; see
+`LICENSES/GPL-3.0-or-later.txt`. Vendored third-party material remains under
+its upstream license; see `THIRD_PARTY_NOTICES.md` and
 `docs/third-party-software.md`.
 
 For detailed build, installer, and release contracts, use the documents already
