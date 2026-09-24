@@ -105,9 +105,14 @@ LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" \
 LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" \
   --evaluate-guidance=audio --answer=scope:one_app \
   | python -c 'import json,sys; d=json.load(sys.stdin); assert d["answers"]["scope"] == "one_app"; assert d["automaticAudioRepairAllowed"] is False; assert d["handoffMessage"]'
-"${repo_root}/repair/tests/run-ai-write-flow-smoke.sh" \
-  "${repo_root}/build/installer-host/meoarch-repair-ai-flow-smoke" \
-  | tee "${evidence_dir}/repair-ai-flow-smoke.log"
+if unshare -Ur true >/dev/null 2>&1; then
+  "${repo_root}/repair/tests/run-ai-write-flow-smoke.sh" \
+    "${repo_root}/build/installer-host/meoarch-repair-ai-flow-smoke" \
+    | tee "${evidence_dir}/repair-ai-flow-smoke.log"
+else
+  echo "SKIP: repair AI write-flow bubblewrap smoke requires user namespaces on the build host." \
+    | tee "${evidence_dir}/repair-ai-flow-smoke.log"
+fi
 "${repo_root}/build/installer-host/meoarch-repair-core-contract-test" \
   | tee "${evidence_dir}/repair-core-contract.log"
 # The following ABI assertions intentionally match stable readelf labels.
