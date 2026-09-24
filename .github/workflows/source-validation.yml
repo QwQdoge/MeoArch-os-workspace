@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - boot/live-grub-contracts
 
 permissions:
   contents: read
