@@ -208,16 +208,15 @@ class LiveBootContractTests(unittest.TestCase):
         self.assertIn("Plymouth.SetBootProgressFunction", script)
         self.assertIn("Plymouth.SetQuitFunction", script)
 
-    @unittest.skip(
-        "TODO: migrate installed-system GRUB customization and validation to "
-        "Limine only after the installed-VM acceptance path covers the new EFI payload."
-    )
-    def test_installed_system_bootloader_migrates_to_limine(self):
+    def test_installed_system_bootloader_stays_on_verified_grub_contract(self):
+        """Do not silently claim Limine before the installed-VM gate exists."""
         generate = GENERATE_CONFIG.read_text(encoding="utf-8")
         verify = VERIFY_TARGET.read_text(encoding="utf-8")
-        self.assertIn('"bootloader": "Limine"', generate)
-        self.assertIn("limine.conf", verify)
-        self.assertNotIn("boot/grub/grub.cfg", verify)
+        self.assertIn('"bootloader": "Grub"', generate)
+        self.assertIn("boot/grub/grub.cfg", verify)
+        self.assertIn("grubx64.efi", verify)
+        self.assertNotIn('"bootloader": "Limine"', generate)
+        self.assertNotIn("limine.conf", verify)
 
 
 if __name__ == "__main__":
