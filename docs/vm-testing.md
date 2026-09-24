@@ -12,7 +12,7 @@ default layout keeps retained evidence separate from disposable VM state:
 
 ```bash
 run_id="$(date -u +%Y-%m-%dT%H%M%SZ)-manual-vm"
-export MEOARCH_OUTPUT_ROOT="$HOME/Projects/outputs/meo-arch-os-workspace"
+export MEOARCH_OUTPUT_ROOT="${MEO_OUTPUT_ROOT}/meo-arch-os-workspace"
 export MEOARCH_RUN_ID="${run_id}"
 export MEOARCH_RUN_DIR="${MEOARCH_OUTPUT_ROOT}/validation/${run_id}"
 export MEOARCH_TMP_DIR="${MEOARCH_OUTPUT_ROOT}/tmp/${run_id}"
