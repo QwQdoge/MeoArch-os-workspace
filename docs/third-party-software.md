@@ -3,6 +3,7 @@
 | Package / Payload Component | Upstream Source | License | Redistribution Allowed? | Source Availability Requirement | Audit Notes |
 | :--- | :--- | :--- | :---: | :---: | :--- |
 | **Arch Linux Base Packages** | Arch Linux Repositories | GPL-2.0 / GPL-3.0 / MIT / BSD | Yes | Yes (Open Source) | Pulled via pacstrap from official HTTPS mirrors |
+| **ArchISO profile / releng-derived configuration** | Arch Linux ArchISO | GPL-3.0-or-later | Yes | Yes (source and license preserved) | Portions of `meoarch-os/` are adapted from the ArchISO profile; GPL text is kept in `LICENSES/GPL-3.0-or-later.txt` |
 | **Qt 6 Framework (Declarative/Wayland)** | Qt Project | LGPL-3.0 / GPL-3.0 | Yes | Yes (Dynamic Linking) | Dynamically linked against system Qt 6 shared objects |
 | **Cage Wayland Kiosk** | Cage / wlroots | MIT | Yes | Yes | Open-source Wayland kiosk compositor |
 | **Plymouth Boot Splash** | Freedesktop / Plymouth | GPL-2.0-or-later | Yes | Yes | Standard Linux boot splash renderer |
