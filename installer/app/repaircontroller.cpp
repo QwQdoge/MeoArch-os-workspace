@@ -5,9 +5,12 @@
 #include <QDateTime>
 #include <QDir>
 #include <QDBusConnection>
+#include <QDBusInterface>
 #include <QDBusMessage>
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
+#include <QDBusReply>
+#include <QDBusVariant>
 #include <QFile>
 #include <QFileInfo>
 #include <QHostAddress>
