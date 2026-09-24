@@ -495,7 +495,7 @@ class RepairSecurityContractTests(unittest.TestCase):
                 source = (REPO_ROOT / relative).read_text(encoding="utf-8")
                 self.assertIn("meoarch.mode=install", source)
                 self.assertIn("meoarch.mode=repair", source)
-                self.assertIn("meoarch.mode=console", source)
+                self.assertIn("meoarch.mode=tty", source)
                 self.assertIn("systemd.unit=multi-user.target", source)
 
     def test_repair_scope_is_explicit_and_connection_state_is_local(self):
@@ -525,20 +525,21 @@ class RepairSecurityContractTests(unittest.TestCase):
         self.assertIn("network.limited_connectivity", network)
         self.assertIn("ip -6 route show", network)
 
-    def test_console_getty_is_conditioned_on_explicit_boot_mode(self):
+    def test_tty_getty_is_conditioned_on_explicit_boot_mode(self):
         getty = (
             REPO_ROOT
-            / "meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/10-meoarch-console.conf"
+            / "meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf"
         ).read_text(encoding="utf-8")
         service = (
             REPO_ROOT / "meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service"
         ).read_text(encoding="utf-8")
-        self.assertIn("ConditionKernelCommandLine=meoarch.mode=console", getty)
+        self.assertIn("ConditionKernelCommandLine=meoarch.mode=tty", getty)
         self.assertIn("--autologin root", getty)
         self.assertIn("Type=notify", service)
         self.assertIn("NotifyAccess=all", service)
         self.assertIn("ExecStartPost=/usr/lib/meoarch/meo-boot-status stage ready", service)
-        self.assertIn("meoarch.mode=console", service)
+        self.assertNotIn("Conflicts=getty@tty1.service", service)
+        self.assertNotIn("Before=getty@tty1.service", service)
 
     def test_live_image_uses_lynis_not_openqa(self):
         packages = {
