@@ -486,10 +486,12 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("Unmounting selected target filesystem", runner)
         target_root_check = runner.index('target_root="$(resolve_target_root')
         preparation_verify = runner.index("--verify-handoff-for-preparation")
+        repository_preflight = runner.index("preflight-meo-repository.sh")
         first_unmount_prepare = runner.index("if ! prepare_selected_mounts", target_root_check)
         strict_verify = runner.index("--verify-handoff", first_unmount_prepare)
         self.assertLess(target_root_check, preparation_verify)
-        self.assertLess(preparation_verify, first_unmount_prepare)
+        self.assertLess(preparation_verify, repository_preflight)
+        self.assertLess(repository_preflight, first_unmount_prepare)
         self.assertLess(first_unmount_prepare, strict_verify)
 
     def test_selection_change_invalidates_persisted_confirmation_and_preflight(self):
