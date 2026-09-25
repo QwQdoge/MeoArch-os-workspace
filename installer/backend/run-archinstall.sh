@@ -304,6 +304,17 @@ if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state
   exit 6
 fi
 
+arch_package_preflight="${installer_root}/backend/preflight-arch-packages.sh"
+if [ ! -f "${arch_package_preflight}" ] || [ -L "${arch_package_preflight}" ]; then
+  echo "Arch package preflight helper is missing or unsafe." | tee -a "${log_file}" >&2
+  exit 127
+fi
+progress "preflighting_arch_packages" 3 "Rechecking Arch mirrors and required packages"
+if ! bash "${arch_package_preflight}" "${config_file}" "${state_dir}" 2>&1 | tee -a "${log_file}"; then
+  echo "Arch package preflight failed before disk preparation." | tee -a "${log_file}" >&2
+  exit 14
+fi
+
 progress "preflighting_meo_repository" 5 "Verifying signed Meo repository metadata and selected packages"
 "${installer_root}/backend/preflight-meo-repository.sh" \
   "${install_plan}" "${installer_root}/bootstrap" 2>&1 | tee -a "${log_file}"
