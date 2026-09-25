@@ -383,6 +383,10 @@ if isinstance(value, bool):
     print("true" if value else "false")
 elif isinstance(value, (str, int)):
     print(value)
+elif isinstance(value, list):
+    for item in value:
+        if isinstance(item, str):
+            print(item)
 PY
 }
 
@@ -404,6 +408,7 @@ calendar_secondary="${calendar_secondary:-none}"
 calendar_hebcal_enabled="${calendar_hebcal_enabled:-false}"
 swap_mode="$(read_customization swap.mode)"
 swap_size_mib="$(read_customization swap.fileSizeMiB)"
+mapfile -t guest_services < <(read_customization guestIntegration.services)
 
 case "${username}" in
   ""|*[!a-z0-9_-]*) echo "Invalid generated username." >&2; exit 7 ;;
@@ -426,6 +431,21 @@ if [ "${automatic_login}" = "true" ]; then
   exit 7
 fi
 systemctl --root="${target_root}" enable plasmalogin.service
+
+# Guest services are generated only from the detected hypervisor PCI plan.
+# Keep a hard whitelist here so a modified state file cannot enable an
+# arbitrary target service through this convenience field.
+for guest_service in "${guest_services[@]}"; do
+  case "${guest_service}" in
+    vmtoolsd.service|vboxservice.service) ;;
+    *) echo "Unsupported generated guest integration service: ${guest_service}" >&2; exit 7 ;;
+  esac
+  [ -f "${target_root}/usr/lib/systemd/system/${guest_service}" ] || {
+    echo "Selected guest integration service is not installed: ${guest_service}" >&2
+    exit 7
+  }
+  systemctl --root="${target_root}" enable "${guest_service}"
+done
 
 # A selected active NetworkManager profile is the only credential-bearing
 # installer handoff. It is prepared outside selections.json with mode 0600;
