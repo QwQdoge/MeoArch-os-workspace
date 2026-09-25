@@ -147,8 +147,8 @@
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="177"/>
-        <source>One-partition installation requires a FAT EFI System Partition of at least 64 MiB on this same disk. 512 MiB is recommended. Meo preserves the EFI partition and modifies only the selected root partition.</source>
-        <translation>单分区安装需要同一磁盘上至少 64 MiB 的 FAT EFI 系统分区；推荐 512 MiB。Meo 会保留 EFI 分区，只修改所选根分区。</translation>
+        <source>One-partition installation requires a FAT EFI System Partition of at least 512 MiB on this same disk. Meo preserves the EFI partition and modifies only the selected root partition.</source>
+        <translation>单分区安装需要同一磁盘上至少 512 MiB 的 FAT EFI 系统分区。Meo 会保留 EFI 分区，只修改所选根分区。</translation>
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="190"/>
@@ -914,8 +914,8 @@
         <translation>可用容量小于 16 GiB。允许安装，但剩余空间可能较少。</translation>
     </message>
     <message>
-        <source>EFI partition is not a supported FAT ESP or is smaller than 64 MiB.</source>
-        <translation>EFI 分区不是受支持的 FAT ESP，或容量小于 64 MiB。</translation>
+        <source>EFI partition is not a supported FAT ESP or is smaller than 512 MiB.</source>
+        <translation>EFI 分区不是受支持的 FAT ESP，或容量小于 512 MiB。</translation>
     </message>
     <message>
         <source>This partition is mounted now and will be unmounted before installation.</source>
@@ -924,10 +924,6 @@
     <message>
         <source>This root partition is smaller than the recommended 16 GiB.</source>
         <translation>此根分区小于推荐的 16 GiB。</translation>
-    </message>
-    <message>
-        <source>This EFI System Partition is smaller than the recommended 512 MiB.</source>
-        <translation>此 EFI 系统分区小于推荐的 512 MiB。</translation>
     </message>
     <message>
         <source>This partition is on removable or hot-plug storage.</source>
