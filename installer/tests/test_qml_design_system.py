@@ -404,6 +404,9 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("connectivityRetry.restart()", network)
         self.assertIn('networkState === "no-interface" ? "error"', network)
         self.assertIn("--range 0-0", preflight)
+        self.assertIn("fixed Arch mirror probe failed; continuing configuration dry-run", preflight)
+        self.assertNotIn('write_status "failed" "An Arch mirror is not reachable', preflight)
+        self.assertNotIn('write_status "failed" "DNS cannot resolve an Arch mirror', preflight)
         self.assertNotIn("--head", preflight)
         self.assertIn("QRegularExpression::escape(name)", controller)
 
