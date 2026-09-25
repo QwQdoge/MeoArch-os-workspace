@@ -1621,6 +1621,26 @@
         <source>Rechecks Internet and package-source reachability without blocking the rest of the setup wizard</source>
         <translation>重新检查互联网和软件源可达性，但不会因此阻止继续完成其他设置。</translation>
     </message>
+    <message>
+        <source>MeoArch needs Internet access for package downloads. You can continue setup while connectivity is being verified.</source>
+        <translation>MeoArch 安装时需要互联网下载软件包。连接状态验证期间，你仍可继续完成其他设置。</translation>
+    </message>
+    <message>
+        <source>Internet access is not verified</source>
+        <translation>尚未验证互联网连接</translation>
+    </message>
+    <message>
+        <source>You can continue setup. MeoArch will retry Internet and package downloads before installation starts.</source>
+        <translation>你可以继续设置。正式安装开始前，MeoArch 会再次检查互联网和软件下载。</translation>
+    </message>
+    <message>
+        <source>No active network interface</source>
+        <translation>没有活动的网络接口</translation>
+    </message>
+    <message>
+        <source>Connect Wi-Fi or Ethernet to continue from this page.</source>
+        <translation>请连接 Wi-Fi 或以太网后再离开此页面。</translation>
+    </message>
 </context>
 <context>
     <name>PageFrame</name>
