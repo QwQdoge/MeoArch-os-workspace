@@ -1167,31 +1167,72 @@ bool InstallerController::stageNetworkHandoff()
 
 void InstallerController::detectHardware()
 {
+    m_hardwareDetected = false;
+    m_hardwareSummary = tr("Generic graphics fallback · Mesa-compatible stack");
 #ifdef Q_OS_LINUX
     const QString detector = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/hardware.py"));
-    if (!QFileInfo::exists(detector))
+    if (!QFileInfo::exists(detector)) {
+        emit hardwareChanged();
         return;
+    }
+
     m_hardwareDetecting = true;
     emit hardwareChanged();
     auto *process = new QProcess(this);
-    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
+
+    connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart || !m_hardwareDetecting)
+            return;
         m_hardwareDetecting = false;
-        if (status == QProcess::NormalExit && exitCode == 0) {
-            const QJsonObject result = QJsonDocument::fromJson(process->readAllStandardOutput()).object();
-            const QJsonArray packages = result.value(QStringLiteral("packages")).toArray();
-            QStringList names;
-            for (const QJsonValue &package : packages)
-                names.append(package.toString());
-            if (!names.isEmpty())
-                m_hardwareDetected = true;
-            if (!names.isEmpty())
-                m_hardwareSummary = result.value(QStringLiteral("summary")).toString().toUpper()
-                                   + QStringLiteral(" · ") + names.join(QStringLiteral(", "));
-        }
+        m_hardwareDetected = false;
+        m_hardwareSummary = tr("Graphics detector unavailable · generic Mesa fallback will be used");
         process->deleteLater();
         emit hardwareChanged();
     });
+
+    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
+        if (!m_hardwareDetecting) {
+            process->deleteLater();
+            return;
+        }
+
+        m_hardwareDetecting = false;
+        if (status == QProcess::NormalExit && exitCode == 0) {
+            QJsonParseError parseError;
+            const QJsonDocument document = QJsonDocument::fromJson(
+                process->readAllStandardOutput(), &parseError);
+            if (parseError.error == QJsonParseError::NoError && document.isObject()) {
+                const QJsonObject result = document.object();
+                const QJsonArray packages = result.value(QStringLiteral("packages")).toArray();
+                QStringList names;
+                for (const QJsonValue &package : packages) {
+                    const QString name = package.toString().trimmed();
+                    if (!name.isEmpty())
+                        names.append(name);
+                }
+                const QString summary = result.value(QStringLiteral("summary")).toString().trimmed();
+                m_hardwareDetected = result.value(QStringLiteral("detected")).toBool(false);
+                if (!summary.isEmpty())
+                    m_hardwareSummary = summary.toUpper()
+                                       + (names.isEmpty() ? QString()
+                                                          : QStringLiteral(" · ") + names.join(QStringLiteral(", ")));
+            }
+        }
+        if (m_hardwareSummary.isEmpty())
+            m_hardwareSummary = tr("Graphics detection was inconclusive · generic Mesa fallback will be used");
+        process->deleteLater();
+        emit hardwareChanged();
+    });
+
+    // Hardware detection is advisory. A broken sysfs/lspci path must never
+    // leave the wizard permanently busy or block a valid installation.
+    QTimer::singleShot(8000, process, [process] {
+        if (process->state() != QProcess::NotRunning)
+            process->kill();
+    });
     process->start(QStringLiteral("python3"), {detector});
+#else
+    emit hardwareChanged();
 #endif
 }
 
