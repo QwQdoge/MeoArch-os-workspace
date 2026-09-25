@@ -150,8 +150,12 @@ device_re = re.compile(re.escape(device) + partition_suffix + r"(?:\[.*\])?$")
 protected = ("/", "/boot", "/usr", "/etc", "/var", "/home", "/opt", "/run", "/proc", "/sys", "/dev", "/tmp")
 
 def selected_source(source):
+    # Archinstall operates on the whole modified device even when only one
+    # existing partition is marked MODIFY. Release ordinary mounts/swap from
+    # every partition on this disk after final confirmation, while the backend
+    # separately guarantees that only the chosen root is formatted.
     base_source = source.split("[", 1)[0]
-    return base_source in selected if mode == "partition" else bool(device_re.fullmatch(base_source))
+    return bool(device_re.fullmatch(base_source))
 
 targets = []
 for entry in filesystems if isinstance(filesystems, list) else []:
