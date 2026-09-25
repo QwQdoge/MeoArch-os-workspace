@@ -225,9 +225,6 @@ fi
 installer_root="${MEOARCH_INSTALLER_ROOT:-/opt/meoarch-installer}"
 install_plan="${generated_dir}/install-plan.json"
 [ -f "${install_plan}" ] || { echo "Generated Meo install plan is missing." | tee -a "${log_file}" >&2; exit 8; }
-if ! prepare_selected_mounts; then
-  exit 6
-fi
 if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state_dir}" --verify-handoff; then
   echo "Generated installation handoff changed or the selected disk is no longer safe." | tee -a "${log_file}" >&2
   exit 6
@@ -259,6 +256,12 @@ target_root="$(resolve_target_root "${MEOARCH_TARGET_ROOT:-/mnt}")" || {
   echo "Refusing unsafe target root." | tee -a "${log_file}" >&2
   exit 7
 }
+
+# Validate the target-root boundary before touching selected mounts. This keeps
+# an unsafe /mnt override or symlink from reaching any disk-preparation path.
+if ! prepare_selected_mounts; then
+  exit 6
+fi
 
 progress "preflighting_meo_repository" 5 "Verifying signed Meo repository metadata and selected packages"
 "${installer_root}/backend/preflight-meo-repository.sh" \
