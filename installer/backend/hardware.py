@@ -141,8 +141,15 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
             add_packages(DRIVER_PACKAGES[vendor])
 
     nvidia_devices = [device for device in devices if device.get("vendor") == "nvidia"]
-    modern_nvidia = any(nvidia_open_supported(device) for device in nvidia_devices)
-    legacy_or_unknown_nvidia = bool(nvidia_devices) and not modern_nvidia
+    # nvidia-utils can disable the Nouveau fallback globally. Only select the
+    # proprietary/open NVIDIA userspace when every detected NVIDIA adapter is
+    # confidently in the supported generation range.
+    modern_nvidia = bool(nvidia_devices) and all(
+        nvidia_open_supported(device) for device in nvidia_devices
+    )
+    legacy_or_unknown_nvidia = any(
+        not nvidia_open_supported(device) for device in nvidia_devices
+    )
     if modern_nvidia:
         add_packages(NVIDIA_OPEN_PACKAGES)
     elif legacy_or_unknown_nvidia:
@@ -161,7 +168,7 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
     warnings = []
     if legacy_or_unknown_nvidia:
         warnings.append(
-            "NVIDIA generation is older than or could not be confirmed for nvidia-open; "
+            "One or more NVIDIA adapters are older than or could not be confirmed for nvidia-open; "
             "using the non-blacklisting Mesa/Nouveau fallback."
         )
     return {
