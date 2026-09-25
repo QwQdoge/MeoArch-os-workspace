@@ -8,6 +8,7 @@ driver applies to a PCI device.
 
 from __future__ import annotations
 
+import argparse
 import re
 import subprocess
 import json
@@ -183,5 +184,17 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
     }
 
 
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Detect display hardware for the MeoArch installer.")
+    parser.add_argument(
+        "--sysfs-root",
+        type=Path,
+        default=Path("/sys/bus/pci/devices"),
+        help="PCI sysfs device directory; primarily useful for deterministic Live/VM diagnostics.",
+    )
+    args = parser.parse_args()
+    print(json.dumps(driver_plan(detect_devices(args.sysfs_root)), indent=2))
+
+
 if __name__ == "__main__":
-    print(json.dumps(driver_plan(detect_devices()), indent=2))
+    main()
