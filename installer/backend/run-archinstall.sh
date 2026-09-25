@@ -109,6 +109,78 @@ progress() {
   printf '[%s%%] %s\n' "${percent}" "${message}" | tee -a "${log_file}"
 }
 
+prepare_selected_mounts() {
+  local mount_plan
+  if ! mount_plan="$(python3 - "${manifest_file}" <<'PY'
+import json
+import re
+import subprocess
+import sys
+
+manifest = json.load(open(sys.argv[1], encoding="utf-8"))
+identity = manifest.get("handoff", {}).get("disk", {})
+device = identity.get("devicePath")
+mode = identity.get("mode")
+if not isinstance(device, str) or not re.fullmatch(
+    r"/dev/(?:vd[a-z]+|sd[a-z]+|xvd[a-z]+|nvme\d+n\d+|mmcblk\d+|pmem\d+)", device
+):
+    raise SystemExit("selected disk identity is invalid")
+
+selected = set()
+if mode == "partition":
+    partitions = identity.get("partitions")
+    if not isinstance(partitions, list) or len(partitions) != 2:
+        raise SystemExit("selected partition identity is invalid")
+    selected = {entry.get("path") for entry in partitions if isinstance(entry, dict)}
+    if None in selected or len(selected) != 2:
+        raise SystemExit("selected partition identity is invalid")
+
+result = subprocess.run(
+    ["findmnt", "-J", "-o", "TARGET,SOURCE"],
+    check=False, capture_output=True, text=True,
+)
+if result.returncode != 0:
+    raise SystemExit("could not inspect mounted filesystems")
+payload = json.loads(result.stdout or "{}")
+filesystems = payload.get("filesystems", [])
+device_re = re.compile(re.escape(device) + r"(?:p?[0-9]+)?(?:\[.*\])?$")
+protected = ("/", "/boot", "/usr", "/etc", "/var", "/home", "/opt", "/run", "/proc", "/sys", "/dev", "/tmp")
+
+targets = []
+for entry in filesystems if isinstance(filesystems, list) else []:
+    if not isinstance(entry, dict):
+        continue
+    target = entry.get("target")
+    source = entry.get("source")
+    if not isinstance(target, str) or not isinstance(source, str):
+        continue
+    base_source = source.split("[", 1)[0]
+    matches = base_source in selected if mode == "partition" else bool(device_re.fullmatch(source))
+    if not matches:
+        continue
+    if target in protected or target.startswith("/run/archiso"):
+        raise SystemExit(f"selected target backs protected Live mount {target}")
+    targets.append(target)
+
+for target in sorted(set(targets), key=lambda value: (value.count("/"), len(value)), reverse=True):
+    print(target)
+PY
+)"; then
+    echo "Selected target has mounted filesystems that cannot be prepared safely." | tee -a "${log_file}" >&2
+    return 1
+  fi
+
+  [ -z "${mount_plan}" ] && return 0
+  while IFS= read -r target; do
+    [ -n "${target}" ] || continue
+    log "Unmounting selected target filesystem: ${target}"
+    if ! umount -- "${target}" >>"${log_file}" 2>&1; then
+      echo "Could not unmount selected target filesystem: ${target}" | tee -a "${log_file}" >&2
+      return 1
+    fi
+  done <<<"${mount_plan}"
+}
+
 if [ ! -f "${confirm_file}" ] || [ -L "${confirm_file}" ]; then
   echo "Summary has not been confirmed; refusing to call archinstall." | tee -a "${log_file}" >&2
   exit 3
@@ -153,6 +225,9 @@ fi
 installer_root="${MEOARCH_INSTALLER_ROOT:-/opt/meoarch-installer}"
 install_plan="${generated_dir}/install-plan.json"
 [ -f "${install_plan}" ] || { echo "Generated Meo install plan is missing." | tee -a "${log_file}" >&2; exit 8; }
+if ! prepare_selected_mounts; then
+  exit 6
+fi
 if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state_dir}" --verify-handoff; then
   echo "Generated installation handoff changed or the selected disk is no longer safe." | tee -a "${log_file}" >&2
   exit 6
@@ -190,8 +265,11 @@ progress "preflighting_meo_repository" 5 "Verifying signed Meo repository metada
   "${install_plan}" "${installer_root}/bootstrap" 2>&1 | tee -a "${log_file}"
 
 # The repository request can take long enough for removable media or partition
-# state to change. Recheck the hash-bound handoff immediately before the only
-# command that is allowed to write a disk.
+# state to change. Recheck mounts and the hash-bound handoff immediately before
+# the only command that is allowed to write a disk.
+if ! prepare_selected_mounts; then
+  exit 6
+fi
 if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state_dir}" --verify-handoff; then
   echo "Selected disk or installation handoff changed before disk preparation." | tee -a "${log_file}" >&2
   exit 6
@@ -206,7 +284,7 @@ import sys
 
 manifest = json.load(open(sys.argv[1], encoding="utf-8"))
 device = manifest.get("handoff", {}).get("disk", {}).get("devicePath")
-if not isinstance(device, str) or not re.fullmatch(r"/dev/(?:vd[a-z]+|sd[a-z]+|nvme\d+n\d+)", device):
+if not isinstance(device, str) or not re.fullmatch(r"/dev/(?:vd[a-z]+|sd[a-z]+|xvd[a-z]+|nvme\d+n\d+|mmcblk\d+|pmem\d+)", device):
     raise SystemExit("confirmed disk identity is missing")
 print(device)
 PY
