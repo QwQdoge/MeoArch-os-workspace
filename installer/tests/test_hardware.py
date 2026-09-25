@@ -61,6 +61,7 @@ class HardwareDetectionTests(unittest.TestCase):
         self.assertNotIn("nvidia-open", plan["packages"])
         self.assertNotIn("nvidia-utils", plan["packages"])
         self.assertIn("mesa", plan["packages"])
+        self.assertIn("vulkan-nouveau", plan["packages"])
         self.assertIn("vulkan-swrast", plan["packages"])
         self.assertTrue(plan["warnings"])
 
@@ -74,6 +75,7 @@ class HardwareDetectionTests(unittest.TestCase):
         self.assertNotIn("nvidia-open", plan["packages"])
         self.assertNotIn("nvidia-utils", plan["packages"])
         self.assertIn("mesa", plan["packages"])
+        self.assertIn("vulkan-nouveau", plan["packages"])
         self.assertTrue(plan["warnings"])
 
     def test_unknown_nvidia_generation_fails_open_to_mesa(self):
@@ -164,7 +166,16 @@ class HardwareDetectionTests(unittest.TestCase):
         self.assertIn("vulkan-swrast", plan["packages"])
         self.assertFalse(plan["requiresNetwork"])
 
-
+    def test_unknown_secondary_adapter_keeps_generic_fallback(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "amd", "vendorId": "1002", "deviceId": "744c"},
+            {"vendor": "unknown", "vendorId": "abcd", "deviceId": "1234"},
+        ])
+        self.assertIn("vulkan-radeon", plan["packages"])
+        self.assertIn("vulkan-swrast", plan["packages"])
+        self.assertIn("vulkan-icd-loader", plan["packages"])
+        self.assertEqual(plan["unknownAdapters"], ["unknown"])
+        self.assertTrue(plan["warnings"])
 
     @unittest.mock.patch("subprocess.run")
     def test_lspci_missing_command(self, mock_run):

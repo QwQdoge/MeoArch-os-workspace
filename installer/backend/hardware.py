@@ -41,7 +41,7 @@ DRIVER_PACKAGES = {
     "virtual": ["mesa", "vulkan-virtio", "vulkan-swrast"],
 }
 NVIDIA_OPEN_PACKAGES = ["nvidia-open", "nvidia-utils", "libva-nvidia-driver"]
-NVIDIA_SAFE_FALLBACK_PACKAGES = ["mesa", "libva-mesa-driver", "vulkan-swrast"]
+NVIDIA_SAFE_FALLBACK_PACKAGES = ["mesa", "libva-mesa-driver", "vulkan-nouveau", "vulkan-swrast"]
 FALLBACK_PACKAGES = ["mesa", "vulkan-swrast", "vulkan-icd-loader"]
 
 GUEST_INTEGRATION = {
@@ -169,6 +169,15 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
     if hybrid_nvidia:
         add_packages(["nvidia-prime"])
 
+    # Unknown secondary display adapters must not lose the generic software
+    # fallback just because another GPU was recognized successfully.
+    unknown_vendors = [
+        vendor for vendor in vendors
+        if vendor not in DRIVER_PACKAGES and vendor != "nvidia"
+    ]
+    if unknown_vendors:
+        add_packages(FALLBACK_PACKAGES)
+
     if not packages:
         packages = FALLBACK_PACKAGES.copy()
 
@@ -190,12 +199,16 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
                 seen_guest_services.add(service)
                 guest_services.append(service)
 
-    unknown_vendors = [vendor for vendor in vendors if vendor not in DRIVER_PACKAGES and vendor != "nvidia"]
     warnings = []
     if legacy_or_unknown_nvidia:
         warnings.append(
             "One or more NVIDIA adapters are older than or could not be confirmed for nvidia-open; "
             "using the non-blacklisting Mesa/Nouveau fallback."
+        )
+    if unknown_vendors:
+        warnings.append(
+            "One or more display adapters are unknown; keeping the generic Mesa/software Vulkan "
+            "fallback alongside recognized GPU drivers."
         )
     return {
         "schemaVersion": 1,
