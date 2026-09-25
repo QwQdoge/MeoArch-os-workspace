@@ -87,8 +87,8 @@
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="64"/>
-        <source>Select a supported root partition of at least 8 GiB below. 16 GiB is recommended, not required. Mounted target partitions are unmounted only after final confirmation.</source>
-        <translation>选择下方至少 8 GiB 的受支持根分区。16 GiB 是推荐容量，不是硬性要求。已挂载的目标分区只会在最终确认后卸载。</translation>
+        <source>Select a supported root partition of at least 8 GiB below. 16 GiB is recommended, not required. Active filesystems, swap, and supported storage mappings are released only after final confirmation.</source>
+        <translation>选择下方至少 8 GiB 的受支持根分区。16 GiB 是推荐容量，不是硬性要求。活动文件系统、交换空间和受支持的存储映射只会在最终确认后释放。</translation>
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="69"/>
@@ -984,6 +984,18 @@
     <message>
         <source>The copied network profile could not be protected safely. It was discarded and installation can continue.</source>
         <translation>复制的网络配置无法安全保护，已将其丢弃；安装可以继续。</translation>
+    </message>
+    <message>
+        <source>Generic graphics fallback · Mesa-compatible stack</source>
+        <translation>通用图形兼容模式 · 使用 Mesa 兼容图形栈</translation>
+    </message>
+    <message>
+        <source>Graphics detector unavailable · generic Mesa fallback will be used</source>
+        <translation>图形硬件检测器不可用 · 将使用通用 Mesa 兼容模式</translation>
+    </message>
+    <message>
+        <source>Graphics detection was inconclusive · generic Mesa fallback will be used</source>
+        <translation>无法确定图形硬件类型 · 将使用通用 Mesa 兼容模式</translation>
     </message>
 </context>
 <context>
@@ -3176,6 +3188,10 @@ PipeWire · NetworkManager
     <message>
         <source>Pending</source>
         <translation>待检查</translation>
+    </message>
+    <message>
+        <source>Compatibility mode</source>
+        <translation>兼容模式</translation>
     </message>
 </context>
 </TS>
