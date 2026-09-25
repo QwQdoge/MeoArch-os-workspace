@@ -1233,7 +1233,9 @@ void InstallerController::parseDisks(const QByteArray &payload)
         const bool supportedPath = QRegularExpression(
             QStringLiteral("^/dev/(?:vd[a-z]+|sd[a-z]+|xvd[a-z]+|nvme\\d+n\\d+|mmcblk\\d+|pmem\\d+)$"))
             .match(devicePath).hasMatch();
-        const qint64 absoluteMinimumBytes = 8LL * 1024 * 1024 * 1024;
+        const qint64 minimumRootBytes = 8LL * 1024 * 1024 * 1024;
+        const qint64 layoutOverheadBytes = 515LL * 1024 * 1024;
+        const qint64 absoluteMinimumBytes = minimumRootBytes + layoutOverheadBytes;
         const qint64 recommendedDiskBytes = 16LL * 1024 * 1024 * 1024;
         const bool eligible = supportedPath && !readOnly && !runningMedia && size >= absoluteMinimumBytes;
         const bool partitionInstallEligible = supportedPath && !readOnly && !runningMedia;
@@ -1249,7 +1251,6 @@ void InstallerController::parseDisks(const QByteArray &payload)
             warnings.append(tr("Less than 16 GiB is available. Installation is allowed, but free space may be tight."));
         QVariantList partitions;
         const int logicalSectorSize = d.value(QStringLiteral("log-sec")).toVariant().toInt();
-        const qint64 minimumRootBytes = 8LL * 1024 * 1024 * 1024;
         const qint64 recommendedRootBytes = 16LL * 1024 * 1024 * 1024;
         const qint64 minimumEfiBytes = 512LL * 1024 * 1024;
         const QString efiGuid = QStringLiteral("c12a7328-f81f-11d2-ba4b-00a0c93ec93b");
