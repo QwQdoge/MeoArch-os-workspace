@@ -147,6 +147,13 @@ PageFrame {
             tone: page.controller.preflightState === "ready" ? "success"
                   : page.controller.preflightState === "failed" ? "error" : "info"
         }
+        InfoBanner {
+            visible: page.controller && page.controller.hardwareWarning.length > 0
+            width: parent.width
+            tone: "warning"
+            title: qsTr("Graphics compatibility mode")
+            message: page.controller ? page.controller.hardwareWarning : ""
+        }
         MeoCard {
             visible: page.resolvedPackage.packages && page.resolvedPackage.packages.length > 0
             width: parent.width
