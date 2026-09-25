@@ -1025,6 +1025,14 @@
         <source>Graphics detection timed out · generic Mesa fallback will be used</source>
         <translation>图形硬件检测超时 · 将使用通用 Mesa 兼容模式</translation>
     </message>
+    <message>
+        <source>An older or unclassified NVIDIA adapter was detected. MeoArch will use the Mesa/Nouveau-compatible fallback so installation can continue.</source>
+        <translation>检测到较旧或无法确认型号的 NVIDIA 显卡。MeoArch 将使用兼容 Mesa/Nouveau 的备用方案，以便安装可以继续。</translation>
+    </message>
+    <message>
+        <source>One or more graphics adapters could not be classified. MeoArch will keep a generic Mesa-compatible path available instead of blocking installation.</source>
+        <translation>一个或多个图形适配器无法识别。MeoArch 将保留通用的 Mesa 兼容方案，而不是阻止安装。</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
@@ -3240,6 +3248,10 @@ PipeWire · NetworkManager
     <message>
         <source>This installer currently supports UEFI target installations. Restart the VM or computer with UEFI firmware enabled before installing. No disk changes have been made.</source>
         <translation>此安装器当前仅支持 UEFI 目标安装。请启用 UEFI 固件后重新启动虚拟机或电脑再进行安装。当前尚未对磁盘进行任何更改。</translation>
+    </message>
+    <message>
+        <source>Graphics compatibility mode</source>
+        <translation>图形兼容模式</translation>
     </message>
 </context>
 </TS>
