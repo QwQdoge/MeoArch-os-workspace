@@ -601,7 +601,7 @@ Item {
             // A persistent, narrow affordance is important on the compact
             // installer window: otherwise a clipped review page looks like a
             // broken layout instead of content that can be scrolled.
-            ScrollBar.vertical: ScrollBar {
+            ScrollBar.vertical: MeoScrollBar {
                 policy: contentFlick.interactive ? ScrollBar.AlwaysOn : ScrollBar.AlwaysOff
             }
 
