@@ -101,12 +101,12 @@ QtObject {
         {id:"de",name:qsTr("German")},{id:"fr",name:qsTr("French")},{id:"es",name:qsTr("Spanish")}
     ]
     readonly property var disks: [
-        {id:"preview-disk-0",devicePath:"/dev/nvme0n1",name:qsTr("NVMe Solid State Drive"),size:"512 GB",sizeBytes:549755813888,available:qsTr("Visual preview disk"),kind:qsTr("SSD · Preview"),eligible:true,unavailableReason:"",partitionInstallEligible:true,partitionUnavailableReason:"",serial:"PREVIEW",wwn:"",
+        {id:"preview-disk-0",devicePath:"/dev/nvme0n1",name:qsTr("NVMe Solid State Drive"),size:"512 GB",sizeBytes:549755813888,logicalSectorSize:512,available:qsTr("Visual preview disk"),kind:qsTr("SSD · Preview"),eligible:true,unavailableReason:"",partitionInstallEligible:true,partitionUnavailableReason:"",serial:"PREVIEW",wwn:"",
          partitions:[
              {name:"nvme0n1p1",path:"/dev/nvme0n1p1",size:"512 MB",sizeBytes:536870912,startSectors:2048,sizeSectors:1048576,logicalSectorSize:512,parttype:"c12a7328-f81f-11d2-ba4b-00a0c93ec93b",fstype:"vfat",isEfi:true,eligibleRoot:false,eligibleEfi:true,unavailableReason:qsTr("EFI System Partition — preserved")},
              {name:"nvme0n1p4",path:"/dev/nvme0n1p4",size:"64 GB",sizeBytes:68719476736,startSectors:2099200,sizeSectors:134217728,logicalSectorSize:512,parttype:"0fc63daf-8483-4772-8e79-3d69d8477de4",fstype:"ext4",isEfi:false,eligibleRoot:true,eligibleEfi:false,unavailableReason:""}
          ]},
-        {id:"preview-disk-1",devicePath:"/dev/sdb",name:qsTr("External Storage"),size:"1 TB",sizeBytes:1099511627776,available:qsTr("Preview media excluded"),kind:qsTr("Removable · Preview"),eligible:false,unavailableReason:qsTr("This is preview-only removable media."),partitionInstallEligible:false,partitionUnavailableReason:qsTr("Removable media cannot be selected."),serial:"PREVIEW",wwn:"",partitions:[]}
+        {id:"preview-disk-1",devicePath:"/dev/sdb",name:qsTr("External Storage"),size:"1 TB",sizeBytes:1099511627776,logicalSectorSize:512,available:qsTr("Preview media excluded"),kind:qsTr("Removable · Preview"),eligible:false,unavailableReason:qsTr("This is preview-only removable media."),partitionInstallEligible:false,partitionUnavailableReason:qsTr("Removable media cannot be selected."),serial:"PREVIEW",wwn:"",partitions:[]}
     ]
 
     function setUiLanguage(id) { uiLanguage = id }
