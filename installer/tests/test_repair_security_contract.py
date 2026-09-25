@@ -54,6 +54,32 @@ class RepairSecurityContractTests(unittest.TestCase):
         self.assertIn("review.value(QStringLiteral(\"planSha256\")).toString() != m_planSha256", source)
         self.assertIn('QStringLiteral("APPLY REPAIR ") + m_planSha256.left(12).toUpper()', source)
 
+    def test_install_mode_has_authorized_real_install_capabilities(self):
+        kiosk = (REPO_ROOT / "installer/bin/meoarch-installer-kiosk").read_text(
+            encoding="utf-8"
+        )
+        service = (
+            REPO_ROOT
+            / "meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service"
+        ).read_text(encoding="utf-8")
+        host = (REPO_ROOT / "installer/app/main.cpp").read_text(encoding="utf-8")
+
+        install_branch = kiosk.split("install)", 1)[1].split(";;", 1)[0]
+        self.assertIn("/usr/local/bin/meoarch-installer", install_branch)
+        self.assertIn("--production", install_branch)
+        self.assertIn("--enable-real-install", install_branch)
+        self.assertIn("--enable-system-actions", install_branch)
+
+        self.assertIn("RuntimeDirectory=meoarch-installer", service)
+        self.assertIn(
+            "ExecStartPre=/usr/bin/install -m 0600 -o root -g root /dev/null "
+            "/run/meoarch-installer/production-capability",
+            service,
+        )
+        self.assertIn("hasProductionCapability()", host)
+        self.assertIn("productionRequested || privilegedCapabilityRequested", host)
+        self.assertIn("This production launch was not authorized", host)
+
     def test_repair_mode_never_enables_real_install(self):
         kiosk = (REPO_ROOT / "installer/bin/meoarch-installer-kiosk").read_text(encoding="utf-8")
         repair_branch = kiosk.rsplit("repair)", 1)[1].split(";;", 1)[0]
