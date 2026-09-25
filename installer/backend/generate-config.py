@@ -185,18 +185,20 @@ def build_default_disk_layout(selections):
     except (TypeError, ValueError):
         return None
     # 16 GiB remains the recommended capacity, but it is not a correctness
-    # boundary. Keep only a conservative absolute floor for the bounded
-    # desktop layout and let smaller-than-recommended targets proceed.
-    if total_mib < 8 * 1024:
+    # boundary. The hard floor is derived from the actual bounded layout:
+    # 8 GiB root + 512 MiB ESP + 3 MiB for start/end alignment slack.
+    layout_overhead_mib = 515
+    minimum_root_mib = 8 * 1024
+    if total_mib < minimum_root_mib + layout_overhead_mib:
         return None
-    allocatable_mib = total_mib - 515
+    allocatable_mib = total_mib - layout_overhead_mib
     separate_home = mode == "guided" and bool(disk.get("separateHome", True))
     if separate_home:
         try:
             root_size_mib = int(disk.get("rootSizeGiB", 32)) * 1024
         except (TypeError, ValueError):
             return None
-        if root_size_mib < 8 * 1024 or allocatable_mib - root_size_mib < 4 * 1024:
+        if root_size_mib < minimum_root_mib or allocatable_mib - root_size_mib < 4 * 1024:
             return None
     else:
         root_size_mib = allocatable_mib
