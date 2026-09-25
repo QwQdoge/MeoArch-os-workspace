@@ -1095,6 +1095,10 @@
         <source>See the diagnostic log for the failing stage. Disk operations are not automatically retried; restart the Live session before another attempt.</source>
         <translation>请查看诊断日志以确认失败阶段。磁盘操作不会自动重试；再次尝试前请重启 Live 会话。</translation>
     </message>
+    <message>
+        <source>Checking Arch packages</source>
+        <translation>正在检查 Arch 软件包</translation>
+    </message>
 </context>
 <context>
     <name>KeyboardLayoutPage</name>
