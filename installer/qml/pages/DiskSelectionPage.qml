@@ -16,7 +16,7 @@ PageFrame {
     // safe to offer. Persisted selections are retained for the backend plan,
     // but an asynchronous write must not leave an already selected real disk
     // with a transient zero capacity and a permanently disabled Continue.
-    readonly property int diskSizeGiB: {
+    readonly property real diskSizeBytes: {
         if (!controller)
             return 0
         const selectedId = String(controller.selectedDisk || "")
@@ -26,16 +26,20 @@ PageFrame {
                 continue
             const detectedBytes = Number(detected[index].sizeBytes || 0)
             if (detectedBytes > 0)
-                return Math.floor(detectedBytes / 1073741824)
+                return detectedBytes
             // Some hot-plug/slow storage briefly reports transient zero capacity
             // during a rescan. Keep the last confirmed capacity for navigation only;
             // the destructive handoff revalidates the live capacity exactly.
             break
         }
-        return Math.floor(Number(controller.selection("disk", "sizeBytes", 0)) / 1073741824)
+        return Number(controller.selection("disk", "sizeBytes", 0))
     }
-    readonly property bool eraseAvailable: controller && controller.selectedDisk.length > 0 && diskSizeGiB >= 8
-    readonly property bool separateHomeAvailable: eraseAvailable && diskSizeGiB >= 13
+    readonly property int diskSizeGiB: Math.floor(diskSizeBytes / 1073741824)
+    readonly property real fullDiskMinimumBytes: 8 * 1073741824 + 515 * 1048576
+    readonly property real guidedMinimumBytes: 12 * 1073741824 + 515 * 1048576
+    readonly property bool eraseAvailable: controller && controller.selectedDisk.length > 0
+                                           && diskSizeBytes >= fullDiskMinimumBytes
+    readonly property bool separateHomeAvailable: eraseAvailable && diskSizeBytes >= guidedMinimumBytes
     readonly property bool erasePlanReady: diskMode === "guided" ? separateHomeAvailable : eraseAvailable
 
     primaryEnabled: controller && !controller.diskDetecting
