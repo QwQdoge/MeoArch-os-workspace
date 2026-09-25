@@ -27,8 +27,8 @@ PageFrame {
             const detectedBytes = Number(detected[index].sizeBytes || 0)
             if (detectedBytes > 0)
                 return Math.floor(detectedBytes / 1073741824)
-            // Some hot-plug/slow storage briefly reports zero capacity during
-            // a rescan. Keep the last confirmed capacity for navigation only;
+            // Some hot-plug/slow storage briefly reports transient zero capacity
+            // during a rescan. Keep the last confirmed capacity for navigation only;
             // the destructive handoff revalidates the live capacity exactly.
             break
         }
