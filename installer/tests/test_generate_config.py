@@ -657,6 +657,11 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("dmsetup remove", runner)
         self.assertIn("os.path.realpath", runner)
         self.assertIn("dmsetup info -c --noheadings -o name", runner)
+        self.assertIn('cryptsetup close "${map_name}"', runner)
+        self.assertIn('lvchange -an "/dev/mapper/${map_name}"', runner)
+        self.assertNotIn('cryptsetup close "$(basename -- "${second}")"', runner)
+        self.assertIn("udevadm settle --timeout=10", runner)
+        self.assertIn("strict storage verification will decide", runner)
         self.assertLess(runner.index("Disabling selected target swap"),
                         runner.index("Unmounting selected target filesystem"))
         target_root_check = runner.index('target_root="$(resolve_target_root')
