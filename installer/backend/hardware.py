@@ -16,16 +16,32 @@ from typing import Any, Iterable
 
 
 DISPLAY_CLASSES = {"0300", "0302", "0380"}
-VENDORS = {"1002": "amd", "10de": "nvidia", "8086": "intel"}
+VENDORS = {
+    "1002": "amd",
+    "10de": "nvidia",
+    "8086": "intel",
+    # Common virtual display adapters. Treat these as a supported graphics
+    # class instead of an unknown physical GPU so VM installs remain useful
+    # even when no vendor guest utility is installed yet.
+    "1234": "virtual",  # QEMU/Bochs
+    "1af4": "virtual",  # virtio-gpu
+    "1b36": "virtual",  # QXL / Red Hat virtual display
+    "15ad": "virtual",  # VMware
+    "80ee": "virtual",  # VirtualBox
+    "1414": "virtual",  # Hyper-V
+}
 DRIVER_PACKAGES = {
     "amd": ["mesa", "vulkan-radeon", "libva-mesa-driver"],
-    "intel": ["mesa", "vulkan-intel", "libva-mesa-driver"],
-    # nvidia-open is the supported current NVIDIA kernel-module package in the
-    # Arch repositories.  Legacy NVIDIA hardware needs a manual post-install
-    # choice rather than silently selecting an unsupported third-party driver.
-    "nvidia": ["nvidia-open", "nvidia-utils"],
+    # intel-media-driver is Arch's current VA-API backend for Broadwell+.
+    # The generic Mesa VA backend is aimed at AMD/Nouveau, not modern Intel.
+    "intel": ["mesa", "vulkan-intel", "intel-media-driver"],
+    # nvidia-open is the current supported kernel-module package in Arch.
+    "nvidia": ["nvidia-open", "nvidia-utils", "libva-nvidia-driver"],
+    # virtio Vulkan works when Venus is available; lavapipe keeps Vulkan
+    # functional in VMware/VirtualBox/QXL-style VMs without Venus.
+    "virtual": ["mesa", "vulkan-virtio", "vulkan-swrast"],
 }
-FALLBACK_PACKAGES = ["mesa", "vulkan-icd-loader", "libva-mesa-driver"]
+FALLBACK_PACKAGES = ["mesa", "vulkan-swrast", "vulkan-icd-loader"]
 
 
 def pci_devices(sysfs_root: Path = Path("/sys/bus/pci/devices")) -> Iterable[dict[str, str]]:
@@ -84,7 +100,6 @@ def detect_devices(sysfs_root: Path = Path("/sys/bus/pci/devices")) -> list[dict
 def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
     """Build a de-duplicated package plan while preserving detected adapters."""
     devices = list(devices)
-    seen_vendors = set()
     vendors: list[str] = []
     seen_vendors = set()
     for device in devices:
@@ -93,25 +108,41 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
             seen_vendors.add(vendor)
             vendors.append(vendor)
 
-    seen_packages = set()
     packages: list[str] = []
     seen_packages = set()
-    for vendor in vendors:
-        for package in DRIVER_PACKAGES.get(vendor, []):
+    known_vendors = [vendor for vendor in vendors if vendor in DRIVER_PACKAGES]
+    for vendor in known_vendors:
+        for package in DRIVER_PACKAGES[vendor]:
             if package not in seen_packages:
                 seen_packages.add(package)
                 packages.append(package)
+
+    # A hybrid NVIDIA laptop needs the PRIME helper even though the kernel and
+    # userspace driver packages are already present.
+    physical_vendors = {vendor for vendor in known_vendors if vendor != "virtual"}
+    hybrid_nvidia = "nvidia" in physical_vendors and len(physical_vendors) > 1
+    if hybrid_nvidia and "nvidia-prime" not in seen_packages:
+        seen_packages.add("nvidia-prime")
+        packages.append("nvidia-prime")
+
     if not packages:
         packages = FALLBACK_PACKAGES.copy()
 
+    unknown_vendors = [vendor for vendor in vendors if vendor not in DRIVER_PACKAGES]
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "detected": bool(devices),
         "devices": devices,
         "vendors": vendors,
         "packages": packages,
-        "requiresNetwork": any(vendor == "nvidia" for vendor in vendors),
-        "summary": ", ".join(vendors) if vendors else "no supported display adapter detected",
+        "hybridGraphics": hybrid_nvidia,
+        "virtualGraphics": "virtual" in vendors,
+        "unknownAdapters": unknown_vendors,
+        # Kept for compatibility with older consumers. The full installer is
+        # network-backed regardless of GPU vendor, so graphics detection must
+        # never create a separate network gate.
+        "requiresNetwork": False,
+        "summary": ", ".join(vendors) if vendors else "generic graphics fallback",
     }
 
 
