@@ -214,7 +214,9 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("controller.disks", disk)
         self.assertIn("detected[index].sizeBytes", disk)
         self.assertIn("transient zero capacity", disk)
-        self.assertIn("diskSizeGiB >= 16", disk)
+        self.assertIn("diskSizeGiB >= 8", disk)
+        self.assertIn("separateHomeAvailable", disk)
+        self.assertIn("Below recommended capacity", disk)
 
     def test_choice_cards_expose_selection_semantics_without_turning_status_cards_into_buttons(self):
         card = (QML_ROOT / "components/SelectionCard.qml").read_text(encoding="utf-8")
@@ -391,7 +393,10 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("m_connectivityManager->get", controller)
         self.assertNotIn("m_connectivityManager->head", controller)
         self.assertIn('QStringLiteral("repository")', controller)
-        self.assertIn("official Arch Linux source first", network)
+        self.assertIn("Checks Internet access first", network)
+        self.assertIn('networkState === "repository"', network)
+        self.assertIn('tone: page.controller && page.controller.networkState === "online" ? "success"', network)
+        self.assertIn('? "warning"', network)
         self.assertIn("--range 0-0", preflight)
         self.assertNotIn("--head", preflight)
 
