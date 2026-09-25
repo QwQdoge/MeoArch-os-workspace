@@ -655,14 +655,13 @@ def build_user_configuration(selections, hardware_plan=None, application_package
         "network_config": {"type": "nm"},
         "ntp": True,
         "offline": False,
-        # The selected packages are derived from PCI IDs by hardware.py.  The
-        # Archinstall profile's generic graphics setting remains in place for
-        # desktop dependencies; this list adds the vendor-specific driver.
+        # Graphics packages are derived once from PCI IDs by hardware.py.
+        # Leave Archinstall's optional gfx_driver unset so it does not add a
+        # second generic Nouveau/AMD/Intel driver stack on top of that plan.
         "packages": desktop_packages,
         "profile_config": {
-            "gfx_driver": "All open-source",
             # The display manager is enabled by the target customisation step.
-            # Do not ask Archinstall to install/configure SDDM as a side effect.
+            # Do not ask Archinstall to install/configure another greeter as a side effect.
             "profile": {"details": ["KDE Plasma"], "main": "Desktop"},
         },
         "script": "guided",
