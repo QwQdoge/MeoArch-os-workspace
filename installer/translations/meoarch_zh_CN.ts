@@ -953,6 +953,10 @@
         <source>Active filesystems or swap on this disk will be released immediately before installation. Other partitions are not formatted.</source>
         <translation>此磁盘上正在使用的文件系统或交换空间会在正式安装前自动释放。其他分区不会被格式化。</translation>
     </message>
+    <message>
+        <source>This disk has active encrypted, LVM, RAID, or device-mapper storage. Deactivate it before erasing the disk.</source>
+        <translation>此磁盘上仍有活动的加密、LVM、RAID 或 device-mapper 存储层。请先停用这些映射，再擦除磁盘。</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
