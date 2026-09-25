@@ -222,6 +222,10 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("Below recommended capacity", disk)
         self.assertIn("Storage unavailable", disk)
         self.assertIn("unavailableReason", disk)
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        self.assertIn("hasActiveMappedDescendant", controller)
+        self.assertIn("active mapped storage", controller)
+        self.assertIn("Active filesystems or swap", controller)
 
     def test_choice_cards_expose_selection_semantics_without_turning_status_cards_into_buttons(self):
         card = (QML_ROOT / "components/SelectionCard.qml").read_text(encoding="utf-8")
