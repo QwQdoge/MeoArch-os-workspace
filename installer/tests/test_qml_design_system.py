@@ -295,6 +295,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
     def test_installing_page_explains_verified_progress_and_maps_backend_stage_ids(self):
         installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")
         controller = (QML_ROOT.parents[0] / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        self.assertIn('stage === "preflighting_arch_packages"', installing)
         self.assertIn('stage === "installing_base"', installing)
         self.assertIn("Progress updates at verified stages", installing)
         self.assertIn("same percentage", installing)
