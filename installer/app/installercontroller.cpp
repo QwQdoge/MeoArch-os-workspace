@@ -19,6 +19,7 @@
 #include <QProcessEnvironment>
 #include <QRegularExpression>
 #include <QSaveFile>
+#include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QStorageInfo>
