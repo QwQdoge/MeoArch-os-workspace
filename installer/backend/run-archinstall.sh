@@ -356,6 +356,10 @@ if ! command -v archinstall >/dev/null 2>&1; then
   echo "archinstall is not available." | tee -a "${log_file}" >&2
   exit 127
 fi
+if ! command -v timeout >/dev/null 2>&1; then
+  echo "timeout is not available; refusing unbounded installation preflight." | tee -a "${log_file}" >&2
+  exit 127
+fi
 
 resolve_target_root() {
   python3 - "$1" <<'PY'
@@ -393,14 +397,41 @@ if [ ! -f "${arch_package_preflight}" ] || [ -L "${arch_package_preflight}" ]; t
   exit 127
 fi
 progress "preflighting_arch_packages" 3 "Rechecking Arch mirrors and required packages"
-if ! bash "${arch_package_preflight}" "${config_file}" "${state_dir}" 2>&1 | tee -a "${log_file}"; then
-  echo "Arch package preflight failed before disk preparation." | tee -a "${log_file}" >&2
-  exit 14
-fi
+set +e
+timeout --signal=TERM --kill-after=10s 180s \
+  bash "${arch_package_preflight}" "${config_file}" "${state_dir}" 2>&1 | tee -a "${log_file}"
+arch_preflight_rc=${PIPESTATUS[0]}
+set -e
+case "${arch_preflight_rc}" in
+  0) ;;
+  124|137)
+    echo "Arch package preflight timed out before disk preparation. Check the connection and retry." | tee -a "${log_file}" >&2
+    exit 14
+    ;;
+  *)
+    echo "Arch package preflight failed before disk preparation." | tee -a "${log_file}" >&2
+    exit 14
+    ;;
+esac
 
 progress "preflighting_meo_repository" 5 "Verifying signed Meo repository metadata and selected packages"
-"${installer_root}/backend/preflight-meo-repository.sh" \
+set +e
+timeout --signal=TERM --kill-after=10s 240s \
+  "${installer_root}/backend/preflight-meo-repository.sh" \
   "${install_plan}" "${installer_root}/bootstrap" 2>&1 | tee -a "${log_file}"
+meo_preflight_rc=${PIPESTATUS[0]}
+set -e
+case "${meo_preflight_rc}" in
+  0) ;;
+  124|137)
+    echo "Meo repository preflight timed out before disk preparation. Check the connection and retry." | tee -a "${log_file}" >&2
+    exit 15
+    ;;
+  *)
+    echo "Meo repository preflight failed before disk preparation." | tee -a "${log_file}" >&2
+    exit 15
+    ;;
+esac
 
 # The repository request can take long enough for removable media or partition
 # state to change. Recheck identity before touching mounts, prepare the exact
