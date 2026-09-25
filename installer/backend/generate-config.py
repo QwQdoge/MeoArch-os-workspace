@@ -504,8 +504,12 @@ def _integer(value: Any, description: str) -> int:
         raise ValueError(f"{description} is invalid") from error
 
 
-def _verify_live_disk_state(identity: dict[str, Any], snapshot: dict[str, dict[str, Any]] | None = None) -> tuple[bool, str]:
-    """Reject media changes, mounted disks, and stale selected partitions."""
+def _verify_live_disk_state(
+    identity: dict[str, Any],
+    snapshot: dict[str, dict[str, Any]] | None = None,
+    allow_selected_mounts: bool = False,
+) -> tuple[bool, str]:
+    """Reject identity drift; optionally allow target mounts only for preparation."""
     device = identity.get("devicePath")
     if not isinstance(device, str):
         return False, "confirmed disk identity is invalid"
@@ -529,7 +533,9 @@ def _verify_live_disk_state(identity: dict[str, Any], snapshot: dict[str, dict[s
             if not isinstance(partitions, list) or len(partitions) != 2:
                 return False, "confirmed partition identity is invalid"
             selected_paths = {entry.get("path") for entry in partitions if isinstance(entry, dict)}
-            if any(record.get("path") in selected_paths and _mounted(record) for record in descendants):
+            if not allow_selected_mounts and any(
+                record.get("path") in selected_paths and _mounted(record) for record in descendants
+            ):
                 return False, "confirmed install partitions are still mounted"
             for expected in partitions:
                 if not isinstance(expected, dict):
@@ -545,14 +551,14 @@ def _verify_live_disk_state(identity: dict[str, Any], snapshot: dict[str, dict[s
                     expected_value = str(expected.get(field, "")).lower()
                     if expected_value and str(actual.get(field, "")).lower() != expected_value:
                         return False, f"confirmed partition {field} changed"
-        elif any(_mounted(record) for record in descendants):
+        elif not allow_selected_mounts and any(_mounted(record) for record in descendants):
             return False, "confirmed disk still has mounted filesystems"
     except (OSError, ValueError) as error:
         return False, str(error)
     return True, ""
 
 
-def verify_generated_handoff(state_dir: Path) -> tuple[bool, str]:
+def verify_generated_handoff(state_dir: Path, allow_selected_mounts: bool = False) -> tuple[bool, str]:
     """Verify that a ready handoff has not drifted before a destructive run."""
     private, reason = private_directory_ok(state_dir)
     if not private:
@@ -589,7 +595,7 @@ def verify_generated_handoff(state_dir: Path) -> tuple[bool, str]:
         identity_ok, identity_error = verify_selected_disk_identity(identity)
         if not identity_ok:
             return False, identity_error
-        return _verify_live_disk_state(identity)
+        return _verify_live_disk_state(identity, allow_selected_mounts=allow_selected_mounts)
     except (OSError, ValueError, json.JSONDecodeError) as error:
         return False, str(error)
 
@@ -772,13 +778,18 @@ def main():
     parser.add_argument("--state-dir", default="/tmp/meoarch-installer")
     parser.add_argument("--selections")
     parser.add_argument("--credentials", help="Ephemeral 0600 JSON containing only password hashes/passphrases")
-    parser.add_argument("--verify-handoff", action="store_true",
-                        help="Verify an already-generated handoff immediately before a destructive run")
+    verification = parser.add_mutually_exclusive_group()
+    verification.add_argument("--verify-handoff", action="store_true",
+                              help="Strictly verify an already-generated handoff immediately before a destructive run")
+    verification.add_argument("--verify-handoff-for-preparation", action="store_true",
+                              help="Verify identity and generated files before safely unmounting selected targets")
     args = parser.parse_args()
 
     state_dir = Path(args.state_dir)
-    if args.verify_handoff:
-        verified, error = verify_generated_handoff(state_dir)
+    if args.verify_handoff or args.verify_handoff_for_preparation:
+        verified, error = verify_generated_handoff(
+            state_dir, allow_selected_mounts=args.verify_handoff_for_preparation
+        )
         if not verified:
             raise SystemExit(f"installation handoff verification failed: {error}")
         print("installation handoff verification passed")
