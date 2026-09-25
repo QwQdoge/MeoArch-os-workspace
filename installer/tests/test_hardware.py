@@ -121,7 +121,7 @@ class HardwareDetectionTests(unittest.TestCase):
         ])
         self.assertIn("spice-vdagent", plan["packages"])
         self.assertEqual(plan["guestPackages"], ["spice-vdagent"])
-        self.assertEqual(plan["guestServices"], [])
+        self.assertEqual(plan["guestServices"], ["spice-vdagentd.service"])
 
     def test_plain_virtio_does_not_assume_spice_or_guest_agent(self):
         plan = MODULE.driver_plan([
