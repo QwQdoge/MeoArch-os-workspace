@@ -1,3 +1,6 @@
+import json
+import subprocess
+import sys
 import importlib.util
 import tempfile
 import unittest
@@ -90,6 +93,23 @@ class HardwareDetectionTests(unittest.TestCase):
             (device / "vendor").write_text("0x1234\n")
             (device / "device").write_text("0x1111\n")
             self.assertEqual(MODULE.detect_devices(Path(directory))[0]["vendor"], "virtual")
+
+    def test_hardware_cli_emits_vm_plan_from_synthetic_sysfs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device = Path(directory) / "0000:00:02.0"
+            device.mkdir()
+            (device / "class").write_text("0x030000\n")
+            (device / "vendor").write_text("0x1af4\n")
+            (device / "device").write_text("0x1050\n")
+            result = subprocess.run(
+                [sys.executable, MODULE_PATH, "--sysfs-root", directory],
+                check=True, capture_output=True, text=True,
+            )
+            payload = json.loads(result.stdout)
+            self.assertTrue(payload["detected"])
+            self.assertTrue(payload["virtualGraphics"])
+            self.assertIn("vulkan-virtio", payload["packages"])
+            self.assertFalse(payload["requiresNetwork"])
 
     def test_unknown_hardware_uses_safe_open_stack(self):
         plan = MODULE.driver_plan([])
