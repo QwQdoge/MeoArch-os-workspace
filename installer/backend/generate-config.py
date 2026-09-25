@@ -532,7 +532,7 @@ def _verify_live_disk_state(
     snapshot: dict[str, dict[str, Any]] | None = None,
     allow_selected_mounts: bool = False,
 ) -> tuple[bool, str]:
-    """Reject identity drift; optionally allow target mounts only for preparation."""
+    """Reject identity drift; optionally allow recoverable target activity for preparation."""
     device = identity.get("devicePath")
     if not isinstance(device, str):
         return False, "confirmed disk identity is invalid"
@@ -554,8 +554,8 @@ def _verify_live_disk_state(
         # Archinstall unmounts all existing partitions of every modified
         # device and commits the partition table even in MODIFY mode. Active
         # mapped storage anywhere on this disk can make that commit fail.
-        if _has_active_mapped_descendant(disk):
-            return False, "confirmed disk has active mapped storage that must be deactivated first"
+        if not allow_selected_mounts and _has_active_mapped_descendant(disk):
+            return False, "confirmed disk still has active mapped storage"
         if identity.get("mode") == "partition":
             partitions = identity.get("partitions")
             if not isinstance(partitions, list) or len(partitions) != 2:
