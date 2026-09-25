@@ -655,6 +655,8 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("lvchange -an", runner)
         self.assertIn("mdadm --stop", runner)
         self.assertIn("dmsetup remove", runner)
+        self.assertIn("os.path.realpath", runner)
+        self.assertIn("dmsetup info -c --noheadings -o name", runner)
         self.assertLess(runner.index("Disabling selected target swap"),
                         runner.index("Unmounting selected target filesystem"))
         target_root_check = runner.index('target_root="$(resolve_target_root')
