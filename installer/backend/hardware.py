@@ -32,9 +32,9 @@ VENDORS = {
 }
 DRIVER_PACKAGES = {
     "amd": ["mesa", "vulkan-radeon", "libva-mesa-driver"],
-    # intel-media-driver is Arch's current VA-API backend for Broadwell+.
-    # The generic Mesa VA backend is aimed at AMD/Nouveau, not modern Intel.
-    "intel": ["mesa", "vulkan-intel", "intel-media-driver"],
+    # Keep both Intel VA-API backends: iHD covers Broadwell+ while i965
+    # keeps older Intel HD Graphics usable. libva selects the matching backend.
+    "intel": ["mesa", "vulkan-intel", "intel-media-driver", "libva-intel-driver"],
     # virtio Vulkan works when Venus is available; lavapipe keeps Vulkan
     # functional in VMware/VirtualBox/QXL-style VMs without Venus.
     "virtual": ["mesa", "vulkan-virtio", "vulkan-swrast"],
