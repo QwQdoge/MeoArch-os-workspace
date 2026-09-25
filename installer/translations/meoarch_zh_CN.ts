@@ -969,6 +969,22 @@
         <source>This partition has active storage use that will be released after final confirmation.</source>
         <translation>此分区当前有活动的存储占用，会在最终确认后释放。</translation>
     </message>
+    <message>
+        <source>The network changed, so it will not be copied to the installed system. Installation can continue.</source>
+        <translation>网络状态已发生变化，因此不会复制到安装后的系统；安装可以继续。</translation>
+    </message>
+    <message>
+        <source>The network profile could not be staged. It will not be copied, but installation can continue.</source>
+        <translation>无法暂存网络配置，因此不会复制该配置，但安装可以继续。</translation>
+    </message>
+    <message>
+        <source>The network profile could not be copied. It will not be remembered, but installation can continue.</source>
+        <translation>无法复制网络配置，因此安装后不会自动记住该网络，但安装可以继续。</translation>
+    </message>
+    <message>
+        <source>The copied network profile could not be protected safely. It was discarded and installation can continue.</source>
+        <translation>复制的网络配置无法安全保护，已将其丢弃；安装可以继续。</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
