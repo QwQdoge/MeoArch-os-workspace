@@ -142,21 +142,17 @@ print(hashlib.sha256(path.read_bytes()).hexdigest())
 PY
 )"
 
-# A carrier/link-local interface is not proof that Arch packages are reachable.
-# The test is intentionally independent of the UI and runs in this background
-# preflight process, never in the QML GUI thread.
+# Connectivity here is diagnostic only. A single fixed endpoint is not a
+# reliable reason to reject an otherwise valid installation plan: the real
+# installation uses the configured mirror path and the signed Meo repository
+# preflight immediately before any disk write.
 mirror_probe="https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db"
 if ! getent ahosts geo.mirror.pkgbuild.com >/dev/null 2>&1; then
-  write_status "failed" "DNS cannot resolve an Arch mirror. Connect to the Internet and retry." 20
-  exit 0
-fi
-if ! command -v curl >/dev/null 2>&1; then
-  write_status "missing" "curl is unavailable; Internet reachability cannot be verified safely." 127
-  exit 0
-fi
-if ! curl --fail --silent --show-error --location --max-time 20 --range 0-0 --output /dev/null "${mirror_probe}" >>"${log_file}" 2>&1; then
-  write_status "failed" "An Arch mirror is not reachable. Check the Internet connection and retry." 21
-  exit 0
+  echo "warning: Arch mirror DNS probe failed; continuing configuration dry-run" >>"${log_file}"
+elif ! command -v curl >/dev/null 2>&1; then
+  echo "warning: curl is unavailable; skipping advisory Arch mirror probe" >>"${log_file}"
+elif ! curl --fail --silent --show-error --location --max-time 20 --range 0-0 --output /dev/null "${mirror_probe}" >>"${log_file}" 2>&1; then
+  echo "warning: fixed Arch mirror probe failed; continuing configuration dry-run" >>"${log_file}"
 fi
 
 write_status "running" "Running a silent archinstall dry-run in the background." 0
