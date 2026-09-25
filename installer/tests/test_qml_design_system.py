@@ -92,6 +92,17 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("controller.retranslateUserFacingState();", host)
         self.assertIn("void InstallerController::retranslateUserFacingState()", controller)
 
+    def test_hardware_detection_is_bounded_advisory_and_has_a_safe_fallback(self):
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        self.assertIn("Generic graphics fallback · Mesa-compatible stack", controller)
+        self.assertIn("Graphics detector unavailable · generic Mesa fallback will be used", controller)
+        self.assertIn("Graphics detection was inconclusive · generic Mesa fallback will be used", controller)
+        self.assertIn("QTimer::singleShot(8000", controller)
+        self.assertIn('result.value(QStringLiteral("detected")).toBool(false)', controller)
+        start = controller.index("void InstallerController::detectHardware()")
+        end = controller.index("void InstallerController::refreshDisks()", start)
+        self.assertNotIn("setError(", controller[start:end])
+
     def test_power_dialog_uses_md_motion_and_hold_confirmation(self):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
         self.assertIn("presentation: MeoMotionPopup.Dialog", frame)
@@ -284,6 +295,12 @@ class InstallerDesignSystemTests(unittest.TestCase):
             ],
             "InstallerController": [
                 "The selected software list is invalid. Go back and choose the components again.",
+                "This device contains the running installer or a protected Live-system mount.",
+                "Active filesystems, swap, encryption, LVM, RAID, or device-mapper layers on this disk will be released after final confirmation. Other partitions are not formatted.",
+                "This partition has active storage use that will be released after final confirmation.",
+                "Generic graphics fallback · Mesa-compatible stack",
+                "Graphics detector unavailable · generic Mesa fallback will be used",
+                "Graphics detection was inconclusive · generic Mesa fallback will be used",
             ],
             "UserAccountPage": ["Finish account details to continue"],
         }
