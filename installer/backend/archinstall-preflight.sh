@@ -148,21 +148,34 @@ if [ ! -f "${package_preflight}" ] || [ -L "${package_preflight}" ]; then
   write_status "missing" "Arch package preflight helper is missing or unsafe." 127
   exit 0
 fi
-if ! bash "${package_preflight}" "${config_file}" "${state_dir}" >>"${log_file}" 2>&1; then
-  write_status "failed" "Arch package sources or required packages could not be resolved. Review the saved log and retry." 25
+if ! command -v timeout >/dev/null 2>&1; then
+  write_status "missing" "The timeout helper is unavailable; refusing an unbounded installation preflight." 127
   exit 0
 fi
+
+set +e
+timeout --signal=TERM --kill-after=10s 180s \
+  bash "${package_preflight}" "${config_file}" "${state_dir}" >>"${log_file}" 2>&1
+package_rc=$?
+set -e
+case "${package_rc}" in
+  0) ;;
+  124|137)
+    write_status "timeout" "Arch package preflight timed out. Check the connection and retry; no disk changes were made." "${package_rc}"
+    exit 0
+    ;;
+  *)
+    write_status "failed" "Arch package sources or required packages could not be resolved. Review the saved log and retry." "${package_rc}"
+    exit 0
+    ;;
+esac
 
 write_status "running" "Running a silent archinstall dry-run in the background." 0
 
 set +e
-if command -v timeout >/dev/null 2>&1; then
-  timeout 120s archinstall --silent --dry-run --config "${config_file}" --creds "${creds_file}" >>"${log_file}" 2>&1 </dev/null
-  rc=$?
-else
+timeout --signal=TERM --kill-after=10s 120s \
   archinstall --silent --dry-run --config "${config_file}" --creds "${creds_file}" >>"${log_file}" 2>&1 </dev/null
-  rc=$?
-fi
+rc=$?
 set -e
 
 copy_reference_configs
