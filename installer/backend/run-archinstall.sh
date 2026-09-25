@@ -225,10 +225,6 @@ fi
 installer_root="${MEOARCH_INSTALLER_ROOT:-/opt/meoarch-installer}"
 install_plan="${generated_dir}/install-plan.json"
 [ -f "${install_plan}" ] || { echo "Generated Meo install plan is missing." | tee -a "${log_file}" >&2; exit 8; }
-if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state_dir}" --verify-handoff; then
-  echo "Generated installation handoff changed or the selected disk is no longer safe." | tee -a "${log_file}" >&2
-  exit 6
-fi
 if ! command -v archinstall >/dev/null 2>&1; then
   echo "archinstall is not available." | tee -a "${log_file}" >&2
   exit 127
@@ -257,9 +253,18 @@ target_root="$(resolve_target_root "${MEOARCH_TARGET_ROOT:-/mnt}")" || {
   exit 7
 }
 
-# Validate the target-root boundary before touching selected mounts. This keeps
-# an unsafe /mnt override or symlink from reaching any disk-preparation path.
+# Validate the target-root boundary before touching selected mounts. Then
+# verify the exact generated files and disk identity while tolerating only the
+# mounts that this next preparation step is explicitly responsible for.
+if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state_dir}" --verify-handoff-for-preparation; then
+  echo "Generated installation handoff changed or the selected disk is no longer safe." | tee -a "${log_file}" >&2
+  exit 6
+fi
 if ! prepare_selected_mounts; then
+  exit 6
+fi
+if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state_dir}" --verify-handoff; then
+  echo "Selected target could not be prepared for installation." | tee -a "${log_file}" >&2
   exit 6
 fi
 
@@ -268,8 +273,13 @@ progress "preflighting_meo_repository" 5 "Verifying signed Meo repository metada
   "${install_plan}" "${installer_root}/bootstrap" 2>&1 | tee -a "${log_file}"
 
 # The repository request can take long enough for removable media or partition
-# state to change. Recheck mounts and the hash-bound handoff immediately before
-# the only command that is allowed to write a disk.
+# state to change. Recheck identity before touching mounts, prepare the exact
+# confirmed target, then require the strict unmounted handoff immediately
+# before the only command that is allowed to write a disk.
+if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state_dir}" --verify-handoff-for-preparation; then
+  echo "Selected disk or installation handoff changed before disk preparation." | tee -a "${log_file}" >&2
+  exit 6
+fi
 if ! prepare_selected_mounts; then
   exit 6
 fi
