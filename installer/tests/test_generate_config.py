@@ -410,6 +410,39 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertFalse(verified)
         self.assertIn("active mapped storage", reason)
 
+    def test_partition_mode_blocks_unrelated_active_mapping_on_same_disk(self):
+        gib = 1024 * 1024 * 1024
+        mapped = {
+            "path": "/dev/mapper/data-vg", "type": "lvm", "size": 16 * gib,
+            "mountpoints": [None], "_meo_root_path": "/dev/sda",
+        }
+        data_part = {
+            "path": "/dev/sda2", "type": "part", "size": 16 * gib, "start": 264192,
+            "parttype": "", "fstype": "LVM2_member", "mountpoints": [None],
+            "children": [mapped], "_meo_root_path": "/dev/sda",
+        }
+        identity = {
+            "devicePath": "/dev/sda", "sizeBytes": 64 * gib, "mode": "partition",
+            "serial": "", "wwn": "",
+            "partitions": [
+                {"path": "/dev/sda1", "startSectors": 2048, "sizeBytes": 512 * 1024 * 1024,
+                 "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b", "fstype": "vfat"},
+                {"path": "/dev/sda3", "startSectors": 4194304, "sizeBytes": 12 * gib,
+                 "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "fstype": "ext4"},
+            ],
+        }
+        disk = {
+            "path": "/dev/sda", "type": "disk", "size": 64 * gib, "ro": 0,
+            "serial": "", "wwn": "", "mountpoints": [None],
+            "children": [data_part], "_meo_root_path": "/dev/sda",
+        }
+        snapshot = {"/dev/sda": disk, "/dev/sda2": data_part, "/dev/mapper/data-vg": mapped}
+        verified, reason = MODULE._verify_live_disk_state(
+            identity, snapshot, allow_selected_mounts=True
+        )
+        self.assertFalse(verified)
+        self.assertIn("active mapped storage", reason)
+
     def test_live_disk_verification_still_rejects_read_only_media(self):
         identity = {
             "devicePath": "/dev/sdb", "sizeBytes": 15 * 1024 * 1024 * 1024,
@@ -426,7 +459,7 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertFalse(verified)
         self.assertIn("read-only", reason)
 
-    def test_partition_verification_ignores_unrelated_mounted_partition(self):
+    def test_partition_preparation_allows_unrelated_mount_but_strict_check_requires_release(self):
         gib = 1024 * 1024 * 1024
         identity = {
             "devicePath": "/dev/sda", "sizeBytes": 64 * gib, "mode": "partition",
@@ -451,7 +484,13 @@ class GenerateConfigTests(unittest.TestCase):
                           "start": 4194304, "parttype": identity["partitions"][1]["parttype"],
                           "fstype": "ext4", "mountpoints": [None], "_meo_root_path": "/dev/sda"},
         }
-        self.assertEqual(MODULE._verify_live_disk_state(identity, snapshot), (True, ""))
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
+        )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
+        self.assertFalse(verified)
+        self.assertIn("active filesystems or swap", reason)
 
     def test_handoff_rejects_config_drift_after_preflight_generation(self):
         with tempfile.TemporaryDirectory() as directory:
