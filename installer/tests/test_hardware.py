@@ -64,6 +64,18 @@ class HardwareDetectionTests(unittest.TestCase):
         self.assertIn("vulkan-swrast", plan["packages"])
         self.assertTrue(plan["warnings"])
 
+    def test_mixed_nvidia_generations_choose_safe_fallback(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "2684"},
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "1c82"},
+        ])
+        self.assertFalse(plan["nvidiaOpenSupported"])
+        self.assertTrue(plan["nvidiaFallback"])
+        self.assertNotIn("nvidia-open", plan["packages"])
+        self.assertNotIn("nvidia-utils", plan["packages"])
+        self.assertIn("mesa", plan["packages"])
+        self.assertTrue(plan["warnings"])
+
     def test_unknown_nvidia_generation_fails_open_to_mesa(self):
         plan = MODULE.driver_plan([
             {"vendor": "nvidia", "vendorId": "10de", "deviceId": ""},
