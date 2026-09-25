@@ -8,14 +8,14 @@ import "../components"
 
 PageFrame {
     id: page
-    primaryEnabled: page.controller && (page.controller.networkState === "online"
-                                           || page.controller.networkState === "repository")
+    readonly property bool hasActiveNetwork: page.controller
+                                             && page.controller.networkState !== "no-interface"
+                                             && page.controller.networkState !== "unknown"
+    primaryEnabled: page.hasActiveNetwork
     primaryLabel: primaryEnabled ? qsTr("Continue") : qsTr("Connect to continue")
     primaryAccessibleDescription: primaryEnabled
-                                  ? (page.controller && page.controller.networkState === "repository"
-                                     ? qsTr("Continue because Internet access is available; the package source warning will be checked again before installation")
-                                     : qsTr("Continue after Internet access has been verified"))
-                                  : qsTr("Connect to the Internet before continuing with installation")
+                                  ? qsTr("Continue with the active network; Internet and package downloads are checked again before installation")
+                                  : qsTr("Connect a network interface before continuing with installation")
 
     function signalIcon(strength) {
         if (strength >= 70) return "signal_wifi_4_bar"
@@ -42,8 +42,8 @@ PageFrame {
                    : qsTr("Internet connection required")
             message: page.controller ? page.controller.networkDetail : qsTr("Network status is unavailable.")
             tone: page.controller && page.controller.networkState === "online" ? "success"
-                  : page.controller && page.controller.networkState === "repository" ? "warning"
-                  : page.controller && page.controller.networkState === "checking" ? "info" : "error"
+                  : page.controller && page.controller.networkState === "no-interface" ? "error"
+                  : page.controller && page.controller.networkState === "checking" ? "info" : "warning"
         }
         InfoBanner {
             visible: page.controller && (page.controller.networkState === "offline"
@@ -78,7 +78,7 @@ PageFrame {
             type: "tonal"
             loading: page.controller && page.controller.networkState === "checking"
             enabled: page.controller && page.controller.networkState !== "checking"
-            Accessible.description: qsTr("Checks Internet access first, then reports package-source availability as a warning until final preflight")
+            Accessible.description: qsTr("Rechecks Internet and package-source reachability without blocking the rest of the setup wizard")
             onClicked: page.controller.retryNetwork()
         }
         SelectionCard {
