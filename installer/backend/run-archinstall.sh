@@ -149,24 +149,46 @@ partition_suffix = (r"(?:p[0-9]+)?"
 device_re = re.compile(re.escape(device) + partition_suffix + r"(?:\[.*\])?$")
 protected = ("/", "/boot", "/usr", "/etc", "/var", "/home", "/opt", "/run", "/proc", "/sys", "/dev", "/tmp")
 
+def selected_source(source):
+    base_source = source.split("[", 1)[0]
+    return base_source in selected if mode == "partition" else bool(device_re.fullmatch(base_source))
+
 targets = []
 for entry in filesystems if isinstance(filesystems, list) else []:
     if not isinstance(entry, dict):
         continue
     target = entry.get("target")
     source = entry.get("source")
-    if not isinstance(target, str) or not isinstance(source, str):
-        continue
-    base_source = source.split("[", 1)[0]
-    matches = base_source in selected if mode == "partition" else bool(device_re.fullmatch(source))
-    if not matches:
+    if not isinstance(target, str) or not isinstance(source, str) or not selected_source(source):
         continue
     if target in protected or target.startswith("/run/archiso"):
         raise SystemExit(f"selected target backs protected Live mount {target}")
     targets.append(target)
 
+swap_sources = []
+try:
+    swap_lines = open("/proc/swaps", encoding="utf-8").read().splitlines()[1:]
+except OSError:
+    swap_lines = []
+for line in swap_lines:
+    fields = line.split()
+    if not fields:
+        continue
+    source = fields[0]
+    matches = selected_source(source)
+    if not matches and source.startswith("/"):
+        backing = subprocess.run(
+            ["findmnt", "-rn", "-o", "SOURCE", "-T", source],
+            check=False, capture_output=True, text=True,
+        ).stdout.strip()
+        matches = bool(backing) and selected_source(backing)
+    if matches:
+        swap_sources.append(source)
+
+for source in sorted(set(swap_sources)):
+    print("SWAP\t" + source)
 for target in sorted(set(targets), key=lambda value: (value.count("/"), len(value)), reverse=True):
-    print(target)
+    print("MOUNT\t" + target)
 PY
 )"; then
     echo "Selected target has mounted filesystems that cannot be prepared safely." | tee -a "${log_file}" >&2
@@ -174,13 +196,28 @@ PY
   fi
 
   [ -z "${mount_plan}" ] && return 0
-  while IFS= read -r target; do
+  while IFS="$(printf '\t')" read -r action target; do
     [ -n "${target}" ] || continue
-    log "Unmounting selected target filesystem: ${target}"
-    if ! umount -- "${target}" >>"${log_file}" 2>&1; then
-      echo "Could not unmount selected target filesystem: ${target}" | tee -a "${log_file}" >&2
-      return 1
-    fi
+    case "${action}" in
+      SWAP)
+        log "Disabling selected target swap: ${target}"
+        if ! swapoff -- "${target}" >>"${log_file}" 2>&1; then
+          echo "Could not disable selected target swap: ${target}" | tee -a "${log_file}" >&2
+          return 1
+        fi
+        ;;
+      MOUNT)
+        log "Unmounting selected target filesystem: ${target}"
+        if ! umount -- "${target}" >>"${log_file}" 2>&1; then
+          echo "Could not unmount selected target filesystem: ${target}" | tee -a "${log_file}" >&2
+          return 1
+        fi
+        ;;
+      *)
+        echo "Invalid selected-target preparation action." | tee -a "${log_file}" >&2
+        return 1
+        ;;
+    esac
   done <<<"${mount_plan}"
 }
 

@@ -74,6 +74,19 @@ class InstallEngineGuardTests(unittest.TestCase):
             source,
         )
 
+    def test_preflight_has_python_fallback_when_curl_is_unavailable(self):
+        source = PREFLIGHT.read_text(encoding="utf-8")
+        self.assertIn("probe_url()", source)
+        self.assertIn("urllib.request", source)
+        self.assertNotIn('write_status "missing" "curl is unavailable', source)
+
+    def test_runner_recovers_confirmed_target_swap_before_unmounting(self):
+        source = RUNNER.read_text(encoding="utf-8")
+        self.assertIn('open("/proc/swaps"', source)
+        self.assertIn('print("SWAP\\t" + source)', source)
+        self.assertIn('swapoff -- "${target}"', source)
+        self.assertLess(source.index('SWAP)'), source.index('MOUNT)'))
+
     def test_preflight_refuses_a_symlinked_status_file_without_following_it(self):
         with tempfile.TemporaryDirectory() as directory:
             state = Path(directory) / "state"

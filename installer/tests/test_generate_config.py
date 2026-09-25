@@ -383,6 +383,33 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertFalse(verified)
         self.assertIn("mounted", reason)
 
+    def test_active_mapped_storage_is_blocked_before_mount_preparation(self):
+        gib = 1024 * 1024 * 1024
+        crypt = {
+            "path": "/dev/mapper/cryptroot", "type": "crypt", "size": 12 * gib,
+            "mountpoints": ["/mnt/old-root"], "_meo_root_path": "/dev/sda",
+        }
+        root = {
+            "path": "/dev/sda3", "type": "part", "size": 12 * gib, "start": 4194304,
+            "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "fstype": "crypto_LUKS",
+            "mountpoints": [None], "children": [crypt], "_meo_root_path": "/dev/sda",
+        }
+        disk = {
+            "path": "/dev/sda", "type": "disk", "size": 64 * gib, "ro": 0,
+            "serial": "", "wwn": "", "mountpoints": [None], "children": [root],
+            "_meo_root_path": "/dev/sda",
+        }
+        identity = {
+            "devicePath": "/dev/sda", "sizeBytes": 64 * gib, "mode": "erase",
+            "serial": "", "wwn": "",
+        }
+        snapshot = {"/dev/sda": disk, "/dev/sda3": root, "/dev/mapper/cryptroot": crypt}
+        verified, reason = MODULE._verify_live_disk_state(
+            identity, snapshot, allow_selected_mounts=True
+        )
+        self.assertFalse(verified)
+        self.assertIn("active mapped storage", reason)
+
     def test_live_disk_verification_still_rejects_read_only_media(self):
         identity = {
             "devicePath": "/dev/sdb", "sizeBytes": 15 * 1024 * 1024 * 1024,

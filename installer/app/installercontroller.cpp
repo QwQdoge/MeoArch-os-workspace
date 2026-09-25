@@ -79,6 +79,21 @@ bool hasMountedDescendant(const QJsonObject &device)
     return false;
 }
 
+bool hasActiveMappedDescendant(const QJsonObject &device)
+{
+    // A normal partition child is part of the selected physical disk. Any
+    // nested non-partition block child means an active dm-crypt/LVM/RAID-like
+    // layer still owns the target and cannot be safely guessed away.
+    for (const QJsonValue &childValue : device.value(QStringLiteral("children")).toArray()) {
+        const QJsonObject child = childValue.toObject();
+        if (child.value(QStringLiteral("type")).toString() != QStringLiteral("part"))
+            return true;
+        if (hasActiveMappedDescendant(child))
+            return true;
+    }
+    return false;
+}
+
 QString conciseProcessFailure(QString output)
 {
     // The backend writes diagnostics through tee so the persistent log and
@@ -1220,6 +1235,7 @@ void InstallerController::parseDisks(const QByteArray &payload)
         const bool readOnly = jsonFlag(d.value(QStringLiteral("ro")));
         const bool removable = jsonFlag(d.value(QStringLiteral("rm"))) || jsonFlag(d.value(QStringLiteral("hotplug")));
         const bool mounted = hasMountedDescendant(d);
+        const bool activeMappedStorage = hasActiveMappedDescendant(d);
         const bool partitionUsesP = QRegularExpression(
             QStringLiteral("^(?:nvme\\d+n\\d+|mmcblk\\d+|pmem\\d+)$"))
             .match(name).hasMatch();
@@ -1237,16 +1253,20 @@ void InstallerController::parseDisks(const QByteArray &payload)
         const qint64 layoutOverheadBytes = 515LL * 1024 * 1024;
         const qint64 absoluteMinimumBytes = minimumRootBytes + layoutOverheadBytes;
         const qint64 recommendedDiskBytes = 16LL * 1024 * 1024 * 1024;
-        const bool eligible = supportedPath && !readOnly && !runningMedia && size >= absoluteMinimumBytes;
+        const bool eligible = supportedPath && !readOnly && !runningMedia
+                              && !activeMappedStorage && size >= absoluteMinimumBytes;
         const bool partitionInstallEligible = supportedPath && !readOnly && !runningMedia;
         QString reason;
         if (runningMedia) reason = tr("This device contains the running installer.");
         else if (readOnly) reason = tr("This storage device is read-only.");
         else if (!supportedPath) reason = tr("This storage device type is not supported by the safe installer backend.");
+        else if (activeMappedStorage)
+            reason = tr("This disk has active encrypted, LVM, RAID, or device-mapper storage. Deactivate it before erasing the disk.");
         else if (size < absoluteMinimumBytes) reason = tr("This device is too small for the minimum install layout.");
         QStringList warnings;
         if (removable) warnings.append(tr("This is removable or hot-plug storage. Keep it connected until installation finishes."));
-        if (mounted) warnings.append(tr("Mounted filesystems on the selected target will be unmounted immediately before installation."));
+        if (mounted && !activeMappedStorage)
+            warnings.append(tr("Active filesystems or swap on the selected target will be released immediately before installation."));
         if (size > 0 && size < recommendedDiskBytes)
             warnings.append(tr("Less than 16 GiB is available. Installation is allowed, but free space may be tight."));
         QVariantList partitions;
@@ -1259,18 +1279,22 @@ void InstallerController::parseDisks(const QByteArray &payload)
             if (child.value(QStringLiteral("type")).toString() != QStringLiteral("part"))
                 continue;
             const qint64 partitionSize = child.value(QStringLiteral("size")).toVariant().toLongLong();
-            const bool partitionMounted = hasMountedFilesystem(child);
+            const bool partitionMounted = hasMountedDescendant(child);
+            const bool partitionMapped = hasActiveMappedDescendant(child);
             const QString parttype = child.value(QStringLiteral("parttype")).toString().toLower();
             const QString fstype = child.value(QStringLiteral("fstype")).toString().toLower();
             const bool isEfi = parttype == efiGuid;
-            const bool eligibleRoot = partitionInstallEligible && !isEfi && partitionSize >= minimumRootBytes;
-            const bool eligibleEfi = partitionInstallEligible && isEfi
+            const bool eligibleRoot = partitionInstallEligible && !partitionMapped
+                                      && !isEfi && partitionSize >= minimumRootBytes;
+            const bool eligibleEfi = partitionInstallEligible && !partitionMapped && isEfi
                                      && partitionSize >= minimumEfiBytes
                                      && (fstype == QStringLiteral("vfat") || fstype == QStringLiteral("fat")
                                          || fstype == QStringLiteral("fat16") || fstype == QStringLiteral("fat32"));
             QString partitionReason;
             if (!partitionInstallEligible)
                 partitionReason = reason;
+            else if (partitionMapped)
+                partitionReason = tr("This partition has active mapped storage. Deactivate encryption, LVM, RAID, or device-mapper layers before using it.");
             else if (isEfi && !eligibleEfi)
                 partitionReason = tr("EFI partition is not a supported FAT ESP or is smaller than 512 MiB.");
             else if (!isEfi && partitionSize < minimumRootBytes)
@@ -1278,8 +1302,8 @@ void InstallerController::parseDisks(const QByteArray &payload)
             else if (isEfi)
                 partitionReason = tr("EFI System Partition — preserved for boot files.");
             QStringList partitionWarnings;
-            if (partitionMounted)
-                partitionWarnings.append(tr("This partition is mounted now and will be unmounted before installation."));
+            if (partitionMounted && !partitionMapped)
+                partitionWarnings.append(tr("This partition has an active filesystem or swap entry that will be released before installation."));
             if (eligibleRoot && partitionSize < recommendedRootBytes)
                 partitionWarnings.append(tr("This root partition is smaller than the recommended 16 GiB."));
             if (removable)

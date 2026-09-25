@@ -933,6 +933,22 @@
         <source>No storage device was detected. Preview disks are never shown in production mode.</source>
         <translation>未检测到存储设备。生产模式不会显示虚构的预览磁盘。</translation>
     </message>
+    <message>
+        <source>This disk has active encrypted, LVM, RAID, or device-mapper storage. Deactivate it before erasing the disk.</source>
+        <translation>此磁盘存在正在使用的加密、LVM、RAID 或 device-mapper 存储层。擦除磁盘前请先停用它。</translation>
+    </message>
+    <message>
+        <source>Active filesystems or swap on the selected target will be released immediately before installation.</source>
+        <translation>所选目标上正在使用的文件系统或交换空间会在正式安装前自动释放。</translation>
+    </message>
+    <message>
+        <source>This partition has active mapped storage. Deactivate encryption, LVM, RAID, or device-mapper layers before using it.</source>
+        <translation>此分区存在正在使用的映射存储层。使用前请先停用加密、LVM、RAID 或 device-mapper 层。</translation>
+    </message>
+    <message>
+        <source>This partition has an active filesystem or swap entry that will be released before installation.</source>
+        <translation>此分区有正在使用的文件系统或交换空间，会在正式安装前自动释放。</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
