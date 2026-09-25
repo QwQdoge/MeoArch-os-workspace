@@ -535,7 +535,7 @@ void InstallerController::selectExistingPartition(const QString &diskId, const Q
             return;
         }
         if (efi.isEmpty()) {
-            setError(tr("This disk needs an unmounted 512 MiB EFI System Partition. No partition will be changed."));
+            setError(tr("This disk needs a supported FAT EFI System Partition of at least 512 MiB. No partition will be changed."));
             return;
         }
         writeSelection(QStringLiteral("disk"), QStringLiteral("stableId"), diskId);
