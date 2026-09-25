@@ -101,6 +101,7 @@ class GenerateConfigTests(unittest.TestCase):
         config = MODULE.build_user_configuration(self.selections, hardware)
         self.assertEqual(config["packages"][:len(hardware["packages"])], hardware["packages"])
         self.assertIn("nvidia-open", config["packages"])
+        self.assertNotIn("gfx_driver", config["profile_config"])
         for package in MODULE.MEO_DESKTOP_PACKAGES:
             self.assertIn(package, config["packages"])
 
@@ -404,9 +405,136 @@ class GenerateConfigTests(unittest.TestCase):
             "serial": "", "wwn": "",
         }
         snapshot = {"/dev/sda": disk, "/dev/sda3": root, "/dev/mapper/cryptroot": crypt}
-        verified, reason = MODULE._verify_live_disk_state(
-            identity, snapshot, allow_selected_mounts=True
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
         )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
+        self.assertFalse(verified)
+        self.assertIn("active mapped storage", reason)
+
+    def test_partition_mode_blocks_unrelated_active_mapping_on_same_disk(self):
+        gib = 1024 * 1024 * 1024
+        mapped = {
+            "path": "/dev/mapper/data-vg", "type": "lvm", "size": 16 * gib,
+            "mountpoints": [None], "_meo_root_path": "/dev/sda",
+        }
+        data_part = {
+            "path": "/dev/sda2", "type": "part", "size": 16 * gib, "start": 264192,
+            "parttype": "", "fstype": "LVM2_member", "mountpoints": [None],
+            "children": [mapped], "_meo_root_path": "/dev/sda",
+        }
+        identity = {
+            "devicePath": "/dev/sda", "sizeBytes": 64 * gib, "mode": "partition",
+            "serial": "", "wwn": "",
+            "partitions": [
+                {"path": "/dev/sda1", "startSectors": 2048, "sizeBytes": 512 * 1024 * 1024,
+                 "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b", "fstype": "vfat"},
+                {"path": "/dev/sda3", "startSectors": 4194304, "sizeBytes": 12 * gib,
+                 "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "fstype": "ext4"},
+            ],
+        }
+        efi = {
+            "path": "/dev/sda1", "type": "part", "size": 512 * 1024 * 1024,
+            "start": 2048, "parttype": identity["partitions"][0]["parttype"],
+            "fstype": "vfat", "mountpoints": [None], "_meo_root_path": "/dev/sda",
+        }
+        root = {
+            "path": "/dev/sda3", "type": "part", "size": 12 * gib,
+            "start": 4194304, "parttype": identity["partitions"][1]["parttype"],
+            "fstype": "ext4", "mountpoints": [None], "_meo_root_path": "/dev/sda",
+        }
+        disk = {
+            "path": "/dev/sda", "type": "disk", "size": 64 * gib, "ro": 0,
+            "serial": "", "wwn": "", "mountpoints": [None],
+            "children": [efi, data_part, root], "_meo_root_path": "/dev/sda",
+        }
+        snapshot = {
+            "/dev/sda": disk, "/dev/sda1": efi, "/dev/sda2": data_part,
+            "/dev/sda3": root, "/dev/mapper/data-vg": mapped,
+        }
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
+        )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
+        self.assertFalse(verified)
+        self.assertIn("active mapped storage", reason)
+
+    def test_active_mapped_storage_blocks_full_disk_erase_before_archinstall(self):
+        gib = 1024 * 1024 * 1024
+        identity = {
+            "devicePath": "/dev/vda", "sizeBytes": 32 * gib,
+            "mode": "erase", "serial": "", "wwn": "",
+        }
+        mapped = {
+            "path": "/dev/mapper/cryptroot", "type": "crypt", "size": 24 * gib,
+            "mountpoints": [None], "_meo_root_path": "/dev/vda",
+        }
+        partition = {
+            "path": "/dev/vda1", "type": "part", "size": 24 * gib,
+            "mountpoints": [None], "children": [mapped], "_meo_root_path": "/dev/vda",
+        }
+        disk = {
+            "path": "/dev/vda", "type": "disk", "size": 32 * gib, "ro": 0,
+            "serial": "", "wwn": "", "mountpoints": [None],
+            "children": [partition], "_meo_root_path": "/dev/vda",
+        }
+        snapshot = {
+            "/dev/vda": disk,
+            "/dev/vda1": partition,
+            "/dev/mapper/cryptroot": mapped,
+        }
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
+        )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
+        self.assertFalse(verified)
+        self.assertIn("active mapped storage", reason)
+
+    def test_active_mapped_storage_blocks_selected_partition_before_archinstall(self):
+        gib = 1024 * 1024 * 1024
+        efi_guid = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
+        linux_guid = "0fc63daf-8483-4772-8e79-3d69d8477de4"
+        identity = {
+            "devicePath": "/dev/sda", "sizeBytes": 64 * gib, "mode": "partition",
+            "serial": "", "wwn": "",
+            "partitions": [
+                {"path": "/dev/sda1", "startSectors": 2048, "sizeBytes": 512 * 1024 * 1024,
+                 "parttype": efi_guid, "fstype": "vfat"},
+                {"path": "/dev/sda2", "startSectors": 1050624, "sizeBytes": 24 * gib,
+                 "parttype": linux_guid, "fstype": "ext4"},
+            ],
+        }
+        mapped = {
+            "path": "/dev/mapper/vg-root", "type": "lvm", "size": 20 * gib,
+            "mountpoints": [None], "_meo_root_path": "/dev/sda",
+        }
+        efi = {
+            "path": "/dev/sda1", "type": "part", "size": 512 * 1024 * 1024,
+            "start": 2048, "parttype": efi_guid, "fstype": "vfat",
+            "mountpoints": [None], "_meo_root_path": "/dev/sda",
+        }
+        root = {
+            "path": "/dev/sda2", "type": "part", "size": 24 * gib,
+            "start": 1050624, "parttype": linux_guid, "fstype": "ext4",
+            "mountpoints": [None], "children": [mapped], "_meo_root_path": "/dev/sda",
+        }
+        disk = {
+            "path": "/dev/sda", "type": "disk", "size": 64 * gib, "ro": 0,
+            "serial": "", "wwn": "", "mountpoints": [None],
+            "children": [efi, root], "_meo_root_path": "/dev/sda",
+        }
+        snapshot = {
+            "/dev/sda": disk, "/dev/sda1": efi, "/dev/sda2": root,
+            "/dev/mapper/vg-root": mapped,
+        }
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
+        )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
         self.assertFalse(verified)
         self.assertIn("active mapped storage", reason)
 
@@ -426,7 +554,7 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertFalse(verified)
         self.assertIn("read-only", reason)
 
-    def test_partition_verification_ignores_unrelated_mounted_partition(self):
+    def test_partition_preparation_allows_unrelated_mount_but_strict_check_requires_release(self):
         gib = 1024 * 1024 * 1024
         identity = {
             "devicePath": "/dev/sda", "sizeBytes": 64 * gib, "mode": "partition",
@@ -451,7 +579,13 @@ class GenerateConfigTests(unittest.TestCase):
                           "start": 4194304, "parttype": identity["partitions"][1]["parttype"],
                           "fstype": "ext4", "mountpoints": [None], "_meo_root_path": "/dev/sda"},
         }
-        self.assertEqual(MODULE._verify_live_disk_state(identity, snapshot), (True, ""))
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
+        )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
+        self.assertFalse(verified)
+        self.assertIn("active filesystems or swap", reason)
 
     def test_handoff_rejects_config_drift_after_preflight_generation(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -514,6 +648,15 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("prepare_selected_mounts", runner)
         self.assertIn("--verify-handoff-for-preparation", runner)
         self.assertIn("Unmounting selected target filesystem", runner)
+        self.assertIn("Disabling selected target swap", runner)
+        self.assertIn('swapoff -- "${first}"', runner)
+        self.assertIn("Deactivating selected target mapping", runner)
+        self.assertIn("cryptsetup close", runner)
+        self.assertIn("lvchange -an", runner)
+        self.assertIn("mdadm --stop", runner)
+        self.assertIn("dmsetup remove", runner)
+        self.assertLess(runner.index("Disabling selected target swap"),
+                        runner.index("Unmounting selected target filesystem"))
         target_root_check = runner.index('target_root="$(resolve_target_root')
         preparation_verify = runner.index("--verify-handoff-for-preparation")
         repository_preflight = runner.index("preflight-meo-repository.sh")

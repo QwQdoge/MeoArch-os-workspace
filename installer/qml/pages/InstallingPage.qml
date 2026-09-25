@@ -19,6 +19,7 @@ PageFrame {
             navigateRequested(9)
     }
     function stageLabel(stage) {
+        if (stage === "preflighting_arch_packages") return qsTr("Checking Arch packages")
         if (stage === "preflighting_meo_repository" || stage === "preflight") return qsTr("Checking selected packages")
         if (stage === "preparing_disk") return qsTr("Preparing selected disk")
         if (stage === "installing_base") return qsTr("Installing base system")

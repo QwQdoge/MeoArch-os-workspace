@@ -135,6 +135,54 @@ if mode == "partition":
     if None in selected or len(selected) != 2:
         raise SystemExit("selected partition identity is invalid")
 
+topology_result = subprocess.run(
+    ["lsblk", "-J", "-p", "-o", "PATH,TYPE"],
+    check=False, capture_output=True, text=True,
+)
+if topology_result.returncode != 0:
+    raise SystemExit("could not inspect selected storage topology")
+try:
+    topology = json.loads(topology_result.stdout or "{}").get("blockdevices", [])
+except json.JSONDecodeError:
+    raise SystemExit("selected storage topology was invalid")
+
+active_paths = set()
+mapped_records = []
+found_device = False
+
+def collect(entry, under_selected=False, depth=0):
+    global found_device
+    if not isinstance(entry, dict):
+        return
+    path = entry.get("path")
+    kind = entry.get("type")
+    under_selected = under_selected or path == device
+    if under_selected and isinstance(path, str):
+        found_device = found_device or path == device
+        active_paths.add(path)
+        if path != device and kind not in {"disk", "part"}:
+            mapped_records.append((depth, str(kind or ""), path))
+    for child in entry.get("children") or []:
+        collect(child, under_selected, depth + 1)
+
+for root in topology if isinstance(topology, list) else []:
+    collect(root)
+if not found_device:
+    raise SystemExit("selected disk disappeared while preparing storage")
+
+partition_suffix = (r"(?:p[0-9]+)?"
+                    if re.fullmatch(r"/dev/(?:nvme\d+n\d+|mmcblk\d+|pmem\d+)", device)
+                    else r"(?:[0-9]+)?")
+device_re = re.compile(re.escape(device) + partition_suffix + r"(?:\[.*\])?$")
+protected = ("/", "/boot", "/usr", "/etc", "/var", "/home", "/opt", "/run", "/proc", "/sys", "/dev", "/tmp")
+
+def selected_source(source):
+    # Archinstall needs the whole modified disk quiescent even in existing-
+    # partition mode. Include active mapper/LVM/RAID descendants in addition
+    # to ordinary kernel partition paths.
+    base_source = source.split("[", 1)[0]
+    return base_source in active_paths or bool(device_re.fullmatch(base_source))
+
 result = subprocess.run(
     ["findmnt", "-J", "-o", "TARGET,SOURCE"],
     check=False, capture_output=True, text=True,
@@ -143,15 +191,6 @@ if result.returncode != 0:
     raise SystemExit("could not inspect mounted filesystems")
 payload = json.loads(result.stdout or "{}")
 filesystems = payload.get("filesystems", [])
-partition_suffix = (r"(?:p[0-9]+)?"
-                    if re.fullmatch(r"/dev/(?:nvme\d+n\d+|mmcblk\d+|pmem\d+)", device)
-                    else r"(?:[0-9]+)?")
-device_re = re.compile(re.escape(device) + partition_suffix + r"(?:\[.*\])?$")
-protected = ("/", "/boot", "/usr", "/etc", "/var", "/home", "/opt", "/run", "/proc", "/sys", "/dev", "/tmp")
-
-def selected_source(source):
-    base_source = source.split("[", 1)[0]
-    return base_source in selected if mode == "partition" else bool(device_re.fullmatch(base_source))
 
 targets = []
 for entry in filesystems if isinstance(filesystems, list) else []:
@@ -181,7 +220,7 @@ for line in swap_lines:
             ["findmnt", "-rn", "-o", "SOURCE", "-T", source],
             check=False, capture_output=True, text=True,
         ).stdout.strip()
-        matches = bool(backing) and selected_source(backing)
+        matches = bool(backing) and selected_source(backing.split("[", 1)[0])
     if matches:
         swap_sources.append(source)
 
@@ -189,6 +228,8 @@ for source in sorted(set(swap_sources)):
     print("SWAP\t" + source)
 for target in sorted(set(targets), key=lambda value: (value.count("/"), len(value)), reverse=True):
     print("MOUNT\t" + target)
+for depth, kind, path in sorted(mapped_records, key=lambda item: item[0], reverse=True):
+    print("MAP\t" + kind + "\t" + path)
 PY
 )"; then
     echo "Selected target has mounted filesystems that cannot be prepared safely." | tee -a "${log_file}" >&2
@@ -196,22 +237,58 @@ PY
   fi
 
   [ -z "${mount_plan}" ] && return 0
-  while IFS="$(printf '\t')" read -r action target; do
-    [ -n "${target}" ] || continue
+  while IFS="$(printf '\t')" read -r action first second; do
     case "${action}" in
       SWAP)
-        log "Disabling selected target swap: ${target}"
-        if ! swapoff -- "${target}" >>"${log_file}" 2>&1; then
-          echo "Could not disable selected target swap: ${target}" | tee -a "${log_file}" >&2
+        [ -n "${first}" ] || return 1
+        log "Disabling selected target swap: ${first}"
+        if ! swapoff -- "${first}" >>"${log_file}" 2>&1; then
+          echo "Could not disable selected target swap: ${first}" | tee -a "${log_file}" >&2
           return 1
         fi
         ;;
       MOUNT)
-        log "Unmounting selected target filesystem: ${target}"
-        if ! umount -- "${target}" >>"${log_file}" 2>&1; then
-          echo "Could not unmount selected target filesystem: ${target}" | tee -a "${log_file}" >&2
+        [ -n "${first}" ] || return 1
+        log "Unmounting selected target filesystem: ${first}"
+        if ! umount -- "${first}" >>"${log_file}" 2>&1; then
+          echo "Could not unmount selected target filesystem: ${first}" | tee -a "${log_file}" >&2
           return 1
         fi
+        ;;
+      MAP)
+        [ -n "${first}" ] && [ -n "${second}" ] || return 1
+        log "Deactivating selected target mapping: ${second} (${first})"
+        case "${first}" in
+          crypt)
+            command -v cryptsetup >/dev/null 2>&1 || {
+              echo "cryptsetup is required to release ${second}." | tee -a "${log_file}" >&2
+              return 1
+            }
+            cryptsetup close "$(basename -- "${second}")" >>"${log_file}" 2>&1 || return 1
+            ;;
+          lvm)
+            command -v lvchange >/dev/null 2>&1 || {
+              echo "lvchange is required to release ${second}." | tee -a "${log_file}" >&2
+              return 1
+            }
+            lvchange -an "${second}" >>"${log_file}" 2>&1 || return 1
+            ;;
+          raid*|md)
+            command -v mdadm >/dev/null 2>&1 || {
+              echo "mdadm is required to release ${second}." | tee -a "${log_file}" >&2
+              return 1
+            }
+            mdadm --stop "${second}" >>"${log_file}" 2>&1 || return 1
+            ;;
+          *)
+            if [ "${second#/dev/mapper/}" != "${second}" ] && command -v dmsetup >/dev/null 2>&1; then
+              dmsetup remove "$(basename -- "${second}")" >>"${log_file}" 2>&1 || return 1
+            else
+              echo "Unsupported active storage mapping ${second} (${first}); cannot release it safely." | tee -a "${log_file}" >&2
+              return 1
+            fi
+            ;;
+        esac
         ;;
       *)
         echo "Invalid selected-target preparation action." | tee -a "${log_file}" >&2
@@ -298,6 +375,17 @@ target_root="$(resolve_target_root "${MEOARCH_TARGET_ROOT:-/mnt}")" || {
 if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state_dir}" --verify-handoff-for-preparation; then
   echo "Generated installation handoff changed or the selected disk is no longer safe." | tee -a "${log_file}" >&2
   exit 6
+fi
+
+arch_package_preflight="${installer_root}/backend/preflight-arch-packages.sh"
+if [ ! -f "${arch_package_preflight}" ] || [ -L "${arch_package_preflight}" ]; then
+  echo "Arch package preflight helper is missing or unsafe." | tee -a "${log_file}" >&2
+  exit 127
+fi
+progress "preflighting_arch_packages" 3 "Rechecking Arch mirrors and required packages"
+if ! bash "${arch_package_preflight}" "${config_file}" "${state_dir}" 2>&1 | tee -a "${log_file}"; then
+  echo "Arch package preflight failed before disk preparation." | tee -a "${log_file}" >&2
+  exit 14
 fi
 
 progress "preflighting_meo_repository" 5 "Verifying signed Meo repository metadata and selected packages"

@@ -19,6 +19,7 @@
 #include <QProcessEnvironment>
 #include <QRegularExpression>
 #include <QSaveFile>
+#include <QSet>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QStorageInfo>
@@ -81,14 +82,31 @@ bool hasMountedDescendant(const QJsonObject &device)
 
 bool hasActiveMappedDescendant(const QJsonObject &device)
 {
-    // A normal partition child is part of the selected physical disk. Any
-    // nested non-partition block child means an active dm-crypt/LVM/RAID-like
-    // layer still owns the target and cannot be safely guessed away.
     for (const QJsonValue &childValue : device.value(QStringLiteral("children")).toArray()) {
         const QJsonObject child = childValue.toObject();
         if (child.value(QStringLiteral("type")).toString() != QStringLiteral("part"))
             return true;
         if (hasActiveMappedDescendant(child))
+            return true;
+    }
+    return false;
+}
+
+bool hasProtectedMountedDescendant(const QJsonObject &device)
+{
+    static const QSet<QString> protectedMounts{
+        QStringLiteral("/"), QStringLiteral("/boot"), QStringLiteral("/usr"),
+        QStringLiteral("/etc"), QStringLiteral("/var"), QStringLiteral("/home"),
+        QStringLiteral("/opt"), QStringLiteral("/run"), QStringLiteral("/proc"),
+        QStringLiteral("/sys"), QStringLiteral("/dev"), QStringLiteral("/tmp")
+    };
+    for (const QJsonValue &mountpoint : device.value(QStringLiteral("mountpoints")).toArray()) {
+        const QString target = mountpoint.toString().trimmed();
+        if (protectedMounts.contains(target) || target.startsWith(QStringLiteral("/run/archiso")))
+            return true;
+    }
+    for (const QJsonValue &child : device.value(QStringLiteral("children")).toArray()) {
+        if (hasProtectedMountedDescendant(child.toObject()))
             return true;
     }
     return false;
@@ -1245,7 +1263,8 @@ void InstallerController::parseDisks(const QByteArray &payload)
         const QRegularExpression runningDevicePattern(
             QStringLiteral("(?:^|\\s)/dev/%1%2(?:\\s|$)")
                 .arg(QRegularExpression::escape(name), partitionSuffix));
-        const bool runningMedia = runningDevicePattern.match(runningSource).hasMatch();
+        const bool runningMedia = runningDevicePattern.match(runningSource).hasMatch()
+                                  || hasProtectedMountedDescendant(d);
         const bool supportedPath = QRegularExpression(
             QStringLiteral("^/dev/(?:vd[a-z]+|sd[a-z]+|xvd[a-z]+|nvme\\d+n\\d+|mmcblk\\d+|pmem\\d+)$"))
             .match(devicePath).hasMatch();
@@ -1254,19 +1273,20 @@ void InstallerController::parseDisks(const QByteArray &payload)
         const qint64 absoluteMinimumBytes = minimumRootBytes + layoutOverheadBytes;
         const qint64 recommendedDiskBytes = 16LL * 1024 * 1024 * 1024;
         const bool eligible = supportedPath && !readOnly && !runningMedia
-                              && !activeMappedStorage && size >= absoluteMinimumBytes;
+                              && size >= absoluteMinimumBytes;
+        // Archinstall may need the whole selected disk to be quiescent even in
+        // existing-partition mode. Active mappings are therefore released for
+        // the confirmed disk immediately before the destructive handoff.
         const bool partitionInstallEligible = supportedPath && !readOnly && !runningMedia;
         QString reason;
-        if (runningMedia) reason = tr("This device contains the running installer.");
+        if (runningMedia) reason = tr("This device contains the running installer or a protected Live-system mount.");
         else if (readOnly) reason = tr("This storage device is read-only.");
         else if (!supportedPath) reason = tr("This storage device type is not supported by the safe installer backend.");
-        else if (activeMappedStorage)
-            reason = tr("This disk has active encrypted, LVM, RAID, or device-mapper storage. Deactivate it before erasing the disk.");
         else if (size < absoluteMinimumBytes) reason = tr("This device is too small for the minimum install layout.");
         QStringList warnings;
         if (removable) warnings.append(tr("This is removable or hot-plug storage. Keep it connected until installation finishes."));
-        if (mounted && !activeMappedStorage)
-            warnings.append(tr("Active filesystems or swap on the selected target will be released immediately before installation."));
+        if (mounted || activeMappedStorage)
+            warnings.append(tr("Active filesystems, swap, encryption, LVM, RAID, or device-mapper layers on this disk will be released after final confirmation. Other partitions are not formatted."));
         if (size > 0 && size < recommendedDiskBytes)
             warnings.append(tr("Less than 16 GiB is available. Installation is allowed, but free space may be tight."));
         QVariantList partitions;
@@ -1284,17 +1304,15 @@ void InstallerController::parseDisks(const QByteArray &payload)
             const QString parttype = child.value(QStringLiteral("parttype")).toString().toLower();
             const QString fstype = child.value(QStringLiteral("fstype")).toString().toLower();
             const bool isEfi = parttype == efiGuid;
-            const bool eligibleRoot = partitionInstallEligible && !partitionMapped
+            const bool eligibleRoot = partitionInstallEligible
                                       && !isEfi && partitionSize >= minimumRootBytes;
-            const bool eligibleEfi = partitionInstallEligible && !partitionMapped && isEfi
+            const bool eligibleEfi = partitionInstallEligible && isEfi
                                      && partitionSize >= minimumEfiBytes
                                      && (fstype == QStringLiteral("vfat") || fstype == QStringLiteral("fat")
                                          || fstype == QStringLiteral("fat16") || fstype == QStringLiteral("fat32"));
             QString partitionReason;
             if (!partitionInstallEligible)
                 partitionReason = reason;
-            else if (partitionMapped)
-                partitionReason = tr("This partition has active mapped storage. Deactivate encryption, LVM, RAID, or device-mapper layers before using it.");
             else if (isEfi && !eligibleEfi)
                 partitionReason = tr("EFI partition is not a supported FAT ESP or is smaller than 512 MiB.");
             else if (!isEfi && partitionSize < minimumRootBytes)
@@ -1302,8 +1320,8 @@ void InstallerController::parseDisks(const QByteArray &payload)
             else if (isEfi)
                 partitionReason = tr("EFI System Partition — preserved for boot files.");
             QStringList partitionWarnings;
-            if (partitionMounted && !partitionMapped)
-                partitionWarnings.append(tr("This partition has an active filesystem or swap entry that will be released before installation."));
+            if (partitionMounted || partitionMapped)
+                partitionWarnings.append(tr("This partition has active storage use that will be released after final confirmation."));
             if (eligibleRoot && partitionSize < recommendedRootBytes)
                 partitionWarnings.append(tr("This root partition is smaller than the recommended 16 GiB."));
             if (removable)

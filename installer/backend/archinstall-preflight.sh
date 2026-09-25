@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 state_dir="${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}"
 log_dir="${state_dir}/logs"
 reference_dir="${state_dir}/archinstall-reference"
@@ -142,58 +143,13 @@ print(hashlib.sha256(path.read_bytes()).hexdigest())
 PY
 )"
 
-# Validate the actual Arch mirror path without trusting one fixed endpoint.
-# curl is convenient but not a correctness dependency: Python is already
-# required by the installer backend, so use urllib as a fallback.
-probe_url() {
-  local url="$1"
-  if command -v curl >/dev/null 2>&1; then
-    curl --fail --silent --show-error --location --connect-timeout 5 --max-time 20 \
-      --range 0-0 --output /dev/null "${url}"
-    return
-  fi
-  python3 - "${url}" <<'PY'
-import sys
-import urllib.request
-
-request = urllib.request.Request(
-    sys.argv[1],
-    headers={
-        "Range": "bytes=0-0",
-        "User-Agent": "MeoArch-Installer-Preflight/1",
-    },
-)
-with urllib.request.urlopen(request, timeout=20) as response:
-    if not 200 <= response.status < 400:
-        raise SystemExit(1)
-    response.read(1)
-PY
-}
-
-probe_arch_package_source() {
-  local mirrorlist="/etc/pacman.d/mirrorlist"
-  local server url attempts=0
-  if [ -r "${mirrorlist}" ]; then
-    while IFS= read -r server; do
-      [ -n "${server}" ] || continue
-      server="${server//\$repo/core}"
-      server="${server//\$arch/x86_64}"
-      url="${server%/}/core.db"
-      attempts=$((attempts + 1))
-      if probe_url "${url}" >>"${log_file}" 2>&1; then
-        printf 'Arch package source reachable: %s\n' "${url}" >>"${log_file}"
-        return 0
-      fi
-      [ "${attempts}" -lt 8 ] || break
-    done < <(sed -n 's/^[[:space:]]*Server[[:space:]]*=[[:space:]]*//p' "${mirrorlist}")
-  fi
-
-  url="https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db"
-  probe_url "${url}" >>"${log_file}" 2>&1
-}
-
-if ! probe_arch_package_source; then
-  write_status "failed" "No configured Arch package mirror is reachable. Check the Internet connection and retry." 21
+package_preflight="${script_dir}/preflight-arch-packages.sh"
+if [ ! -f "${package_preflight}" ] || [ -L "${package_preflight}" ]; then
+  write_status "missing" "Arch package preflight helper is missing or unsafe." 127
+  exit 0
+fi
+if ! bash "${package_preflight}" "${config_file}" "${state_dir}" >>"${log_file}" 2>&1; then
+  write_status "failed" "Arch package sources or required packages could not be resolved. Review the saved log and retry." 25
   exit 0
 fi
 

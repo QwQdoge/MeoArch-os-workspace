@@ -211,6 +211,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
 
     def test_disk_page_uses_detected_capacity_when_enabling_an_erase_plan(self):
         disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
         self.assertIn("controller.disks", disk)
         self.assertIn("detected[index].sizeBytes", disk)
         self.assertIn("transient zero capacity", disk)
@@ -222,10 +223,11 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("Below recommended capacity", disk)
         self.assertIn("Storage unavailable", disk)
         self.assertIn("unavailableReason", disk)
-        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
         self.assertIn("hasActiveMappedDescendant", controller)
-        self.assertIn("active mapped storage", controller)
-        self.assertIn("Active filesystems or swap", controller)
+        self.assertIn("hasProtectedMountedDescendant", controller)
+        self.assertIn("protected Live-system mount", controller)
+        self.assertIn("Active filesystems, swap, encryption, LVM, RAID, or device-mapper layers", controller)
+        self.assertIn("active storage use", controller)
 
     def test_choice_cards_expose_selection_semantics_without_turning_status_cards_into_buttons(self):
         card = (QML_ROOT / "components/SelectionCard.qml").read_text(encoding="utf-8")
@@ -295,6 +297,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
     def test_installing_page_explains_verified_progress_and_maps_backend_stage_ids(self):
         installing = (QML_ROOT / "pages/InstallingPage.qml").read_text(encoding="utf-8")
         controller = (QML_ROOT.parents[0] / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        self.assertIn('stage === "preflighting_arch_packages"', installing)
         self.assertIn('stage === "installing_base"', installing)
         self.assertIn("Progress updates at verified stages", installing)
         self.assertIn("same percentage", installing)
@@ -396,6 +399,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         network = (QML_ROOT / "pages/NetworkPage.qml").read_text(encoding="utf-8")
         controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
         preflight = (QML_ROOT.parent / "backend/archinstall-preflight.sh").read_text(encoding="utf-8")
+        package_preflight = (QML_ROOT.parent / "backend/preflight-arch-packages.sh").read_text(encoding="utf-8")
         self.assertIn("https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db", controller)
         self.assertIn("https://packages.meoarch.org/meo/os/x86_64/meo.db", controller)
         self.assertGreaterEqual(controller.count('setRawHeader("Range", "bytes=0-0")'), 2)
@@ -410,14 +414,11 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("function onNetworkChanged()", network)
         self.assertIn("connectivityRetry.restart()", network)
         self.assertIn('networkState === "no-interface" ? "error"', network)
-        self.assertIn("--range 0-0", preflight)
-        self.assertIn('mirrorlist="/etc/pacman.d/mirrorlist"', preflight)
-        self.assertIn("probe_arch_package_source", preflight)
-        self.assertIn('attempts=$((attempts + 1))', preflight)
-        self.assertIn('[ "${attempts}" -lt 8 ] || break', preflight)
-        self.assertIn("https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db", preflight)
-        self.assertIn("No configured Arch package mirror is reachable", preflight)
-        self.assertNotIn("--head", preflight)
+        self.assertIn("preflight-arch-packages.sh", preflight)
+        self.assertIn("pacman --sync --refresh", package_preflight)
+        self.assertIn("pacman --sync --print", package_preflight)
+        self.assertNotIn("curl ", package_preflight)
+        self.assertNotIn("--head", package_preflight)
         self.assertIn("QRegularExpression::escape(name)", controller)
 
     def test_cage_uses_embedded_unprivileged_diagnostics_only(self):
