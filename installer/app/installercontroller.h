@@ -52,6 +52,7 @@ class InstallerController final : public QObject
     Q_PROPERTY(QVariantMap installPlan READ installPlan NOTIFY preflightChanged)
     Q_PROPERTY(bool readyToInstall READ readyToInstall NOTIFY preflightChanged)
     Q_PROPERTY(QString runtimeEnvironment READ runtimeEnvironment CONSTANT)
+    Q_PROPERTY(QString firmwareMode READ firmwareMode CONSTANT)
     Q_PROPERTY(bool productionMode READ productionMode CONSTANT)
     Q_PROPERTY(bool previewMode READ previewMode CONSTANT)
     Q_PROPERTY(QString errorMessage READ errorMessage NOTIFY errorMessageChanged)
@@ -106,6 +107,7 @@ public:
     bool diagnosticConsoleRunning() const { return !m_diagnosticProcess.isNull(); }
     QString diagnosticConsoleOutput() const { return m_diagnosticConsoleOutput; }
     QString runtimeEnvironment() const { return QStringLiteral("live"); }
+    QString firmwareMode() const { return m_firmwareMode; }
     bool productionMode() const { return m_productionMode; }
     bool previewMode() const { return !m_productionMode; }
 
@@ -196,6 +198,7 @@ private:
     QVariantList m_disks;
     bool m_diskDetecting = false;
     QVariantMap m_selections;
+    QString m_firmwareMode = QStringLiteral("unknown");
     QString m_networkState = QStringLiteral("offline");
     QString m_networkDetail;
     QString m_networkHandoffState = QStringLiteral("unavailable");

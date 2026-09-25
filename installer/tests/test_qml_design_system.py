@@ -125,6 +125,23 @@ class InstallerDesignSystemTests(unittest.TestCase):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
         self.assertIn("ScrollBar.vertical: MeoScrollBar", frame)
 
+    def test_welcome_surfaces_uefi_requirement_before_preflight(self):
+        header = (QML_ROOT.parent / "app/installercontroller.h").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        preview = (QML_ROOT / "PreviewController.qml").read_text(encoding="utf-8")
+        welcome = (QML_ROOT / "pages/WelcomePage.qml").read_text(encoding="utf-8")
+        generator = (QML_ROOT.parent / "backend/generate-config.py").read_text(encoding="utf-8")
+
+        self.assertIn("Q_PROPERTY(QString firmwareMode READ firmwareMode CONSTANT)", header)
+        self.assertIn('QStringLiteral("/sys/firmware/efi")', controller)
+        self.assertIn('property string runtimeEnvironment: "live"', preview)
+        self.assertIn('property string firmwareMode: "uefi"', preview)
+        self.assertIn('qsTr("Live ISO · %1")', welcome)
+        self.assertIn('qsTr("Legacy BIOS")', welcome)
+        self.assertIn('qsTr("UEFI boot required")', welcome)
+        self.assertIn("Restart the VM or computer with UEFI firmware enabled", welcome)
+        self.assertIn("BIOS target installation is unavailable until a tested BIOS GRUB layout exists", generator)
+
     def test_power_dialog_uses_md_motion_and_hold_confirmation(self):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
         self.assertIn("presentation: MeoMotionPopup.Dialog", frame)

@@ -3221,5 +3221,25 @@ PipeWire · NetworkManager
         <source>Compatibility mode</source>
         <translation>兼容模式</translation>
     </message>
+    <message>
+        <source>Live ISO · %1</source>
+        <translation>Live ISO · %1</translation>
+    </message>
+    <message>
+        <source>Legacy BIOS</source>
+        <translation>传统 BIOS</translation>
+    </message>
+    <message>
+        <source>UEFI</source>
+        <translation>UEFI</translation>
+    </message>
+    <message>
+        <source>UEFI boot required</source>
+        <translation>需要使用 UEFI 启动</translation>
+    </message>
+    <message>
+        <source>This installer currently supports UEFI target installations. Restart the VM or computer with UEFI firmware enabled before installing. No disk changes have been made.</source>
+        <translation>此安装器当前仅支持 UEFI 目标安装。请启用 UEFI 固件后重新启动虚拟机或电脑再进行安装。当前尚未对磁盘进行任何更改。</translation>
+    </message>
 </context>
 </TS>

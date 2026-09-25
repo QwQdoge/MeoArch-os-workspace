@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import MeoUI 1.0
 import Meo.System 1.0 as MeoSystem
 import ".."
+import "../components"
 
 PageFrame {
     id: page
@@ -73,7 +74,9 @@ PageFrame {
                             "icon": "computer",
                             "title": qsTr("Environment"),
                             "value": page.controller && page.controller.runtimeEnvironment === "live"
-                                     ? qsTr("Live ISO")
+                                     ? qsTr("Live ISO · %1").arg(
+                                           page.controller.firmwareMode === "bios"
+                                           ? qsTr("Legacy BIOS") : qsTr("UEFI"))
                                      : qsTr("Unknown")
                         },
                         {
@@ -137,6 +140,15 @@ PageFrame {
                     wrapMode: Text.WordWrap
                 }
             }
+        }
+
+        InfoBanner {
+            visible: page.controller && page.controller.firmwareMode === "bios"
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: Math.min(parent.width, page.dp(520))
+            tone: "warning"
+            title: qsTr("UEFI boot required")
+            message: qsTr("This installer currently supports UEFI target installations. Restart the VM or computer with UEFI firmware enabled before installing. No disk changes have been made.")
         }
 
         MeoMotionSurface {

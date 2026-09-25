@@ -208,6 +208,8 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
     const QString initialUiLanguage = systemLocale.language() == QLocale::Chinese
         ? QStringLiteral("zh_CN") : QStringLiteral("en");
     m_connectivityManager = new QNetworkAccessManager(this);
+    m_firmwareMode = QFileInfo::exists(QStringLiteral("/sys/firmware/efi"))
+        ? QStringLiteral("uefi") : QStringLiteral("bios");
     // The Live installer runs inside a single Cage kiosk surface, so spawning
     // Konsole/xterm does not provide a usable diagnostic path. Offer an
     // embedded command console instead. Commands are deliberately executed as
