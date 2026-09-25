@@ -434,12 +434,25 @@ class GenerateConfigTests(unittest.TestCase):
                  "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "fstype": "ext4"},
             ],
         }
+        efi = {
+            "path": "/dev/sda1", "type": "part", "size": 512 * 1024 * 1024,
+            "start": 2048, "parttype": identity["partitions"][0]["parttype"],
+            "fstype": "vfat", "mountpoints": [None], "_meo_root_path": "/dev/sda",
+        }
+        root = {
+            "path": "/dev/sda3", "type": "part", "size": 12 * gib,
+            "start": 4194304, "parttype": identity["partitions"][1]["parttype"],
+            "fstype": "ext4", "mountpoints": [None], "_meo_root_path": "/dev/sda",
+        }
         disk = {
             "path": "/dev/sda", "type": "disk", "size": 64 * gib, "ro": 0,
             "serial": "", "wwn": "", "mountpoints": [None],
-            "children": [data_part], "_meo_root_path": "/dev/sda",
+            "children": [efi, data_part, root], "_meo_root_path": "/dev/sda",
         }
-        snapshot = {"/dev/sda": disk, "/dev/sda2": data_part, "/dev/mapper/data-vg": mapped}
+        snapshot = {
+            "/dev/sda": disk, "/dev/sda1": efi, "/dev/sda2": data_part,
+            "/dev/sda3": root, "/dev/mapper/data-vg": mapped,
+        }
         self.assertEqual(
             MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
             (True, ""),
