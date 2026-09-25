@@ -149,6 +149,13 @@ PageFrame {
                         title: qsTr("Storage warning")
                         message: String(diskCard.modelData.warning || "")
                     }
+                    InfoBanner {
+                        visible: String(diskCard.modelData.unavailableReason || "").length > 0
+                        width: parent.width
+                        tone: "error"
+                        title: qsTr("Storage unavailable")
+                        message: String(diskCard.modelData.unavailableReason || "")
+                    }
                     MeoButton {
                         visible: diskCard.modelData.eligible
                         text: qsTr("Erase and use entire %1").arg(diskCard.modelData.devicePath)
