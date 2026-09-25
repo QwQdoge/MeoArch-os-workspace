@@ -1267,7 +1267,7 @@ void InstallerController::parseDisks(const QByteArray &payload)
         else if (readOnly) reason = tr("This storage device is read-only.");
         else if (!supportedPath) reason = tr("This storage device type is not supported by the safe installer backend.");
         else if (activeMappedStorage)
-            reason = tr("This disk has active encrypted, LVM, RAID, or device-mapper storage. Deactivate it before erasing the disk.");
+            reason = tr("This disk has active encrypted, LVM, RAID, or device-mapper storage. Deactivate it before installing to this disk.");
         else if (size < absoluteMinimumBytes) reason = tr("This device is too small for the minimum install layout.");
         QStringList warnings;
         if (removable) warnings.append(tr("This is removable or hot-plug storage. Keep it connected until installation finishes."));
