@@ -11,6 +11,7 @@ import unittest
 ROOT = Path(__file__).parents[1]
 RUNNER = ROOT / "backend/run-archinstall.sh"
 PREFLIGHT = ROOT / "backend/archinstall-preflight.sh"
+ARCH_PACKAGE_PREFLIGHT = ROOT / "backend/preflight-arch-packages.sh"
 
 
 class InstallEngineGuardTests(unittest.TestCase):
@@ -74,11 +75,10 @@ class InstallEngineGuardTests(unittest.TestCase):
             source,
         )
 
-    def test_preflight_has_python_fallback_when_curl_is_unavailable(self):
-        source = PREFLIGHT.read_text(encoding="utf-8")
-        self.assertIn("probe_url()", source)
-        self.assertIn("urllib.request", source)
-        self.assertNotIn('write_status "missing" "curl is unavailable', source)
+    def test_arch_package_preflight_does_not_depend_on_curl(self):
+        source = ARCH_PACKAGE_PREFLIGHT.read_text(encoding="utf-8")
+        self.assertNotIn("curl ", source)
+        self.assertIn("pacman --sync --refresh", source)
 
     def test_runner_recovers_confirmed_target_swap_before_unmounting(self):
         source = RUNNER.read_text(encoding="utf-8")
@@ -88,14 +88,19 @@ class InstallEngineGuardTests(unittest.TestCase):
         self.assertLess(source.index('SWAP)'), source.index('MOUNT)'))
 
     def test_preflight_resolves_required_arch_packages_with_a_blank_sync_db(self):
-        source = PREFLIGHT.read_text(encoding="utf-8")
-        self.assertIn('pacman --sync --refresh', source)
-        self.assertIn('--dbpath "${pacman_db}"', source)
-        self.assertIn('pacman --sync --print', source)
-        self.assertIn('packages.append("plasma-meta")', source)
-        self.assertIn('"btrfs-progs"', source)
-        self.assertIn('"e2fsprogs"', source)
-        self.assertLess(source.index('pacman --sync --print'), source.index('archinstall --silent --dry-run'))
+        package_preflight = ARCH_PACKAGE_PREFLIGHT.read_text(encoding="utf-8")
+        preflight = PREFLIGHT.read_text(encoding="utf-8")
+        runner = RUNNER.read_text(encoding="utf-8")
+        self.assertIn('pacman --sync --refresh', package_preflight)
+        self.assertIn('--dbpath "${pacman_db}"', package_preflight)
+        self.assertIn('pacman --sync --print', package_preflight)
+        self.assertIn('packages.append("plasma-meta")', package_preflight)
+        self.assertIn('"btrfs-progs"', package_preflight)
+        self.assertIn('"e2fsprogs"', package_preflight)
+        self.assertIn("preflight-arch-packages.sh", preflight)
+        self.assertIn("preflight-arch-packages.sh", runner)
+        self.assertLess(runner.index("preflighting_arch_packages"), runner.index("preflighting_meo_repository"))
+        self.assertLess(runner.index("preflighting_meo_repository"), runner.index("if ! prepare_selected_mounts"))
 
     def test_preflight_refuses_a_symlinked_status_file_without_following_it(self):
         with tempfile.TemporaryDirectory() as directory:
