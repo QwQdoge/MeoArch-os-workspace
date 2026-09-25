@@ -241,6 +241,17 @@ PY
   fi
 
   [ -z "${mount_plan}" ] && return 0
+
+  resolve_dm_name() {
+    local path="$1"
+    local name
+    command -v dmsetup >/dev/null 2>&1 || return 1
+    [ -b "${path}" ] || return 1
+    name="$(dmsetup info -c --noheadings -o name "${path}" 2>>"${log_file}" | tr -d '[:space:]')"
+    [ -n "${name}" ] || return 1
+    printf '%s\n' "${name}"
+  }
+
   while IFS="$(printf '\t')" read -r action first second; do
     case "${action}" in
       SWAP)
@@ -268,14 +279,22 @@ PY
               echo "cryptsetup is required to release ${second}." | tee -a "${log_file}" >&2
               return 1
             }
-            cryptsetup close "$(basename -- "${second}")" >>"${log_file}" 2>&1 || return 1
+            map_name="$(resolve_dm_name "${second}")" || {
+              echo "Could not resolve encrypted mapping name for ${second}." | tee -a "${log_file}" >&2
+              return 1
+            }
+            cryptsetup close "${map_name}" >>"${log_file}" 2>&1 || return 1
             ;;
           lvm)
             command -v lvchange >/dev/null 2>&1 || {
               echo "lvchange is required to release ${second}." | tee -a "${log_file}" >&2
               return 1
             }
-            lvchange -an "${second}" >>"${log_file}" 2>&1 || return 1
+            map_name="$(resolve_dm_name "${second}")" || {
+              echo "Could not resolve LVM mapping name for ${second}." | tee -a "${log_file}" >&2
+              return 1
+            }
+            lvchange -an "/dev/mapper/${map_name}" >>"${log_file}" 2>&1 || return 1
             ;;
           raid*|md)
             command -v mdadm >/dev/null 2>&1 || {
@@ -285,18 +304,11 @@ PY
             mdadm --stop "${second}" >>"${log_file}" 2>&1 || return 1
             ;;
           *)
-            if command -v dmsetup >/dev/null 2>&1 && [ -b "${second}" ]; then
-              map_name="$(dmsetup info -c --noheadings -o name "${second}" 2>>"${log_file}" | tr -d '[:space:]')"
-              if [ -n "${map_name}" ]; then
-                dmsetup remove "${map_name}" >>"${log_file}" 2>&1 || return 1
-              else
-                echo "Could not resolve device-mapper name for ${second}." | tee -a "${log_file}" >&2
-                return 1
-              fi
-            else
-              echo "Unsupported active storage mapping ${second} (${first}); cannot release it safely." | tee -a "${log_file}" >&2
+            map_name="$(resolve_dm_name "${second}")" || {
+              echo "Unsupported active storage mapping ${second} (${first}); cannot resolve it safely." | tee -a "${log_file}" >&2
               return 1
-            fi
+            }
+            dmsetup remove "${map_name}" >>"${log_file}" 2>&1 || return 1
             ;;
         esac
         ;;
