@@ -405,9 +405,11 @@ class GenerateConfigTests(unittest.TestCase):
             "serial": "", "wwn": "",
         }
         snapshot = {"/dev/sda": disk, "/dev/sda3": root, "/dev/mapper/cryptroot": crypt}
-        verified, reason = MODULE._verify_live_disk_state(
-            identity, snapshot, allow_selected_mounts=True
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
         )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
         self.assertFalse(verified)
         self.assertIn("active mapped storage", reason)
 
@@ -438,9 +440,11 @@ class GenerateConfigTests(unittest.TestCase):
             "children": [data_part], "_meo_root_path": "/dev/sda",
         }
         snapshot = {"/dev/sda": disk, "/dev/sda2": data_part, "/dev/mapper/data-vg": mapped}
-        verified, reason = MODULE._verify_live_disk_state(
-            identity, snapshot, allow_selected_mounts=True
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
         )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
         self.assertFalse(verified)
         self.assertIn("active mapped storage", reason)
 
@@ -468,9 +472,11 @@ class GenerateConfigTests(unittest.TestCase):
             "/dev/vda1": partition,
             "/dev/mapper/cryptroot": mapped,
         }
-        verified, reason = MODULE._verify_live_disk_state(
-            identity, snapshot, allow_selected_mounts=True
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
         )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
         self.assertFalse(verified)
         self.assertIn("active mapped storage", reason)
 
@@ -511,9 +517,11 @@ class GenerateConfigTests(unittest.TestCase):
             "/dev/sda": disk, "/dev/sda1": efi, "/dev/sda2": root,
             "/dev/mapper/vg-root": mapped,
         }
-        verified, reason = MODULE._verify_live_disk_state(
-            identity, snapshot, allow_selected_mounts=True
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
         )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
         self.assertFalse(verified)
         self.assertIn("active mapped storage", reason)
 
@@ -628,7 +636,12 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("--verify-handoff-for-preparation", runner)
         self.assertIn("Unmounting selected target filesystem", runner)
         self.assertIn("Disabling selected target swap", runner)
-        self.assertIn('swapoff -- "${target}"', runner)
+        self.assertIn('swapoff -- "${first}"', runner)
+        self.assertIn("Deactivating selected target mapping", runner)
+        self.assertIn("cryptsetup close", runner)
+        self.assertIn("lvchange -an", runner)
+        self.assertIn("mdadm --stop", runner)
+        self.assertIn("dmsetup remove", runner)
         self.assertLess(runner.index("Disabling selected target swap"),
                         runner.index("Unmounting selected target filesystem"))
         target_root_check = runner.index('target_root="$(resolve_target_root')
