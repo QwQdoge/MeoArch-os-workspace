@@ -1605,6 +1605,18 @@
         <source>Checks Internet access first, then reports package-source availability as a warning until final preflight</source>
         <translation>先检查互联网连接；在最终预检前，软件源可用性仅作为警告显示。</translation>
     </message>
+    <message>
+        <source>Continue with the active network; Internet and package downloads are checked again before installation</source>
+        <translation>使用当前活动网络继续；正式安装前会再次检查互联网和软件下载。</translation>
+    </message>
+    <message>
+        <source>Connect a network interface before continuing with installation</source>
+        <translation>请先连接网络接口，再继续安装。</translation>
+    </message>
+    <message>
+        <source>Rechecks Internet and package-source reachability without blocking the rest of the setup wizard</source>
+        <translation>重新检查互联网和软件源可达性，但不会因此阻止继续完成其他设置。</translation>
+    </message>
 </context>
 <context>
     <name>PageFrame</name>
