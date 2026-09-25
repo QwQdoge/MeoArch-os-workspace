@@ -211,6 +211,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
 
     def test_disk_page_uses_detected_capacity_when_enabling_an_erase_plan(self):
         disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
         self.assertIn("controller.disks", disk)
         self.assertIn("detected[index].sizeBytes", disk)
         self.assertIn("transient zero capacity", disk)
@@ -221,14 +222,12 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("separateHomeAvailable", disk)
         self.assertIn("Below recommended capacity", disk)
         self.assertIn("Storage unavailable", disk)
-        self.assertIn("active encrypted, LVM, RAID, or device-mapper storage", controller)
-        self.assertIn("active mapped storage", controller)
-        self.assertIn("active filesystem or swap entry", controller)
         self.assertIn("unavailableReason", disk)
-        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
         self.assertIn("hasActiveMappedDescendant", controller)
-        self.assertIn("active mapped storage", controller)
-        self.assertIn("Active filesystems or swap", controller)
+        self.assertIn("hasProtectedMountedDescendant", controller)
+        self.assertIn("protected Live-system mount", controller)
+        self.assertIn("Active filesystems, swap, encryption, LVM, RAID, or device-mapper layers", controller)
+        self.assertIn("active storage use", controller)
 
     def test_choice_cards_expose_selection_semantics_without_turning_status_cards_into_buttons(self):
         card = (QML_ROOT / "components/SelectionCard.qml").read_text(encoding="utf-8")
