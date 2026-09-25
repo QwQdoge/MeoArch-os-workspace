@@ -43,6 +43,20 @@ QString utf8LocaleId(QString value)
     return value;
 }
 
+bool jsonFlag(const QJsonValue &value)
+{
+    // util-linux lsblk JSON has used both JSON booleans and numeric/string
+    // representations across versions and column combinations. Treat all
+    // normal forms consistently so RO/RM/HOTPLUG/ROTA cannot silently flip.
+    if (value.isBool())
+        return value.toBool();
+    if (value.isDouble())
+        return value.toInt() != 0;
+    const QString text = value.toString().trimmed().toLower();
+    return text == QStringLiteral("1") || text == QStringLiteral("true")
+           || text == QStringLiteral("yes") || text == QStringLiteral("on");
+}
+
 bool hasMountedFilesystem(const QJsonObject &device)
 {
     // lsblk represents an unmounted device as [null] on some releases.  An
@@ -1203,8 +1217,8 @@ void InstallerController::parseDisks(const QByteArray &payload)
             if (entry.symLinkTarget().endsWith(QLatin1Char('/') + name)) { stableId = entry.absoluteFilePath(); break; }
         }
         const qint64 size = d.value(QStringLiteral("size")).toVariant().toLongLong();
-        const bool readOnly = d.value(QStringLiteral("ro")).toInt() != 0;
-        const bool removable = d.value(QStringLiteral("rm")).toInt() != 0 || d.value(QStringLiteral("hotplug")).toInt() != 0;
+        const bool readOnly = jsonFlag(d.value(QStringLiteral("ro")));
+        const bool removable = jsonFlag(d.value(QStringLiteral("rm"))) || jsonFlag(d.value(QStringLiteral("hotplug")));
         const bool mounted = hasMountedDescendant(d);
         const bool runningMedia = runningSource.contains(QStringLiteral("/dev/") + name);
         const bool supportedPath = QRegularExpression(
@@ -1279,7 +1293,7 @@ void InstallerController::parseDisks(const QByteArray &payload)
         m_disks.append(row({{"id", stableId}, {"devicePath", devicePath}, {"name", d.value(QStringLiteral("model")).toString().trimmed().isEmpty() ? tr("Storage device") : d.value(QStringLiteral("model")).toString().trimmed()},
                             {"sizeBytes", size},
                             {"size", QLocale().formattedDataSize(size)}, {"available", tr("Capacity ") + QLocale().formattedDataSize(size)},
-                            {"kind", removable ? tr("Removable") : (d.value(QStringLiteral("rota")).toInt() ? tr("HDD") : tr("SSD"))},
+                            {"kind", removable ? tr("Removable") : (jsonFlag(d.value(QStringLiteral("rota"))) ? tr("HDD") : tr("SSD"))},
                             {"serial", d.value(QStringLiteral("serial")).toString()}, {"wwn", d.value(QStringLiteral("wwn")).toString()},
                             {"transport", d.value(QStringLiteral("tran")).toString()}, {"eligible", eligible}, {"unavailableReason", reason},
                             {"warning", warnings.join(QLatin1Char(' '))},
