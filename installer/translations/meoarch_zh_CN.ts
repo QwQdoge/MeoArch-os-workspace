@@ -969,6 +969,18 @@
         <source>This partition has active storage use that will be released after final confirmation.</source>
         <translation>此分区当前有活动的存储占用，会在最终确认后释放。</translation>
     </message>
+    <message>
+        <source>Generic graphics fallback · Mesa-compatible stack</source>
+        <translation>通用图形兼容模式 · 使用 Mesa 兼容图形栈</translation>
+    </message>
+    <message>
+        <source>Graphics detector unavailable · generic Mesa fallback will be used</source>
+        <translation>图形硬件检测器不可用 · 将使用通用 Mesa 兼容模式</translation>
+    </message>
+    <message>
+        <source>Graphics detection was inconclusive · generic Mesa fallback will be used</source>
+        <translation>无法确定图形硬件类型 · 将使用通用 Mesa 兼容模式</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
