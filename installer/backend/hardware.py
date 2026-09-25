@@ -44,6 +44,14 @@ NVIDIA_OPEN_PACKAGES = ["nvidia-open", "nvidia-utils", "libva-nvidia-driver"]
 NVIDIA_SAFE_FALLBACK_PACKAGES = ["mesa", "libva-mesa-driver", "vulkan-swrast"]
 FALLBACK_PACKAGES = ["mesa", "vulkan-swrast", "vulkan-icd-loader"]
 
+GUEST_INTEGRATION = {
+    "15ad": {"packages": ["open-vm-tools"], "services": ["vmtoolsd.service"]},
+    "80ee": {"packages": ["virtualbox-guest-utils"], "services": ["vboxservice.service"]},
+    # QXL is a strong signal for a SPICE desktop guest. spice-vdagent ships
+    # its graphical-session user integration, so no system service is forced.
+    "1b36": {"packages": ["spice-vdagent"], "services": []},
+}
+
 
 def nvidia_open_supported(device: dict[str, str]) -> bool:
     """Conservatively identify NVIDIA generations supported by nvidia-open.
@@ -164,6 +172,24 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
     if not packages:
         packages = FALLBACK_PACKAGES.copy()
 
+    guest_packages: list[str] = []
+    guest_services: list[str] = []
+    seen_guest_services = set()
+    for device in devices:
+        integration = GUEST_INTEGRATION.get(str(device.get("vendorId", "")).lower())
+        if not integration:
+            continue
+        for package in integration["packages"]:
+            if package not in seen_packages:
+                seen_packages.add(package)
+                packages.append(package)
+            if package not in guest_packages:
+                guest_packages.append(package)
+        for service in integration["services"]:
+            if service not in seen_guest_services:
+                seen_guest_services.add(service)
+                guest_services.append(service)
+
     unknown_vendors = [vendor for vendor in vendors if vendor not in DRIVER_PACKAGES and vendor != "nvidia"]
     warnings = []
     if legacy_or_unknown_nvidia:
@@ -182,6 +208,8 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
         "nvidiaOpenSupported": modern_nvidia,
         "nvidiaFallback": legacy_or_unknown_nvidia,
         "unknownAdapters": unknown_vendors,
+        "guestPackages": guest_packages,
+        "guestServices": guest_services,
         "warnings": warnings,
         # Kept for compatibility with older consumers. The full installer is
         # network-backed regardless of GPU vendor, so graphics detection must
