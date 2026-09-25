@@ -142,17 +142,41 @@ print(hashlib.sha256(path.read_bytes()).hexdigest())
 PY
 )"
 
-# Connectivity here is diagnostic only. A single fixed endpoint is not a
-# reliable reason to reject an otherwise valid installation plan: the real
-# installation uses the configured mirror path and the signed Meo repository
-# preflight immediately before any disk write.
-mirror_probe="https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db"
-if ! getent ahosts geo.mirror.pkgbuild.com >/dev/null 2>&1; then
-  echo "warning: Arch mirror DNS probe failed; continuing configuration dry-run" >>"${log_file}"
-elif ! command -v curl >/dev/null 2>&1; then
-  echo "warning: curl is unavailable; skipping advisory Arch mirror probe" >>"${log_file}"
-elif ! curl --fail --silent --show-error --location --max-time 20 --range 0-0 --output /dev/null "${mirror_probe}" >>"${log_file}" 2>&1; then
-  echo "warning: fixed Arch mirror probe failed; continuing configuration dry-run" >>"${log_file}"
+# Validate the actual Arch mirror path without trusting one fixed endpoint.
+# Try several enabled servers from the Live ISO's pacman mirrorlist, then use
+# the official Geo mirror only as a fallback. This is still read-only and
+# happens before confirmation or any target mount/disk change.
+probe_arch_package_source() {
+  local mirrorlist="/etc/pacman.d/mirrorlist"
+  local server url attempts=0
+  if [ -r "${mirrorlist}" ]; then
+    while IFS= read -r server; do
+      [ -n "${server}" ] || continue
+      server="${server//\$repo/core}"
+      server="${server//\$arch/x86_64}"
+      url="${server%/}/core.db"
+      attempts=$((attempts + 1))
+      if curl --fail --silent --show-error --location --connect-timeout 5 --max-time 15 \
+          --range 0-0 --output /dev/null "${url}" >>"${log_file}" 2>&1; then
+        printf 'Arch package source reachable: %s\n' "${url}" >>"${log_file}"
+        return 0
+      fi
+      [ "${attempts}" -lt 8 ] || break
+    done < <(sed -n 's/^[[:space:]]*Server[[:space:]]*=[[:space:]]*//p' "${mirrorlist}")
+  fi
+
+  url="https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db"
+  curl --fail --silent --show-error --location --connect-timeout 5 --max-time 20 \
+    --range 0-0 --output /dev/null "${url}" >>"${log_file}" 2>&1
+}
+
+if ! command -v curl >/dev/null 2>&1; then
+  write_status "missing" "curl is unavailable; required package sources cannot be verified." 127
+  exit 0
+fi
+if ! probe_arch_package_source; then
+  write_status "failed" "No configured Arch package mirror is reachable. Check the Internet connection and retry." 21
+  exit 0
 fi
 
 write_status "running" "Running a silent archinstall dry-run in the background." 0
