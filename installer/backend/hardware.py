@@ -49,7 +49,7 @@ GUEST_INTEGRATION = {
     "80ee": {"packages": ["virtualbox-guest-utils"], "services": ["vboxservice.service"]},
     # QXL is a strong signal for a SPICE desktop guest. spice-vdagent ships
     # its graphical-session user integration, so no system service is forced.
-    "1b36": {"packages": ["spice-vdagent"], "services": []},
+    "1b36": {"packages": ["spice-vdagent"], "services": ["spice-vdagentd.service"]},
 }
 
 
