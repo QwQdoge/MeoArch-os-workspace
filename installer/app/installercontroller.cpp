@@ -1052,6 +1052,7 @@ void InstallerController::clearDiagnosticConsole()
 
 void InstallerController::refreshNetworkHandoff()
 {
+    const quint64 generation = ++m_networkHandoffGeneration;
     m_networkHandoffSource.clear();
     m_networkHandoffKind.clear();
     if (m_networkState != QStringLiteral("online")
@@ -1067,9 +1068,11 @@ void InstallerController::refreshNetworkHandoff()
         return;
     }
     auto *process = new QProcess(this);
-    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
+    connect(process, &QProcess::finished, this, [this, process, generation](int exitCode, QProcess::ExitStatus status) {
         const QString output = QString::fromUtf8(process->readAllStandardOutput()).trimmed();
         process->deleteLater();
+        if (generation != m_networkHandoffGeneration)
+            return;
         if (status != QProcess::NormalExit || exitCode != 0 || output.isEmpty()) {
             disableNetworkHandoff();
             m_networkHandoffState = QStringLiteral("unsupported");
@@ -1120,6 +1123,15 @@ void InstallerController::refreshNetworkHandoff()
         m_networkHandoffKind = fields.at(2);
         m_networkHandoffState = QStringLiteral("ready");
         m_networkHandoffMessage = tr("This current network can be remembered after installation. Only this NetworkManager profile will be copied.");
+        emit networkHandoffChanged();
+    });
+    connect(process, &QProcess::errorOccurred, this, [this, process, generation](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart || generation != m_networkHandoffGeneration)
+            return;
+        process->deleteLater();
+        disableNetworkHandoff();
+        m_networkHandoffState = QStringLiteral("unsupported");
+        m_networkHandoffMessage = tr("Network profile detection could not start. The network will not be copied, but installation can continue.");
         emit networkHandoffChanged();
     });
     process->start(QStringLiteral("/usr/bin/timeout"),
@@ -1176,9 +1188,19 @@ void InstallerController::detectHardware()
     m_hardwareDetecting = true;
     emit hardwareChanged();
     auto *process = new QProcess(this);
+    connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
+        if (error != QProcess::FailedToStart || !m_hardwareDetecting)
+            return;
+        m_hardwareDetecting = false;
+        m_hardwareSummary = tr("Hardware preview could not start. The installation plan will retry hardware detection.");
+        process->deleteLater();
+        emit hardwareChanged();
+    });
     connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
         m_hardwareDetecting = false;
-        if (status == QProcess::NormalExit && exitCode == 0) {
+        if (exitCode == 124 || exitCode == 137) {
+            m_hardwareSummary = tr("Hardware preview timed out. The installation plan will retry hardware detection.");
+        } else if (status == QProcess::NormalExit && exitCode == 0) {
             const QJsonObject result = QJsonDocument::fromJson(process->readAllStandardOutput()).object();
             const QJsonArray packages = result.value(QStringLiteral("packages")).toArray();
             QStringList names;
@@ -1227,7 +1249,7 @@ void InstallerController::refreshDisks()
     connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
         if (error != QProcess::FailedToStart || !m_diskDetecting)
             return;
-        setError(tr("Disk detection could not start. No disk can be selected until lsblk is available."));
+        setError(tr("Disk detection helper could not start. Check the Live system and rescan."));
         emit disksChanged();
         m_diskDetecting = false;
         emit diskDetectionChanged();
