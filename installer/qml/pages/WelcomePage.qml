@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import MeoUI 1.0
 import Meo.System 1.0 as MeoSystem
 import ".."
+import "../components"
 
 PageFrame {
     id: page
