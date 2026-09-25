@@ -102,7 +102,7 @@ class HardwareDetectionTests(unittest.TestCase):
     def test_vmware_adds_only_vmware_guest_integration(self):
         plan = MODULE.driver_plan([
             {"vendor": "virtual", "vendorId": "15ad", "deviceId": "0405"},
-        ])
+        ], hypervisor="vmware")
         self.assertIn("open-vm-tools", plan["packages"])
         self.assertEqual(plan["guestPackages"], ["open-vm-tools"])
         self.assertEqual(plan["guestServices"], ["vmtoolsd.service"])
@@ -111,11 +111,38 @@ class HardwareDetectionTests(unittest.TestCase):
     def test_virtualbox_adds_only_virtualbox_guest_integration(self):
         plan = MODULE.driver_plan([
             {"vendor": "virtual", "vendorId": "80ee", "deviceId": "beef"},
-        ])
+        ], hypervisor="virtualbox")
         self.assertIn("virtualbox-guest-utils", plan["packages"])
         self.assertEqual(plan["guestPackages"], ["virtualbox-guest-utils"])
         self.assertEqual(plan["guestServices"], ["vboxservice.service"])
         self.assertNotIn("open-vm-tools", plan["packages"])
+
+    def test_virtualbox_vmsvga_is_not_misclassified_as_vmware(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "virtual", "vendorId": "15ad", "deviceId": "0405"},
+        ], hypervisor="virtualbox")
+        self.assertEqual(plan["hypervisor"], "virtualbox")
+        self.assertIn("virtualbox-guest-utils", plan["packages"])
+        self.assertEqual(plan["guestServices"], ["vboxservice.service"])
+        self.assertNotIn("open-vm-tools", plan["packages"])
+
+    def test_emulated_vmware_pci_id_without_dmi_does_not_guess_guest_tools(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "virtual", "vendorId": "15ad", "deviceId": "0405"},
+        ])
+        self.assertEqual(plan["hypervisor"], "")
+        self.assertEqual(plan["guestPackages"], [])
+        self.assertEqual(plan["guestServices"], [])
+
+    def test_dmi_detection_distinguishes_virtualbox_and_vmware(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "sys_vendor").write_text("innotek GmbH\n")
+            (root / "product_name").write_text("VirtualBox\n")
+            self.assertEqual(MODULE.detect_hypervisor(root), "virtualbox")
+            (root / "sys_vendor").write_text("VMware, Inc.\n")
+            (root / "product_name").write_text("VMware Virtual Platform\n")
+            self.assertEqual(MODULE.detect_hypervisor(root), "vmware")
 
     def test_qxl_adds_spice_agent_without_forcing_a_system_service(self):
         plan = MODULE.driver_plan([
@@ -149,8 +176,10 @@ class HardwareDetectionTests(unittest.TestCase):
             (device / "class").write_text("0x030000\n")
             (device / "vendor").write_text("0x1af4\n")
             (device / "device").write_text("0x1050\n")
+            dmi = Path(directory) / "dmi"
+            dmi.mkdir()
             result = subprocess.run(
-                [sys.executable, MODULE_PATH, "--sysfs-root", directory],
+                [sys.executable, MODULE_PATH, "--sysfs-root", directory, "--dmi-root", dmi],
                 check=True, capture_output=True, text=True,
             )
             payload = json.loads(result.stdout)
