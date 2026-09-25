@@ -997,6 +997,34 @@
         <source>Graphics detection was inconclusive · generic Mesa fallback will be used</source>
         <translation>无法确定图形硬件类型 · 将使用通用 Mesa 兼容模式</translation>
     </message>
+    <message>
+        <source>Disk scan timed out. Check connected storage and rescan.</source>
+        <translation>磁盘扫描超时。请检查已连接的存储设备并重新扫描。</translation>
+    </message>
+    <message>
+        <source>Disk detection helper could not start. Check the Live system and rescan.</source>
+        <translation>无法启动磁盘检测助手。请检查 Live 系统并重新扫描。</translation>
+    </message>
+    <message>
+        <source>Password hashing timed out. Retry saving the account.</source>
+        <translation>密码安全哈希处理超时。请重新保存账户。</translation>
+    </message>
+    <message>
+        <source>Generating the installation plan timed out. Retry after checking the Live system and storage.</source>
+        <translation>生成安装计划超时。请检查 Live 系统和存储设备后重试。</translation>
+    </message>
+    <message>
+        <source>Installation preflight timed out. Check the connection and retry.</source>
+        <translation>安装预检超时。请检查网络连接并重试。</translation>
+    </message>
+    <message>
+        <source>Network profile detection could not start. The network will not be copied, but installation can continue.</source>
+        <translation>无法启动网络配置检测。该网络不会被复制，但安装可以继续。</translation>
+    </message>
+    <message>
+        <source>Graphics detection timed out · generic Mesa fallback will be used</source>
+        <translation>图形硬件检测超时 · 将使用通用 Mesa 兼容模式</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
