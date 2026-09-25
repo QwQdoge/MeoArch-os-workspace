@@ -836,8 +836,8 @@
     </message>
     <message>
         <location filename="../app/installercontroller.cpp" line="495"/>
-        <source>This disk needs an unmounted 512 MiB EFI System Partition. No partition will be changed.</source>
-        <translation>此磁盘需要一个未挂载的 512 MiB EFI 系统分区。不会更改任何分区。</translation>
+        <source>This disk needs a supported FAT EFI System Partition of at least 512 MiB. No partition will be changed.</source>
+        <translation>此磁盘需要一个至少 512 MiB、受支持的 FAT EFI 系统分区。不会更改任何分区。</translation>
     </message>
     <message>
         <location filename="../app/installercontroller.cpp" line="364"/>
