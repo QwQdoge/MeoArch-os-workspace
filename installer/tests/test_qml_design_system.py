@@ -208,6 +208,14 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertEqual(software.count("controlled: true"), 5)
         self.assertIn("readonly property var selectionRevision", channel)
 
+    def test_toggle_rows_do_not_overlap_the_switch_pointer_target(self):
+        toggle_row = (QML_ROOT / "components/ToggleRow.qml").read_text(encoding="utf-8")
+        self.assertIn("id: rowHitTarget", toggle_row)
+        self.assertIn("anchors.right: toggle.left", toggle_row)
+        self.assertIn("toggle.toggle()", toggle_row)
+        self.assertNotIn("toggle.checked = !toggle.checked", toggle_row)
+        self.assertNotIn("TapHandler { id: tap;", toggle_row)
+
     def test_selection_cards_measure_their_content_column(self):
         selection_card = (QML_ROOT / "components/SelectionCard.qml").read_text(encoding="utf-8")
         self.assertIn("id: copy", selection_card)
