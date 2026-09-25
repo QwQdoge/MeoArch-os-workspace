@@ -86,6 +86,9 @@ class InstallEngineGuardTests(unittest.TestCase):
         self.assertIn('print("SWAP\\t" + source)', source)
         self.assertIn('swapoff -- "${first}"', source)
         self.assertIn("Deactivating selected target mapping", source)
+        self.assertIn("resolve_dm_name()", source)
+        self.assertIn('cryptsetup close "${map_name}"', source)
+        self.assertIn('lvchange -an "/dev/mapper/${map_name}"', source)
         self.assertIn("selected target backs protected Live mount", source)
         self.assertLess(source.index('SWAP)'), source.index('MOUNT)'))
 
