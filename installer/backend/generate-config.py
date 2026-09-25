@@ -499,6 +499,27 @@ def _mounted(record: dict[str, Any]) -> bool:
     return any(isinstance(value, str) and value.strip() for value in values)
 
 
+def _walk_block_tree(record: dict[str, Any]):
+    yield record
+    for child in record.get("children") or []:
+        if isinstance(child, dict):
+            yield from _walk_block_tree(child)
+
+
+def _has_active_mapped_descendant(record: dict[str, Any]) -> bool:
+    # Under a selected partition, any block child is an active mapping layer.
+    # Under a disk, normal partition children are fine, but nested non-part
+    # children indicate dm-crypt/LVM/RAID/device-mapper ownership.
+    for child in record.get("children") or []:
+        if not isinstance(child, dict):
+            continue
+        if child.get("type") != "part":
+            return True
+        if _has_active_mapped_descendant(child):
+            return True
+    return False
+
+
 def _integer(value: Any, description: str) -> int:
     try:
         return int(value)
@@ -530,6 +551,8 @@ def _verify_live_disk_state(
                 return False, f"confirmed disk {field} changed"
         descendants = [record for record in snapshot.values()
                        if record.get("_meo_root_path") == device]
+        if identity.get("mode") != "partition" and _has_active_mapped_descendant(disk):
+            return False, "confirmed disk has active mapped storage that must be deactivated first"
         if identity.get("mode") == "partition":
             partitions = identity.get("partitions")
             if not isinstance(partitions, list) or len(partitions) != 2:
@@ -546,6 +569,10 @@ def _verify_live_disk_state(
                 if not isinstance(actual, dict) or actual.get("type") != "part" \
                         or actual.get("_meo_root_path") != device:
                     return False, "confirmed partition is no longer on the selected disk"
+                if _has_active_mapped_descendant(actual):
+                    return False, "confirmed install partition has active mapped storage that must be deactivated first"
+                if not allow_selected_mounts and any(_mounted(record) for record in _walk_block_tree(actual)):
+                    return False, "confirmed install partition or descendant is still active"
                 if _integer(actual.get("start"), "partition start") != _integer(expected.get("startSectors"), "selected partition start") \
                         or _integer(actual.get("size"), "partition size") != _integer(expected.get("sizeBytes"), "selected partition size"):
                     return False, "confirmed partition geometry changed"
