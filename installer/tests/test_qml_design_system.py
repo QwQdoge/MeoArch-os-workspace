@@ -82,6 +82,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('Accessible.name: qsTr("Live environment check")', welcome)
         for label in ("Environment", "Network", "Hardware", "Meo Account"):
             self.assertIn('qsTr("' + label + '")', welcome)
+        self.assertIn('qsTr("Compatibility mode")', welcome)
         self.assertNotIn("ListView", welcome)
         self.assertNotIn("Loader", welcome)
         self.assertIn('qsTr("Review first. Nothing changes until you confirm.")', welcome)
@@ -102,6 +103,10 @@ class InstallerDesignSystemTests(unittest.TestCase):
         start = controller.index("void InstallerController::detectHardware()")
         end = controller.index("void InstallerController::refreshDisks()", start)
         self.assertNotIn("setError(", controller[start:end])
+
+    def test_main_installer_scrollbar_uses_shared_meoui_component(self):
+        frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
+        self.assertIn("ScrollBar.vertical: MeoScrollBar", frame)
 
     def test_power_dialog_uses_md_motion_and_hold_confirmation(self):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
