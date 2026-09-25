@@ -48,4 +48,7 @@ jobs:
         run: |
           bash -n scripts/build-iso.sh
           bash -n scripts/sync-installer-to-airootfs.sh
+          bash -n installer/backend/archinstall-preflight.sh
+          bash -n installer/backend/run-archinstall.sh
+          bash -n installer/backend/preflight-meo-repository.sh
           bash -n installer/backend/apply-target-customizations.sh
