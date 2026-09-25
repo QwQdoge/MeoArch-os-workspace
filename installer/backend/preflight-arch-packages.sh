@@ -52,6 +52,7 @@ config = json.load(open(sys.argv[1], encoding="utf-8"))
 packages = [
     "base",
     "linux-firmware",
+    "mkinitcpio",
     "grub",
     "efibootmgr",
     "networkmanager",
@@ -67,10 +68,36 @@ for package in config.get("packages", []):
     if isinstance(package, str):
         packages.append(package)
 
-profile = config.get("profile_config", {}).get("profile", {})
+profile_config = config.get("profile_config", {})
+profile = profile_config.get("profile", {}) if isinstance(profile_config, dict) else {}
 details = profile.get("details", []) if isinstance(profile, dict) else []
 if isinstance(details, list) and "KDE Plasma" in details:
     packages.append("plasma-meta")
+
+# Mirror Archinstall's own implicit desktop graphics additions when its runtime
+# API is available.  If a future Archinstall changes this API, the explicit
+# Meo hardware packages above still get checked and Archinstall's own config
+# validation remains authoritative; do not invent a stale hardcoded fallback.
+gfx_driver = profile_config.get("gfx_driver") if isinstance(profile_config, dict) else None
+if isinstance(gfx_driver, str):
+    try:
+        from archinstall.lib.hardware import GfxDriver
+        packages.extend(package.value for package in GfxDriver(gfx_driver).gfx_packages())
+    except (ImportError, AttributeError, ValueError):
+        pass
+
+# Archinstall may add the host CPU's microcode package on physical hardware.
+# Ask the same runtime for that decision so VM installs are not needlessly
+# blocked on a package they would never install.
+try:
+    from archinstall.lib.hardware import SysInfo
+    if not SysInfo.is_vm():
+        vendor = SysInfo.cpu_vendor()
+        ucode = vendor.get_ucode() if vendor is not None else None
+        if ucode is not None:
+            packages.append(ucode.stem)
+except (ImportError, AttributeError, OSError, ValueError):
+    pass
 
 disk_config = config.get("disk_config", {})
 mods = disk_config.get("device_modifications", []) if isinstance(disk_config, dict) else []
