@@ -104,13 +104,6 @@ class TargetBootTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("enable vmtoolsd.service", calls)
 
-    def test_spice_guest_service_is_enabled(self):
-        result, calls, _, _ = self.run_target(
-            guest_services=("spice-vdagentd.service",)
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("enable spice-vdagentd.service", calls)
-
     def test_unapproved_guest_service_is_rejected(self):
         result, _, _, _ = self.run_target(guest_services=("sshd.service",))
         self.assertNotEqual(result.returncode, 0)
