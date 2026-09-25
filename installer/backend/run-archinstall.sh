@@ -143,7 +143,10 @@ if result.returncode != 0:
     raise SystemExit("could not inspect mounted filesystems")
 payload = json.loads(result.stdout or "{}")
 filesystems = payload.get("filesystems", [])
-device_re = re.compile(re.escape(device) + r"(?:p?[0-9]+)?(?:\[.*\])?$")
+partition_suffix = (r"(?:p[0-9]+)?"
+                    if re.fullmatch(r"/dev/(?:nvme\d+n\d+|mmcblk\d+|pmem\d+)", device)
+                    else r"(?:[0-9]+)?")
+device_re = re.compile(re.escape(device) + partition_suffix + r"(?:\[.*\])?$")
 protected = ("/", "/boot", "/usr", "/etc", "/var", "/home", "/opt", "/run", "/proc", "/sys", "/dev", "/tmp")
 
 targets = []
