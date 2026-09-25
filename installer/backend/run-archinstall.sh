@@ -256,18 +256,10 @@ target_root="$(resolve_target_root "${MEOARCH_TARGET_ROOT:-/mnt}")" || {
   exit 7
 }
 
-# Validate the target-root boundary before touching selected mounts. Then
-# verify the exact generated files and disk identity while tolerating only the
-# mounts that this next preparation step is explicitly responsible for.
+# First verify the exact generated files and disk identity without changing
+# mount state. Network/package failure must never unmount a user's filesystem.
 if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state_dir}" --verify-handoff-for-preparation; then
   echo "Generated installation handoff changed or the selected disk is no longer safe." | tee -a "${log_file}" >&2
-  exit 6
-fi
-if ! prepare_selected_mounts; then
-  exit 6
-fi
-if ! python3 "${installer_root}/backend/generate-config.py" --state-dir "${state_dir}" --verify-handoff; then
-  echo "Selected target could not be prepared for installation." | tee -a "${log_file}" >&2
   exit 6
 fi
 
