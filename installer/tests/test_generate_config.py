@@ -762,7 +762,8 @@ class GenerateConfigTests(unittest.TestCase):
         controller = (
             Path(__file__).parents[2] / "installer/app/installercontroller.cpp"
         ).read_text(encoding="utf-8")
-        self.assertIn('QStringLiteral("LOG-SEC")', controller)
+        self.assertIn("LOG-SEC", controller)
+        self.assertIn('QStringLiteral("log-sec")', controller)
         self.assertIn('{"logicalSectorSize", logicalSectorSize}', controller)
         self.assertGreaterEqual(
             controller.count(
