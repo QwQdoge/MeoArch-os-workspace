@@ -31,6 +31,7 @@ QtObject {
     property string diagnosticConsoleOutput: qsTr("Preview only — commands are not executed.")
     property string selectedDisk: "preview-disk-0"
     property string hardwareSummary: qsTr("Automatic PCI detection will select graphics drivers.")
+    property string hardwareWarning: ""
     property bool hardwareDetecting: false
     property bool diskDetecting: false
     property string installationState: previewComplete ? "complete" : previewInstalling ? "running" : "idle"
