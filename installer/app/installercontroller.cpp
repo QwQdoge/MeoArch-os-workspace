@@ -1245,8 +1245,7 @@ void InstallerController::parseDisks(const QByteArray &payload)
         const int logicalSectorSize = d.value(QStringLiteral("log-sec")).toVariant().toInt();
         const qint64 minimumRootBytes = 8LL * 1024 * 1024 * 1024;
         const qint64 recommendedRootBytes = 16LL * 1024 * 1024 * 1024;
-        const qint64 minimumEfiBytes = 64LL * 1024 * 1024;
-        const qint64 recommendedEfiBytes = 512LL * 1024 * 1024;
+        const qint64 minimumEfiBytes = 512LL * 1024 * 1024;
         const QString efiGuid = QStringLiteral("c12a7328-f81f-11d2-ba4b-00a0c93ec93b");
         for (const QJsonValue &childValue : d.value(QStringLiteral("children")).toArray()) {
             const QJsonObject child = childValue.toObject();
@@ -1266,7 +1265,7 @@ void InstallerController::parseDisks(const QByteArray &payload)
             if (!partitionInstallEligible)
                 partitionReason = reason;
             else if (isEfi && !eligibleEfi)
-                partitionReason = tr("EFI partition is not a supported FAT ESP or is smaller than 64 MiB.");
+                partitionReason = tr("EFI partition is not a supported FAT ESP or is smaller than 512 MiB.");
             else if (!isEfi && partitionSize < minimumRootBytes)
                 partitionReason = tr("This partition is too small for the minimum MeoArch root layout.");
             else if (isEfi)
@@ -1276,8 +1275,6 @@ void InstallerController::parseDisks(const QByteArray &payload)
                 partitionWarnings.append(tr("This partition is mounted now and will be unmounted before installation."));
             if (eligibleRoot && partitionSize < recommendedRootBytes)
                 partitionWarnings.append(tr("This root partition is smaller than the recommended 16 GiB."));
-            if (eligibleEfi && partitionSize < recommendedEfiBytes)
-                partitionWarnings.append(tr("This EFI System Partition is smaller than the recommended 512 MiB."));
             if (removable)
                 partitionWarnings.append(tr("This partition is on removable or hot-plug storage."));
             partitions.append(row({
