@@ -336,6 +336,30 @@ class GenerateConfigTests(unittest.TestCase):
         }
         self.assertEqual(MODULE._verify_live_disk_state(identity, snapshot), (True, ""))
 
+    def test_preparation_verification_allows_selected_mounts_but_strict_verification_rejects_them(self):
+        gib = 1024 * 1024 * 1024
+        identity = {
+            "devicePath": "/dev/vda", "sizeBytes": 16 * gib,
+            "mode": "erase", "serial": "", "wwn": "",
+        }
+        snapshot = {
+            "/dev/vda": {
+                "path": "/dev/vda", "type": "disk", "size": 16 * gib, "ro": 0,
+                "serial": "", "wwn": "", "mountpoints": [None], "_meo_root_path": "/dev/vda",
+            },
+            "/dev/vda1": {
+                "path": "/dev/vda1", "type": "part", "size": 15 * gib,
+                "mountpoints": ["/mnt/old-system"], "_meo_root_path": "/dev/vda",
+            },
+        }
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
+        )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
+        self.assertFalse(verified)
+        self.assertIn("mounted", reason)
+
     def test_live_disk_verification_still_rejects_read_only_media(self):
         identity = {
             "devicePath": "/dev/sdb", "sizeBytes": 15 * 1024 * 1024 * 1024,
@@ -438,7 +462,15 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("preflight-meo-repository.sh", runner)
         self.assertLess(runner.index("preflight-meo-repository.sh"), runner.index("archinstall --silent"))
         self.assertIn("prepare_selected_mounts", runner)
+        self.assertIn("--verify-handoff-for-preparation", runner)
         self.assertIn("Unmounting selected target filesystem", runner)
+        target_root_check = runner.index('target_root="$(resolve_target_root')
+        preparation_verify = runner.index("--verify-handoff-for-preparation")
+        first_unmount_prepare = runner.index("if ! prepare_selected_mounts", target_root_check)
+        strict_verify = runner.index("--verify-handoff", first_unmount_prepare)
+        self.assertLess(target_root_check, preparation_verify)
+        self.assertLess(preparation_verify, first_unmount_prepare)
+        self.assertLess(first_unmount_prepare, strict_verify)
 
     def test_selection_change_invalidates_persisted_confirmation_and_preflight(self):
         controller = (Path(__file__).parents[2] / "installer/app/installercontroller.cpp").read_text(encoding="utf-8")
