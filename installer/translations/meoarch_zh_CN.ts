@@ -934,8 +934,8 @@
         <translation>未检测到存储设备。生产模式不会显示虚构的预览磁盘。</translation>
     </message>
     <message>
-        <source>This disk has active encrypted, LVM, RAID, or device-mapper storage. Deactivate it before erasing the disk.</source>
-        <translation>此磁盘存在正在使用的加密、LVM、RAID 或 device-mapper 存储层。擦除磁盘前请先停用它。</translation>
+        <source>This disk has active encrypted, LVM, RAID, or device-mapper storage. Deactivate it before installing to this disk.</source>
+        <translation>此磁盘存在正在使用的加密、LVM、RAID 或 device-mapper 存储层。安装到此磁盘前请先停用它。</translation>
     </message>
     <message>
         <source>Active filesystems or swap on the selected target will be released immediately before installation.</source>
