@@ -47,9 +47,9 @@ FALLBACK_PACKAGES = ["mesa", "vulkan-swrast", "vulkan-icd-loader"]
 GUEST_INTEGRATION = {
     "15ad": {"packages": ["open-vm-tools"], "services": ["vmtoolsd.service"]},
     "80ee": {"packages": ["virtualbox-guest-utils"], "services": ["vboxservice.service"]},
-    # QXL is a strong signal for a SPICE desktop guest. spice-vdagent ships
-    # its graphical-session user integration, so no system service is forced.
-    "1b36": {"packages": ["spice-vdagent"], "services": []},
+    # QXL is a strong signal for a SPICE desktop guest. Keep both the
+    # package-provided graphical-session integration and its system daemon.
+    "1b36": {"packages": ["spice-vdagent"], "services": ["spice-vdagentd.service"]},
 }
 
 
