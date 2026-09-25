@@ -164,6 +164,7 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertEqual(partitions[1]["size"]["value"], 65021)
 
     def test_full_disk_layout_allows_below_recommended_capacity_but_keeps_absolute_floor(self):
+        mib = 1024 * 1024
         self.selections["disk"].update({
             "mode": "erase",
             "stableId": "/dev/vda",
@@ -171,7 +172,9 @@ class GenerateConfigTests(unittest.TestCase):
             "sizeBytes": 15 * 1024 * 1024 * 1024,
         })
         self.assertIsNotNone(MODULE.build_default_disk_layout(self.selections))
-        self.selections["disk"]["sizeBytes"] = 7 * 1024 * 1024 * 1024
+        self.selections["disk"]["sizeBytes"] = (8 * 1024 + 515) * mib
+        self.assertIsNotNone(MODULE.build_default_disk_layout(self.selections))
+        self.selections["disk"]["sizeBytes"] = (8 * 1024 + 514) * mib
         self.assertIsNone(MODULE.build_default_disk_layout(self.selections))
 
     def test_existing_partition_plan_only_rebuilds_the_selected_root(self):
