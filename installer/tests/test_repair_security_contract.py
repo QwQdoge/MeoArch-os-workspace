@@ -64,11 +64,11 @@ class RepairSecurityContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         host = (REPO_ROOT / "installer/app/main.cpp").read_text(encoding="utf-8")
 
-        install_branch = kiosk.split("install)", 1)[1].split(";;", 1)[0]
-        self.assertIn("/usr/local/bin/meoarch-installer", install_branch)
-        self.assertIn("--production", install_branch)
-        self.assertIn("--enable-real-install", install_branch)
-        self.assertIn("--enable-system-actions", install_branch)
+        self.assertIn(
+            "exec /usr/bin/cage -s -- /usr/local/bin/meoarch-installer "
+            "--production --enable-real-install --enable-system-actions",
+            kiosk,
+        )
 
         self.assertIn("RuntimeDirectory=meoarch-installer", service)
         self.assertIn(
