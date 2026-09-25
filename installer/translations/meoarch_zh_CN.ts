@@ -1025,6 +1025,10 @@
         <source>Graphics detection timed out · generic Mesa fallback will be used</source>
         <translation>图形硬件检测超时 · 将使用通用 Mesa 兼容模式</translation>
     </message>
+    <message>
+        <source>This storage device uses an unsupported logical sector size.</source>
+        <translation>此存储设备使用了不受支持的逻辑扇区大小。</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
