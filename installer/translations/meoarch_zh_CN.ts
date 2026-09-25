@@ -957,6 +957,18 @@
         <source>This disk has active encrypted, LVM, RAID, or device-mapper storage. Deactivate it before erasing the disk.</source>
         <translation>此磁盘上仍有活动的加密、LVM、RAID 或 device-mapper 存储层。请先停用这些映射，再擦除磁盘。</translation>
     </message>
+    <message>
+        <source>This device contains the running installer or a protected Live-system mount.</source>
+        <translation>此设备包含正在运行的安装介质，或承载了受保护的 Live 系统挂载点。</translation>
+    </message>
+    <message>
+        <source>Active filesystems, swap, encryption, LVM, RAID, or device-mapper layers on this disk will be released after final confirmation. Other partitions are not formatted.</source>
+        <translation>最终确认后，会释放此磁盘上的活动文件系统、交换空间、加密、LVM、RAID 或 device-mapper 映射层；其他分区不会被格式化。</translation>
+    </message>
+    <message>
+        <source>This partition has active storage use that will be released after final confirmation.</source>
+        <translation>此分区当前有活动的存储占用，会在最终确认后释放。</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
