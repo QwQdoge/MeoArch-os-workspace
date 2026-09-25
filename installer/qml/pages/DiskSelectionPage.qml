@@ -194,7 +194,7 @@ PageFrame {
                         visible: diskCard.modelData.partitions.length > 0 && !page.hasUsableEfi(diskCard.modelData.partitions)
                         width: parent.width; tone: "error"
                         title: qsTr("No usable EFI System Partition")
-                        message: qsTr("One-partition installation requires a FAT EFI System Partition of at least 64 MiB on this same disk. 512 MiB is recommended. Meo preserves the EFI partition and modifies only the selected root partition.")
+                        message: qsTr("One-partition installation requires a FAT EFI System Partition of at least 512 MiB on this same disk. Meo preserves the EFI partition and modifies only the selected root partition.")
                     }
                 }
             }
