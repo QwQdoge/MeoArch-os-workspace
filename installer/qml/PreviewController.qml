@@ -19,6 +19,8 @@ QtObject {
         {id:"islamic-civil",name:qsTr("Islamic Civil calendar"),description:qsTr("Local Qt calendar display"),state:"ready"},
         {id:"hebcal",name:qsTr("Online Hebrew calendar data"),description:qsTr("After installation, you can turn on public holiday data for the Hebrew calendar."),state:"needs-online-setup"}
     ]
+    property string runtimeEnvironment: "live"
+    property string firmwareMode: "uefi"
     property string networkState: "online"
     property string networkDetail: qsTr("Visual preview data")
     property string networkHandoffState: "ready"
