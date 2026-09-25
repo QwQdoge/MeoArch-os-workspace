@@ -182,7 +182,10 @@ def build_default_disk_layout(selections):
         return None
     try:
         total_mib = int(disk.get("sizeBytes", 0)) // (1024 * 1024)
+        logical_sector_size = int(disk.get("logicalSectorSize", 512))
     except (TypeError, ValueError):
+        return None
+    if logical_sector_size not in {512, 4096}:
         return None
     # 16 GiB remains the recommended capacity, but it is not a correctness
     # boundary. The hard floor is derived from the actual bounded layout:
@@ -206,7 +209,7 @@ def build_default_disk_layout(selections):
     def object_id(label):
         return str(uuid.uuid5(uuid.NAMESPACE_URL, f"meoarch:{device}:{label}"))
 
-    sector_size = {"unit": "B", "value": 512}
+    sector_size = {"unit": "B", "value": logical_sector_size}
     partitions = [
         {
             "btrfs": [],
@@ -373,10 +376,13 @@ def _disk_identity_for_handoff(disk: dict[str, Any], configuration: dict[str, An
         raise ValueError("generated disk layout does not match the selected device")
     try:
         size_bytes = int(disk.get("sizeBytes", 0))
+        logical_sector_size = int(disk.get("logicalSectorSize", 512))
     except (TypeError, ValueError) as error:
-        raise ValueError("selected disk capacity is invalid") from error
+        raise ValueError("selected disk geometry is invalid") from error
     if size_bytes <= 0:
         raise ValueError("selected disk capacity is missing")
+    if logical_sector_size not in {512, 4096}:
+        raise ValueError("selected disk logical sector size is unsupported")
 
     mode = str(disk.get("mode", "erase"))
     identity: dict[str, Any] = {
@@ -385,6 +391,7 @@ def _disk_identity_for_handoff(disk: dict[str, Any], configuration: dict[str, An
         "stableId": str(disk.get("stableId", "")),
         "devicePath": device,
         "sizeBytes": size_bytes,
+        "logicalSectorSize": logical_sector_size,
         "serial": str(disk.get("serial", "")),
         "wwn": str(disk.get("wwn", "")),
         "partitions": [],
@@ -461,7 +468,7 @@ def _block_device_snapshot() -> dict[str, dict[str, Any]]:
     """Read the current block topology once, immediately before archinstall."""
     result = subprocess.run(
         ["lsblk", "-J", "-b", "-o",
-         "PATH,TYPE,SIZE,RO,RM,HOTPLUG,SERIAL,WWN,MOUNTPOINTS,PKNAME,START,PARTTYPE,FSTYPE"],
+         "PATH,TYPE,SIZE,RO,RM,HOTPLUG,SERIAL,WWN,LOG-SEC,MOUNTPOINTS,PKNAME,START,PARTTYPE,FSTYPE"],
         check=False, capture_output=True, text=True, timeout=10,
     )
     if result.returncode != 0:
@@ -545,6 +552,11 @@ def _verify_live_disk_state(
             return False, "confirmed disk is read-only"
         if _integer(disk.get("size"), "confirmed disk capacity") != _integer(identity.get("sizeBytes"), "selected disk capacity"):
             return False, "confirmed disk capacity changed"
+        expected_sector_size = identity.get("logicalSectorSize")
+        if expected_sector_size is not None and _integer(
+            disk.get("log-sec"), "confirmed disk logical sector size"
+        ) != _integer(expected_sector_size, "selected disk logical sector size"):
+            return False, "confirmed disk logical sector size changed"
         for field in ("serial", "wwn"):
             expected = identity.get(field)
             if expected and str(disk.get(field, "")) != expected:

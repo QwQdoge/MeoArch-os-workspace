@@ -1033,6 +1033,10 @@
         <source>One or more graphics adapters could not be classified. MeoArch will keep a generic Mesa-compatible path available instead of blocking installation.</source>
         <translation>一个或多个图形适配器无法识别。MeoArch 将保留通用的 Mesa 兼容方案，而不是阻止安装。</translation>
     </message>
+    <message>
+        <source>This storage device uses an unsupported logical sector size.</source>
+        <translation>此存储设备使用了不受支持的逻辑扇区大小。</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>

@@ -550,6 +550,8 @@ void InstallerController::setSelectedDisk(const QString &id)
                            disk.value(QStringLiteral("serial")));
             writeSelection(QStringLiteral("disk"), QStringLiteral("wwn"),
                            disk.value(QStringLiteral("wwn")));
+            writeSelection(QStringLiteral("disk"), QStringLiteral("logicalSectorSize"),
+                           disk.value(QStringLiteral("logicalSectorSize")));
             writeSelection(QStringLiteral("disk"), QStringLiteral("targetPartition"), QVariantMap{});
             writeSelection(QStringLiteral("disk"), QStringLiteral("efiPartition"), QVariantMap{});
             setError({});
@@ -590,6 +592,8 @@ void InstallerController::selectExistingPartition(const QString &diskId, const Q
         writeSelection(QStringLiteral("disk"), QStringLiteral("devicePath"), disk.value(QStringLiteral("devicePath")));
         writeSelection(QStringLiteral("disk"), QStringLiteral("serial"), disk.value(QStringLiteral("serial")));
         writeSelection(QStringLiteral("disk"), QStringLiteral("wwn"), disk.value(QStringLiteral("wwn")));
+        writeSelection(QStringLiteral("disk"), QStringLiteral("logicalSectorSize"),
+                       disk.value(QStringLiteral("logicalSectorSize")));
         writeSelection(QStringLiteral("disk"), QStringLiteral("targetPartition"), root);
         writeSelection(QStringLiteral("disk"), QStringLiteral("efiPartition"), efi);
         writeSelection(QStringLiteral("disk"), QStringLiteral("mode"), QStringLiteral("partition"));
@@ -1373,16 +1377,19 @@ void InstallerController::parseDisks(const QByteArray &payload)
         const qint64 layoutOverheadBytes = 515LL * 1024 * 1024;
         const qint64 absoluteMinimumBytes = minimumRootBytes + layoutOverheadBytes;
         const qint64 recommendedDiskBytes = 16LL * 1024 * 1024 * 1024;
-        const bool eligible = supportedPath && !readOnly && !runningMedia
+        const int logicalSectorSize = d.value(QStringLiteral("log-sec")).toVariant().toInt();
+        const bool supportedSectorSize = logicalSectorSize == 512 || logicalSectorSize == 4096;
+        const bool eligible = supportedPath && supportedSectorSize && !readOnly && !runningMedia
                               && size >= absoluteMinimumBytes;
         // Archinstall may need the whole selected disk to be quiescent even in
         // existing-partition mode. Active mappings are therefore released for
         // the confirmed disk immediately before the destructive handoff.
-        const bool partitionInstallEligible = supportedPath && !readOnly && !runningMedia;
+        const bool partitionInstallEligible = supportedPath && supportedSectorSize && !readOnly && !runningMedia;
         QString reason;
         if (runningMedia) reason = tr("This device contains the running installer or a protected Live-system mount.");
         else if (readOnly) reason = tr("This storage device is read-only.");
         else if (!supportedPath) reason = tr("This storage device type is not supported by the safe installer backend.");
+        else if (!supportedSectorSize) reason = tr("This storage device uses an unsupported logical sector size.");
         else if (size < absoluteMinimumBytes) reason = tr("This device is too small for the minimum install layout.");
         QStringList warnings;
         if (removable) warnings.append(tr("This is removable or hot-plug storage. Keep it connected until installation finishes."));
@@ -1391,7 +1398,6 @@ void InstallerController::parseDisks(const QByteArray &payload)
         if (size > 0 && size < recommendedDiskBytes)
             warnings.append(tr("Less than 16 GiB is available. Installation is allowed, but free space may be tight."));
         QVariantList partitions;
-        const int logicalSectorSize = d.value(QStringLiteral("log-sec")).toVariant().toInt();
         const qint64 recommendedRootBytes = 16LL * 1024 * 1024 * 1024;
         const qint64 minimumEfiBytes = 512LL * 1024 * 1024;
         const QString efiGuid = QStringLiteral("c12a7328-f81f-11d2-ba4b-00a0c93ec93b");
@@ -1445,6 +1451,7 @@ void InstallerController::parseDisks(const QByteArray &payload)
                             {"size", QLocale().formattedDataSize(size)}, {"available", tr("Capacity ") + QLocale().formattedDataSize(size)},
                             {"kind", removable ? tr("Removable") : (jsonFlag(d.value(QStringLiteral("rota"))) ? tr("HDD") : tr("SSD"))},
                             {"serial", d.value(QStringLiteral("serial")).toString()}, {"wwn", d.value(QStringLiteral("wwn")).toString()},
+                            {"logicalSectorSize", logicalSectorSize},
                             {"transport", d.value(QStringLiteral("tran")).toString()}, {"eligible", eligible}, {"unavailableReason", reason},
                             {"warning", warnings.join(QLatin1Char(' '))},
                             {"partitions", partitions}, {"partitionInstallEligible", partitionInstallEligible},
