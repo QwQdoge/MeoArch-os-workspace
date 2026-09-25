@@ -251,8 +251,8 @@ class GenerateConfigTests(unittest.TestCase):
             "filesystem": "ext4",
             "efiPartition": {
                 "path": "/dev/mmcblk0p1", "startSectors": 2048,
-                "sizeSectors": (128 * 1024 * 1024) // 512, "logicalSectorSize": 512,
-                "sizeBytes": 128 * 1024 * 1024,
+                "sizeSectors": (512 * 1024 * 1024) // 512, "logicalSectorSize": 512,
+                "sizeBytes": 512 * 1024 * 1024,
                 "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b", "fstype": "vfat",
             },
             "targetPartition": {
@@ -268,6 +268,26 @@ class GenerateConfigTests(unittest.TestCase):
             [item["dev_path"] for item in layout["device_modifications"][0]["partitions"]],
             ["/dev/mmcblk0p1", "/dev/mmcblk0p2"],
         )
+
+    def test_existing_partition_plan_rejects_esp_too_small_for_reliable_boot_files(self):
+        gib = 1024 * 1024 * 1024
+        self.selections["disk"].update({
+            "mode": "partition", "stableId": "/dev/vda", "devicePath": "/dev/vda",
+            "filesystem": "ext4",
+            "efiPartition": {
+                "path": "/dev/vda1", "startSectors": 2048,
+                "sizeSectors": (256 * 1024 * 1024) // 512, "logicalSectorSize": 512,
+                "sizeBytes": 256 * 1024 * 1024,
+                "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b", "fstype": "vfat",
+            },
+            "targetPartition": {
+                "path": "/dev/vda2", "startSectors": 526336,
+                "sizeSectors": (12 * gib) // 512, "logicalSectorSize": 512,
+                "sizeBytes": 12 * gib,
+                "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "fstype": "ext4",
+            },
+        })
+        self.assertIsNone(MODULE.build_existing_partition_layout(self.selections))
 
     def test_hand_edited_raw_layout_is_rejected_instead_of_overriding_selected_disk(self):
         self.selections["disk"].update({
