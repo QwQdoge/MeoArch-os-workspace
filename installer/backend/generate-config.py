@@ -551,17 +551,17 @@ def _verify_live_disk_state(
                 return False, f"confirmed disk {field} changed"
         descendants = [record for record in snapshot.values()
                        if record.get("_meo_root_path") == device]
-        if identity.get("mode") != "partition" and _has_active_mapped_descendant(disk):
+        # Archinstall unmounts all existing partitions of every modified
+        # device and commits the partition table even in MODIFY mode. Active
+        # mapped storage anywhere on this disk can make that commit fail.
+        if _has_active_mapped_descendant(disk):
             return False, "confirmed disk has active mapped storage that must be deactivated first"
         if identity.get("mode") == "partition":
             partitions = identity.get("partitions")
             if not isinstance(partitions, list) or len(partitions) != 2:
                 return False, "confirmed partition identity is invalid"
-            selected_paths = {entry.get("path") for entry in partitions if isinstance(entry, dict)}
-            if not allow_selected_mounts and any(
-                record.get("path") in selected_paths and _mounted(record) for record in descendants
-            ):
-                return False, "confirmed install partitions are still mounted"
+            if not allow_selected_mounts and any(_mounted(record) for record in descendants):
+                return False, "confirmed disk still has active filesystems or swap"
             for expected in partitions:
                 if not isinstance(expected, dict):
                     return False, "confirmed partition identity is invalid"
@@ -569,10 +569,6 @@ def _verify_live_disk_state(
                 if not isinstance(actual, dict) or actual.get("type") != "part" \
                         or actual.get("_meo_root_path") != device:
                     return False, "confirmed partition is no longer on the selected disk"
-                if _has_active_mapped_descendant(actual):
-                    return False, "confirmed install partition has active mapped storage that must be deactivated first"
-                if not allow_selected_mounts and any(_mounted(record) for record in _walk_block_tree(actual)):
-                    return False, "confirmed install partition or descendant is still active"
                 if _integer(actual.get("start"), "partition start") != _integer(expected.get("startSectors"), "selected partition start") \
                         or _integer(actual.get("size"), "partition size") != _integer(expected.get("sizeBytes"), "selected partition size"):
                     return False, "confirmed partition geometry changed"
