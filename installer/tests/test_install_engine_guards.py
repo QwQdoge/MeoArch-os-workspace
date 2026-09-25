@@ -89,6 +89,7 @@ class InstallEngineGuardTests(unittest.TestCase):
         self.assertIn("resolve_dm_name()", source)
         self.assertIn('cryptsetup close "${map_name}"', source)
         self.assertIn('lvchange -an "/dev/mapper/${map_name}"', source)
+        self.assertIn("udevadm settle --timeout=10", source)
         self.assertIn("selected target backs protected Live mount", source)
         self.assertLess(source.index('SWAP)'), source.index('MOUNT)'))
 
