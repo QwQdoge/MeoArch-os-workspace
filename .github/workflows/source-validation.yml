@@ -46,6 +46,7 @@ jobs:
       - name: Check changed shell entrypoints
         shell: bash
         run: |
+          bash -n scripts/install.sh
           bash -n scripts/build-iso.sh
           bash -n scripts/sync-installer-to-airootfs.sh
           bash -n installer/backend/archinstall-preflight.sh
