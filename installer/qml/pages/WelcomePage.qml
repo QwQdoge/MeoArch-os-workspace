@@ -102,7 +102,7 @@ PageFrame {
                                      ? qsTr("Checking…")
                                      : page.controller && page.controller.hardwareDetected
                                        ? qsTr("Detected")
-                                       : qsTr("Pending")
+                                       : qsTr("Compatibility mode")
                         },
                         {
                             "icon": "account_circle",
