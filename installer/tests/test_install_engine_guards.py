@@ -84,7 +84,9 @@ class InstallEngineGuardTests(unittest.TestCase):
         source = RUNNER.read_text(encoding="utf-8")
         self.assertIn('open("/proc/swaps"', source)
         self.assertIn('print("SWAP\\t" + source)', source)
-        self.assertIn('swapoff -- "${target}"', source)
+        self.assertIn('swapoff -- "${first}"', source)
+        self.assertIn("Deactivating selected target mapping", source)
+        self.assertIn("selected target backs protected Live mount", source)
         self.assertLess(source.index('SWAP)'), source.index('MOUNT)'))
 
     def test_preflight_resolves_required_arch_packages_with_a_blank_sync_db(self):
