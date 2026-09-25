@@ -24,7 +24,7 @@ class HardwareDetectionTests(unittest.TestCase):
     def test_hybrid_graphics_keeps_both_driver_sets(self):
         plan = MODULE.driver_plan([
             {"vendor": "intel", "vendorId": "8086"},
-            {"vendor": "nvidia", "vendorId": "10de"},
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "2684"},
         ])
         self.assertEqual(plan["vendors"], ["intel", "nvidia"])
         self.assertIn("vulkan-intel", plan["packages"])
@@ -33,12 +33,40 @@ class HardwareDetectionTests(unittest.TestCase):
     def test_hybrid_amd_nvidia_adds_prime_helper(self):
         plan = MODULE.driver_plan([
             {"vendor": "amd", "vendorId": "1002"},
-            {"vendor": "nvidia", "vendorId": "10de"},
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "2684"},
         ])
         self.assertTrue(plan["hybridGraphics"])
         self.assertIn("vulkan-radeon", plan["packages"])
         self.assertIn("nvidia-open", plan["packages"])
         self.assertIn("nvidia-prime", plan["packages"])
+
+    def test_modern_nvidia_uses_nvidia_open(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "2684"},
+        ])
+        self.assertTrue(plan["nvidiaOpenSupported"])
+        self.assertFalse(plan["nvidiaFallback"])
+        self.assertIn("nvidia-open", plan["packages"])
+        self.assertIn("nvidia-utils", plan["packages"])
+
+    def test_legacy_nvidia_keeps_bootable_open_fallback(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "1c82"},
+        ])
+        self.assertFalse(plan["nvidiaOpenSupported"])
+        self.assertTrue(plan["nvidiaFallback"])
+        self.assertNotIn("nvidia-open", plan["packages"])
+        self.assertNotIn("nvidia-utils", plan["packages"])
+        self.assertIn("mesa", plan["packages"])
+        self.assertIn("vulkan-swrast", plan["packages"])
+        self.assertTrue(plan["warnings"])
+
+    def test_unknown_nvidia_generation_fails_open_to_mesa(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": ""},
+        ])
+        self.assertTrue(plan["nvidiaFallback"])
+        self.assertNotIn("nvidia-utils", plan["packages"])
 
     def test_modern_intel_uses_intel_media_driver(self):
         plan = MODULE.driver_plan([{"vendor": "intel", "vendorId": "8086"}])
