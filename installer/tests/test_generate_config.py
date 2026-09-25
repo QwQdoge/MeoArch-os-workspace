@@ -101,6 +101,7 @@ class GenerateConfigTests(unittest.TestCase):
         config = MODULE.build_user_configuration(self.selections, hardware)
         self.assertEqual(config["packages"][:len(hardware["packages"])], hardware["packages"])
         self.assertIn("nvidia-open", config["packages"])
+        self.assertNotIn("gfx_driver", config["profile_config"])
         for package in MODULE.MEO_DESKTOP_PACKAGES:
             self.assertIn(package, config["packages"])
 
