@@ -1135,21 +1135,33 @@ bool InstallerController::stageNetworkHandoff()
     QFile::remove(staged);
     if (!section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), false).toBool())
         return true;
-    if (m_networkHandoffState != QStringLiteral("ready") || m_networkHandoffSource.isEmpty()) {
-        setError(tr("The selected network can no longer be safely remembered. Turn off network transfer or reconnect."));
-        return false;
-    }
-    QDir().mkpath(stateDirectory);
-    if (!QFile::copy(m_networkHandoffSource, staged)) {
-        setError(tr("Could not prepare the selected network for the installed system."));
-        return false;
-    }
-    QFile handoff(staged);
-    if (!handoff.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
+
+    auto skipOptionalHandoff = [this, &staged](const QString &message) {
         QFile::remove(staged);
-        setError(tr("Could not protect the selected network handoff."));
-        return false;
-    }
+        disableNetworkHandoff();
+        m_networkHandoffState = QStringLiteral("unsupported");
+        m_networkHandoffMessage = message;
+        emit networkHandoffChanged();
+        return true;
+    };
+
+    if (m_networkHandoffState != QStringLiteral("ready") || m_networkHandoffSource.isEmpty())
+        return skipOptionalHandoff(
+            tr("The network changed, so it will not be copied to the installed system. Installation can continue."));
+
+    if (!QDir().mkpath(stateDirectory))
+        return skipOptionalHandoff(
+            tr("The network profile could not be staged. It will not be copied, but installation can continue."));
+
+    if (!QFile::copy(m_networkHandoffSource, staged))
+        return skipOptionalHandoff(
+            tr("The network profile could not be copied. It will not be remembered, but installation can continue."));
+
+    QFile handoff(staged);
+    if (!handoff.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner))
+        return skipOptionalHandoff(
+            tr("The copied network profile could not be protected safely. It was discarded and installation can continue."));
+
     return true;
 }
 
@@ -1500,11 +1512,14 @@ void InstallerController::prepareInstallation()
     m_installPlan.clear();
     m_summaryConfirmed = false;
     m_confirmedPlanRevision = 0;
-    setPreflight(QStringLiteral("checking"), tr("Generating and validating the installation plan…"));
+    // Network-profile transfer is optional. Stage or safely drop that choice
+    // before entering the checking state so an automatic fallback cannot
+    // invalidate the preflight that is about to start.
     if (!stageNetworkHandoff()) {
         setPreflight(QStringLiteral("failed"), m_errorMessage);
         return;
     }
+    setPreflight(QStringLiteral("checking"), tr("Generating and validating the installation plan…"));
     persistSelections();
     if (!m_errorMessage.isEmpty()) {
         setPreflight(QStringLiteral("failed"), m_errorMessage);
