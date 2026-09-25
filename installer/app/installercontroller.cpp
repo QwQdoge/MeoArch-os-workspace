@@ -1182,6 +1182,8 @@ bool InstallerController::stageNetworkHandoff()
 void InstallerController::detectHardware()
 {
 #ifdef Q_OS_LINUX
+    if (m_hardwareDetecting)
+        return;
     const QString detector = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/hardware.py"));
     if (!QFileInfo::exists(detector))
         return;
