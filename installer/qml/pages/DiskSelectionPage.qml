@@ -272,7 +272,7 @@ PageFrame {
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             interactive: contentHeight > height
-            ScrollBar.vertical: ScrollBar {
+            ScrollBar.vertical: MeoScrollBar {
                 policy: advancedFlick.interactive ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
             }
 

@@ -365,7 +365,7 @@ Item {
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             interactive: contentHeight > height
-            ScrollBar.vertical: ScrollBar {
+            ScrollBar.vertical: MeoScrollBar {
                 policy: helpFlick.interactive ? ScrollBar.AsNeeded : ScrollBar.AlwaysOff
             }
 
