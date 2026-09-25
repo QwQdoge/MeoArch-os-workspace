@@ -143,6 +143,15 @@ PageFrame {
         }
 
         InfoBanner {
+            visible: page.controller && page.controller.hardwareWarning.length > 0
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: Math.min(parent.width, page.dp(520))
+            tone: "warning"
+            title: qsTr("Graphics compatibility mode")
+            message: page.controller ? page.controller.hardwareWarning : ""
+        }
+
+        InfoBanner {
             visible: page.controller && page.controller.firmwareMode === "bios"
             anchors.horizontalCenter: parent.horizontalCenter
             width: Math.min(parent.width, page.dp(520))
