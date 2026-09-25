@@ -707,7 +707,7 @@ def build_plasma_localerc(selections):
     ])
 
 
-def build_target_customizations(selections):
+def build_target_customizations(selections, hardware_plan=None):
     """Return non-secret, target-side actions consumed by the postinstall adapter."""
     user = selections.get("user", {})
     disk = selections.get("disk", {})
@@ -734,6 +734,9 @@ def build_target_customizations(selections):
             "hebcalEnabled": bool(preferences.get("hebcalEnabled", False)),
         },
         "swap": {"mode": disk.get("swap", "zram"), "fileSizeMiB": 4096},
+        "guestIntegration": {
+            "services": list((hardware_plan or {}).get("guestServices", [])),
+        },
     }
 
 
@@ -852,7 +855,7 @@ def main():
     plasma_path = output_dir / "plasma-localerc"
     write_text(plasma_path, build_plasma_localerc(selections), 0o600)
     customization_path = output_dir / "target-customizations.json"
-    write_json(customization_path, build_target_customizations(selections), 0o600)
+    write_json(customization_path, build_target_customizations(selections, hardware), 0o600)
     install_plan_path = output_dir / "install-plan.json"
     write_json(install_plan_path, plan_as_dict(install_plan), 0o600)
 
