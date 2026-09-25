@@ -127,7 +127,7 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertEqual(modification["partitions"][0]["flags"], ["boot", "esp"])
         self.assertEqual(modification["partitions"][1]["mountpoint"], "/")
         self.assertEqual(modification["partitions"][1]["fs_type"], "btrfs")
-        self.assertEqual(modification["partitions"][1]["size"]["value"], 64509)
+        self.assertEqual(modification["partitions"][1]["size"]["value"], 65021)
         self.assertIsNone(modification["partitions"][0]["dev_path"])
         self.assertEqual(
             modification["partitions"][0]["start"]["sector_size"],
@@ -148,7 +148,7 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertEqual([partition["mountpoint"] for partition in partitions], ["/boot", "/", "/home"])
         self.assertEqual(partitions[1]["size"]["value"], 32 * 1024)
         self.assertGreaterEqual(partitions[2]["size"]["value"], 8 * 1024)
-        self.assertEqual(partitions[2]["start"]["value"], 1025 + 32 * 1024)
+        self.assertEqual(partitions[2]["start"]["value"], 513 + 32 * 1024)
 
     def test_guided_simple_layout_keeps_one_linux_root_partition(self):
         self.selections["disk"].update({
@@ -161,15 +161,20 @@ class GenerateConfigTests(unittest.TestCase):
         layout = MODULE.build_default_disk_layout(self.selections)
         partitions = layout["device_modifications"][0]["partitions"]
         self.assertEqual([partition["mountpoint"] for partition in partitions], ["/boot", "/"])
-        self.assertEqual(partitions[1]["size"]["value"], 64509)
+        self.assertEqual(partitions[1]["size"]["value"], 65021)
 
-    def test_full_disk_layout_rejects_less_than_sixteen_gib(self):
+    def test_full_disk_layout_allows_below_recommended_capacity_but_keeps_absolute_floor(self):
+        mib = 1024 * 1024
         self.selections["disk"].update({
             "mode": "erase",
             "stableId": "/dev/vda",
             "devicePath": "/dev/vda",
             "sizeBytes": 15 * 1024 * 1024 * 1024,
         })
+        self.assertIsNotNone(MODULE.build_default_disk_layout(self.selections))
+        self.selections["disk"]["sizeBytes"] = (8 * 1024 + 515) * mib
+        self.assertIsNotNone(MODULE.build_default_disk_layout(self.selections))
+        self.selections["disk"]["sizeBytes"] = (8 * 1024 + 514) * mib
         self.assertIsNone(MODULE.build_default_disk_layout(self.selections))
 
     def test_existing_partition_plan_only_rebuilds_the_selected_root(self):
@@ -218,18 +223,74 @@ class GenerateConfigTests(unittest.TestCase):
             "mode": "guided", "stableId": "/dev/vda", "devicePath": "/dev/vda",
             "sizeBytes": 32 * 1024 * 1024 * 1024, "separateHome": True,
         })
-        for root_size in (8, 28):
+        for root_size in (7, 29):
             with self.subTest(root_size=root_size):
                 self.selections["disk"]["rootSizeGiB"] = root_size
                 self.assertIsNone(MODULE.build_default_disk_layout(self.selections))
 
     def test_unsafe_or_preview_disk_never_generates_layout(self):
-        for device in ("preview-disk-0", "/dev/disk/by-id/usb-removable", "/dev/sda1", "/tmp/disk"):
+        for device in ("preview-disk-0", "/dev/sda1", "/tmp/disk"):
             with self.subTest(device=device):
                 self.selections["disk"]["stableId"] = device
                 self.selections["disk"]["devicePath"] = device
                 self.selections["disk"]["sizeBytes"] = 64 * 1024 * 1024 * 1024
                 self.assertNotIn("disk_config", MODULE.build_user_configuration(self.selections))
+
+    def test_removable_by_id_can_use_a_canonical_kernel_device(self):
+        self.selections["disk"].update({
+            "mode": "erase",
+            "stableId": "/dev/disk/by-id/usb-MeoArch_Test",
+            "devicePath": "/dev/sdb",
+            "sizeBytes": 15 * 1024 * 1024 * 1024,
+        })
+        layout = MODULE.build_default_disk_layout(self.selections)
+        self.assertIsNotNone(layout)
+        self.assertEqual(layout["device_modifications"][0]["device"], "/dev/sdb")
+
+    def test_emmc_partition_paths_are_supported(self):
+        gib = 1024 * 1024 * 1024
+        self.selections["disk"].update({
+            "mode": "partition", "stableId": "/dev/mmcblk0", "devicePath": "/dev/mmcblk0",
+            "filesystem": "ext4",
+            "efiPartition": {
+                "path": "/dev/mmcblk0p1", "startSectors": 2048,
+                "sizeSectors": (512 * 1024 * 1024) // 512, "logicalSectorSize": 512,
+                "sizeBytes": 512 * 1024 * 1024,
+                "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b", "fstype": "vfat",
+            },
+            "targetPartition": {
+                "path": "/dev/mmcblk0p2", "startSectors": 264192,
+                "sizeSectors": (12 * gib) // 512, "logicalSectorSize": 512,
+                "sizeBytes": 12 * gib,
+                "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "fstype": "ext4",
+            },
+        })
+        layout = MODULE.build_existing_partition_layout(self.selections)
+        self.assertIsNotNone(layout)
+        self.assertEqual(
+            [item["dev_path"] for item in layout["device_modifications"][0]["partitions"]],
+            ["/dev/mmcblk0p1", "/dev/mmcblk0p2"],
+        )
+
+    def test_existing_partition_plan_rejects_esp_too_small_for_reliable_boot_files(self):
+        gib = 1024 * 1024 * 1024
+        self.selections["disk"].update({
+            "mode": "partition", "stableId": "/dev/vda", "devicePath": "/dev/vda",
+            "filesystem": "ext4",
+            "efiPartition": {
+                "path": "/dev/vda1", "startSectors": 2048,
+                "sizeSectors": (256 * 1024 * 1024) // 512, "logicalSectorSize": 512,
+                "sizeBytes": 256 * 1024 * 1024,
+                "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b", "fstype": "vfat",
+            },
+            "targetPartition": {
+                "path": "/dev/vda2", "startSectors": 526336,
+                "sizeSectors": (12 * gib) // 512, "logicalSectorSize": 512,
+                "sizeBytes": 12 * gib,
+                "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "fstype": "ext4",
+            },
+        })
+        self.assertIsNone(MODULE.build_existing_partition_layout(self.selections))
 
     def test_hand_edited_raw_layout_is_rejected_instead_of_overriding_selected_disk(self):
         self.selections["disk"].update({
@@ -283,6 +344,87 @@ class GenerateConfigTests(unittest.TestCase):
             verified, reason = MODULE.verify_selected_disk_identity(disk)
         self.assertFalse(verified)
         self.assertIn("another device", reason)
+
+    def test_live_disk_verification_allows_removable_media_when_identity_is_stable(self):
+        identity = {
+            "devicePath": "/dev/sdb", "sizeBytes": 15 * 1024 * 1024 * 1024,
+            "mode": "erase", "serial": "USB123", "wwn": "",
+        }
+        snapshot = {
+            "/dev/sdb": {
+                "path": "/dev/sdb", "type": "disk", "size": identity["sizeBytes"],
+                "ro": 0, "rm": 1, "hotplug": 1, "serial": "USB123", "wwn": "",
+                "mountpoints": [None], "_meo_root_path": "/dev/sdb",
+            },
+        }
+        self.assertEqual(MODULE._verify_live_disk_state(identity, snapshot), (True, ""))
+
+    def test_preparation_verification_allows_selected_mounts_but_strict_verification_rejects_them(self):
+        gib = 1024 * 1024 * 1024
+        identity = {
+            "devicePath": "/dev/vda", "sizeBytes": 16 * gib,
+            "mode": "erase", "serial": "", "wwn": "",
+        }
+        snapshot = {
+            "/dev/vda": {
+                "path": "/dev/vda", "type": "disk", "size": 16 * gib, "ro": 0,
+                "serial": "", "wwn": "", "mountpoints": [None], "_meo_root_path": "/dev/vda",
+            },
+            "/dev/vda1": {
+                "path": "/dev/vda1", "type": "part", "size": 15 * gib,
+                "mountpoints": ["/mnt/old-system"], "_meo_root_path": "/dev/vda",
+            },
+        }
+        self.assertEqual(
+            MODULE._verify_live_disk_state(identity, snapshot, allow_selected_mounts=True),
+            (True, ""),
+        )
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
+        self.assertFalse(verified)
+        self.assertIn("mounted", reason)
+
+    def test_live_disk_verification_still_rejects_read_only_media(self):
+        identity = {
+            "devicePath": "/dev/sdb", "sizeBytes": 15 * 1024 * 1024 * 1024,
+            "mode": "erase", "serial": "USB123", "wwn": "",
+        }
+        snapshot = {
+            "/dev/sdb": {
+                "path": "/dev/sdb", "type": "disk", "size": identity["sizeBytes"],
+                "ro": 1, "rm": 1, "hotplug": 1, "serial": "USB123", "wwn": "",
+                "mountpoints": [None], "_meo_root_path": "/dev/sdb",
+            },
+        }
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
+        self.assertFalse(verified)
+        self.assertIn("read-only", reason)
+
+    def test_partition_verification_ignores_unrelated_mounted_partition(self):
+        gib = 1024 * 1024 * 1024
+        identity = {
+            "devicePath": "/dev/sda", "sizeBytes": 64 * gib, "mode": "partition",
+            "serial": "", "wwn": "",
+            "partitions": [
+                {"path": "/dev/sda1", "startSectors": 2048, "sizeBytes": 128 * 1024 * 1024,
+                 "parttype": "c12a7328-f81f-11d2-ba4b-00a0c93ec93b", "fstype": "vfat"},
+                {"path": "/dev/sda3", "startSectors": 4194304, "sizeBytes": 12 * gib,
+                 "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4", "fstype": "ext4"},
+            ],
+        }
+        snapshot = {
+            "/dev/sda": {"path": "/dev/sda", "type": "disk", "size": 64 * gib, "ro": 0,
+                         "serial": "", "wwn": "", "mountpoints": [None], "_meo_root_path": "/dev/sda"},
+            "/dev/sda1": {"path": "/dev/sda1", "type": "part", "size": 128 * 1024 * 1024,
+                          "start": 2048, "parttype": identity["partitions"][0]["parttype"],
+                          "fstype": "vfat", "mountpoints": [None], "_meo_root_path": "/dev/sda"},
+            "/dev/sda2": {"path": "/dev/sda2", "type": "part", "size": 16 * gib,
+                          "start": 264192, "parttype": "", "fstype": "ext4",
+                          "mountpoints": ["/mnt/data"], "_meo_root_path": "/dev/sda"},
+            "/dev/sda3": {"path": "/dev/sda3", "type": "part", "size": 12 * gib,
+                          "start": 4194304, "parttype": identity["partitions"][1]["parttype"],
+                          "fstype": "ext4", "mountpoints": [None], "_meo_root_path": "/dev/sda"},
+        }
+        self.assertEqual(MODULE._verify_live_disk_state(identity, snapshot), (True, ""))
 
     def test_handoff_rejects_config_drift_after_preflight_generation(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -342,6 +484,18 @@ class GenerateConfigTests(unittest.TestCase):
         runner = (Path(__file__).parents[2] / "installer/backend/run-archinstall.sh").read_text(encoding="utf-8")
         self.assertIn("preflight-meo-repository.sh", runner)
         self.assertLess(runner.index("preflight-meo-repository.sh"), runner.index("archinstall --silent"))
+        self.assertIn("prepare_selected_mounts", runner)
+        self.assertIn("--verify-handoff-for-preparation", runner)
+        self.assertIn("Unmounting selected target filesystem", runner)
+        target_root_check = runner.index('target_root="$(resolve_target_root')
+        preparation_verify = runner.index("--verify-handoff-for-preparation")
+        repository_preflight = runner.index("preflight-meo-repository.sh")
+        first_unmount_prepare = runner.index("if ! prepare_selected_mounts", target_root_check)
+        strict_verify = runner.index("--verify-handoff", first_unmount_prepare)
+        self.assertLess(target_root_check, preparation_verify)
+        self.assertLess(preparation_verify, repository_preflight)
+        self.assertLess(repository_preflight, first_unmount_prepare)
+        self.assertLess(first_unmount_prepare, strict_verify)
 
     def test_selection_change_invalidates_persisted_confirmation_and_preflight(self):
         controller = (Path(__file__).parents[2] / "installer/app/installercontroller.cpp").read_text(encoding="utf-8")

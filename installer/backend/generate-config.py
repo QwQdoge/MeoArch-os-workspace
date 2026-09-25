@@ -141,7 +141,7 @@ def selected_install_device(disk):
     """Return only a canonical kernel block-device path for Archinstall."""
     stable_id = str(disk.get("stableId", ""))
     device_path = str(disk.get("devicePath", ""))
-    kernel_device = re.fullmatch(r"/dev/(?:vd[a-z]+|sd[a-z]+|nvme\d+n\d+)", device_path)
+    kernel_device = re.fullmatch(r"/dev/(?:vd[a-z]+|sd[a-z]+|xvd[a-z]+|nvme\d+n\d+|mmcblk\d+|pmem\d+)", device_path)
     if not kernel_device:
         return None
     if stable_id == device_path:
@@ -175,7 +175,7 @@ def build_default_disk_layout(selections):
         return None
     device = selected_install_device(disk)
     stable_id = str(disk.get("stableId", ""))
-    if not device or "usb" in stable_id.lower() or "preview" in stable_id.lower():
+    if not device or "preview" in stable_id.lower():
         return None
     filesystem = disk.get("filesystem", "btrfs")
     if filesystem not in {"btrfs", "ext4"}:
@@ -184,16 +184,21 @@ def build_default_disk_layout(selections):
         total_mib = int(disk.get("sizeBytes", 0)) // (1024 * 1024)
     except (TypeError, ValueError):
         return None
-    if total_mib < 16 * 1024:
+    # 16 GiB remains the recommended capacity, but it is not a correctness
+    # boundary. The hard floor is derived from the actual bounded layout:
+    # 8 GiB root + 512 MiB ESP + 3 MiB for start/end alignment slack.
+    layout_overhead_mib = 515
+    minimum_root_mib = 8 * 1024
+    if total_mib < minimum_root_mib + layout_overhead_mib:
         return None
-    allocatable_mib = total_mib - 1027
+    allocatable_mib = total_mib - layout_overhead_mib
     separate_home = mode == "guided" and bool(disk.get("separateHome", True))
     if separate_home:
         try:
             root_size_mib = int(disk.get("rootSizeGiB", 32)) * 1024
         except (TypeError, ValueError):
             return None
-        if root_size_mib < 16 * 1024 or allocatable_mib - root_size_mib < 8 * 1024:
+        if root_size_mib < minimum_root_mib or allocatable_mib - root_size_mib < 4 * 1024:
             return None
     else:
         root_size_mib = allocatable_mib
@@ -211,7 +216,7 @@ def build_default_disk_layout(selections):
             "mount_options": [],
             "mountpoint": "/boot",
             "obj_id": object_id("efi"),
-            "size": {"sector_size": sector_size, "unit": "MiB", "value": 1024},
+            "size": {"sector_size": sector_size, "unit": "MiB", "value": 512},
             "start": {"sector_size": sector_size, "unit": "MiB", "value": 1},
             "status": "create",
             "type": "primary",
@@ -225,7 +230,7 @@ def build_default_disk_layout(selections):
             "mountpoint": "/",
             "obj_id": object_id("root"),
             "size": {"sector_size": sector_size, "unit": "MiB", "value": root_size_mib},
-            "start": {"sector_size": sector_size, "unit": "MiB", "value": 1025},
+            "start": {"sector_size": sector_size, "unit": "MiB", "value": 513},
             "status": "create",
             "type": "primary",
         },
@@ -240,7 +245,7 @@ def build_default_disk_layout(selections):
             "mountpoint": "/home",
             "obj_id": object_id("home"),
             "size": {"sector_size": sector_size, "unit": "MiB", "value": allocatable_mib - root_size_mib},
-            "start": {"sector_size": sector_size, "unit": "MiB", "value": 1025 + root_size_mib},
+            "start": {"sector_size": sector_size, "unit": "MiB", "value": 513 + root_size_mib},
             "status": "create",
             "type": "primary",
         })
@@ -266,7 +271,9 @@ def _safe_partition_on_device(device, partition):
     if not isinstance(partition, dict):
         return None
     path = str(partition.get("path", ""))
-    suffix = r"p[1-9][0-9]*" if re.fullmatch(r"/dev/nvme\d+n\d+", device) else r"[1-9][0-9]*"
+    suffix = (r"p[1-9][0-9]*"
+              if re.fullmatch(r"/dev/(?:nvme\d+n\d+|mmcblk\d+|pmem\d+)", device)
+              else r"[1-9][0-9]*")
     expected = rf"{re.escape(device)}{suffix}"
     if not re.fullmatch(expected, path):
         return None
@@ -317,7 +324,7 @@ def build_existing_partition_layout(selections):
     efi_guid = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
     if efi["parttype"] != efi_guid or efi["fstype"] not in {"vfat", "fat", "fat16", "fat32"}:
         return None
-    if root["size_bytes"] < 16 * 1024 * 1024 * 1024 or efi["size_bytes"] < 512 * 1024 * 1024:
+    if root["size_bytes"] < 8 * 1024 * 1024 * 1024 or efi["size_bytes"] < 512 * 1024 * 1024:
         return None
 
     def size(value, unit, sector_size):
@@ -454,7 +461,7 @@ def _block_device_snapshot() -> dict[str, dict[str, Any]]:
     """Read the current block topology once, immediately before archinstall."""
     result = subprocess.run(
         ["lsblk", "-J", "-b", "-o",
-         "PATH,TYPE,SIZE,RM,HOTPLUG,SERIAL,WWN,MOUNTPOINTS,PKNAME,START,PARTTYPE,FSTYPE"],
+         "PATH,TYPE,SIZE,RO,RM,HOTPLUG,SERIAL,WWN,MOUNTPOINTS,PKNAME,START,PARTTYPE,FSTYPE"],
         check=False, capture_output=True, text=True, timeout=10,
     )
     if result.returncode != 0:
@@ -499,8 +506,12 @@ def _integer(value: Any, description: str) -> int:
         raise ValueError(f"{description} is invalid") from error
 
 
-def _verify_live_disk_state(identity: dict[str, Any], snapshot: dict[str, dict[str, Any]] | None = None) -> tuple[bool, str]:
-    """Reject media changes, mounted disks, and stale selected partitions."""
+def _verify_live_disk_state(
+    identity: dict[str, Any],
+    snapshot: dict[str, dict[str, Any]] | None = None,
+    allow_selected_mounts: bool = False,
+) -> tuple[bool, str]:
+    """Reject identity drift; optionally allow target mounts only for preparation."""
     device = identity.get("devicePath")
     if not isinstance(device, str):
         return False, "confirmed disk identity is invalid"
@@ -509,8 +520,8 @@ def _verify_live_disk_state(identity: dict[str, Any], snapshot: dict[str, dict[s
         disk = snapshot.get(device)
         if not isinstance(disk, dict) or disk.get("type") != "disk":
             return False, "confirmed disk is no longer a block disk"
-        if _integer(disk.get("rm", 0), "removable flag") or _integer(disk.get("hotplug", 0), "hotplug flag"):
-            return False, "confirmed disk is removable or hot-plugged"
+        if _integer(disk.get("ro", 0), "read-only flag"):
+            return False, "confirmed disk is read-only"
         if _integer(disk.get("size"), "confirmed disk capacity") != _integer(identity.get("sizeBytes"), "selected disk capacity"):
             return False, "confirmed disk capacity changed"
         for field in ("serial", "wwn"):
@@ -519,12 +530,15 @@ def _verify_live_disk_state(identity: dict[str, Any], snapshot: dict[str, dict[s
                 return False, f"confirmed disk {field} changed"
         descendants = [record for record in snapshot.values()
                        if record.get("_meo_root_path") == device]
-        if any(_mounted(record) for record in descendants):
-            return False, "confirmed disk now has mounted filesystems"
         if identity.get("mode") == "partition":
             partitions = identity.get("partitions")
             if not isinstance(partitions, list) or len(partitions) != 2:
                 return False, "confirmed partition identity is invalid"
+            selected_paths = {entry.get("path") for entry in partitions if isinstance(entry, dict)}
+            if not allow_selected_mounts and any(
+                record.get("path") in selected_paths and _mounted(record) for record in descendants
+            ):
+                return False, "confirmed install partitions are still mounted"
             for expected in partitions:
                 if not isinstance(expected, dict):
                     return False, "confirmed partition identity is invalid"
@@ -539,12 +553,14 @@ def _verify_live_disk_state(identity: dict[str, Any], snapshot: dict[str, dict[s
                     expected_value = str(expected.get(field, "")).lower()
                     if expected_value and str(actual.get(field, "")).lower() != expected_value:
                         return False, f"confirmed partition {field} changed"
+        elif not allow_selected_mounts and any(_mounted(record) for record in descendants):
+            return False, "confirmed disk still has mounted filesystems"
     except (OSError, ValueError) as error:
         return False, str(error)
     return True, ""
 
 
-def verify_generated_handoff(state_dir: Path) -> tuple[bool, str]:
+def verify_generated_handoff(state_dir: Path, allow_selected_mounts: bool = False) -> tuple[bool, str]:
     """Verify that a ready handoff has not drifted before a destructive run."""
     private, reason = private_directory_ok(state_dir)
     if not private:
@@ -581,7 +597,7 @@ def verify_generated_handoff(state_dir: Path) -> tuple[bool, str]:
         identity_ok, identity_error = verify_selected_disk_identity(identity)
         if not identity_ok:
             return False, identity_error
-        return _verify_live_disk_state(identity)
+        return _verify_live_disk_state(identity, allow_selected_mounts=allow_selected_mounts)
     except (OSError, ValueError, json.JSONDecodeError) as error:
         return False, str(error)
 
@@ -764,13 +780,18 @@ def main():
     parser.add_argument("--state-dir", default="/tmp/meoarch-installer")
     parser.add_argument("--selections")
     parser.add_argument("--credentials", help="Ephemeral 0600 JSON containing only password hashes/passphrases")
-    parser.add_argument("--verify-handoff", action="store_true",
-                        help="Verify an already-generated handoff immediately before a destructive run")
+    verification = parser.add_mutually_exclusive_group()
+    verification.add_argument("--verify-handoff", action="store_true",
+                              help="Strictly verify an already-generated handoff immediately before a destructive run")
+    verification.add_argument("--verify-handoff-for-preparation", action="store_true",
+                              help="Verify identity and generated files before safely unmounting selected targets")
     args = parser.parse_args()
 
     state_dir = Path(args.state_dir)
-    if args.verify_handoff:
-        verified, error = verify_generated_handoff(state_dir)
+    if args.verify_handoff or args.verify_handoff_for_preparation:
+        verified, error = verify_generated_handoff(
+            state_dir, allow_selected_mounts=args.verify_handoff_for_preparation
+        )
         if not verified:
             raise SystemExit(f"installation handoff verification failed: {error}")
         print("installation handoff verification passed")

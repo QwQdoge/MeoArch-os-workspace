@@ -43,6 +43,20 @@ QString utf8LocaleId(QString value)
     return value;
 }
 
+bool jsonFlag(const QJsonValue &value)
+{
+    // util-linux lsblk JSON has used both JSON booleans and numeric/string
+    // representations across versions and column combinations. Treat all
+    // normal forms consistently so RO/RM/HOTPLUG/ROTA cannot silently flip.
+    if (value.isBool())
+        return value.toBool();
+    if (value.isDouble())
+        return value.toInt() != 0;
+    const QString text = value.toString().trimmed().toLower();
+    return text == QStringLiteral("1") || text == QStringLiteral("true")
+           || text == QStringLiteral("yes") || text == QStringLiteral("on");
+}
+
 bool hasMountedFilesystem(const QJsonObject &device)
 {
     // lsblk represents an unmounted device as [null] on some releases.  An
@@ -521,7 +535,7 @@ void InstallerController::selectExistingPartition(const QString &diskId, const Q
             return;
         }
         if (efi.isEmpty()) {
-            setError(tr("This disk needs an unmounted 512 MiB EFI System Partition. No partition will be changed."));
+            setError(tr("This disk needs a supported FAT EFI System Partition of at least 512 MiB. No partition will be changed."));
             return;
         }
         writeSelection(QStringLiteral("disk"), QStringLiteral("stableId"), diskId);
@@ -1168,7 +1182,7 @@ void InstallerController::refreshDisks()
         process->deleteLater();
     });
     process->start(QStringLiteral("lsblk"), {QStringLiteral("-J"), QStringLiteral("-b"), QStringLiteral("-o"),
-                                            QStringLiteral("NAME,PATH,MODEL,SERIAL,WWN,SIZE,TYPE,ROTA,RM,HOTPLUG,TRAN,MOUNTPOINTS,FSTYPE,PARTTYPE,PKNAME,START,PARTN,LOG-SEC")});
+                                            QStringLiteral("NAME,PATH,MODEL,SERIAL,WWN,SIZE,TYPE,RO,ROTA,RM,HOTPLUG,TRAN,MOUNTPOINTS,FSTYPE,PARTTYPE,PKNAME,START,PARTN,LOG-SEC")});
 #else
     setError(tr("Disk detection is only available in the Linux installer environment."));
     emit disksChanged();
@@ -1203,18 +1217,41 @@ void InstallerController::parseDisks(const QByteArray &payload)
             if (entry.symLinkTarget().endsWith(QLatin1Char('/') + name)) { stableId = entry.absoluteFilePath(); break; }
         }
         const qint64 size = d.value(QStringLiteral("size")).toVariant().toLongLong();
-        const bool removable = d.value(QStringLiteral("rm")).toInt() != 0 || d.value(QStringLiteral("hotplug")).toInt() != 0;
+        const bool readOnly = jsonFlag(d.value(QStringLiteral("ro")));
+        const bool removable = jsonFlag(d.value(QStringLiteral("rm"))) || jsonFlag(d.value(QStringLiteral("hotplug")));
         const bool mounted = hasMountedDescendant(d);
-        const bool runningMedia = runningSource.contains(QStringLiteral("/dev/") + name);
-        const bool eligible = !removable && !mounted && !runningMedia;
-        const bool partitionInstallEligible = !removable && !runningMedia;
+        const bool partitionUsesP = QRegularExpression(
+            QStringLiteral("^(?:nvme\\d+n\\d+|mmcblk\\d+|pmem\\d+)$"))
+            .match(name).hasMatch();
+        const QString partitionSuffix = partitionUsesP
+            ? QStringLiteral("(?:p[0-9]+)?")
+            : QStringLiteral("(?:[0-9]+)?");
+        const QRegularExpression runningDevicePattern(
+            QStringLiteral("(?:^|\\s)/dev/%1%2(?:\\s|$)")
+                .arg(QRegularExpression::escape(name), partitionSuffix));
+        const bool runningMedia = runningDevicePattern.match(runningSource).hasMatch();
+        const bool supportedPath = QRegularExpression(
+            QStringLiteral("^/dev/(?:vd[a-z]+|sd[a-z]+|xvd[a-z]+|nvme\\d+n\\d+|mmcblk\\d+|pmem\\d+)$"))
+            .match(devicePath).hasMatch();
+        const qint64 minimumRootBytes = 8LL * 1024 * 1024 * 1024;
+        const qint64 layoutOverheadBytes = 515LL * 1024 * 1024;
+        const qint64 absoluteMinimumBytes = minimumRootBytes + layoutOverheadBytes;
+        const qint64 recommendedDiskBytes = 16LL * 1024 * 1024 * 1024;
+        const bool eligible = supportedPath && !readOnly && !runningMedia && size >= absoluteMinimumBytes;
+        const bool partitionInstallEligible = supportedPath && !readOnly && !runningMedia;
         QString reason;
         if (runningMedia) reason = tr("This device contains the running installer.");
-        else if (removable) reason = tr("Removable media cannot be selected for erase install.");
-        else if (mounted) reason = tr("This device has mounted filesystems.");
+        else if (readOnly) reason = tr("This storage device is read-only.");
+        else if (!supportedPath) reason = tr("This storage device type is not supported by the safe installer backend.");
+        else if (size < absoluteMinimumBytes) reason = tr("This device is too small for the minimum install layout.");
+        QStringList warnings;
+        if (removable) warnings.append(tr("This is removable or hot-plug storage. Keep it connected until installation finishes."));
+        if (mounted) warnings.append(tr("Mounted filesystems on the selected target will be unmounted immediately before installation."));
+        if (size > 0 && size < recommendedDiskBytes)
+            warnings.append(tr("Less than 16 GiB is available. Installation is allowed, but free space may be tight."));
         QVariantList partitions;
         const int logicalSectorSize = d.value(QStringLiteral("log-sec")).toVariant().toInt();
-        const qint64 minimumRootBytes = 16LL * 1024 * 1024 * 1024;
+        const qint64 recommendedRootBytes = 16LL * 1024 * 1024 * 1024;
         const qint64 minimumEfiBytes = 512LL * 1024 * 1024;
         const QString efiGuid = QStringLiteral("c12a7328-f81f-11d2-ba4b-00a0c93ec93b");
         for (const QJsonValue &childValue : d.value(QStringLiteral("children")).toArray()) {
@@ -1226,20 +1263,27 @@ void InstallerController::parseDisks(const QByteArray &payload)
             const QString parttype = child.value(QStringLiteral("parttype")).toString().toLower();
             const QString fstype = child.value(QStringLiteral("fstype")).toString().toLower();
             const bool isEfi = parttype == efiGuid;
-            const bool eligibleRoot = partitionInstallEligible && !partitionMounted && !isEfi && partitionSize >= minimumRootBytes;
-            const bool eligibleEfi = partitionInstallEligible && !partitionMounted && isEfi
+            const bool eligibleRoot = partitionInstallEligible && !isEfi && partitionSize >= minimumRootBytes;
+            const bool eligibleEfi = partitionInstallEligible && isEfi
                                      && partitionSize >= minimumEfiBytes
                                      && (fstype == QStringLiteral("vfat") || fstype == QStringLiteral("fat")
                                          || fstype == QStringLiteral("fat16") || fstype == QStringLiteral("fat32"));
             QString partitionReason;
             if (!partitionInstallEligible)
-                partitionReason = runningMedia ? tr("This device contains the running installer.") : tr("Removable media cannot be selected.");
-            else if (partitionMounted)
-                partitionReason = tr("This partition is mounted.");
+                partitionReason = reason;
+            else if (isEfi && !eligibleEfi)
+                partitionReason = tr("EFI partition is not a supported FAT ESP or is smaller than 512 MiB.");
+            else if (!isEfi && partitionSize < minimumRootBytes)
+                partitionReason = tr("This partition is too small for the minimum MeoArch root layout.");
             else if (isEfi)
                 partitionReason = tr("EFI System Partition — preserved for boot files.");
-            else if (partitionSize < minimumRootBytes)
-                partitionReason = tr("At least 16 GiB is required for the Meo root partition.");
+            QStringList partitionWarnings;
+            if (partitionMounted)
+                partitionWarnings.append(tr("This partition is mounted now and will be unmounted before installation."));
+            if (eligibleRoot && partitionSize < recommendedRootBytes)
+                partitionWarnings.append(tr("This root partition is smaller than the recommended 16 GiB."));
+            if (removable)
+                partitionWarnings.append(tr("This partition is on removable or hot-plug storage."));
             partitions.append(row({
                 {"name", child.value(QStringLiteral("name")).toString()},
                 {"path", child.value(QStringLiteral("path")).toString()},
@@ -1249,23 +1293,22 @@ void InstallerController::parseDisks(const QByteArray &payload)
                 {"logicalSectorSize", logicalSectorSize}, {"partn", child.value(QStringLiteral("partn")).toVariant().toInt()},
                 {"fstype", fstype}, {"parttype", parttype}, {"mounted", partitionMounted},
                 {"isEfi", isEfi}, {"eligibleRoot", eligibleRoot}, {"eligibleEfi", eligibleEfi},
-                {"unavailableReason", partitionReason},
+                {"unavailableReason", partitionReason}, {"warning", partitionWarnings.join(QLatin1Char(' '))},
             }));
         }
-        QString partitionReason;
-        if (runningMedia) partitionReason = tr("This device contains the running installer.");
-        else if (removable) partitionReason = tr("Removable media cannot be selected.");
+        QString partitionReason = partitionInstallEligible ? QString() : reason;
         m_disks.append(row({{"id", stableId}, {"devicePath", devicePath}, {"name", d.value(QStringLiteral("model")).toString().trimmed().isEmpty() ? tr("Storage device") : d.value(QStringLiteral("model")).toString().trimmed()},
                             {"sizeBytes", size},
                             {"size", QLocale().formattedDataSize(size)}, {"available", tr("Capacity ") + QLocale().formattedDataSize(size)},
-                            {"kind", removable ? tr("Removable") : (d.value(QStringLiteral("rota")).toInt() ? tr("HDD") : tr("SSD"))},
+                            {"kind", removable ? tr("Removable") : (jsonFlag(d.value(QStringLiteral("rota"))) ? tr("HDD") : tr("SSD"))},
                             {"serial", d.value(QStringLiteral("serial")).toString()}, {"wwn", d.value(QStringLiteral("wwn")).toString()},
                             {"transport", d.value(QStringLiteral("tran")).toString()}, {"eligible", eligible}, {"unavailableReason", reason},
+                            {"warning", warnings.join(QLatin1Char(' '))},
                             {"partitions", partitions}, {"partitionInstallEligible", partitionInstallEligible},
                             {"partitionUnavailableReason", partitionReason}}));
     }
     if (m_disks.isEmpty())
-        setError(tr("No eligible installation disk was detected. Preview disks are never shown in production mode."));
+        setError(tr("No storage device was detected. Preview disks are never shown in production mode."));
     emit disksChanged();
 }
 

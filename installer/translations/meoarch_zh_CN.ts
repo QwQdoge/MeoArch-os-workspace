@@ -87,8 +87,8 @@
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="64"/>
-        <source>Select an unmounted partition of at least 16 GiB below. Meo preserves an existing EFI System Partition and rebuilds and formats only the partition you select for MeoArch.</source>
-        <translation>选择下方至少 16 GiB 的未挂载分区。Meo 会保留现有 EFI 系统分区，只重建并格式化你为 MeoArch 选择的分区。</translation>
+        <source>Select a supported root partition of at least 8 GiB below. 16 GiB is recommended, not required. Mounted target partitions are unmounted only after final confirmation.</source>
+        <translation>选择下方至少 8 GiB 的受支持根分区。16 GiB 是推荐容量，不是硬性要求。已挂载的目标分区只会在最终确认后卸载。</translation>
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="69"/>
@@ -147,8 +147,8 @@
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="177"/>
-        <source>One-partition installation requires an unmounted FAT EFI System Partition of at least 512 MiB on this same disk. Meo will not create, move, or modify other partitions in this mode.</source>
-        <translation>单分区安装需要同一磁盘上至少 512 MiB、未挂载的 FAT EFI 系统分区。此模式下 Meo 不会创建、移动或修改其他分区。</translation>
+        <source>One-partition installation requires a FAT EFI System Partition of at least 512 MiB on this same disk. Meo preserves the EFI partition and modifies only the selected root partition.</source>
+        <translation>单分区安装需要同一磁盘上至少 512 MiB 的 FAT EFI 系统分区。Meo 会保留 EFI 分区，只修改所选根分区。</translation>
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="190"/>
@@ -251,6 +251,22 @@
     <message>
         <source>Internet access is working, but the MeoArch package source could not be verified. Try again later or check the repository configuration.</source>
         <translation>互联网连接正常，但无法验证 MeoArch 软件源。请稍后重试或检查软件源配置。</translation>
+    </message>
+    <message>
+        <source>Storage warning</source>
+        <translation>存储设备警告</translation>
+    </message>
+    <message>
+        <source>Below recommended capacity</source>
+        <translation>低于推荐容量</translation>
+    </message>
+    <message>
+        <source>This disk is smaller than the recommended 16 GiB. You can continue, but installation may leave little free space.</source>
+        <translation>此磁盘小于推荐的 16 GiB。仍可继续，但安装后可用空间可能很少。</translation>
+    </message>
+    <message>
+        <source>Storage unavailable</source>
+        <translation>此存储设备不可用于安装</translation>
     </message>
 </context>
 <context>
@@ -514,8 +530,8 @@
     </message>
     <message>
         <location filename="../app/installercontroller.cpp" line="1070"/>
-        <source>At least 16 GiB is required for the Meo root partition.</source>
-        <translation>Meo 根分区至少需要 16 GiB。</translation>
+        <source>This partition is too small for the minimum MeoArch root layout.</source>
+        <translation>此分区小于 MeoArch 根分区布局的最低容量。</translation>
     </message>
     <message>
         <location filename="../app/installercontroller.cpp" line="1088"/>
@@ -820,8 +836,8 @@
     </message>
     <message>
         <location filename="../app/installercontroller.cpp" line="495"/>
-        <source>This disk needs an unmounted 512 MiB EFI System Partition. No partition will be changed.</source>
-        <translation>此磁盘需要一个未挂载的 512 MiB EFI 系统分区。不会更改任何分区。</translation>
+        <source>This disk needs a supported FAT EFI System Partition of at least 512 MiB. No partition will be changed.</source>
+        <translation>此磁盘需要一个至少 512 MiB、受支持的 FAT EFI 系统分区。不会更改任何分区。</translation>
     </message>
     <message>
         <location filename="../app/installercontroller.cpp" line="364"/>
@@ -872,6 +888,50 @@
     <message>
         <source>Checking Internet access and required package sources…</source>
         <translation>正在检查互联网连接和所需的软件源…</translation>
+    </message>
+    <message>
+        <source>This storage device is read-only.</source>
+        <translation>此存储设备为只读，无法用于安装。</translation>
+    </message>
+    <message>
+        <source>This storage device type is not supported by the safe installer backend.</source>
+        <translation>安全安装后端暂不支持此类存储设备。</translation>
+    </message>
+    <message>
+        <source>This device is too small for the minimum install layout.</source>
+        <translation>此设备小于安装布局所需的最低容量。</translation>
+    </message>
+    <message>
+        <source>This is removable or hot-plug storage. Keep it connected until installation finishes.</source>
+        <translation>这是可移动或可热插拔存储设备。安装完成前请保持连接。</translation>
+    </message>
+    <message>
+        <source>Mounted filesystems on the selected target will be unmounted immediately before installation.</source>
+        <translation>所选目标上已挂载的文件系统会在正式安装前卸载。</translation>
+    </message>
+    <message>
+        <source>Less than 16 GiB is available. Installation is allowed, but free space may be tight.</source>
+        <translation>可用容量小于 16 GiB。允许安装，但剩余空间可能较少。</translation>
+    </message>
+    <message>
+        <source>EFI partition is not a supported FAT ESP or is smaller than 512 MiB.</source>
+        <translation>EFI 分区不是受支持的 FAT ESP，或容量小于 512 MiB。</translation>
+    </message>
+    <message>
+        <source>This partition is mounted now and will be unmounted before installation.</source>
+        <translation>此分区当前已挂载，会在正式安装前卸载。</translation>
+    </message>
+    <message>
+        <source>This root partition is smaller than the recommended 16 GiB.</source>
+        <translation>此根分区小于推荐的 16 GiB。</translation>
+    </message>
+    <message>
+        <source>This partition is on removable or hot-plug storage.</source>
+        <translation>此分区位于可移动或可热插拔存储设备上。</translation>
+    </message>
+    <message>
+        <source>No storage device was detected. Preview disks are never shown in production mode.</source>
+        <translation>未检测到存储设备。生产模式不会显示虚构的预览磁盘。</translation>
     </message>
 </context>
 <context>
@@ -1536,6 +1596,46 @@
     <message>
         <source>Checks an official Arch Linux source first, then checks the required MeoArch package source</source>
         <translation>先检查官方 Arch Linux 来源，再检查所需的 MeoArch 软件源</translation>
+    </message>
+    <message>
+        <source>Continue because Internet access is available; the package source warning will be checked again before installation</source>
+        <translation>互联网已可用，可以继续；软件源警告会在正式安装前再次检查。</translation>
+    </message>
+    <message>
+        <source>Checks Internet access first, then reports package-source availability as a warning until final preflight</source>
+        <translation>先检查互联网连接；在最终预检前，软件源可用性仅作为警告显示。</translation>
+    </message>
+    <message>
+        <source>Continue with the active network; Internet and package downloads are checked again before installation</source>
+        <translation>使用当前活动网络继续；正式安装前会再次检查互联网和软件下载。</translation>
+    </message>
+    <message>
+        <source>Connect a network interface before continuing with installation</source>
+        <translation>请先连接网络接口，再继续安装。</translation>
+    </message>
+    <message>
+        <source>Rechecks Internet and package-source reachability without blocking the rest of the setup wizard</source>
+        <translation>重新检查互联网和软件源可达性，但不会因此阻止继续完成其他设置。</translation>
+    </message>
+    <message>
+        <source>MeoArch needs Internet access for package downloads. You can continue setup while connectivity is being verified.</source>
+        <translation>MeoArch 安装时需要互联网下载软件包。连接状态验证期间，你仍可继续完成其他设置。</translation>
+    </message>
+    <message>
+        <source>Internet access is not verified</source>
+        <translation>尚未验证互联网连接</translation>
+    </message>
+    <message>
+        <source>You can continue setup. MeoArch will retry Internet and package downloads before installation starts.</source>
+        <translation>你可以继续设置。正式安装开始前，MeoArch 会再次检查互联网和软件下载。</translation>
+    </message>
+    <message>
+        <source>No active network interface</source>
+        <translation>没有活动的网络接口</translation>
+    </message>
+    <message>
+        <source>Connect Wi-Fi or Ethernet to continue from this page.</source>
+        <translation>请连接 Wi-Fi 或以太网后再离开此页面。</translation>
     </message>
 </context>
 <context>

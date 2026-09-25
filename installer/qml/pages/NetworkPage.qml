@@ -8,16 +8,14 @@ import "../components"
 
 PageFrame {
     id: page
-    primaryEnabled: page.controller && page.controller.networkState === "online"
-    primaryLabel: primaryEnabled ? qsTr("Continue")
-                                  : page.controller && page.controller.networkState === "repository"
-                                    ? qsTr("Package source unavailable")
-                                    : qsTr("Connect to continue")
+    readonly property bool hasActiveNetwork: page.controller
+                                             && page.controller.networkState !== "no-interface"
+                                             && page.controller.networkState !== "unknown"
+    primaryEnabled: page.hasActiveNetwork
+    primaryLabel: primaryEnabled ? qsTr("Continue") : qsTr("Connect to continue")
     primaryAccessibleDescription: primaryEnabled
-                                  ? qsTr("Continue after Internet access and the required package source have been verified")
-                                  : page.controller && page.controller.networkState === "repository"
-                                    ? qsTr("Internet access works, but the required MeoArch package source is unavailable")
-                                    : qsTr("Connect to the Internet before continuing with installation")
+                                  ? qsTr("Continue with the active network; Internet and package downloads are checked again before installation")
+                                  : qsTr("Connect a network interface before continuing with installation")
 
     function signalIcon(strength) {
         if (strength >= 70) return "signal_wifi_4_bar"
@@ -33,7 +31,7 @@ PageFrame {
         PageHeading {
             width: parent.width
             title: qsTr("Network")
-            subtitle: qsTr("MeoArch downloads the system, desktop, and selected packages during installation. Connect to the Internet to continue.")
+            subtitle: qsTr("MeoArch needs Internet access for package downloads. You can continue setup while connectivity is being verified.")
         }
         InfoBanner {
             width: parent.width
@@ -44,15 +42,22 @@ PageFrame {
                    : qsTr("Internet connection required")
             message: page.controller ? page.controller.networkDetail : qsTr("Network status is unavailable.")
             tone: page.controller && page.controller.networkState === "online" ? "success"
-                  : page.controller && page.controller.networkState === "checking" ? "info" : "error"
+                  : page.controller && page.controller.networkState === "no-interface" ? "error"
+                  : page.controller && page.controller.networkState === "checking" ? "info" : "warning"
         }
         InfoBanner {
-            visible: page.controller && (page.controller.networkState === "offline"
-                                           || page.controller.networkState === "no-interface")
+            visible: page.controller && page.controller.networkState === "offline"
             width: parent.width
-            tone: "info"
-            title: qsTr("Offline installation is not available")
-            message: qsTr("Connect with Wi-Fi or Ethernet to continue. No disk changes happen on this page or before the final confirmation.")
+            tone: "warning"
+            title: qsTr("Internet access is not verified")
+            message: qsTr("You can continue setup. MeoArch will retry Internet and package downloads before installation starts.")
+        }
+        InfoBanner {
+            visible: page.controller && page.controller.networkState === "no-interface"
+            width: parent.width
+            tone: "error"
+            title: qsTr("No active network interface")
+            message: qsTr("Connect Wi-Fi or Ethernet to continue from this page.")
         }
         ToggleRow {
             width: parent.width
@@ -79,7 +84,7 @@ PageFrame {
             type: "tonal"
             loading: page.controller && page.controller.networkState === "checking"
             enabled: page.controller && page.controller.networkState !== "checking"
-            Accessible.description: qsTr("Checks an official Arch Linux source first, then checks the required MeoArch package source")
+            Accessible.description: qsTr("Rechecks Internet and package-source reachability without blocking the rest of the setup wizard")
             onClicked: page.controller.retryNetwork()
         }
         SelectionCard {
@@ -196,8 +201,7 @@ PageFrame {
         interval: 900
         repeat: false
         onTriggered: {
-            if (page.controller && MeoSystem.SystemState.networkConnected
-                    && page.controller.networkState !== "online")
+            if (page.controller)
                 page.controller.retryNetwork()
         }
     }
@@ -205,11 +209,9 @@ PageFrame {
     Connections {
         target: MeoSystem.SystemState
         function onNetworkChanged() {
-            // A successful NetworkManager activation should make the installer
-            // re-check Internet reachability, but a short debounce avoids
-            // issuing a probe for every intermediate activation state.
-            if (MeoSystem.SystemState.networkConnected)
-                connectivityRetry.restart()
+            // Refresh on both connect and disconnect so a stale "online" state
+            // can never keep navigation enabled after the last interface drops.
+            connectivityRetry.restart()
         }
     }
 
