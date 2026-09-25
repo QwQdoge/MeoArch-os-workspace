@@ -26,12 +26,12 @@ class TargetBootTests(unittest.TestCase):
             with self.subTest(text=text), self.assertRaises(ValueError):
                 hooks.configure(text)
 
-    def run_target(self, failure=0, omit_asset=None):
+    def run_target(self, failure=0, omit_asset=None, guest_services=()):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             target, runtime, generated, commands = [root / name for name in ("target", "runtime", "generated", "commands")]
-            for path in (target / "etc/default", target / "usr/bin", target / "usr/share/meo-desktop", target / "boot/grub",
-                         generated, commands):
+            for path in (target / "etc/default", target / "usr/bin", target / "usr/share/meo-desktop",
+                         target / "usr/lib/systemd/system", target / "boot/grub", generated, commands):
                 path.mkdir(parents=True, exist_ok=True)
             outside = root / "host-os-release"
             outside.write_text("HOST MUST REMAIN UNCHANGED\n")
@@ -61,12 +61,19 @@ class TargetBootTests(unittest.TestCase):
                 "username": "tester", "fullName": "", "automaticLogin": False,
                 "loginManager": "plasma-login-manager", "firewall": False,
                 "swap": {"mode": "none", "fileSizeMiB": 0},
+                "guestIntegration": {"services": list(guest_services)},
             }))
+            for guest_service in guest_services:
+                (target / "usr/lib/systemd/system" / guest_service).write_text(
+                    "[Unit]\nDescription=Guest integration fixture\n"
+                )
             (commands / "arch-chroot").write_text(
                 '#!/bin/sh\nprintf "%s\\n" "$*" >>"$TEST_CALLS"\n'
                 'case "$2" in */mkinitcpio) exit "$TEST_FAILURE" ;; */lsinitcpio) echo usr/bin/plymouthd ;; */grub-mkconfig) exit 0 ;; *) exit 99 ;; esac\n')
             (commands / "ldconfig").write_text("#!/bin/sh\nexit 0\n")
-            (commands / "systemctl").write_text("#!/bin/sh\nexit 0\n")
+            (commands / "systemctl").write_text(
+                '#!/bin/sh\nprintf "systemctl %s\\n" "$*" >>"$TEST_CALLS"\nexit 0\n'
+            )
             for command in commands.iterdir():
                 command.chmod(0o755)
             result = subprocess.run(["bash", BACKEND / "apply-target-customizations.sh", target, "/unused-source", generated],
@@ -91,6 +98,16 @@ class TargetBootTests(unittest.TestCase):
         self.assertIn("GRUB_TIMEOUT=3", grub_defaults)
         self.assertIn('GRUB_THEME="/boot/grub/themes/meoarch/theme.txt"', grub_defaults)
         self.assertEqual(grub_splash, b"fixture-splash")
+
+    def test_detected_vm_guest_service_is_enabled(self):
+        result, calls, _, _ = self.run_target(guest_services=("vmtoolsd.service",))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("enable vmtoolsd.service", calls)
+
+    def test_unapproved_guest_service_is_rejected(self):
+        result, _, _, _ = self.run_target(guest_services=("sshd.service",))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Unsupported generated guest integration service", result.stderr)
 
     def test_initramfs_failure_is_not_reported_as_success(self):
         result, calls, _, _ = self.run_target(failure=17)
