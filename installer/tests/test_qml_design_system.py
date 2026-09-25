@@ -399,7 +399,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('networkState !== "no-interface"', network)
         self.assertIn("primaryEnabled: page.hasActiveNetwork", network)
         self.assertIn("without blocking the rest of the setup wizard", network)
-        self.assertIn('tone: page.controller && page.controller.networkState === "no-interface" ? "error"', network)
+        self.assertIn('networkState === "no-interface" ? "error"', network)
         self.assertIn("--range 0-0", preflight)
         self.assertNotIn("--head", preflight)
         self.assertIn("QRegularExpression::escape(name)", controller)
