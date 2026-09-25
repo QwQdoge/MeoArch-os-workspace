@@ -264,25 +264,25 @@ PY
               echo "cryptsetup is required to release ${second}." | tee -a "${log_file}" >&2
               return 1
             }
-            cryptsetup close -- "$(basename -- "${second}")" >>"${log_file}" 2>&1 || return 1
+            cryptsetup close "$(basename -- "${second}")" >>"${log_file}" 2>&1 || return 1
             ;;
           lvm)
             command -v lvchange >/dev/null 2>&1 || {
               echo "lvchange is required to release ${second}." | tee -a "${log_file}" >&2
               return 1
             }
-            lvchange -an -- "${second}" >>"${log_file}" 2>&1 || return 1
+            lvchange -an "${second}" >>"${log_file}" 2>&1 || return 1
             ;;
           raid*|md)
             command -v mdadm >/dev/null 2>&1 || {
               echo "mdadm is required to release ${second}." | tee -a "${log_file}" >&2
               return 1
             }
-            mdadm --stop -- "${second}" >>"${log_file}" 2>&1 || return 1
+            mdadm --stop "${second}" >>"${log_file}" 2>&1 || return 1
             ;;
           *)
             if [ "${second#/dev/mapper/}" != "${second}" ] && command -v dmsetup >/dev/null 2>&1; then
-              dmsetup remove -- "$(basename -- "${second}")" >>"${log_file}" 2>&1 || return 1
+              dmsetup remove "$(basename -- "${second}")" >>"${log_file}" 2>&1 || return 1
             else
               echo "Unsupported active storage mapping ${second} (${first}); cannot release it safely." | tee -a "${log_file}" >&2
               return 1
