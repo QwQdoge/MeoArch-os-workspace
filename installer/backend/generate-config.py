@@ -13,7 +13,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from hardware import hardware_plan
+from hardware import hardware_plan as detect_hardware_plan
 from install_plan import (PlanError, application_catalog_from, build_install_plan,
                           catalog_from, plan_as_dict)
 
@@ -638,7 +638,7 @@ def verify_generated_handoff(state_dir: Path, allow_selected_mounts: bool = Fals
 
 
 def build_package_list(hardware_plan=None, firewall=False, application_packages=()):
-    hardware_packages = (hardware_plan or globals()["hardware_plan"]())["packages"]
+    hardware_packages = (hardware_plan or detect_hardware_plan())["packages"]
     packages = hardware_packages + MEO_DESKTOP_PACKAGES + list(application_packages)
     if firewall:
         packages.append("firewalld")
@@ -851,7 +851,7 @@ def main():
         raise SystemExit(identity_error)
 
     secrets = load_json(Path(args.credentials)) if args.credentials else {}
-    hardware = hardware_plan()
+    hardware = detect_hardware_plan()
     package_catalog = catalog_from(data_dir / "package-catalog.json")
     app_catalog = application_catalog_from(data_dir / "application-catalog.json", package_catalog["generation"])
     try:
