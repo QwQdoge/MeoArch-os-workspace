@@ -35,13 +35,30 @@ DRIVER_PACKAGES = {
     # intel-media-driver is Arch's current VA-API backend for Broadwell+.
     # The generic Mesa VA backend is aimed at AMD/Nouveau, not modern Intel.
     "intel": ["mesa", "vulkan-intel", "intel-media-driver"],
-    # nvidia-open is the current supported kernel-module package in Arch.
-    "nvidia": ["nvidia-open", "nvidia-utils", "libva-nvidia-driver"],
     # virtio Vulkan works when Venus is available; lavapipe keeps Vulkan
     # functional in VMware/VirtualBox/QXL-style VMs without Venus.
     "virtual": ["mesa", "vulkan-virtio", "vulkan-swrast"],
 }
+NVIDIA_OPEN_PACKAGES = ["nvidia-open", "nvidia-utils", "libva-nvidia-driver"]
+NVIDIA_SAFE_FALLBACK_PACKAGES = ["mesa", "libva-mesa-driver", "vulkan-swrast"]
 FALLBACK_PACKAGES = ["mesa", "vulkan-swrast", "vulkan-icd-loader"]
+
+
+def nvidia_open_supported(device: dict[str, str]) -> bool:
+    """Conservatively identify NVIDIA generations supported by nvidia-open.
+
+    NVIDIA PCI device IDs are generation-grouped; Turing starts at 0x1e00,
+    while Volta/Pascal/Maxwell are below that boundary. Unknown/malformed IDs
+    deliberately fall back to Nouveau/Mesa instead of installing nvidia-utils,
+    because nvidia-utils disables Nouveau and a false positive can leave an
+    older GPU without a working graphical fallback.
+    """
+    if device.get("vendor") != "nvidia":
+        return False
+    try:
+        return int(device.get("deviceId", ""), 16) >= 0x1E00
+    except (TypeError, ValueError):
+        return False
 
 
 def pci_devices(sysfs_root: Path = Path("/sys/bus/pci/devices")) -> Iterable[dict[str, str]]:
@@ -110,25 +127,42 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
 
     packages: list[str] = []
     seen_packages = set()
-    known_vendors = [vendor for vendor in vendors if vendor in DRIVER_PACKAGES]
-    for vendor in known_vendors:
-        for package in DRIVER_PACKAGES[vendor]:
+
+    def add_packages(values):
+        for package in values:
             if package not in seen_packages:
                 seen_packages.add(package)
                 packages.append(package)
 
-    # A hybrid NVIDIA laptop needs the PRIME helper even though the kernel and
-    # userspace driver packages are already present.
+    known_vendors = [vendor for vendor in vendors if vendor in DRIVER_PACKAGES or vendor == "nvidia"]
+    for vendor in known_vendors:
+        if vendor != "nvidia":
+            add_packages(DRIVER_PACKAGES[vendor])
+
+    nvidia_devices = [device for device in devices if device.get("vendor") == "nvidia"]
+    modern_nvidia = any(nvidia_open_supported(device) for device in nvidia_devices)
+    legacy_or_unknown_nvidia = bool(nvidia_devices) and not modern_nvidia
+    if modern_nvidia:
+        add_packages(NVIDIA_OPEN_PACKAGES)
+    elif legacy_or_unknown_nvidia:
+        add_packages(NVIDIA_SAFE_FALLBACK_PACKAGES)
+
+    # A hybrid modern NVIDIA laptop benefits from the standard PRIME helper.
     physical_vendors = {vendor for vendor in known_vendors if vendor != "virtual"}
-    hybrid_nvidia = "nvidia" in physical_vendors and len(physical_vendors) > 1
-    if hybrid_nvidia and "nvidia-prime" not in seen_packages:
-        seen_packages.add("nvidia-prime")
-        packages.append("nvidia-prime")
+    hybrid_nvidia = modern_nvidia and "nvidia" in physical_vendors and len(physical_vendors) > 1
+    if hybrid_nvidia:
+        add_packages(["nvidia-prime"])
 
     if not packages:
         packages = FALLBACK_PACKAGES.copy()
 
-    unknown_vendors = [vendor for vendor in vendors if vendor not in DRIVER_PACKAGES]
+    unknown_vendors = [vendor for vendor in vendors if vendor not in DRIVER_PACKAGES and vendor != "nvidia"]
+    warnings = []
+    if legacy_or_unknown_nvidia:
+        warnings.append(
+            "NVIDIA generation is older than or could not be confirmed for nvidia-open; "
+            "using the non-blacklisting Mesa/Nouveau fallback."
+        )
     return {
         "schemaVersion": 2,
         "detected": bool(devices),
@@ -137,7 +171,10 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
         "packages": packages,
         "hybridGraphics": hybrid_nvidia,
         "virtualGraphics": "virtual" in vendors,
+        "nvidiaOpenSupported": modern_nvidia,
+        "nvidiaFallback": legacy_or_unknown_nvidia,
         "unknownAdapters": unknown_vendors,
+        "warnings": warnings,
         # Kept for compatibility with older consumers. The full installer is
         # network-backed regardless of GPU vendor, so graphics detection must
         # never create a separate network gate.
