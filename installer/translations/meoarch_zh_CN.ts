@@ -949,6 +949,10 @@
         <source>This partition has an active filesystem or swap entry that will be released before installation.</source>
         <translation>此分区有正在使用的文件系统或交换空间，会在正式安装前自动释放。</translation>
     </message>
+    <message>
+        <source>Active filesystems or swap on this disk will be released immediately before installation. Other partitions are not formatted.</source>
+        <translation>此磁盘上正在使用的文件系统或交换空间会在正式安装前自动释放。其他分区不会被格式化。</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
