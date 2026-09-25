@@ -175,6 +175,11 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("m_networkHandoffGeneration", header)
         self.assertIn("++m_networkHandoffGeneration", controller)
         self.assertIn("generation != m_networkHandoffGeneration", controller)
+        network_start = controller.index("void InstallerController::refreshNetworkHandoff()")
+        network_end = controller.index("bool InstallerController::stageNetworkHandoff()", network_start)
+        network_probe = controller[network_start:network_end]
+        self.assertLess(network_probe.index("process->deleteLater();"),
+                        network_probe.index("generation != m_networkHandoffGeneration"))
         self.assertIn("if (m_hardwareDetecting)", controller)
         self.assertIn("Graphics detection timed out · generic Mesa fallback will be used", controller)
 

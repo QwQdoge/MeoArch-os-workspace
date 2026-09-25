@@ -1126,9 +1126,11 @@ void InstallerController::refreshNetworkHandoff()
         emit networkHandoffChanged();
     });
     connect(process, &QProcess::errorOccurred, this, [this, process, generation](QProcess::ProcessError error) {
-        if (error != QProcess::FailedToStart || generation != m_networkHandoffGeneration)
+        if (error != QProcess::FailedToStart)
             return;
         process->deleteLater();
+        if (generation != m_networkHandoffGeneration)
+            return;
         disableNetworkHandoff();
         m_networkHandoffState = QStringLiteral("unsupported");
         m_networkHandoffMessage = tr("Network profile detection could not start. The network will not be copied, but installation can continue.");
