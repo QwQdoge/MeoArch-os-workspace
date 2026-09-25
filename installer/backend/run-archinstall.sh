@@ -252,6 +252,7 @@ PY
     printf '%s\n' "${name}"
   }
 
+  mapping_changed=false
   while IFS="$(printf '\t')" read -r action first second; do
     case "${action}" in
       SWAP)
@@ -284,6 +285,7 @@ PY
               return 1
             }
             cryptsetup close "${map_name}" >>"${log_file}" 2>&1 || return 1
+            mapping_changed=true
             ;;
           lvm)
             command -v lvchange >/dev/null 2>&1 || {
@@ -295,6 +297,7 @@ PY
               return 1
             }
             lvchange -an "/dev/mapper/${map_name}" >>"${log_file}" 2>&1 || return 1
+            mapping_changed=true
             ;;
           raid*|md)
             command -v mdadm >/dev/null 2>&1 || {
@@ -302,6 +305,7 @@ PY
               return 1
             }
             mdadm --stop "${second}" >>"${log_file}" 2>&1 || return 1
+            mapping_changed=true
             ;;
           *)
             map_name="$(resolve_dm_name "${second}")" || {
@@ -309,6 +313,7 @@ PY
               return 1
             }
             dmsetup remove "${map_name}" >>"${log_file}" 2>&1 || return 1
+            mapping_changed=true
             ;;
         esac
         ;;
@@ -318,6 +323,13 @@ PY
         ;;
     esac
   done <<<"${mount_plan}"
+
+  if [ "${mapping_changed}" = true ] && command -v udevadm >/dev/null 2>&1; then
+    log "Waiting for released storage mappings to settle"
+    if ! udevadm settle --timeout=10 >>"${log_file}" 2>&1; then
+      log "udev settle timed out; strict storage verification will decide whether the target is ready"
+    fi
+  fi
 }
 
 if [ ! -f "${confirm_file}" ] || [ -L "${confirm_file}" ]; then
