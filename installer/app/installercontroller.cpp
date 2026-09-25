@@ -423,6 +423,17 @@ void InstallerController::setUiLanguage(const QString &id)
     emit uiLanguageChanged();
 }
 
+void InstallerController::rebuildHardwareWarning()
+{
+    if (m_nvidiaFallback) {
+        m_hardwareWarning = tr("An older or unclassified NVIDIA adapter was detected. MeoArch will use the Mesa/Nouveau-compatible fallback so installation can continue.");
+    } else if (m_unknownGraphicsAdapters) {
+        m_hardwareWarning = tr("One or more graphics adapters could not be classified. MeoArch will keep a generic Mesa-compatible path available instead of blocking installation.");
+    } else {
+        m_hardwareWarning.clear();
+    }
+}
+
 void InstallerController::retranslateUserFacingState()
 {
     // The selected language changes only this application's process locale.
@@ -430,6 +441,7 @@ void InstallerController::retranslateUserFacingState()
     // chosen disk nor writes the installation plan.
     if (!m_hardwareDetected)
         m_hardwareSummary = tr("Automatic PCI detection will select graphics drivers.");
+    rebuildHardwareWarning();
 
     if (m_networkState == QStringLiteral("checking"))
         m_networkDetail = tr("Checking Internet access and required package sources…");
@@ -1192,6 +1204,9 @@ void InstallerController::detectHardware()
     if (m_hardwareDetecting)
         return;
     m_hardwareDetected = false;
+    m_nvidiaFallback = false;
+    m_unknownGraphicsAdapters = false;
+    m_hardwareWarning.clear();
     m_hardwareSummary = tr("Generic graphics fallback · Mesa-compatible stack");
 #ifdef Q_OS_LINUX
     const QString detector = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/hardware.py"));
@@ -1236,6 +1251,9 @@ void InstallerController::detectHardware()
                 }
                 const QString summary = result.value(QStringLiteral("summary")).toString().trimmed();
                 m_hardwareDetected = result.value(QStringLiteral("detected")).toBool(false);
+                m_nvidiaFallback = result.value(QStringLiteral("nvidiaFallback")).toBool(false);
+                m_unknownGraphicsAdapters = !result.value(QStringLiteral("unknownAdapters")).toArray().isEmpty();
+                rebuildHardwareWarning();
                 if (!summary.isEmpty())
                     m_hardwareSummary = summary.toUpper()
                                        + (names.isEmpty() ? QString()
