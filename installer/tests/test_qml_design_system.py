@@ -125,6 +125,24 @@ class InstallerDesignSystemTests(unittest.TestCase):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
         self.assertIn("ScrollBar.vertical: MeoScrollBar", frame)
 
+    def test_hardware_fallback_warning_is_structured_translated_and_non_blocking(self):
+        header = (QML_ROOT.parent / "app/installercontroller.h").read_text(encoding="utf-8")
+        controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
+        preview = (QML_ROOT / "PreviewController.qml").read_text(encoding="utf-8")
+        welcome = (QML_ROOT / "pages/WelcomePage.qml").read_text(encoding="utf-8")
+        summary = (QML_ROOT / "pages/SummaryPage.qml").read_text(encoding="utf-8")
+
+        self.assertIn("Q_PROPERTY(QString hardwareWarning READ hardwareWarning NOTIFY hardwareChanged)", header)
+        self.assertIn('QStringLiteral("nvidiaFallback")', controller)
+        self.assertIn('QStringLiteral("unknownAdapters")', controller)
+        self.assertIn("rebuildHardwareWarning();", controller)
+        self.assertIn('property string hardwareWarning: ""', preview)
+        self.assertIn("page.controller.hardwareWarning.length > 0", welcome)
+        self.assertIn("page.controller.hardwareWarning.length > 0", summary)
+        self.assertIn('tone: "warning"', welcome)
+        self.assertNotIn("primaryEnabled: page.controller.hardwareWarning", welcome)
+        self.assertNotIn("readyToInstall", welcome)
+
     def test_welcome_surfaces_uefi_requirement_before_preflight(self):
         header = (QML_ROOT.parent / "app/installercontroller.h").read_text(encoding="utf-8")
         controller = (QML_ROOT.parent / "app/installercontroller.cpp").read_text(encoding="utf-8")
