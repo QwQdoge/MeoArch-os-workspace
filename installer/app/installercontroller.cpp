@@ -1167,6 +1167,8 @@ bool InstallerController::stageNetworkHandoff()
 
 void InstallerController::detectHardware()
 {
+    if (m_hardwareDetecting)
+        return;
     m_hardwareDetected = false;
     m_hardwareSummary = tr("Generic graphics fallback · Mesa-compatible stack");
 #ifdef Q_OS_LINUX
