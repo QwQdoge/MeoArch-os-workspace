@@ -86,6 +86,18 @@ class GenerateConfigTests(unittest.TestCase):
         })
         self.assertNotIn("password", json.dumps(customizations).lower())
 
+    def test_target_customizations_carry_only_detected_guest_services(self):
+        hardware = {
+            "guestServices": ["vmtoolsd.service"],
+            "guestPackages": ["open-vm-tools"],
+        }
+        customizations = MODULE.build_target_customizations(self.selections, hardware)
+        self.assertEqual(
+            customizations["guestIntegration"],
+            {"services": ["vmtoolsd.service"]},
+        )
+        self.assertNotIn("guestPackages", customizations["guestIntegration"])
+
     def test_unknown_secondary_calendar_blocks_plan(self):
         self.selections["preferences"]["secondaryCalendar"] = "invented"
         configuration = MODULE.build_user_configuration(self.selections)
