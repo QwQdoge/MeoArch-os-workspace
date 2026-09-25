@@ -393,6 +393,11 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('m_networkState != QStringLiteral("online")', controller)
         self.assertIn('m_networkState != QStringLiteral("repository")', controller)
         self.assertIn("disableNetworkHandoff();", controller)
+        self.assertIn("skipOptionalHandoff", controller)
+        self.assertIn("installation can continue", controller)
+        prepare = controller[controller.index("void InstallerController::prepareInstallation()"):]
+        self.assertLess(prepare.index("stageNetworkHandoff()"),
+                        prepare.index('setPreflight(QStringLiteral("checking")'))
         self.assertNotIn("sourcePath", defaults)
 
     def test_network_reachability_separates_public_internet_from_meo_repository(self):
