@@ -322,7 +322,7 @@ def build_existing_partition_layout(selections):
     efi_guid = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
     if efi["parttype"] != efi_guid or efi["fstype"] not in {"vfat", "fat", "fat16", "fat32"}:
         return None
-    if root["size_bytes"] < 8 * 1024 * 1024 * 1024 or efi["size_bytes"] < 64 * 1024 * 1024:
+    if root["size_bytes"] < 8 * 1024 * 1024 * 1024 or efi["size_bytes"] < 512 * 1024 * 1024:
         return None
 
     def size(value, unit, sector_size):
