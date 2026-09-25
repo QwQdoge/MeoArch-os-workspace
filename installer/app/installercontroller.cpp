@@ -1122,9 +1122,11 @@ void InstallerController::refreshNetworkHandoff()
         m_networkHandoffMessage = tr("This current network can be remembered after installation. Only this NetworkManager profile will be copied.");
         emit networkHandoffChanged();
     });
-    process->start(QStringLiteral("nmcli"), {QStringLiteral("--terse"), QStringLiteral("--escape"), QStringLiteral("no"),
-                                               QStringLiteral("--fields"), QStringLiteral("UUID,FILENAME,TYPE"),
-                                               QStringLiteral("connection"), QStringLiteral("show"), QStringLiteral("--active")});
+    process->start(QStringLiteral("/usr/bin/timeout"),
+                   {QStringLiteral("--signal=TERM"), QStringLiteral("--kill-after=2s"), QStringLiteral("10s"),
+                    QStringLiteral("nmcli"), QStringLiteral("--terse"), QStringLiteral("--escape"), QStringLiteral("no"),
+                    QStringLiteral("--fields"), QStringLiteral("UUID,FILENAME,TYPE"),
+                    QStringLiteral("connection"), QStringLiteral("show"), QStringLiteral("--active")});
 }
 
 bool InstallerController::stageNetworkHandoff()
@@ -1191,7 +1193,9 @@ void InstallerController::detectHardware()
         process->deleteLater();
         emit hardwareChanged();
     });
-    process->start(QStringLiteral("python3"), {detector});
+    process->start(QStringLiteral("/usr/bin/timeout"),
+                   {QStringLiteral("--signal=TERM"), QStringLiteral("--kill-after=2s"),
+                    QStringLiteral("15s"), QStringLiteral("python3"), detector});
 #endif
 }
 
@@ -1208,7 +1212,10 @@ void InstallerController::refreshDisks()
     auto *process = new QProcess(this);
     connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
         if (status != QProcess::NormalExit || exitCode != 0) {
-            setError(tr("Disk detection failed. No disk can be selected until the scan succeeds."));
+            if (exitCode == 124 || exitCode == 137)
+                setError(tr("Disk scan timed out. Check connected storage and rescan."));
+            else
+                setError(tr("Disk detection failed. No disk can be selected until the scan succeeds."));
             emit disksChanged();
         } else {
             parseDisks(process->readAllStandardOutput());
@@ -1226,8 +1233,10 @@ void InstallerController::refreshDisks()
         emit diskDetectionChanged();
         process->deleteLater();
     });
-    process->start(QStringLiteral("lsblk"), {QStringLiteral("-J"), QStringLiteral("-b"), QStringLiteral("-o"),
-                                            QStringLiteral("NAME,PATH,MODEL,SERIAL,WWN,SIZE,TYPE,RO,ROTA,RM,HOTPLUG,TRAN,MOUNTPOINTS,FSTYPE,PARTTYPE,PKNAME,START,PARTN,LOG-SEC")});
+    process->start(QStringLiteral("/usr/bin/timeout"),
+                   {QStringLiteral("--signal=TERM"), QStringLiteral("--kill-after=2s"), QStringLiteral("15s"),
+                    QStringLiteral("lsblk"), QStringLiteral("-J"), QStringLiteral("-b"), QStringLiteral("-o"),
+                    QStringLiteral("NAME,PATH,MODEL,SERIAL,WWN,SIZE,TYPE,RO,ROTA,RM,HOTPLUG,TRAN,MOUNTPOINTS,FSTYPE,PARTTYPE,PKNAME,START,PARTN,LOG-SEC")});
 #else
     setError(tr("Disk detection is only available in the Linux installer environment."));
     emit disksChanged();
@@ -1420,7 +1429,10 @@ void InstallerController::saveAccount(const QString &fullName, const QString &us
         }
         m_accountHashProcess = nullptr;
         if (status != QProcess::NormalExit || exitCode != 0) {
-            setError(tr("Could not securely hash the account password."));
+            if (exitCode == 124 || exitCode == 137)
+                setError(tr("Password hashing timed out. Retry saving the account."));
+            else
+                setError(tr("Could not securely hash the account password."));
             process->deleteLater();
             emit accountFailed();
             return;
@@ -1436,8 +1448,9 @@ void InstallerController::saveAccount(const QString &fullName, const QString &us
         setError({});
         emit accountReady();
     });
-    process->start(QStringLiteral("openssl"),
-                  {QStringLiteral("passwd"), QStringLiteral("-6"), QStringLiteral("-stdin")});
+    process->start(QStringLiteral("/usr/bin/timeout"),
+                   {QStringLiteral("--signal=TERM"), QStringLiteral("--kill-after=2s"), QStringLiteral("10s"),
+                    QStringLiteral("openssl"), QStringLiteral("passwd"), QStringLiteral("-6"), QStringLiteral("-stdin")});
 }
 
 QString InstallerController::sourceRoot() const
@@ -1575,7 +1588,10 @@ void InstallerController::prepareInstallation()
                 return;
             }
             if (status != QProcess::NormalExit || exitCode != 0) {
-                setError(details.isEmpty() ? tr("Could not generate the Archinstall installation plan.") : details);
+                if (exitCode == 124 || exitCode == 137)
+                    setError(tr("Generating the installation plan timed out. Retry after checking the Live system and storage."));
+                else
+                    setError(details.isEmpty() ? tr("Could not generate the Archinstall installation plan.") : details);
                 setPreflight(QStringLiteral("failed"), m_errorMessage);
                 return;
             }
@@ -1585,9 +1601,12 @@ void InstallerController::prepareInstallation()
             }
             startArchinstallPreflight();
         });
-        process->start(QStringLiteral("python3"), {generator, QStringLiteral("--data-dir"), QDir(sourceRoot()).absoluteFilePath(QStringLiteral("data")),
-                                                 QStringLiteral("--state-dir"), directory, QStringLiteral("--selections"), path,
-                                                 QStringLiteral("--credentials"), credentialsPath});
+        process->start(QStringLiteral("/usr/bin/timeout"),
+                       {QStringLiteral("--signal=TERM"), QStringLiteral("--kill-after=5s"), QStringLiteral("45s"),
+                        QStringLiteral("python3"), generator, QStringLiteral("--data-dir"),
+                        QDir(sourceRoot()).absoluteFilePath(QStringLiteral("data")),
+                        QStringLiteral("--state-dir"), directory, QStringLiteral("--selections"), path,
+                        QStringLiteral("--credentials"), credentialsPath});
         return;
     }
 #endif
@@ -1628,7 +1647,9 @@ void InstallerController::startArchinstallPreflight()
         const QFile statusFile(QDir(directory).absoluteFilePath(QStringLiteral("preflight_status.json")));
         QString message = tr("The generated Archinstall configuration was rejected.");
         QString state = QStringLiteral("failed");
-        if (status == QProcess::NormalExit && exitCode == 0 && statusFile.exists()) {
+        if (exitCode == 124 || exitCode == 137) {
+            message = tr("Installation preflight timed out. Check the connection and retry.");
+        } else if (status == QProcess::NormalExit && exitCode == 0 && statusFile.exists()) {
             QFile file(statusFile.fileName());
             if (file.open(QIODevice::ReadOnly)) {
                 const QJsonObject result = QJsonDocument::fromJson(file.readAll()).object();
@@ -1639,7 +1660,9 @@ void InstallerController::startArchinstallPreflight()
         }
         setPreflight(state, message);
     });
-    process->start(script);
+    process->start(QStringLiteral("/usr/bin/timeout"),
+                   {QStringLiteral("--signal=TERM"), QStringLiteral("--kill-after=10s"),
+                    QStringLiteral("330s"), script});
 }
 
 void InstallerController::confirmSummary()
