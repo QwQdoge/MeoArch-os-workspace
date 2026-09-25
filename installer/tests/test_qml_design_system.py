@@ -33,6 +33,23 @@ class InstallerDesignSystemTests(unittest.TestCase):
             "Use MeoUI surfaces and named MeoTheme roles instead of raw rectangles or colour literals.",
         )
 
+    def test_scrollable_installer_surfaces_use_meoui_scrollbars(self):
+        violations = []
+        for qml_file in sorted(QML_ROOT.rglob("*.qml")):
+            source = qml_file.read_text(encoding="utf-8")
+            if "ScrollBar.vertical: ScrollBar {" in source:
+                violations.append(str(qml_file.relative_to(QML_ROOT)))
+        self.assertEqual(violations, [])
+        self.assertGreaterEqual(
+            sum(
+                qml_file.read_text(encoding="utf-8").count(
+                    "ScrollBar.vertical: MeoScrollBar {"
+                )
+                for qml_file in QML_ROOT.rglob("*.qml")
+            ),
+            5,
+        )
+
     def test_page_frame_uses_the_shared_surface_and_divider(self):
         source = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
         self.assertIn("MeoMotionSurface", source)
