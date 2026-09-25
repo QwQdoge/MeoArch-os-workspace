@@ -22,8 +22,15 @@ PageFrame {
         const selectedId = String(controller.selectedDisk || "")
         const detected = controller.disks || []
         for (let index = 0; index < detected.length; ++index) {
-            if (String(detected[index].id) === selectedId)
-                return Math.floor(Number(detected[index].sizeBytes || 0) / 1073741824)
+            if (String(detected[index].id) !== selectedId)
+                continue
+            const detectedBytes = Number(detected[index].sizeBytes || 0)
+            if (detectedBytes > 0)
+                return Math.floor(detectedBytes / 1073741824)
+            // Some hot-plug/slow storage briefly reports zero capacity during
+            // a rescan. Keep the last confirmed capacity for navigation only;
+            // the destructive handoff revalidates the live capacity exactly.
+            break
         }
         return Math.floor(Number(controller.selection("disk", "sizeBytes", 0)) / 1073741824)
     }
