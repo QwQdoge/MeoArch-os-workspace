@@ -164,6 +164,19 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("property bool primaryLoading: false", frame)
         self.assertIn("loading: frame.primaryLoading", frame)
         self.assertIn('primaryLoading: controller && controller.preflightState === "checking"', summary)
+        self.assertGreaterEqual(controller.count('QStringLiteral("/usr/bin/timeout")'), 5)
+        for deadline in ('QStringLiteral("10s")', 'QStringLiteral("15s")',
+                         'QStringLiteral("45s")', 'QStringLiteral("330s")'):
+            self.assertIn(deadline, controller)
+        self.assertIn("Disk scan timed out", controller)
+        self.assertIn("Password hashing timed out", controller)
+        self.assertIn("Generating the installation plan timed out", controller)
+        self.assertIn("Installation preflight timed out", controller)
+        self.assertIn("m_networkHandoffGeneration", header)
+        self.assertIn("++m_networkHandoffGeneration", controller)
+        self.assertIn("generation != m_networkHandoffGeneration", controller)
+        self.assertIn("if (m_hardwareDetecting)", controller)
+        self.assertIn("Graphics detection timed out · generic Mesa fallback will be used", controller)
 
     def test_custom_profile_persists_required_desktop_and_review_shows_resolved_plan(self):
         software = (QML_ROOT / "pages/SoftwarePage.qml").read_text(encoding="utf-8")

@@ -202,6 +202,7 @@ private:
     QString m_networkHandoffMessage;
     QString m_networkHandoffSource;
     QString m_networkHandoffKind;
+    quint64 m_networkHandoffGeneration = 0;
     bool m_diagnosticConsoleAvailable = false;
     QString m_diagnosticConsoleOutput;
     QPointer<QProcess> m_diagnosticProcess;
