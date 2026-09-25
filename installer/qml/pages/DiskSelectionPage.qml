@@ -74,7 +74,7 @@ PageFrame {
         InfoBanner {
             width: parent.width; tone: "info"
             title: qsTr("Use one existing partition")
-            message: qsTr("Select a supported root partition of at least 8 GiB below. 16 GiB is recommended, not required. Mounted target partitions are unmounted only after final confirmation.")
+            message: qsTr("Select a supported root partition of at least 8 GiB below. 16 GiB is recommended, not required. Active filesystems, swap, and supported storage mappings are released only after final confirmation.")
         }
         InfoBanner {
             visible: page.controller && !page.controller.diskDetecting && page.controller.disks.length === 0
