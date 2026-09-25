@@ -6,6 +6,37 @@ scripts that assemble and validate a candidate image. Shared UI primitives do
 not belong here: reusable QML belongs in the sibling MeoUI project, while
 Plasma-specific integration belongs in MeoKDE.
 
+
+## Install Meo Desktop on an existing Arch system
+
+The public MeoArch workspace is the unified remote entry point. To start the
+guided installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/QwQdoge/MeoArch-os-workspace/main/scripts/install.sh | bash
+```
+
+The bootstrap itself only downloads MeoKDE and MeoUI snapshots into
+`~/.cache/meo-installer/components/` and then hands control to MeoKDE's
+versioned installer. Package installation, sudo use, system services, Plasma
+layout changes, and system-wide responsiveness settings remain explicit choices
+inside that installer.
+
+Recommended full setup:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/QwQdoge/MeoArch-os-workspace/main/scripts/install.sh | bash -s -- --full
+```
+
+For a machine with multiple desktop environments, install the full Meo KDE
+experience without applying system-wide zram / scheduler / power-profile /
+GameMode policy:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/QwQdoge/MeoArch-os-workspace/main/scripts/install.sh | bash -s -- --full --kde-only
+```
+
+
 ## What is in this repository
 
 | Path | Purpose |
