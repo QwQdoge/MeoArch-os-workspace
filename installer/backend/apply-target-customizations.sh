@@ -437,7 +437,7 @@ systemctl --root="${target_root}" enable plasmalogin.service
 # arbitrary target service through this convenience field.
 for guest_service in "${guest_services[@]}"; do
   case "${guest_service}" in
-    vmtoolsd.service|vboxservice.service|spice-vdagentd.service) ;;
+    vmtoolsd.service|vboxservice.service) ;;
     *) echo "Unsupported generated guest integration service: ${guest_service}" >&2; exit 7 ;;
   esac
   [ -f "${target_root}/usr/lib/systemd/system/${guest_service}" ] || {
