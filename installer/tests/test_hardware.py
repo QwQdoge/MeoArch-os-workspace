@@ -1,3 +1,6 @@
+import json
+import subprocess
+import sys
 import importlib.util
 import tempfile
 import unittest
@@ -23,72 +26,156 @@ class HardwareDetectionTests(unittest.TestCase):
 
     def test_hybrid_graphics_keeps_both_driver_sets(self):
         plan = MODULE.driver_plan([
-            {"vendor": "intel", "vendorId": "8086", "deviceId": "46a6"},
+            {"vendor": "intel", "vendorId": "8086"},
             {"vendor": "nvidia", "vendorId": "10de", "deviceId": "2684"},
         ])
         self.assertEqual(plan["vendors"], ["intel", "nvidia"])
         self.assertIn("vulkan-intel", plan["packages"])
         self.assertIn("nvidia-open", plan["packages"])
 
+    def test_hybrid_amd_nvidia_adds_prime_helper(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "amd", "vendorId": "1002"},
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "2684"},
+        ])
+        self.assertTrue(plan["hybridGraphics"])
+        self.assertIn("vulkan-radeon", plan["packages"])
+        self.assertIn("nvidia-open", plan["packages"])
+        self.assertIn("nvidia-prime", plan["packages"])
+
+    def test_modern_nvidia_uses_nvidia_open(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "2684"},
+        ])
+        self.assertTrue(plan["nvidiaOpenSupported"])
+        self.assertFalse(plan["nvidiaFallback"])
+        self.assertIn("nvidia-open", plan["packages"])
+        self.assertIn("nvidia-utils", plan["packages"])
+
+    def test_legacy_nvidia_keeps_bootable_open_fallback(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "1c82"},
+        ])
+        self.assertFalse(plan["nvidiaOpenSupported"])
+        self.assertTrue(plan["nvidiaFallback"])
+        self.assertNotIn("nvidia-open", plan["packages"])
+        self.assertNotIn("nvidia-utils", plan["packages"])
+        self.assertIn("mesa", plan["packages"])
+        self.assertIn("vulkan-nouveau", plan["packages"])
+        self.assertIn("vulkan-swrast", plan["packages"])
+        self.assertTrue(plan["warnings"])
+
+    def test_mixed_nvidia_generations_choose_safe_fallback(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "2684"},
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "1c82"},
+        ])
+        self.assertFalse(plan["nvidiaOpenSupported"])
+        self.assertTrue(plan["nvidiaFallback"])
+        self.assertNotIn("nvidia-open", plan["packages"])
+        self.assertNotIn("nvidia-utils", plan["packages"])
+        self.assertIn("mesa", plan["packages"])
+        self.assertIn("vulkan-nouveau", plan["packages"])
+        self.assertTrue(plan["warnings"])
+
+    def test_unknown_nvidia_generation_fails_open_to_mesa(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "nvidia", "vendorId": "10de", "deviceId": ""},
+        ])
+        self.assertTrue(plan["nvidiaFallback"])
+        self.assertNotIn("nvidia-utils", plan["packages"])
+
+    def test_modern_intel_uses_intel_media_driver(self):
+        plan = MODULE.driver_plan([{"vendor": "intel", "vendorId": "8086"}])
+        self.assertIn("vulkan-intel", plan["packages"])
+        self.assertIn("intel-media-driver", plan["packages"])
+        self.assertIn("libva-intel-driver", plan["packages"])
+        self.assertNotIn("libva-mesa-driver", plan["packages"])
+
+    def test_virtual_gpu_is_supported_without_vendor_guest_tools(self):
+        plan = MODULE.driver_plan([{"vendor": "virtual", "vendorId": "1af4"}])
+        self.assertTrue(plan["virtualGraphics"])
+        self.assertIn("vulkan-virtio", plan["packages"])
+        self.assertIn("vulkan-swrast", plan["packages"])
+        self.assertNotIn("nvidia-open", plan["packages"])
+
+    def test_vmware_adds_only_vmware_guest_integration(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "virtual", "vendorId": "15ad", "deviceId": "0405"},
+        ])
+        self.assertIn("open-vm-tools", plan["packages"])
+        self.assertEqual(plan["guestPackages"], ["open-vm-tools"])
+        self.assertEqual(plan["guestServices"], ["vmtoolsd.service"])
+        self.assertNotIn("virtualbox-guest-utils", plan["packages"])
+
+    def test_virtualbox_adds_only_virtualbox_guest_integration(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "virtual", "vendorId": "80ee", "deviceId": "beef"},
+        ])
+        self.assertIn("virtualbox-guest-utils", plan["packages"])
+        self.assertEqual(plan["guestPackages"], ["virtualbox-guest-utils"])
+        self.assertEqual(plan["guestServices"], ["vboxservice.service"])
+        self.assertNotIn("open-vm-tools", plan["packages"])
+
+    def test_qxl_adds_spice_agent_without_forcing_a_system_service(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "virtual", "vendorId": "1b36", "deviceId": "0100"},
+        ])
+        self.assertIn("spice-vdagent", plan["packages"])
+        self.assertEqual(plan["guestPackages"], ["spice-vdagent"])
+        self.assertEqual(plan["guestServices"], [])
+
+    def test_plain_virtio_does_not_assume_spice_or_guest_agent(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "virtual", "vendorId": "1af4", "deviceId": "1050"},
+        ])
+        self.assertEqual(plan["guestPackages"], [])
+        self.assertEqual(plan["guestServices"], [])
+        self.assertNotIn("spice-vdagent", plan["packages"])
+
+    def test_qemu_sysfs_vendor_is_classified_as_virtual(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device = Path(directory) / "0000:00:02.0"
+            device.mkdir()
+            (device / "class").write_text("0x030000\n")
+            (device / "vendor").write_text("0x1234\n")
+            (device / "device").write_text("0x1111\n")
+            self.assertEqual(MODULE.detect_devices(Path(directory))[0]["vendor"], "virtual")
+
+    def test_hardware_cli_emits_vm_plan_from_synthetic_sysfs(self):
+        with tempfile.TemporaryDirectory() as directory:
+            device = Path(directory) / "0000:00:02.0"
+            device.mkdir()
+            (device / "class").write_text("0x030000\n")
+            (device / "vendor").write_text("0x1af4\n")
+            (device / "device").write_text("0x1050\n")
+            result = subprocess.run(
+                [sys.executable, MODULE_PATH, "--sysfs-root", directory],
+                check=True, capture_output=True, text=True,
+            )
+            payload = json.loads(result.stdout)
+            self.assertTrue(payload["detected"])
+            self.assertTrue(payload["virtualGraphics"])
+            self.assertIn("vulkan-virtio", payload["packages"])
+            self.assertFalse(payload["requiresNetwork"])
+
     def test_unknown_hardware_uses_safe_open_stack(self):
         plan = MODULE.driver_plan([])
         self.assertFalse(plan["detected"])
         self.assertEqual(plan["packages"], MODULE.FALLBACK_PACKAGES)
-
-    def test_turing_or_newer_nvidia_uses_open_kernel_stack(self):
-        plan = MODULE.driver_plan([
-            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "1e84"},
-        ])
-        self.assertIn("nvidia-open", plan["packages"])
-        self.assertIn("nvidia-utils", plan["packages"])
-        self.assertIn("libva-nvidia-driver", plan["packages"])
-        self.assertNotIn("vulkan-nouveau", plan["packages"])
-
-    def test_legacy_or_unknown_nvidia_uses_nouveau_instead_of_wrong_open_module(self):
-        for device_id in ("1b80", ""):
-            with self.subTest(device_id=device_id):
-                plan = MODULE.driver_plan([
-                    {"vendor": "nvidia", "vendorId": "10de", "deviceId": device_id},
-                ])
-                self.assertNotIn("nvidia-open", plan["packages"])
-                self.assertNotIn("nvidia-utils", plan["packages"])
-                self.assertIn("vulkan-nouveau", plan["packages"])
-                self.assertIn("mesa", plan["packages"])
-
-    def test_mixed_new_and_legacy_nvidia_keeps_safe_common_fallback(self):
-        plan = MODULE.driver_plan([
-            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "2684"},
-            {"vendor": "nvidia", "vendorId": "10de", "deviceId": "1b80"},
-        ])
-        self.assertNotIn("nvidia-open", plan["packages"])
-        self.assertIn("vulkan-nouveau", plan["packages"])
-
-    def test_virtio_gpu_gets_native_venus_plus_software_fallback(self):
-        plan = MODULE.driver_plan([
-            {"vendor": "virtio", "vendorId": "1af4", "deviceId": "1050"},
-        ])
-        self.assertIn("vulkan-virtio", plan["packages"])
         self.assertIn("vulkan-swrast", plan["packages"])
+        self.assertFalse(plan["requiresNetwork"])
 
-    def test_other_common_virtual_gpu_uses_mesa_software_vulkan(self):
-        for vendor_id, vendor in (
-            ("1234", "qemu"), ("1b36", "qxl"), ("15ad", "vmware"),
-            ("80ee", "virtualbox"), ("1414", "hyperv"),
-        ):
-            with self.subTest(vendor=vendor):
-                plan = MODULE.driver_plan([
-                    {"vendor": vendor, "vendorId": vendor_id, "deviceId": "0001"},
-                ])
-                self.assertIn("mesa", plan["packages"])
-                self.assertIn("vulkan-swrast", plan["packages"])
-
-    def test_unknown_secondary_adapter_keeps_fallback_alongside_known_gpu(self):
+    def test_unknown_secondary_adapter_keeps_generic_fallback(self):
         plan = MODULE.driver_plan([
             {"vendor": "amd", "vendorId": "1002", "deviceId": "744c"},
             {"vendor": "unknown", "vendorId": "abcd", "deviceId": "1234"},
         ])
         self.assertIn("vulkan-radeon", plan["packages"])
         self.assertIn("vulkan-swrast", plan["packages"])
+        self.assertIn("vulkan-icd-loader", plan["packages"])
+        self.assertEqual(plan["unknownAdapters"], ["unknown"])
+        self.assertTrue(plan["warnings"])
 
     @unittest.mock.patch("subprocess.run")
     def test_lspci_missing_command(self, mock_run):
