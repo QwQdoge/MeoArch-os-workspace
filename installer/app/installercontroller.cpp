@@ -1255,7 +1255,13 @@ void InstallerController::parseDisks(const QByteArray &payload)
         const qint64 recommendedDiskBytes = 16LL * 1024 * 1024 * 1024;
         const bool eligible = supportedPath && !readOnly && !runningMedia
                               && !activeMappedStorage && size >= absoluteMinimumBytes;
-        const bool partitionInstallEligible = supportedPath && !readOnly && !runningMedia;
+        // Archinstall unmounts every existing partition on a modified device
+        // and MODIFY recreates the selected partition before committing the
+        // disk label. Any active mapped layer anywhere on the disk can keep
+        // the kernel from accepting that commit, so partition mode must use
+        // the same mapped-storage blocker as full-disk mode.
+        const bool partitionInstallEligible = supportedPath && !readOnly
+                                              && !runningMedia && !activeMappedStorage;
         QString reason;
         if (runningMedia) reason = tr("This device contains the running installer.");
         else if (readOnly) reason = tr("This storage device is read-only.");
@@ -1266,7 +1272,7 @@ void InstallerController::parseDisks(const QByteArray &payload)
         QStringList warnings;
         if (removable) warnings.append(tr("This is removable or hot-plug storage. Keep it connected until installation finishes."));
         if (mounted && !activeMappedStorage)
-            warnings.append(tr("Active filesystems or swap on the selected target will be released immediately before installation."));
+            warnings.append(tr("Active filesystems or swap on this disk will be released immediately before installation. Other partitions are not formatted."));
         if (size > 0 && size < recommendedDiskBytes)
             warnings.append(tr("Less than 16 GiB is available. Installation is allowed, but free space may be tight."));
         QVariantList partitions;
