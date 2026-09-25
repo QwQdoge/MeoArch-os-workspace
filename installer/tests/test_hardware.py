@@ -72,6 +72,7 @@ class HardwareDetectionTests(unittest.TestCase):
         plan = MODULE.driver_plan([{"vendor": "intel", "vendorId": "8086"}])
         self.assertIn("vulkan-intel", plan["packages"])
         self.assertIn("intel-media-driver", plan["packages"])
+        self.assertIn("libva-intel-driver", plan["packages"])
         self.assertNotIn("libva-mesa-driver", plan["packages"])
 
     def test_virtual_gpu_is_supported_without_vendor_guest_tools(self):
