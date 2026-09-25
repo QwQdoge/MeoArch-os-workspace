@@ -985,6 +985,38 @@
         <source>The copied network profile could not be protected safely. It was discarded and installation can continue.</source>
         <translation>复制的网络配置无法安全保护，已将其丢弃；安装可以继续。</translation>
     </message>
+    <message>
+        <source>Disk scan timed out. Check connected storage and rescan.</source>
+        <translation>磁盘扫描超时。请检查已连接的存储设备并重新扫描。</translation>
+    </message>
+    <message>
+        <source>Disk detection helper could not start. Check the Live system and rescan.</source>
+        <translation>无法启动磁盘检测助手。请检查 Live 系统并重新扫描。</translation>
+    </message>
+    <message>
+        <source>Password hashing timed out. Retry saving the account.</source>
+        <translation>密码安全哈希处理超时。请重新保存账户。</translation>
+    </message>
+    <message>
+        <source>Generating the installation plan timed out. Retry after checking the Live system and storage.</source>
+        <translation>生成安装计划超时。请检查 Live 系统和存储设备后重试。</translation>
+    </message>
+    <message>
+        <source>Installation preflight timed out. Check the connection and retry.</source>
+        <translation>安装预检超时。请检查网络连接并重试。</translation>
+    </message>
+    <message>
+        <source>Network profile detection could not start. The network will not be copied, but installation can continue.</source>
+        <translation>无法启动网络配置检测。该网络不会被复制，但安装可以继续。</translation>
+    </message>
+    <message>
+        <source>Hardware preview could not start. The installation plan will retry hardware detection.</source>
+        <translation>无法启动硬件预览。生成安装计划时会重新检测硬件。</translation>
+    </message>
+    <message>
+        <source>Hardware preview timed out. The installation plan will retry hardware detection.</source>
+        <translation>硬件预览超时。生成安装计划时会重新检测硬件。</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
