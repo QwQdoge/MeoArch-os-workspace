@@ -147,6 +147,34 @@ class GenerateConfigTests(unittest.TestCase):
             {"unit": "B", "value": 512},
         )
 
+    def test_full_disk_layout_preserves_4kn_logical_sector_size(self):
+        self.selections["disk"].update({
+            "stableId": "/dev/vda",
+            "devicePath": "/dev/vda",
+            "sizeBytes": 64 * 1024 * 1024 * 1024,
+            "logicalSectorSize": 4096,
+        })
+        layout = MODULE.build_default_disk_layout(self.selections)
+        self.assertIsNotNone(layout)
+        for partition in layout["device_modifications"][0]["partitions"]:
+            self.assertEqual(
+                partition["start"]["sector_size"],
+                {"unit": "B", "value": 4096},
+            )
+            self.assertEqual(
+                partition["size"]["sector_size"],
+                {"unit": "B", "value": 4096},
+            )
+
+    def test_full_disk_layout_rejects_unsupported_logical_sector_size(self):
+        self.selections["disk"].update({
+            "stableId": "/dev/vda",
+            "devicePath": "/dev/vda",
+            "sizeBytes": 64 * 1024 * 1024 * 1024,
+            "logicalSectorSize": 2048,
+        })
+        self.assertIsNone(MODULE.build_default_disk_layout(self.selections))
+
     def test_guided_layout_creates_adjustable_root_and_separate_home(self):
         self.selections["disk"].update({
             "mode": "guided",
@@ -371,6 +399,50 @@ class GenerateConfigTests(unittest.TestCase):
             },
         }
         self.assertEqual(MODULE._verify_live_disk_state(identity, snapshot), (True, ""))
+
+    def test_live_disk_verification_rejects_logical_sector_size_drift(self):
+        gib = 1024 * 1024 * 1024
+        identity = {
+            "devicePath": "/dev/vda",
+            "sizeBytes": 16 * gib,
+            "logicalSectorSize": 4096,
+            "mode": "erase",
+            "serial": "",
+            "wwn": "",
+        }
+        snapshot = {
+            "/dev/vda": {
+                "path": "/dev/vda",
+                "type": "disk",
+                "size": 16 * gib,
+                "log-sec": 512,
+                "ro": 0,
+                "serial": "",
+                "wwn": "",
+                "mountpoints": [None],
+                "_meo_root_path": "/dev/vda",
+            },
+        }
+        verified, reason = MODULE._verify_live_disk_state(identity, snapshot)
+        self.assertFalse(verified)
+        self.assertIn("logical sector size changed", reason)
+
+    def test_new_handoff_binds_selected_logical_sector_size(self):
+        self.selections["disk"].update({
+            "stableId": "/dev/vda",
+            "devicePath": "/dev/vda",
+            "sizeBytes": 64 * 1024 * 1024 * 1024,
+            "logicalSectorSize": 4096,
+        })
+        configuration = MODULE.build_user_configuration(self.selections)
+        with tempfile.TemporaryDirectory() as directory:
+            generated = Path(directory)
+            for name in MODULE.HANDOFF_FILE_NAMES:
+                (generated / name).write_text("{}\n", encoding="utf-8")
+            handoff = MODULE.build_handoff_manifest(
+                self.selections["disk"], configuration, generated
+            )
+        self.assertEqual(handoff["disk"]["logicalSectorSize"], 4096)
 
     def test_preparation_verification_allows_selected_mounts_but_strict_verification_rejects_them(self):
         gib = 1024 * 1024 * 1024
@@ -685,6 +757,20 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertLess(preparation_verify, repository_preflight)
         self.assertLess(repository_preflight, first_unmount_prepare)
         self.assertLess(first_unmount_prepare, strict_verify)
+
+    def test_controller_persists_scanned_logical_sector_size(self):
+        controller = (
+            Path(__file__).parents[2] / "installer/app/installercontroller.cpp"
+        ).read_text(encoding="utf-8")
+        self.assertIn("LOG-SEC", controller)
+        self.assertIn('QStringLiteral("log-sec")', controller)
+        self.assertIn('{"logicalSectorSize", logicalSectorSize}', controller)
+        self.assertGreaterEqual(
+            controller.count(
+                'writeSelection(QStringLiteral("disk"), QStringLiteral("logicalSectorSize")'
+            ),
+            2,
+        )
 
     def test_selection_change_invalidates_persisted_confirmation_and_preflight(self):
         controller = (Path(__file__).parents[2] / "installer/app/installercontroller.cpp").read_text(encoding="utf-8")
