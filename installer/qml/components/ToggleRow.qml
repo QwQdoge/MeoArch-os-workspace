@@ -41,7 +41,25 @@ Item {
         showIcon: false
         onToggled: row.toggled(checked)
     }
+    // Keep the switch's own pointer target independent from the row target.
+    // A root-level TapHandler overlaps MeoSwitch's internal MouseArea and can
+    // turn one click into two state transitions on some pointer-delivery paths.
+    Item {
+        id: rowHitTarget
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.right: toggle.left
+
+        TapHandler {
+            id: tap
+            onTapped: {
+                row.forceActiveFocus(Qt.MouseFocusReason)
+                toggle.toggle()
+            }
+        }
+    }
     HoverHandler { id: hover }
-    TapHandler { id: tap; onTapped: { row.forceActiveFocus(); toggle.checked = !toggle.checked; row.toggled(toggle.checked) } }
-    Keys.onSpacePressed: { toggle.checked = !toggle.checked; row.toggled(toggle.checked) }
+    Keys.onSpacePressed: toggle.toggle()
+    Accessible.onPressAction: toggle.toggle()
 }
