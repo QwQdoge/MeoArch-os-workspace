@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 state_dir="${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}"
 log_dir="${state_dir}/logs"
 reference_dir="${state_dir}/archinstall-reference"
@@ -142,130 +143,13 @@ print(hashlib.sha256(path.read_bytes()).hexdigest())
 PY
 )"
 
-# Validate the actual Arch mirror path without trusting one fixed endpoint.
-# curl is convenient but not a correctness dependency: Python is already
-# required by the installer backend, so use urllib as a fallback.
-probe_url() {
-  local url="$1"
-  if command -v curl >/dev/null 2>&1; then
-    curl --fail --silent --show-error --location --connect-timeout 5 --max-time 20 \
-      --range 0-0 --output /dev/null "${url}"
-    return
-  fi
-  python3 - "${url}" <<'PY'
-import sys
-import urllib.request
-
-request = urllib.request.Request(
-    sys.argv[1],
-    headers={
-        "Range": "bytes=0-0",
-        "User-Agent": "MeoArch-Installer-Preflight/1",
-    },
-)
-with urllib.request.urlopen(request, timeout=20) as response:
-    if not 200 <= response.status < 400:
-        raise SystemExit(1)
-    response.read(1)
-PY
-}
-
-probe_arch_package_source() {
-  local mirrorlist="/etc/pacman.d/mirrorlist"
-  local server url attempts=0
-  if [ -r "${mirrorlist}" ]; then
-    while IFS= read -r server; do
-      [ -n "${server}" ] || continue
-      server="${server//\$repo/core}"
-      server="${server//\$arch/x86_64}"
-      url="${server%/}/core.db"
-      attempts=$((attempts + 1))
-      if probe_url "${url}" >>"${log_file}" 2>&1; then
-        printf 'Arch package source reachable: %s\n' "${url}" >>"${log_file}"
-        return 0
-      fi
-      [ "${attempts}" -lt 8 ] || break
-    done < <(sed -n 's/^[[:space:]]*Server[[:space:]]*=[[:space:]]*//p' "${mirrorlist}")
-  fi
-
-  url="https://geo.mirror.pkgbuild.com/core/os/x86_64/core.db"
-  probe_url "${url}" >>"${log_file}" 2>&1
-}
-
-if ! probe_arch_package_source; then
-  write_status "failed" "No configured Arch package mirror is reachable. Check the Internet connection and retry." 21
+package_preflight="${script_dir}/preflight-arch-packages.sh"
+if [ ! -f "${package_preflight}" ] || [ -L "${package_preflight}" ]; then
+  write_status "missing" "Arch package preflight helper is missing or unsafe." 127
   exit 0
 fi
-
-# Archinstall --dry-run validates configuration but returns before package
-# installation. Resolve the complete bounded Arch-side package set against
-# freshly downloaded sync databases so a renamed/missing driver or desktop
-# package cannot fail only after disk preparation has begun.
-if ! command -v pacman >/dev/null 2>&1; then
-  write_status "missing" "pacman is not available; required Arch packages cannot be resolved." 127
-  exit 0
-fi
-pacman_db="${state_dir}/pacman-preflight-db"
-pacman_cache="${state_dir}/pacman-preflight-cache"
-ensure_private_directory "${pacman_db}"
-ensure_private_directory "${pacman_cache}"
-mkdir -p "${pacman_db}/local" "${pacman_db}/sync"
-
-mapfile -t arch_packages < <(python3 - "${config_file}" <<'PY'
-import json
-import re
-import sys
-
-config = json.load(open(sys.argv[1], encoding="utf-8"))
-packages = ["base", "linux-firmware", "grub", "efibootmgr", "networkmanager", "sudo", "dosfstools"]
-
-for kernel in config.get("kernels", []):
-    if isinstance(kernel, str):
-        packages.append(kernel)
-
-for package in config.get("packages", []):
-    if isinstance(package, str):
-        packages.append(package)
-
-profile = config.get("profile_config", {}).get("profile", {})
-details = profile.get("details", []) if isinstance(profile, dict) else []
-if isinstance(details, list) and "KDE Plasma" in details:
-    packages.append("plasma-meta")
-
-disk_config = config.get("disk_config", {})
-for modification in disk_config.get("device_modifications", []) if isinstance(disk_config, dict) else []:
-    for partition in modification.get("partitions", []) if isinstance(modification, dict) else []:
-        fs_type = partition.get("fs_type") if isinstance(partition, dict) else None
-        if fs_type == "btrfs":
-            packages.append("btrfs-progs")
-        elif fs_type == "ext4":
-            packages.append("e2fsprogs")
-
-seen = set()
-for package in packages:
-    if not isinstance(package, str) or not re.fullmatch(r"[A-Za-z0-9@._+:-]+", package):
-        raise SystemExit("generated Arch package name is invalid")
-    if package not in seen:
-        seen.add(package)
-        print(package)
-PY
-)
-if [ "${#arch_packages[@]}" -eq 0 ]; then
-  write_status "failed" "Generated Arch package set is empty." 23
-  exit 0
-fi
-
-if ! pacman --sync --refresh --noconfirm \
-    --dbpath "${pacman_db}" --cachedir "${pacman_cache}" \
-    --logfile "${log_dir}/pacman-preflight.log" >>"${log_file}" 2>&1; then
-  write_status "failed" "Arch package databases could not be refreshed. Check the network or mirror configuration and retry." 24
-  exit 0
-fi
-if ! pacman --sync --print --print-format '%n %v' --noconfirm \
-    --dbpath "${pacman_db}" --cachedir "${pacman_cache}" \
-    --logfile "${log_dir}/pacman-preflight.log" \
-    "${arch_packages[@]}" >>"${log_file}" 2>&1; then
-  write_status "failed" "One or more required Arch packages are unavailable from the current repositories." 25
+if ! bash "${package_preflight}" "${config_file}" "${state_dir}" >>"${log_file}" 2>&1; then
+  write_status "failed" "Arch package sources or required packages could not be resolved. Review the saved log and retry." 25
   exit 0
 fi
 
