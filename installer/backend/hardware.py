@@ -164,7 +164,7 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
             "using the non-blacklisting Mesa/Nouveau fallback."
         )
     return {
-        "schemaVersion": 2,
+        "schemaVersion": 1,
         "detected": bool(devices),
         "devices": devices,
         "vendors": vendors,
