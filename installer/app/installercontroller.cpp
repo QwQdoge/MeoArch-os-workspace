@@ -1220,7 +1220,10 @@ void InstallerController::parseDisks(const QByteArray &payload)
         const bool readOnly = jsonFlag(d.value(QStringLiteral("ro")));
         const bool removable = jsonFlag(d.value(QStringLiteral("rm"))) || jsonFlag(d.value(QStringLiteral("hotplug")));
         const bool mounted = hasMountedDescendant(d);
-        const bool runningMedia = runningSource.contains(QStringLiteral("/dev/") + name);
+        const QRegularExpression runningDevicePattern(
+            QStringLiteral("(?:^|\\s)/dev/%1(?:p?[0-9]+)?(?:\\s|$)")
+                .arg(QRegularExpression::escape(name)));
+        const bool runningMedia = runningDevicePattern.match(runningSource).hasMatch();
         const bool supportedPath = QRegularExpression(
             QStringLiteral("^/dev/(?:vd[a-z]+|sd[a-z]+|xvd[a-z]+|nvme\\d+n\\d+|mmcblk\\d+|pmem\\d+)$"))
             .match(devicePath).hasMatch();
