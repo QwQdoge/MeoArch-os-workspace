@@ -444,6 +444,79 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertFalse(verified)
         self.assertIn("active mapped storage", reason)
 
+    def test_active_mapped_storage_blocks_full_disk_erase_before_archinstall(self):
+        gib = 1024 * 1024 * 1024
+        identity = {
+            "devicePath": "/dev/vda", "sizeBytes": 32 * gib,
+            "mode": "erase", "serial": "", "wwn": "",
+        }
+        mapped = {
+            "path": "/dev/mapper/cryptroot", "type": "crypt", "size": 24 * gib,
+            "mountpoints": [None], "_meo_root_path": "/dev/vda",
+        }
+        partition = {
+            "path": "/dev/vda1", "type": "part", "size": 24 * gib,
+            "mountpoints": [None], "children": [mapped], "_meo_root_path": "/dev/vda",
+        }
+        disk = {
+            "path": "/dev/vda", "type": "disk", "size": 32 * gib, "ro": 0,
+            "serial": "", "wwn": "", "mountpoints": [None],
+            "children": [partition], "_meo_root_path": "/dev/vda",
+        }
+        snapshot = {
+            "/dev/vda": disk,
+            "/dev/vda1": partition,
+            "/dev/mapper/cryptroot": mapped,
+        }
+        verified, reason = MODULE._verify_live_disk_state(
+            identity, snapshot, allow_selected_mounts=True
+        )
+        self.assertFalse(verified)
+        self.assertIn("active mapped storage", reason)
+
+    def test_active_mapped_storage_blocks_selected_partition_before_archinstall(self):
+        gib = 1024 * 1024 * 1024
+        efi_guid = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
+        linux_guid = "0fc63daf-8483-4772-8e79-3d69d8477de4"
+        identity = {
+            "devicePath": "/dev/sda", "sizeBytes": 64 * gib, "mode": "partition",
+            "serial": "", "wwn": "",
+            "partitions": [
+                {"path": "/dev/sda1", "startSectors": 2048, "sizeBytes": 512 * 1024 * 1024,
+                 "parttype": efi_guid, "fstype": "vfat"},
+                {"path": "/dev/sda2", "startSectors": 1050624, "sizeBytes": 24 * gib,
+                 "parttype": linux_guid, "fstype": "ext4"},
+            ],
+        }
+        mapped = {
+            "path": "/dev/mapper/vg-root", "type": "lvm", "size": 20 * gib,
+            "mountpoints": [None], "_meo_root_path": "/dev/sda",
+        }
+        efi = {
+            "path": "/dev/sda1", "type": "part", "size": 512 * 1024 * 1024,
+            "start": 2048, "parttype": efi_guid, "fstype": "vfat",
+            "mountpoints": [None], "_meo_root_path": "/dev/sda",
+        }
+        root = {
+            "path": "/dev/sda2", "type": "part", "size": 24 * gib,
+            "start": 1050624, "parttype": linux_guid, "fstype": "ext4",
+            "mountpoints": [None], "children": [mapped], "_meo_root_path": "/dev/sda",
+        }
+        disk = {
+            "path": "/dev/sda", "type": "disk", "size": 64 * gib, "ro": 0,
+            "serial": "", "wwn": "", "mountpoints": [None],
+            "children": [efi, root], "_meo_root_path": "/dev/sda",
+        }
+        snapshot = {
+            "/dev/sda": disk, "/dev/sda1": efi, "/dev/sda2": root,
+            "/dev/mapper/vg-root": mapped,
+        }
+        verified, reason = MODULE._verify_live_disk_state(
+            identity, snapshot, allow_selected_mounts=True
+        )
+        self.assertFalse(verified)
+        self.assertIn("active mapped storage", reason)
+
     def test_live_disk_verification_still_rejects_read_only_media(self):
         identity = {
             "devicePath": "/dev/sdb", "sizeBytes": 15 * 1024 * 1024 * 1024,
@@ -554,6 +627,10 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("prepare_selected_mounts", runner)
         self.assertIn("--verify-handoff-for-preparation", runner)
         self.assertIn("Unmounting selected target filesystem", runner)
+        self.assertIn("Disabling selected target swap", runner)
+        self.assertIn('swapoff -- "${target}"', runner)
+        self.assertLess(runner.index("Disabling selected target swap"),
+                        runner.index("Unmounting selected target filesystem"))
         target_root_check = runner.index('target_root="$(resolve_target_root')
         preparation_verify = runner.index("--verify-handoff-for-preparation")
         repository_preflight = runner.index("preflight-meo-repository.sh")
