@@ -87,6 +87,16 @@ class InstallEngineGuardTests(unittest.TestCase):
         self.assertIn('swapoff -- "${target}"', source)
         self.assertLess(source.index('SWAP)'), source.index('MOUNT)'))
 
+    def test_preflight_resolves_required_arch_packages_with_a_blank_sync_db(self):
+        source = PREFLIGHT.read_text(encoding="utf-8")
+        self.assertIn('pacman --sync --refresh', source)
+        self.assertIn('--dbpath "${pacman_db}"', source)
+        self.assertIn('pacman --sync --print', source)
+        self.assertIn('packages.append("plasma-meta")', source)
+        self.assertIn('"btrfs-progs"', source)
+        self.assertIn('"e2fsprogs"', source)
+        self.assertLess(source.index('pacman --sync --print'), source.index('archinstall --silent --dry-run'))
+
     def test_preflight_refuses_a_symlinked_status_file_without_following_it(self):
         with tempfile.TemporaryDirectory() as directory:
             state = Path(directory) / "state"
