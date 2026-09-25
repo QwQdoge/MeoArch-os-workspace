@@ -164,7 +164,7 @@ PageFrame {
             model: MeoSystem.SystemState.wifiNetworks
             keyNavigationEnabled: true
             boundsBehavior: Flickable.StopAtBounds
-            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+            ScrollBar.vertical: MeoScrollBar { policy: ScrollBar.AsNeeded }
             delegate: SelectionCard {
                 required property var modelData
                 width: ListView.view.width
