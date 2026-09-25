@@ -40,6 +40,7 @@ class InstallerController final : public QObject
     // a real notify signal when a generic selection value changes.
     Q_PROPERTY(quint64 selectionRevision READ selectionRevision NOTIFY selectionsChanged)
     Q_PROPERTY(QString hardwareSummary READ hardwareSummary NOTIFY hardwareChanged)
+    Q_PROPERTY(QString hardwareWarning READ hardwareWarning NOTIFY hardwareChanged)
     Q_PROPERTY(bool hardwareDetected READ hardwareDetected NOTIFY hardwareChanged)
     Q_PROPERTY(bool hardwareDetecting READ hardwareDetecting NOTIFY hardwareChanged)
     Q_PROPERTY(QString installationState READ installationState NOTIFY installationChanged)
@@ -89,6 +90,7 @@ public:
     QString selectedDisk() const;
     quint64 selectionRevision() const { return m_planRevision; }
     QString hardwareSummary() const { return m_hardwareSummary; }
+    QString hardwareWarning() const { return m_hardwareWarning; }
     bool hardwareDetected() const { return m_hardwareDetected; }
     bool hardwareDetecting() const { return m_hardwareDetecting; }
     QString installationState() const { return m_installationState; }
@@ -187,6 +189,7 @@ private:
     bool hasSystemLocale(const QString &id) const;
     void applyRegionPreset(const QString &alpha2);
     void markLocaleOverride(const QString &key);
+    void rebuildHardwareWarning();
 
     QVariantList m_uiLanguages;
     QVariantList m_systemLocales;
@@ -210,6 +213,9 @@ private:
     QString m_diagnosticConsoleOutput;
     QPointer<QProcess> m_diagnosticProcess;
     QString m_hardwareSummary;
+    QString m_hardwareWarning;
+    bool m_nvidiaFallback = false;
+    bool m_unknownGraphicsAdapters = false;
     bool m_hardwareDetected = false;
     bool m_hardwareDetecting = false;
     QString m_installationState = QStringLiteral("idle");
