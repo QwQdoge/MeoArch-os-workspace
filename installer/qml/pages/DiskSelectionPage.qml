@@ -27,10 +27,12 @@ PageFrame {
         }
         return Math.floor(Number(controller.selection("disk", "sizeBytes", 0)) / 1073741824)
     }
-    readonly property bool eraseAvailable: controller && controller.selectedDisk.length > 0 && diskSizeGiB >= 16
+    readonly property bool eraseAvailable: controller && controller.selectedDisk.length > 0 && diskSizeGiB >= 8
+    readonly property bool separateHomeAvailable: eraseAvailable && diskSizeGiB >= 13
+    readonly property bool erasePlanReady: diskMode === "guided" ? separateHomeAvailable : eraseAvailable
 
     primaryEnabled: controller && !controller.diskDetecting
-                    && (existingPartitionReady || (diskMode !== "partition" && eraseAvailable))
+                    && (existingPartitionReady || (diskMode !== "partition" && erasePlanReady))
 
     function selectErase(separateHomeLayout) {
         controller.setSelection("disk", "mode", separateHomeLayout ? "guided" : "erase")
@@ -38,7 +40,7 @@ PageFrame {
         controller.setSelection("disk", "targetPartition", {})
         controller.setSelection("disk", "efiPartition", {})
         if (separateHomeLayout)
-            controller.setSelection("disk", "rootSizeGiB", Math.max(16, Math.min(32, diskSizeGiB - 9)))
+            controller.setSelection("disk", "rootSizeGiB", Math.max(8, Math.min(32, diskSizeGiB - 5)))
     }
 
     function hasUsableEfi(partitions) {
@@ -61,7 +63,7 @@ PageFrame {
         InfoBanner {
             width: parent.width; tone: "info"
             title: qsTr("Use one existing partition")
-            message: qsTr("Select an unmounted partition of at least 16 GiB below. Meo preserves an existing EFI System Partition and rebuilds and formats only the partition you select for MeoArch.")
+            message: qsTr("Select a supported root partition of at least 8 GiB below. 16 GiB is recommended, not required. Mounted target partitions are unmounted only after final confirmation.")
         }
         InfoBanner {
             visible: page.controller && !page.controller.diskDetecting && page.controller.disks.length === 0
@@ -140,6 +142,13 @@ PageFrame {
                               : qsTr("Choose a partition for MeoArch root. EFI is recognized from its GPT type and is never reformatted here.")
                         typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap
                     }
+                    InfoBanner {
+                        visible: String(diskCard.modelData.warning || "").length > 0
+                        width: parent.width
+                        tone: "warning"
+                        title: qsTr("Storage warning")
+                        message: String(diskCard.modelData.warning || "")
+                    }
                     MeoButton {
                         visible: diskCard.modelData.eligible
                         text: qsTr("Erase and use entire %1").arg(diskCard.modelData.devicePath)
@@ -159,8 +168,12 @@ PageFrame {
                             title: modelData.name + " · " + modelData.size
                             value: modelData.isEfi
                                    ? qsTr("EFI System Partition — preserved")
+                                     + (String(modelData.warning || "").length ? " · " + String(modelData.warning) : "")
                                    : (modelData.fstype.length ? modelData.fstype.toUpperCase() + " · " : "")
-                                     + (modelData.eligibleRoot ? qsTr("Use as MeoArch root — will be formatted") : modelData.unavailableReason)
+                                     + (modelData.eligibleRoot
+                                        ? qsTr("Use as MeoArch root — will be formatted")
+                                          + (String(modelData.warning || "").length ? " · " + String(modelData.warning) : "")
+                                        : modelData.unavailableReason)
                             selected: modelData.path === page.selectedRoot.path
                             selectionIndicator: !modelData.isEfi
                             enabled: modelData.eligibleRoot
@@ -174,7 +187,7 @@ PageFrame {
                         visible: diskCard.modelData.partitions.length > 0 && !page.hasUsableEfi(diskCard.modelData.partitions)
                         width: parent.width; tone: "error"
                         title: qsTr("No usable EFI System Partition")
-                        message: qsTr("One-partition installation requires an unmounted FAT EFI System Partition of at least 512 MiB on this same disk. Meo will not create, move, or modify other partitions in this mode.")
+                        message: qsTr("One-partition installation requires a FAT EFI System Partition of at least 64 MiB on this same disk. 512 MiB is recommended. Meo preserves the EFI partition and modifies only the selected root partition.")
                     }
                 }
             }
@@ -200,7 +213,7 @@ PageFrame {
                     SelectionCard {
                         Layout.fillWidth: true; implicitHeight: page.dp(72); iconText: "account_tree"
                         title: qsTr("Erase disk with separate home"); value: qsTr("Deletes all data. Creates EFI, root, and home partitions")
-                        selected: page.diskMode === "guided"; selectionIndicator: true; enabled: page.eraseAvailable
+                        selected: page.diskMode === "guided"; selectionIndicator: true; enabled: page.separateHomeAvailable
                         onClicked: page.selectErase(true)
                     }
                 }
@@ -212,9 +225,14 @@ PageFrame {
             message: qsTr("MeoArch will preserve %1 and erase only %2. Other partitions are not selected for modification.").arg(page.selectedEfi.path).arg(page.selectedRoot.path)
         }
         InfoBanner {
-            visible: !page.existingPartitionReady && page.diskMode !== "partition" && page.eraseAvailable
+            visible: !page.existingPartitionReady && page.diskMode !== "partition" && page.erasePlanReady
             width: parent.width; tone: "error"; title: qsTr("Entire selected disk will be erased")
             message: qsTr("Review the disk path above carefully. Existing partitions are not preserved in this mode.")
+        }
+        InfoBanner {
+            visible: page.eraseAvailable && page.diskSizeGiB < 16
+            width: parent.width; tone: "warning"; title: qsTr("Below recommended capacity")
+            message: qsTr("This disk is smaller than the recommended 16 GiB. You can continue, but installation may leave little free space.")
         }
         Row {
             spacing: page.dp(8)
