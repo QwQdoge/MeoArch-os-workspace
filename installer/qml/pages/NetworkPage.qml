@@ -8,16 +8,14 @@ import "../components"
 
 PageFrame {
     id: page
-    primaryEnabled: page.controller && page.controller.networkState === "online"
-    primaryLabel: primaryEnabled ? qsTr("Continue")
-                                  : page.controller && page.controller.networkState === "repository"
-                                    ? qsTr("Package source unavailable")
-                                    : qsTr("Connect to continue")
+    primaryEnabled: page.controller && (page.controller.networkState === "online"
+                                           || page.controller.networkState === "repository")
+    primaryLabel: primaryEnabled ? qsTr("Continue") : qsTr("Connect to continue")
     primaryAccessibleDescription: primaryEnabled
-                                  ? qsTr("Continue after Internet access and the required package source have been verified")
-                                  : page.controller && page.controller.networkState === "repository"
-                                    ? qsTr("Internet access works, but the required MeoArch package source is unavailable")
-                                    : qsTr("Connect to the Internet before continuing with installation")
+                                  ? (page.controller && page.controller.networkState === "repository"
+                                     ? qsTr("Continue because Internet access is available; the package source warning will be checked again before installation")
+                                     : qsTr("Continue after Internet access has been verified"))
+                                  : qsTr("Connect to the Internet before continuing with installation")
 
     function signalIcon(strength) {
         if (strength >= 70) return "signal_wifi_4_bar"
@@ -44,6 +42,7 @@ PageFrame {
                    : qsTr("Internet connection required")
             message: page.controller ? page.controller.networkDetail : qsTr("Network status is unavailable.")
             tone: page.controller && page.controller.networkState === "online" ? "success"
+                  : page.controller && page.controller.networkState === "repository" ? "warning"
                   : page.controller && page.controller.networkState === "checking" ? "info" : "error"
         }
         InfoBanner {
@@ -79,7 +78,7 @@ PageFrame {
             type: "tonal"
             loading: page.controller && page.controller.networkState === "checking"
             enabled: page.controller && page.controller.networkState !== "checking"
-            Accessible.description: qsTr("Checks an official Arch Linux source first, then checks the required MeoArch package source")
+            Accessible.description: qsTr("Checks Internet access first, then reports package-source availability as a warning until final preflight")
             onClicked: page.controller.retryNetwork()
         }
         SelectionCard {
