@@ -31,7 +31,7 @@ PageFrame {
         PageHeading {
             width: parent.width
             title: qsTr("Network")
-            subtitle: qsTr("MeoArch downloads the system, desktop, and selected packages during installation. Connect to the Internet to continue.")
+            subtitle: qsTr("MeoArch needs Internet access for package downloads. You can continue setup while connectivity is being verified.")
         }
         InfoBanner {
             width: parent.width
@@ -46,12 +46,18 @@ PageFrame {
                   : page.controller && page.controller.networkState === "checking" ? "info" : "warning"
         }
         InfoBanner {
-            visible: page.controller && (page.controller.networkState === "offline"
-                                           || page.controller.networkState === "no-interface")
+            visible: page.controller && page.controller.networkState === "offline"
             width: parent.width
-            tone: "info"
-            title: qsTr("Offline installation is not available")
-            message: qsTr("Connect with Wi-Fi or Ethernet to continue. No disk changes happen on this page or before the final confirmation.")
+            tone: "warning"
+            title: qsTr("Internet access is not verified")
+            message: qsTr("You can continue setup. MeoArch will retry Internet and package downloads before installation starts.")
+        }
+        InfoBanner {
+            visible: page.controller && page.controller.networkState === "no-interface"
+            width: parent.width
+            tone: "error"
+            title: qsTr("No active network interface")
+            message: qsTr("Connect Wi-Fi or Ethernet to continue from this page.")
         }
         ToggleRow {
             width: parent.width
@@ -195,8 +201,7 @@ PageFrame {
         interval: 900
         repeat: false
         onTriggered: {
-            if (page.controller && MeoSystem.SystemState.networkConnected
-                    && page.controller.networkState !== "online")
+            if (page.controller)
                 page.controller.retryNetwork()
         }
     }
@@ -204,11 +209,9 @@ PageFrame {
     Connections {
         target: MeoSystem.SystemState
         function onNetworkChanged() {
-            // A successful NetworkManager activation should make the installer
-            // re-check Internet reachability, but a short debounce avoids
-            // issuing a probe for every intermediate activation state.
-            if (MeoSystem.SystemState.networkConnected)
-                connectivityRetry.restart()
+            // Refresh on both connect and disconnect so a stale "online" state
+            // can never keep navigation enabled after the last interface drops.
+            connectivityRetry.restart()
         }
     }
 
