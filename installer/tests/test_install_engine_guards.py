@@ -108,6 +108,15 @@ class InstallEngineGuardTests(unittest.TestCase):
         self.assertIn("preflight-arch-packages.sh", runner)
         self.assertLess(runner.index("preflighting_arch_packages"), runner.index("preflighting_meo_repository"))
         self.assertLess(runner.index("preflighting_meo_repository"), runner.index("if ! prepare_selected_mounts"))
+        self.assertIn("timeout --signal=TERM --kill-after=10s 180s", preflight)
+        self.assertIn("Arch package preflight timed out", preflight)
+        self.assertNotIn("else\n  archinstall --silent --dry-run", preflight)
+        self.assertIn("timeout --signal=TERM --kill-after=10s 180s", runner)
+        self.assertIn("timeout --signal=TERM --kill-after=10s 240s", runner)
+        self.assertIn("Arch package preflight timed out before disk preparation", runner)
+        self.assertIn("Meo repository preflight timed out before disk preparation", runner)
+        self.assertLess(runner.index("preflighting_arch_packages"), runner.index("if ! prepare_selected_mounts"))
+        self.assertLess(runner.index("preflighting_meo_repository"), runner.index("if ! prepare_selected_mounts"))
 
     def test_preflight_refuses_a_symlinked_status_file_without_following_it(self):
         with tempfile.TemporaryDirectory() as directory:
