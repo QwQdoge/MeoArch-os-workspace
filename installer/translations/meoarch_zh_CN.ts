@@ -264,6 +264,10 @@
         <source>This disk is smaller than the recommended 16 GiB. You can continue, but installation may leave little free space.</source>
         <translation>此磁盘小于推荐的 16 GiB。仍可继续，但安装后可用空间可能很少。</translation>
     </message>
+    <message>
+        <source>Storage unavailable</source>
+        <translation>此存储设备不可用于安装</translation>
+    </message>
 </context>
 <context>
     <name>FinishPage</name>
