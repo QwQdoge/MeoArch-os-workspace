@@ -85,7 +85,7 @@ MeoMotionPopup {
             highlightFollowsCurrentItem: true
             Keys.onDownPressed: incrementCurrentIndex()
             Keys.onUpPressed: decrementCurrentIndex()
-            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+            ScrollBar.vertical: MeoScrollBar { policy: ScrollBar.AsNeeded }
             delegate: Item {
                 id: option
                 required property var modelData
