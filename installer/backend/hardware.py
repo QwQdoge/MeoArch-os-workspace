@@ -16,16 +16,46 @@ from typing import Any, Iterable
 
 
 DISPLAY_CLASSES = {"0300", "0302", "0380"}
-VENDORS = {"1002": "amd", "10de": "nvidia", "8086": "intel"}
+VENDORS = {
+    "1002": "amd",
+    "10de": "nvidia",
+    "8086": "intel",
+    "1af4": "virtio",
+    "1234": "qemu",
+    "1b36": "qxl",
+    "15ad": "vmware",
+    "80ee": "virtualbox",
+    "1414": "hyperv",
+}
 DRIVER_PACKAGES = {
     "amd": ["mesa", "vulkan-radeon", "libva-mesa-driver"],
-    "intel": ["mesa", "vulkan-intel", "libva-mesa-driver"],
-    # nvidia-open is the supported current NVIDIA kernel-module package in the
-    # Arch repositories.  Legacy NVIDIA hardware needs a manual post-install
-    # choice rather than silently selecting an unsupported third-party driver.
-    "nvidia": ["nvidia-open", "nvidia-utils"],
+    "intel": ["mesa", "vulkan-intel", "intel-media-driver"],
+    "virtio": ["mesa", "vulkan-virtio", "vulkan-swrast"],
+    "qemu": ["mesa", "vulkan-swrast"],
+    "qxl": ["mesa", "vulkan-swrast"],
+    "vmware": ["mesa", "vulkan-swrast"],
+    "virtualbox": ["mesa", "vulkan-swrast"],
+    "hyperv": ["mesa", "vulkan-swrast"],
 }
-FALLBACK_PACKAGES = ["mesa", "vulkan-icd-loader", "libva-mesa-driver"]
+NVIDIA_OPEN_PACKAGES = ["nvidia-open", "nvidia-utils", "libva-nvidia-driver"]
+NVIDIA_FALLBACK_PACKAGES = ["mesa", "vulkan-nouveau", "libva-mesa-driver"]
+FALLBACK_PACKAGES = ["mesa", "vulkan-swrast", "vulkan-icd-loader"]
+
+
+def nvidia_open_supported(device: dict[str, str]) -> bool:
+    """Conservatively identify NVIDIA devices that can use open kernel modules.
+
+    NVIDIA documents open kernel modules for Turing and newer only. PCI device
+    IDs for that generation start at 0x1e00; malformed or older IDs deliberately
+    use the open Mesa/Nouveau path instead of risking an unusable proprietary
+    stack on first boot.
+    """
+    if device.get("vendor") != "nvidia":
+        return False
+    try:
+        return int(device.get("deviceId", ""), 16) >= 0x1E00
+    except (TypeError, ValueError):
+        return False
 
 
 def pci_devices(sysfs_root: Path = Path("/sys/bus/pci/devices")) -> Iterable[dict[str, str]]:
@@ -82,27 +112,45 @@ def detect_devices(sysfs_root: Path = Path("/sys/bus/pci/devices")) -> list[dict
 
 
 def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
-    """Build a de-duplicated package plan while preserving detected adapters."""
+    """Build a safe de-duplicated package plan for every detected adapter."""
     devices = list(devices)
-    seen_vendors = set()
+    seen_vendors: set[str] = set()
     vendors: list[str] = []
-    seen_vendors = set()
     for device in devices:
         vendor = device.get("vendor", "unknown")
         if vendor not in seen_vendors:
             seen_vendors.add(vendor)
             vendors.append(vendor)
 
-    seen_packages = set()
-    packages: list[str] = []
-    seen_packages = set()
+    package_groups: list[list[str]] = []
+    nvidia_devices = [device for device in devices if device.get("vendor") == "nvidia"]
+    if nvidia_devices:
+        if all(nvidia_open_supported(device) for device in nvidia_devices):
+            package_groups.append(NVIDIA_OPEN_PACKAGES)
+        else:
+            # One unsupported/unknown NVIDIA adapter is enough to avoid
+            # nvidia-utils, because a proprietary userspace stack can disable
+            # the Nouveau fallback needed by the older device.
+            package_groups.append(NVIDIA_FALLBACK_PACKAGES)
+
     for vendor in vendors:
-        for package in DRIVER_PACKAGES.get(vendor, []):
+        if vendor == "nvidia":
+            continue
+        if vendor == "unknown":
+            package_groups.append(FALLBACK_PACKAGES)
+            continue
+        package_groups.append(DRIVER_PACKAGES.get(vendor, FALLBACK_PACKAGES))
+
+    if not package_groups:
+        package_groups.append(FALLBACK_PACKAGES)
+
+    seen_packages: set[str] = set()
+    packages: list[str] = []
+    for group in package_groups:
+        for package in group:
             if package not in seen_packages:
                 seen_packages.add(package)
                 packages.append(package)
-    if not packages:
-        packages = FALLBACK_PACKAGES.copy()
 
     return {
         "schemaVersion": 1,
@@ -110,7 +158,7 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
         "devices": devices,
         "vendors": vendors,
         "packages": packages,
-        "requiresNetwork": any(vendor == "nvidia" for vendor in vendors),
+        "requiresNetwork": bool(nvidia_devices),
         "summary": ", ".join(vendors) if vendors else "no supported display adapter detected",
     }
 
