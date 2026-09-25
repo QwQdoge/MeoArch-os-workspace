@@ -217,6 +217,8 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("diskSizeGiB >= 8", disk)
         self.assertIn("separateHomeAvailable", disk)
         self.assertIn("Below recommended capacity", disk)
+        self.assertIn("Storage unavailable", disk)
+        self.assertIn("unavailableReason", disk)
 
     def test_choice_cards_expose_selection_semantics_without_turning_status_cards_into_buttons(self):
         card = (QML_ROOT / "components/SelectionCard.qml").read_text(encoding="utf-8")
@@ -400,6 +402,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('tone: page.controller && page.controller.networkState === "no-interface" ? "error"', network)
         self.assertIn("--range 0-0", preflight)
         self.assertNotIn("--head", preflight)
+        self.assertIn("QRegularExpression::escape(name)", controller)
 
     def test_cage_uses_embedded_unprivileged_diagnostics_only(self):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
