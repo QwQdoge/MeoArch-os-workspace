@@ -113,6 +113,7 @@ prepare_selected_mounts() {
   local mount_plan
   if ! mount_plan="$(python3 - "${manifest_file}" <<'PY'
 import json
+import os
 import re
 import subprocess
 import sys
@@ -160,6 +161,7 @@ def collect(entry, under_selected=False, depth=0):
     if under_selected and isinstance(path, str):
         found_device = found_device or path == device
         active_paths.add(path)
+        active_paths.add(os.path.realpath(path))
         if path != device and kind not in {"disk", "part"}:
             mapped_records.append((depth, str(kind or ""), path))
     for child in entry.get("children") or []:
@@ -181,7 +183,9 @@ def selected_source(source):
     # partition mode. Include active mapper/LVM/RAID descendants in addition
     # to ordinary kernel partition paths.
     base_source = source.split("[", 1)[0]
-    return base_source in active_paths or bool(device_re.fullmatch(base_source))
+    resolved_source = os.path.realpath(base_source) if base_source.startswith("/dev/") else base_source
+    return (base_source in active_paths or resolved_source in active_paths
+            or bool(device_re.fullmatch(base_source)))
 
 result = subprocess.run(
     ["findmnt", "-J", "-o", "TARGET,SOURCE"],
@@ -281,8 +285,14 @@ PY
             mdadm --stop "${second}" >>"${log_file}" 2>&1 || return 1
             ;;
           *)
-            if [ "${second#/dev/mapper/}" != "${second}" ] && command -v dmsetup >/dev/null 2>&1; then
-              dmsetup remove "$(basename -- "${second}")" >>"${log_file}" 2>&1 || return 1
+            if command -v dmsetup >/dev/null 2>&1 && [ -b "${second}" ]; then
+              map_name="$(dmsetup info -c --noheadings -o name "${second}" 2>>"${log_file}" | tr -d '[:space:]')"
+              if [ -n "${map_name}" ]; then
+                dmsetup remove "${map_name}" >>"${log_file}" 2>&1 || return 1
+              else
+                echo "Could not resolve device-mapper name for ${second}." | tee -a "${log_file}" >&2
+                return 1
+              fi
             else
               echo "Unsupported active storage mapping ${second} (${first}); cannot release it safely." | tee -a "${log_file}" >&2
               return 1
