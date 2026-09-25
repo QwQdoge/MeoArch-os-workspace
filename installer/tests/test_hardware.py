@@ -97,6 +97,40 @@ class HardwareDetectionTests(unittest.TestCase):
         self.assertIn("vulkan-swrast", plan["packages"])
         self.assertNotIn("nvidia-open", plan["packages"])
 
+    def test_vmware_adds_only_vmware_guest_integration(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "virtual", "vendorId": "15ad", "deviceId": "0405"},
+        ])
+        self.assertIn("open-vm-tools", plan["packages"])
+        self.assertEqual(plan["guestPackages"], ["open-vm-tools"])
+        self.assertEqual(plan["guestServices"], ["vmtoolsd.service"])
+        self.assertNotIn("virtualbox-guest-utils", plan["packages"])
+
+    def test_virtualbox_adds_only_virtualbox_guest_integration(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "virtual", "vendorId": "80ee", "deviceId": "beef"},
+        ])
+        self.assertIn("virtualbox-guest-utils", plan["packages"])
+        self.assertEqual(plan["guestPackages"], ["virtualbox-guest-utils"])
+        self.assertEqual(plan["guestServices"], ["vboxservice.service"])
+        self.assertNotIn("open-vm-tools", plan["packages"])
+
+    def test_qxl_adds_spice_agent_without_forcing_a_system_service(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "virtual", "vendorId": "1b36", "deviceId": "0100"},
+        ])
+        self.assertIn("spice-vdagent", plan["packages"])
+        self.assertEqual(plan["guestPackages"], ["spice-vdagent"])
+        self.assertEqual(plan["guestServices"], [])
+
+    def test_plain_virtio_does_not_assume_spice_or_guest_agent(self):
+        plan = MODULE.driver_plan([
+            {"vendor": "virtual", "vendorId": "1af4", "deviceId": "1050"},
+        ])
+        self.assertEqual(plan["guestPackages"], [])
+        self.assertEqual(plan["guestServices"], [])
+        self.assertNotIn("spice-vdagent", plan["packages"])
+
     def test_qemu_sysfs_vendor_is_classified_as_virtual(self):
         with tempfile.TemporaryDirectory() as directory:
             device = Path(directory) / "0000:00:02.0"
