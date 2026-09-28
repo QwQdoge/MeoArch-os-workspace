@@ -44,12 +44,14 @@ NVIDIA_OPEN_PACKAGES = ["nvidia-open", "nvidia-utils", "libva-nvidia-driver"]
 NVIDIA_SAFE_FALLBACK_PACKAGES = ["mesa", "libva-mesa-driver", "vulkan-nouveau", "vulkan-swrast"]
 FALLBACK_PACKAGES = ["mesa", "vulkan-swrast", "vulkan-icd-loader"]
 
-GUEST_INTEGRATION = {
-    "15ad": {"packages": ["open-vm-tools"], "services": ["vmtoolsd.service"]},
-    "80ee": {"packages": ["virtualbox-guest-utils"], "services": ["vboxservice.service"]},
-    # QXL is a strong signal for a SPICE desktop guest. The Arch package
-    # auto-activates spice-vdagentd.socket from its virtio-port udev rule,
-    # so no target system service needs to be forced here.
+HYPERVISOR_GUEST_INTEGRATION = {
+    "vmware": {"packages": ["open-vm-tools"], "services": ["vmtoolsd.service"]},
+    "virtualbox": {"packages": ["virtualbox-guest-utils"], "services": ["vboxservice.service"]},
+}
+# QXL is a strong signal for a SPICE desktop guest. The Arch package
+# auto-activates spice-vdagentd.socket from its virtio-port udev rule,
+# so no target system service needs to be forced here.
+PCI_GUEST_INTEGRATION = {
     "1b36": {"packages": ["spice-vdagent"], "services": []},
 }
 
@@ -124,7 +126,35 @@ def detect_devices(sysfs_root: Path = Path("/sys/bus/pci/devices")) -> list[dict
     return list(pci_devices(sysfs_root)) or list(lspci_devices())
 
 
-def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
+def detect_hypervisor(dmi_root: Path = Path("/sys/class/dmi/id")) -> str:
+    """Return a conservative hypervisor identity from DMI/SMBIOS strings.
+
+    VirtualBox's default VMSVGA adapter intentionally uses VMware's PCI vendor
+    ID, so guest tools must not be selected from the display adapter alone.
+    """
+    values = []
+    for name in ("sys_vendor", "product_name", "board_vendor"):
+        try:
+            values.append((dmi_root / name).read_text(encoding="utf-8", errors="ignore").strip().lower())
+        except OSError:
+            continue
+    identity = " ".join(value for value in values if value)
+    if "virtualbox" in identity or "innotek gmbh" in identity:
+        return "virtualbox"
+    if "vmware" in identity:
+        return "vmware"
+    return ""
+
+
+def hardware_plan(
+    sysfs_root: Path = Path("/sys/bus/pci/devices"),
+    dmi_root: Path = Path("/sys/class/dmi/id"),
+) -> dict[str, Any]:
+    """Build the complete graphics + guest integration plan from host facts."""
+    return driver_plan(detect_devices(sysfs_root), detect_hypervisor(dmi_root))
+
+
+def driver_plan(devices: Iterable[dict[str, str]], hypervisor: str = "") -> dict[str, Any]:
     """Build a de-duplicated package plan while preserving detected adapters."""
     devices = list(devices)
     vendors: list[str] = []
@@ -185,10 +215,17 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
     guest_packages: list[str] = []
     guest_services: list[str] = []
     seen_guest_services = set()
+
+    integrations = []
+    hypervisor_integration = HYPERVISOR_GUEST_INTEGRATION.get(hypervisor)
+    if hypervisor_integration:
+        integrations.append(hypervisor_integration)
     for device in devices:
-        integration = GUEST_INTEGRATION.get(str(device.get("vendorId", "")).lower())
-        if not integration:
-            continue
+        integration = PCI_GUEST_INTEGRATION.get(str(device.get("vendorId", "")).lower())
+        if integration:
+            integrations.append(integration)
+
+    for integration in integrations:
         for package in integration["packages"]:
             if package not in seen_packages:
                 seen_packages.add(package)
@@ -222,6 +259,7 @@ def driver_plan(devices: Iterable[dict[str, str]]) -> dict[str, Any]:
         "nvidiaOpenSupported": modern_nvidia,
         "nvidiaFallback": legacy_or_unknown_nvidia,
         "unknownAdapters": unknown_vendors,
+        "hypervisor": hypervisor,
         "guestPackages": guest_packages,
         "guestServices": guest_services,
         "warnings": warnings,
@@ -241,8 +279,14 @@ def main() -> None:
         default=Path("/sys/bus/pci/devices"),
         help="PCI sysfs device directory; primarily useful for deterministic Live/VM diagnostics.",
     )
+    parser.add_argument(
+        "--dmi-root",
+        type=Path,
+        default=Path("/sys/class/dmi/id"),
+        help="DMI identity directory used to distinguish hypervisors that share emulated PCI IDs.",
+    )
     args = parser.parse_args()
-    print(json.dumps(driver_plan(detect_devices(args.sysfs_root)), indent=2))
+    print(json.dumps(hardware_plan(args.sysfs_root, args.dmi_root), indent=2))
 
 
 if __name__ == "__main__":
