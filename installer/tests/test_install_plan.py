@@ -17,7 +17,7 @@ class InstallPlanTests(unittest.TestCase):
         )
 
     def test_catalog_is_bound_to_release_generation_and_repository_names(self):
-        self.assertEqual(self.catalog["generation"], "2026.08")
+        self.assertEqual(self.catalog["generation"], "2026.09")
         self.assertEqual(self.catalog["repositoryNames"], {"stable": "meo", "beta": "meo-beta"})
 
     def test_recommended_stable_has_complete_package_set(self):
@@ -28,10 +28,13 @@ class InstallPlanTests(unittest.TestCase):
         self.assertIn("meo-account", plan.package.packages)
         self.assertIn("omnistore-bin", plan.package.packages)
         self.assertIn("meo-release", plan.package.packages)
+        self.assertIn("meo-plasma-login-manager", plan.package.packages)
+        self.assertIn("meo-plasma-login-manager", plan.package.required)
 
     def test_minimal_has_no_optional_apps(self):
         plan = build_install_plan({"schemaVersion": 2, "profile": "minimal", "channel": "stable"}, self.catalog)
         self.assertIn("meo-desktop", plan.package.packages)
+        self.assertIn("meo-plasma-login-manager", plan.package.packages)
         self.assertNotIn("meo-settings", plan.package.packages)
         self.assertNotIn("meo-icon-studio", plan.package.packages)
         self.assertNotIn("omnistore-bin", plan.package.packages)
@@ -89,7 +92,7 @@ class InstallPlanTests(unittest.TestCase):
 
     def test_custom_forces_desktop_dependencies(self):
         plan = build_install_plan({"schemaVersion": 2, "profile": "custom", "channel": "stable", "components": ["meo-desktop", "omnistore-bin"]}, self.catalog)
-        self.assertTrue({"meo-desktop", "meoui-qml", "meo-icons", "omnistore-bin"}.issubset(plan.package.packages))
+        self.assertTrue({"meo-desktop", "meoui-qml", "meo-icons", "meo-plasma-login-manager", "omnistore-bin"}.issubset(plan.package.packages))
 
     def test_custom_without_desktop_is_rejected(self):
         with self.assertRaises(PlanError):
