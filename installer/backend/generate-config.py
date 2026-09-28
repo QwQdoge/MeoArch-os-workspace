@@ -34,7 +34,6 @@ MEO_DESKTOP_PACKAGES = [
     "qtkeychain-qt6",
     "lynis",
     "polkit-kde-agent",
-    "plasma-login-manager",
     "system76-scheduler",
     "zram-generator",
     "dbus-broker-units",
@@ -672,9 +671,19 @@ def build_user_configuration(selections, hardware_plan=None, application_package
         # second generic Nouveau/AMD/Intel driver stack on top of that plan.
         "packages": desktop_packages,
         "profile_config": {
-            # The display manager is enabled by the target customisation step.
-            # Do not ask Archinstall to install/configure another greeter as a side effect.
-            "profile": {"details": ["KDE Plasma"], "main": "Desktop"},
+            # Graphics and login-manager ownership stay with Meo's explicit
+            # hardware/repository plans.  Archinstall treats null as "do not
+            # install a profile driver/greeter", so keep both choices explicit
+            # instead of inheriting future desktop-profile defaults.
+            "gfx_driver": None,
+            "greeter": None,
+            "profile": {
+                "details": ["KDE Plasma"],
+                "main": "Desktop",
+                "custom_settings": {
+                    "KDE Plasma": {"plasma_flavor": "plasma-desktop"},
+                },
+            },
         },
         "script": "guided",
         "silent": True,
@@ -734,7 +743,7 @@ def build_target_customizations(selections, hardware_plan=None):
         # intentionally not guessed. Keep sign-in authentication on until a
         # password-preserving backend transaction is implemented.
         "automaticLogin": False,
-        "loginManager": "plasma-login-manager",
+        "loginManager": "meo-plasma-login-manager",
         "firewall": bool(privacy.get("firewall", True)),
         "networkHandoff": {
             "enabled": bool(network.get("handoffEnabled", False)),
@@ -769,7 +778,34 @@ def current_boot_mode(efi_directory: Path = Path("/sys/firmware/efi")) -> str:
     return "uefi" if efi_directory.is_dir() else "bios"
 
 
-def validate_installation_plan(selections, configuration, credentials, boot_mode="uefi"):
+def current_secure_boot_state(
+    efivars_directory: Path = Path("/sys/firmware/efi/efivars"),
+) -> bool | None:
+    """Return True/False only when the firmware SecureBoot variable is readable.
+
+    efivarfs prefixes the variable payload with four attribute bytes; the first
+    data byte is the UEFI SecureBoot value. Unknown state must not be guessed.
+    """
+    if not efivars_directory.is_dir():
+        return None
+    states = []
+    for path in sorted(efivars_directory.glob("SecureBoot-*")):
+        try:
+            payload = path.read_bytes()
+        except OSError:
+            continue
+        if len(payload) >= 5 and payload[4] in {0, 1}:
+            states.append(payload[4] == 1)
+    if True in states:
+        return True
+    if False in states:
+        return False
+    return None
+
+
+def validate_installation_plan(
+    selections, configuration, credentials, boot_mode="uefi", secure_boot_enabled: bool | None = False
+):
     """Return user-safe blockers; never silently downgrade a production choice."""
     blockers = []
     disk = selections.get("disk", {})
@@ -788,6 +824,10 @@ def validate_installation_plan(selections, configuration, credentials, boot_mode
         # validation requires a UEFI GRUB executable.  Do not let a BIOS-live
         # boot reach disk writes and then fail after partitioning.
         blockers.append("BIOS target installation is unavailable until a tested BIOS GRUB layout exists")
+    if secure_boot_enabled is True:
+        blockers.append(
+            "Secure Boot is enabled; disable Secure Boot before installing the current unsigned MeoArch boot chain"
+        )
     if selections.get("privacy", {}).get("diskEncryption", False):
         blockers.append("disk encryption is unavailable until its tested secret flow is enabled")
     secondary_calendar = selections.get("preferences", {}).get("secondaryCalendar", "none")
@@ -873,7 +913,10 @@ def main():
 
     disk = selections.get("disk", {})
     boot_mode = current_boot_mode()
-    blockers = validate_installation_plan(selections, configuration, credentials, boot_mode)
+    secure_boot_enabled = current_secure_boot_state()
+    blockers = validate_installation_plan(
+        selections, configuration, credentials, boot_mode, secure_boot_enabled
+    )
     handoff = None
     if configuration.get("disk_config"):
         try:
@@ -888,6 +931,7 @@ def main():
         "blockedReasons": blockers,
         "diskMode": disk.get("mode", "erase"),
         "bootMode": boot_mode,
+        "secureBootEnabled": secure_boot_enabled,
         "files": {
             "user_configuration": str(output_dir / "user_configuration.json"),
             "user_credentials": str(output_dir / "user_credentials.json"),

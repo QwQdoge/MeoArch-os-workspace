@@ -119,7 +119,12 @@ class GenerateConfigTests(unittest.TestCase):
         config = MODULE.build_user_configuration(self.selections, hardware)
         self.assertEqual(config["packages"][:len(hardware["packages"])], hardware["packages"])
         self.assertIn("nvidia-open", config["packages"])
-        self.assertNotIn("gfx_driver", config["profile_config"])
+        self.assertIsNone(config["profile_config"]["gfx_driver"])
+        self.assertIsNone(config["profile_config"]["greeter"])
+        self.assertEqual(
+            config["profile_config"]["profile"]["custom_settings"]["KDE Plasma"]["plasma_flavor"],
+            "plasma-desktop",
+        )
         for package in MODULE.MEO_DESKTOP_PACKAGES:
             self.assertIn(package, config["packages"])
 
@@ -131,6 +136,11 @@ class GenerateConfigTests(unittest.TestCase):
         config = MODULE.build_user_configuration(self.selections)
         self.assertNotIn("omnistore-bin", MODULE.MEO_DESKTOP_PACKAGES)
         self.assertNotIn("omnistore-bin", config["packages"])
+        # The branded greeter is a Meo repository component. Pulling the
+        # upstream same-name package during the Arch-only phase would satisfy
+        # the later dependency with the wrong binary.
+        self.assertNotIn("plasma-login-manager", MODULE.MEO_DESKTOP_PACKAGES)
+        self.assertNotIn("plasma-login-manager", config["packages"])
 
     def test_erase_mode_generates_explicit_safe_disk_layout(self):
         self.selections["disk"]["stableId"] = "/dev/vda"
@@ -717,7 +727,7 @@ class GenerateConfigTests(unittest.TestCase):
         self.selections["disk"]["swap"] = "file"
         payload = MODULE.build_target_customizations(self.selections)
         self.assertEqual(payload["fullName"], "Meo User")
-        self.assertEqual(payload["loginManager"], "plasma-login-manager")
+        self.assertEqual(payload["loginManager"], "meo-plasma-login-manager")
         self.assertFalse(payload["automaticLogin"])
         self.assertEqual(payload["swap"], {"mode": "file", "fileSizeMiB": 4096})
         serialized = json.dumps(payload).lower()
@@ -791,6 +801,41 @@ class GenerateConfigTests(unittest.TestCase):
         blockers = MODULE.validate_installation_plan(self.selections, config, credentials)
         self.assertIn("unsupported disk layout mode", blockers)
         self.assertIn("disk encryption is unavailable until its tested secret flow is enabled", blockers)
+
+    def test_secure_boot_state_is_read_from_uefi_variable_without_guessing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            efivars = Path(directory)
+            variable = efivars / "SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+            variable.write_bytes(b"\x07\x00\x00\x00\x01")
+            self.assertIs(MODULE.current_secure_boot_state(efivars), True)
+            variable.write_bytes(b"\x07\x00\x00\x00\x00")
+            self.assertIs(MODULE.current_secure_boot_state(efivars), False)
+            variable.write_bytes(b"\x07\x00")
+            self.assertIsNone(MODULE.current_secure_boot_state(efivars))
+        self.assertIsNone(MODULE.current_secure_boot_state(Path("/definitely/missing/efivars")))
+
+    def test_explicit_secure_boot_is_blocked_before_installation(self):
+        self.selections["disk"].update({
+            "stableId": "/dev/vda", "devicePath": "/dev/vda",
+            "sizeBytes": 64 * 1024 * 1024 * 1024,
+        })
+        configuration = MODULE.build_user_configuration(self.selections)
+        credentials = MODULE.build_user_credentials(
+            self.selections, {"userPasswordHash": "$6$hash"}
+        )
+        blockers = MODULE.validate_installation_plan(
+            self.selections, configuration, credentials,
+            boot_mode="uefi", secure_boot_enabled=True,
+        )
+        self.assertIn(
+            "Secure Boot is enabled; disable Secure Boot before installing the current unsigned MeoArch boot chain",
+            blockers,
+        )
+        disabled = MODULE.validate_installation_plan(
+            self.selections, configuration, credentials,
+            boot_mode="uefi", secure_boot_enabled=False,
+        )
+        self.assertFalse(any("Secure Boot" in blocker for blocker in disabled))
 
     def test_bios_live_boot_is_blocked_before_any_real_installation_plan(self):
         self.selections["disk"].update({

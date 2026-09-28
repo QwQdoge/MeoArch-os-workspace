@@ -537,6 +537,38 @@ for package in "${meo_packages[@]}"; do
     exit 10
   }
 done
+if printf '%s\n' "${meo_packages[@]}" | grep -qx 'meo-plasma-login-manager'; then
+  for login_path in /usr/bin/plasmalogin /usr/lib/systemd/system/plasmalogin.service; do
+    [ -e "${target_root}${login_path}" ] || {
+      echo "Meo login manager is missing ${login_path}." | tee -a "${log_file}" >&2
+      exit 12
+    }
+    login_owner="$(arch-chroot "${target_root}" env LC_ALL=C pacman -Qo "${login_path}" 2>&1)" || {
+      echo "Meo login manager payload has no package owner: ${login_path}" | tee -a "${log_file}" >&2
+      exit 12
+    }
+    case "${login_owner}" in
+      "${login_path} is owned by meo-plasma-login-manager "*) ;;
+      *)
+        echo "Login manager payload is not owned by meo-plasma-login-manager: ${login_path}" | tee -a "${log_file}" >&2
+        exit 12
+        ;;
+    esac
+  done
+  if arch-chroot "${target_root}" pacman -Q plasma-login-manager >/dev/null 2>&1; then
+    echo "The upstream plasma-login-manager package is installed alongside the Meo fork." | tee -a "${log_file}" >&2
+    exit 12
+  fi
+  login_check="$(arch-chroot "${target_root}" env LC_ALL=C pacman -Qkk meo-plasma-login-manager)" || {
+    echo "Meo login manager package integrity check failed." | tee -a "${log_file}" >&2
+    exit 12
+  }
+  grep -F '0 altered files' <<<"${login_check}" >/dev/null || {
+    echo "Meo login manager package integrity check found altered files." | tee -a "${log_file}" >&2
+    exit 12
+  }
+fi
+
 mapfile -t application_packages < <(python3 - "${install_plan}" <<'PY'
 import json,sys
 payload=json.load(open(sys.argv[1], encoding='utf-8'))

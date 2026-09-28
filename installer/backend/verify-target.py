@@ -152,6 +152,10 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
         path = target_path(root, f"etc/systemd/system/{service}")
         if not path.is_file() or not path.stat().st_size:
             raise ValueError(f"target service is not enabled: {service}")
+    display_manager = target_path(root, "etc/systemd/system/display-manager.service")
+    expected_display_manager = target_path(root, "usr/lib/systemd/system/plasmalogin.service")
+    if display_manager != expected_display_manager:
+        raise ValueError("target display-manager.service does not resolve to plasmalogin.service")
     for service in FORBIDDEN_ENABLED_SERVICES:
         path = root / f"etc/systemd/system/{service}"
         if path.exists() or path.is_symlink():
