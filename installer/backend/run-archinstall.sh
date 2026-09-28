@@ -506,8 +506,7 @@ if [ -L "${target_root}" ] || [ "$(resolve_target_root "${target_root}")" != "${
   || [ -L "${target_root}/etc" ] || [ -L "${target_root}/usr" ] || [ -L "${target_root}/boot" ] \
   || [ ! -d "${target_root}/etc" ] || [ ! -d "${target_root}/usr" ] || [ ! -d "${target_root}/boot" ] \
   || [ ! -s "${target_root}/etc/fstab" ] \
-  || { [ ! -s "${target_root}/boot/grub/grub.cfg" ] \
-       && [ ! -d "${target_root}/boot/loader/entries" ]; }; then
+  || [ ! -s "${target_root}/boot/grub/grub.cfg" ]; then
   echo "Archinstall did not produce a complete bootable target." | tee -a "${log_file}" >&2
   exit 7
 fi

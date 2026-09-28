@@ -65,6 +65,11 @@ class InstallEngineGuardTests(unittest.TestCase):
                         len(source))
         self.assertIn('[ -L "${target_root}/etc" ]', source)
 
+    def test_runner_requires_grub_target_instead_of_accepting_systemd_boot(self):
+        source = RUNNER.read_text(encoding="utf-8")
+        self.assertIn('[ ! -s "${target_root}/boot/grub/grub.cfg" ]', source)
+        self.assertNotIn('"${target_root}/boot/loader/entries"', source)
+
     def test_preflight_does_not_retain_archinstall_credentials_as_reference(self):
         source = PREFLIGHT.read_text(encoding="utf-8")
         self.assertIn('rm -f -- "${reference_dir}/user_credentials.json"', source)
