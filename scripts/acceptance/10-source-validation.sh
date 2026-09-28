@@ -168,6 +168,11 @@ grep -q 'Installation_guide' meoarch-os/airootfs/etc/motd
 grep -q 'native installer host, MeoUI runtime, and repair payload' scripts/build-installer-app.sh
 ! rg -q 'qml6 fallback|optional native host' scripts/build-installer-app.sh scripts/sync-installer-to-airootfs.sh
 grep -q '^lynis$' meoarch-os/packages.x86_64
+# The installation medium must remain buildable without Meo application
+# repositories. Target Stable/Beta metadata is verified independently by the
+# installer before any destructive action.
+! grep -Eq '^omnistore-bin$' meoarch-os/packages.x86_64
+! grep -Eq '^\[(meo|meo-beta)\]$' meoarch-os/pacman.conf
 grep -q '^qtkeychain-qt6$' meoarch-os/packages.x86_64
 grep -q '^polkit-qt6$' meoarch-os/packages.x86_64
 for package_name in curl gnupg openssl; do
