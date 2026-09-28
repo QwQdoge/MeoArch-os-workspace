@@ -39,6 +39,13 @@ class RemoteDesktopBootstrapContractTests(unittest.TestCase):
         self.assertIn("sha256sum", source)
         self.assertIn("67912eaaab10f6b57658c9aad9854bd8023cc99e3cb99a2320d5c175ec87e5e9", source)
 
+    def test_temporary_keyring_bootstrap_is_failure_clean(self) -> None:
+        source = INSTALL.read_text()
+        self.assertIn("cleanup_temporary_keyring", source)
+        self.assertIn('sudo test -L "${destination}"', source)
+        self.assertLess(source.index("temporary_keyring=1"), source.index('sudo install -Dm644 "${work_dir}/${filename}"'))
+        self.assertIn("cleanup_temporary_keyring\n  rm -rf", source)
+
     def test_repository_configuration_requires_trusted_signatures(self) -> None:
         source = INSTALL.read_text()
         self.assertIn("SigLevel = Required TrustedOnly", source)
