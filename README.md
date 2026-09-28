@@ -6,6 +6,45 @@ scripts that assemble and validate a candidate image. Shared UI primitives do
 not belong here: reusable QML belongs in the sibling MeoUI project, while
 Plasma-specific integration belongs in MeoKDE.
 
+
+## Install Meo Desktop on an existing Arch system
+
+The public MeoArch workspace is the bootstrap entry point; the software itself
+comes from the signed Meo pacman repository:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/QwQdoge/MeoArch-os-workspace/main/scripts/install.sh | bash
+```
+
+The bootstrap pins and verifies the public Meo keyring payload, configures the
+selected signed channel, installs the repository-control packages, then installs
+a Meo meta package with pacman. It does **not** clone or build MeoKDE, MeoUI, or
+other Meo component source on the client.
+
+Recommended complete desktop:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/QwQdoge/MeoArch-os-workspace/main/scripts/install.sh | bash -s -- --full
+```
+
+Core Meo KDE integration without the optional Meo application bundle:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/QwQdoge/MeoArch-os-workspace/main/scripts/install.sh | bash -s -- --core
+```
+
+Beta channel:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/QwQdoge/MeoArch-os-workspace/main/scripts/install.sh | bash -s -- --beta
+```
+
+Meo-owned software is resolved from `[meo]` / `[meo-beta]` at
+`packages.meoarch.org`. Arch, Plasma, Qt, and other upstream dependencies
+continue to come from the configured Arch repositories through the same pacman
+transaction. After bootstrap, future Meo updates are ordinary pacman/OmniStore
+updates rather than source rebuilds.
+
 ## What is in this repository
 
 | Path | Purpose |
