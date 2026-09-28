@@ -52,4 +52,5 @@ jobs:
           bash -n installer/backend/preflight-arch-packages.sh
           bash -n installer/backend/run-archinstall.sh
           bash -n installer/backend/preflight-meo-repository.sh
+          bash -n installer/backend/configure-meo-repository.sh
           bash -n installer/backend/apply-target-customizations.sh
