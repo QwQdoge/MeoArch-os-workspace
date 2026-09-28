@@ -46,6 +46,9 @@ bootstrap_work="$(mktemp -d "$target_root/etc/meo-bootstrap.XXXXXX")"
 chroot_bootstrap="${bootstrap_work#"$target_root"}"
 restore_on_error() {
   status=$?
+  if declare -F remove_temporary_keyring >/dev/null 2>&1; then
+    remove_temporary_keyring
+  fi
   if [ "$status" -ne 0 ] && [ -f "$backup_conf" ]; then
     mv -f -- "$backup_conf" "$pacman_conf"
   fi
@@ -62,13 +65,29 @@ cat >>"$bootstrap_work/pacman.conf" <<'EOF'
 SigLevel = Required TrustedOnly
 Server = https://packages.meoarch.org/$repo/os/$arch
 EOF
+temporary_keyring_paths=()
+remove_temporary_keyring() {
+  local path
+  for path in "${temporary_keyring_paths[@]}"; do
+    rm -f -- "$path"
+  done
+  temporary_keyring_paths=()
+}
 for file in meo.gpg meo-trusted meo-revoked; do
   [ -s "$bootstrap_dir/$file" ] || { echo "Missing ISO keyring bootstrap file: $file" >&2; exit 4; }
-  install_file 644 "$bootstrap_dir/$file" "$bootstrap_work/keyrings/$file"
+  destination="$target_root/usr/share/pacman/keyrings/$file"
+  if [ -e "$destination" ] || [ -L "$destination" ]; then
+    echo "Refusing pre-existing Meo bootstrap keyring path: $destination" >&2
+    exit 4
+  fi
+  install_file 644 "$bootstrap_dir/$file" "$destination"
+  temporary_keyring_paths+=("$destination")
 done
 arch-chroot "$target_root" pacman-key --init
-arch-chroot "$target_root" pacman-key --populate archlinux
-arch-chroot "$target_root" pacman-key --populate-from "$chroot_bootstrap/keyrings" --populate meo
+arch-chroot "$target_root" pacman-key --populate archlinux meo
+# Remove the temporary package-style keyring payload before installing
+# meo-keyring, otherwise pacman would reject the package-owned file paths.
+remove_temporary_keyring
 # The channel package is deliberately first fetched only from [meo], which the
 # ISO bootstrap configuration exposes.  It owns the final Include file.
 channel="$(python3 - "$plan_file" <<'PY'
