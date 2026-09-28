@@ -24,7 +24,7 @@
     "firewall": true
   },
   "software": {
-    "profile": "recommended",
+    "profile": "minimal",
     "channel": "stable",
     "mirror": "automatic",
     "components": [],
