@@ -14,7 +14,7 @@ PageFrame {
                                            ? controller.selectionRevision : 0
     readonly property string profile: {
         const revision = selectionRevision
-        return revision >= 0 && controller ? controller.selection("software", "profile", "recommended") : "recommended"
+        return revision >= 0 && controller ? controller.selection("software", "profile", "minimal") : "minimal"
     }
     readonly property var selectedComponents: {
         const revision = selectionRevision
