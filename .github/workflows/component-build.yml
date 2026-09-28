@@ -10,6 +10,7 @@ on:
       - '.github/workflows/component-build.yml'
   push:
     branches:
+      - main
       - boot/live-grub-contracts
   workflow_dispatch:
 
