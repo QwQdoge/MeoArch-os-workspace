@@ -160,6 +160,15 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("Restart the VM or computer with UEFI firmware enabled", welcome)
         self.assertIn("BIOS target installation is unavailable until a tested BIOS GRUB layout exists", generator)
 
+    def test_finish_actions_match_system_action_capability(self):
+        finish = (QML_ROOT / "pages/FinishPage.qml").read_text(encoding="utf-8")
+        self.assertGreaterEqual(
+            finish.count("enabled: page.controller && page.controller.systemActionsEnabled"),
+            2,
+        )
+        self.assertIn("Restart and Shut Down are disabled in preview mode.", finish)
+        self.assertNotIn("safe no-op actions", finish)
+
     def test_power_dialog_uses_md_motion_and_hold_confirmation(self):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
         self.assertIn("presentation: MeoMotionPopup.Dialog", frame)

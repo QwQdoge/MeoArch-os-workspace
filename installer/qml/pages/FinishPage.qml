@@ -44,15 +44,27 @@ PageFrame {
             visible: !page.completed || (page.controller && !page.controller.systemActionsEnabled)
             width: parent.width
             title: page.completed ? qsTr("Preview mode") : qsTr("No completed installation")
-            message: page.completed ? qsTr("Restart and Shut Down are safe no-op actions until system actions are enabled.")
+            message: page.completed ? qsTr("Restart and Shut Down are disabled in preview mode.")
                                     : qsTr("The finish screen is only available after target validation succeeds.")
         }
         Row {
             visible: page.completed
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: page.dp(12)
-            MeoButton { text: qsTr("Restart Now"); type: "filled"; implicitWidth: page.dp(150); onClicked: page.controller.requestRestart() }
-            MeoButton { text: qsTr("Shut Down"); type: "outlined"; implicitWidth: page.dp(140); onClicked: page.controller.requestShutdown() }
+            MeoButton {
+                text: qsTr("Restart Now")
+                type: "filled"
+                implicitWidth: page.dp(150)
+                enabled: page.controller && page.controller.systemActionsEnabled
+                onClicked: page.controller.requestRestart()
+            }
+            MeoButton {
+                text: qsTr("Shut Down")
+                type: "outlined"
+                implicitWidth: page.dp(140)
+                enabled: page.controller && page.controller.systemActionsEnabled
+                onClicked: page.controller.requestShutdown()
+            }
         }
     }
 }
