@@ -70,6 +70,17 @@ class InstallEngineGuardTests(unittest.TestCase):
         self.assertIn('[ ! -s "${target_root}/boot/grub/grub.cfg" ]', source)
         self.assertNotIn('"${target_root}/boot/loader/entries"', source)
 
+    def test_runner_proves_the_meo_login_manager_owns_the_target_payload(self):
+        source = RUNNER.read_text(encoding="utf-8")
+        self.assertIn("grep -qx 'meo-plasma-login-manager'", source)
+        self.assertIn("/usr/bin/plasmalogin", source)
+        self.assertIn("/usr/lib/systemd/system/plasmalogin.service", source)
+        self.assertIn("pacman -Qo", source)
+        self.assertIn("is owned by meo-plasma-login-manager", source)
+        self.assertIn("pacman -Q plasma-login-manager", source)
+        self.assertIn("pacman -Qkk meo-plasma-login-manager", source)
+        self.assertIn("0 altered files", source)
+
     def test_preflight_does_not_retain_archinstall_credentials_as_reference(self):
         source = PREFLIGHT.read_text(encoding="utf-8")
         self.assertIn('rm -f -- "${reference_dir}/user_credentials.json"', source)
@@ -117,7 +128,8 @@ class InstallEngineGuardTests(unittest.TestCase):
         self.assertIn('--dbpath "${pacman_db}"', package_preflight)
         self.assertIn('pacman --sync --print', package_preflight)
         self.assertIn('"mkinitcpio"', package_preflight)
-        self.assertIn('packages.append("plasma-meta")', package_preflight)
+        self.assertIn('plasma_flavor = plasma_settings.get("plasma_flavor", "plasma-meta")', package_preflight)
+        self.assertIn('packages.append(plasma_flavor)', package_preflight)
         self.assertIn("GfxDriver", package_preflight)
         self.assertIn("gfx_packages()", package_preflight)
         self.assertIn("SysInfo.is_vm()", package_preflight)
