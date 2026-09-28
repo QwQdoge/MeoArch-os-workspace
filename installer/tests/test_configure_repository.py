@@ -57,8 +57,12 @@ class ConfigureRepositoryTests(unittest.TestCase):
                 self.assertGreaterEqual(install, 0)
                 self.assertFalse(any(" -Sy --noconfirm" in call or " -Syy --noconfirm" in call
                                      or " -S --needed" in call for call in calls))
-                self.assertTrue(any("--populate-from /etc/meo-bootstrap." in call for call in calls))
+                populate = next(index for index, call in enumerate(calls)
+                                if call == "pacman-key --populate archlinux meo")
+                self.assertLess(populate, install)
+                self.assertNotIn("--populate-from", "\n".join(calls))
                 self.assertFalse(any("/run/meo-bootstrap." in call or "/tmp/meo-bootstrap." in call for call in calls))
-                self.assertFalse((target / "usr/share/pacman/keyrings/meo.gpg").exists())
+                for name in ("meo.gpg", "meo-trusted", "meo-revoked"):
+                    self.assertFalse((target / "usr/share/pacman/keyrings" / name).exists())
                 self.assertFalse((target / "etc/pacman.d/meo-channel.conf").exists())
                 self.assertFalse((target / "etc/pacman.d/meo-mirrorlist").exists())
