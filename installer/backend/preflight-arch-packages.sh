@@ -72,7 +72,12 @@ profile_config = config.get("profile_config", {})
 profile = profile_config.get("profile", {}) if isinstance(profile_config, dict) else {}
 details = profile.get("details", []) if isinstance(profile, dict) else []
 if isinstance(details, list) and "KDE Plasma" in details:
-    packages.append("plasma-meta")
+    custom_settings = profile.get("custom_settings", {}) if isinstance(profile, dict) else {}
+    plasma_settings = custom_settings.get("KDE Plasma", {}) if isinstance(custom_settings, dict) else {}
+    plasma_flavor = plasma_settings.get("plasma_flavor", "plasma-meta") if isinstance(plasma_settings, dict) else "plasma-meta"
+    if plasma_flavor not in {"plasma-meta", "plasma", "plasma-desktop"}:
+        raise SystemExit("generated KDE Plasma flavor is invalid")
+    packages.append(plasma_flavor)
 
 # Mirror Archinstall's own implicit desktop graphics additions when its runtime
 # API is available.  If a future Archinstall changes this API, the explicit
