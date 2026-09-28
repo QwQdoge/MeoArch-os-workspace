@@ -216,7 +216,18 @@ pacman_backup="${backup_root}/pacman.conf"
 temporary_keyring=0
 pacman_conf_changed=0
 
+cleanup_temporary_keyring() {
+  local filename
+  if [ "${temporary_keyring}" -eq 1 ]; then
+    for filename in meo.gpg meo-trusted meo-revoked; do
+      sudo rm -f -- "/usr/share/pacman/keyrings/${filename}" || true
+    done
+    temporary_keyring=0
+  fi
+}
+
 cleanup() {
+  cleanup_temporary_keyring
   rm -rf -- "${work_dir}"
 }
 trap cleanup EXIT
@@ -275,25 +286,27 @@ bootstrap_trust() {
     return
   fi
 
+  # Validate every destination before writing any of them. A broken symlink
+  # must be treated as occupied even though test -e would not see it.
   for filename in meo.gpg meo-trusted meo-revoked; do
     destination="/usr/share/pacman/keyrings/${filename}"
-    if sudo test -e "${destination}"; then
+    if sudo test -e "${destination}" || sudo test -L "${destination}"; then
       if sudo pacman -Qo "${destination}" >/dev/null 2>&1; then
         die "Unexpected package-owned bootstrap path exists: ${destination}"
       fi
       die "Unowned Meo keyring path already exists: ${destination}"
     fi
-    sudo install -Dm644 "${work_dir}/${filename}" "${destination}"
   done
+
+  # Enter rollback state before the first write so a partial install is cleaned.
   temporary_keyring=1
+  for filename in meo.gpg meo-trusted meo-revoked; do
+    sudo install -Dm644 "${work_dir}/${filename}" "/usr/share/pacman/keyrings/${filename}"
+  done
 
   sudo pacman-key --init
   sudo pacman-key --populate archlinux meo
-
-  for filename in meo.gpg meo-trusted meo-revoked; do
-    sudo rm -f "/usr/share/pacman/keyrings/${filename}"
-  done
-  temporary_keyring=0
+  cleanup_temporary_keyring
   ok "Meo signing key populated without leaving unowned keyring files"
 }
 
