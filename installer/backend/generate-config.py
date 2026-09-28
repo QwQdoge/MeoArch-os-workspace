@@ -778,7 +778,34 @@ def current_boot_mode(efi_directory: Path = Path("/sys/firmware/efi")) -> str:
     return "uefi" if efi_directory.is_dir() else "bios"
 
 
-def validate_installation_plan(selections, configuration, credentials, boot_mode="uefi"):
+def current_secure_boot_state(
+    efivars_directory: Path = Path("/sys/firmware/efi/efivars"),
+) -> bool | None:
+    """Return True/False only when the firmware SecureBoot variable is readable.
+
+    efivarfs prefixes the variable payload with four attribute bytes; the first
+    data byte is the UEFI SecureBoot value. Unknown state must not be guessed.
+    """
+    if not efivars_directory.is_dir():
+        return None
+    states = []
+    for path in sorted(efivars_directory.glob("SecureBoot-*")):
+        try:
+            payload = path.read_bytes()
+        except OSError:
+            continue
+        if len(payload) >= 5 and payload[4] in {0, 1}:
+            states.append(payload[4] == 1)
+    if True in states:
+        return True
+    if False in states:
+        return False
+    return None
+
+
+def validate_installation_plan(
+    selections, configuration, credentials, boot_mode="uefi", secure_boot_enabled: bool | None = False
+):
     """Return user-safe blockers; never silently downgrade a production choice."""
     blockers = []
     disk = selections.get("disk", {})
@@ -797,6 +824,10 @@ def validate_installation_plan(selections, configuration, credentials, boot_mode
         # validation requires a UEFI GRUB executable.  Do not let a BIOS-live
         # boot reach disk writes and then fail after partitioning.
         blockers.append("BIOS target installation is unavailable until a tested BIOS GRUB layout exists")
+    if secure_boot_enabled is True:
+        blockers.append(
+            "Secure Boot is enabled; disable Secure Boot before installing the current unsigned MeoArch boot chain"
+        )
     if selections.get("privacy", {}).get("diskEncryption", False):
         blockers.append("disk encryption is unavailable until its tested secret flow is enabled")
     secondary_calendar = selections.get("preferences", {}).get("secondaryCalendar", "none")
@@ -882,7 +913,10 @@ def main():
 
     disk = selections.get("disk", {})
     boot_mode = current_boot_mode()
-    blockers = validate_installation_plan(selections, configuration, credentials, boot_mode)
+    secure_boot_enabled = current_secure_boot_state()
+    blockers = validate_installation_plan(
+        selections, configuration, credentials, boot_mode, secure_boot_enabled
+    )
     handoff = None
     if configuration.get("disk_config"):
         try:
@@ -897,6 +931,7 @@ def main():
         "blockedReasons": blockers,
         "diskMode": disk.get("mode", "erase"),
         "bootMode": boot_mode,
+        "secureBootEnabled": secure_boot_enabled,
         "files": {
             "user_configuration": str(output_dir / "user_configuration.json"),
             "user_credentials": str(output_dir / "user_credentials.json"),
