@@ -414,7 +414,7 @@ case "${username}" in
   ""|*[!a-z0-9_-]*) echo "Invalid generated username." >&2; exit 7 ;;
 esac
 case "${login_manager}" in
-  plasma-login-manager) ;;
+  meo-plasma-login-manager) ;;
   *) echo "Unsupported generated login manager." >&2; exit 7 ;;
 esac
 case "${swap_mode}" in zram|file|none) ;; *) echo "Unsupported generated swap mode." >&2; exit 7 ;; esac
@@ -427,7 +427,7 @@ if [ -n "${full_name}" ]; then
   chroot "${target_root}" /usr/bin/usermod -c "${full_name}" "${username}"
 fi
 if [ "${automatic_login}" = "true" ]; then
-  echo "Automatic login is not supported by the Plasma Login Manager backend yet." >&2
+  echo "Automatic login is not supported by the Meo Plasma Login Manager backend yet." >&2
   exit 7
 fi
 systemctl --root="${target_root}" enable plasmalogin.service

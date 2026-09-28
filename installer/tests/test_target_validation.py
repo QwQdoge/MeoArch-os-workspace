@@ -117,6 +117,18 @@ class TargetValidationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "target system directory is missing"):
                 self.verify_fixture(root)
 
+    def test_target_rejects_a_different_enabled_display_manager(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            sddm = root / "usr/lib/systemd/system/sddm.service"
+            sddm.write_text("[Service]\nExecStart=/usr/bin/sddm\n")
+            display_manager = root / "etc/systemd/system/display-manager.service"
+            display_manager.unlink()
+            display_manager.symlink_to("/usr/lib/systemd/system/sddm.service")
+            with self.assertRaisesRegex(ValueError, "does not resolve to plasmalogin"):
+                self.verify_fixture(root)
+
     def test_target_contract_requires_the_independent_first_login_flow(self):
         self.assertIn("usr/bin/meo-welcome", target.REQUIRED_EXECUTABLES)
         self.assertIn("etc/xdg/autostart/org.meo.welcome.desktop", target.REQUIRED_FILES)

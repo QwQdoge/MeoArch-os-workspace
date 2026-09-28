@@ -46,6 +46,7 @@ class ApplicationPlan:
 class InstallPlan:
     schema_version: int
     architecture: str
+    generation: str
     repository: RepositoryPlan
     package: PackagePlan
     applications: ApplicationPlan
@@ -76,6 +77,9 @@ def catalog_from(path: str | Path) -> dict[str, Any]:
         raise PlanError("unsupported package catalog schema")
     if catalog.get("architecture") != SUPPORTED_ARCHITECTURE:
         raise PlanError("package catalog does not support x86_64")
+    generation = catalog.get("generation")
+    if not isinstance(generation, str) or not re.fullmatch(r"[0-9]{4}\.[0-9]{2}", generation):
+        raise PlanError("package catalog has an invalid release generation")
     return catalog
 
 def application_catalog_from(path: str | Path, generation: str | None = None) -> dict[str, Any]:
@@ -171,12 +175,13 @@ def build_install_plan(config: dict[str, Any], catalog: dict[str, Any], architec
     package = PackagePlan(profile, tuple(sorted(selected | {"meo-release"})), tuple(sorted(required)))
     applications = (resolve_applications(config, application_catalog, profile)
                     if application_catalog is not None else ApplicationPlan((), (), "arch-official"))
-    return InstallPlan(2, architecture, repository, package, applications)
+    return InstallPlan(2, architecture, catalog["generation"], repository, package, applications)
 
 def plan_as_dict(plan: InstallPlan) -> dict[str, Any]:
     return {
         "schemaVersion": plan.schema_version,
         "architecture": plan.architecture,
+        "generation": plan.generation,
         "repository": {"channel": plan.repository.channel, "mirror": plan.repository.mirror,
                        "repositories": list(plan.repository.repositories),
                        "bootstrapPackages": list(plan.repository.bootstrap_packages),

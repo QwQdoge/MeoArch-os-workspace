@@ -34,7 +34,6 @@ MEO_DESKTOP_PACKAGES = [
     "qtkeychain-qt6",
     "lynis",
     "polkit-kde-agent",
-    "plasma-login-manager",
     "system76-scheduler",
     "zram-generator",
     "dbus-broker-units",
@@ -672,9 +671,19 @@ def build_user_configuration(selections, hardware_plan=None, application_package
         # second generic Nouveau/AMD/Intel driver stack on top of that plan.
         "packages": desktop_packages,
         "profile_config": {
-            # The display manager is enabled by the target customisation step.
-            # Do not ask Archinstall to install/configure another greeter as a side effect.
-            "profile": {"details": ["KDE Plasma"], "main": "Desktop"},
+            # Graphics and login-manager ownership stay with Meo's explicit
+            # hardware/repository plans.  Archinstall treats null as "do not
+            # install a profile driver/greeter", so keep both choices explicit
+            # instead of inheriting future desktop-profile defaults.
+            "gfx_driver": None,
+            "greeter": None,
+            "profile": {
+                "details": ["KDE Plasma"],
+                "main": "Desktop",
+                "custom_settings": {
+                    "KDE Plasma": {"plasma_flavor": "plasma-desktop"},
+                },
+            },
         },
         "script": "guided",
         "silent": True,
@@ -734,7 +743,7 @@ def build_target_customizations(selections, hardware_plan=None):
         # intentionally not guessed. Keep sign-in authentication on until a
         # password-preserving backend transaction is implemented.
         "automaticLogin": False,
-        "loginManager": "plasma-login-manager",
+        "loginManager": "meo-plasma-login-manager",
         "firewall": bool(privacy.get("firewall", True)),
         "networkHandoff": {
             "enabled": bool(network.get("handoffEnabled", False)),

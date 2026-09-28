@@ -59,7 +59,7 @@ class TargetBootTests(unittest.TestCase):
             (root / "boot-splash.png").write_bytes(b"fixture-splash")
             (generated / "target-customizations.json").write_text(json.dumps({
                 "username": "tester", "fullName": "", "automaticLogin": False,
-                "loginManager": "plasma-login-manager", "firewall": False,
+                "loginManager": "meo-plasma-login-manager", "firewall": False,
                 "swap": {"mode": "none", "fileSizeMiB": 0},
                 "guestIntegration": {"services": list(guest_services)},
             }))

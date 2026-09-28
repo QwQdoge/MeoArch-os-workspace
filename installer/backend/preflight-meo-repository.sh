@@ -20,10 +20,12 @@ repository = plan.get("repository", {})
 repos, channel = repository.get("repositories"), repository.get("channel")
 if channel not in {"stable", "beta"} or repos != ({"stable": ["meo"], "beta": ["meo-beta", "meo"]}[channel]):
     raise SystemExit("invalid Meo channel repository order")
+generation = plan.get("generation")
 packages = plan.get("package", {}).get("packages", [])
 bootstrap_packages = repository.get("bootstrapPackages")
 channel_package = repository.get("channelPackage")
-if (not isinstance(packages, list) or not packages
+if (not isinstance(generation, str) or not re.fullmatch(r"[0-9]{4}\.[0-9]{2}", generation)
+        or not isinstance(packages, list) or not packages or "meo-release" not in packages
         or bootstrap_packages != ["meo-keyring", "meo-mirrorlist"]
         or channel_package != f"meo-channel-{channel}"
         or any(not isinstance(name, str) or not re.fullmatch(r"[A-Za-z0-9@_+][A-Za-z0-9@._+:-]{0,127}", name)
@@ -32,6 +34,8 @@ if (not isinstance(packages, list) or not packages
 transaction_packages = list(dict.fromkeys([*bootstrap_packages, channel_package, *packages]))
 print("https://packages.meoarch.org")
 print(*repos, sep="\n")
+print("--generation--")
+print(generation)
 print("--packages--")
 print(*transaction_packages, sep="\n")
 print("--bootstrap--")
@@ -41,12 +45,14 @@ PY
 readarray -t plan_values <<<"$plan_output"
 
 base_url="${plan_values[0]}"
-repositories=(); packages=(); bootstrap_packages=(); mode="repositories"
+repositories=(); packages=(); bootstrap_packages=(); generation=""; mode="repositories"
 for value in "${plan_values[@]:1}"; do
+  if [ "$value" = "--generation--" ]; then mode="generation"; continue; fi
   if [ "$value" = "--packages--" ]; then mode="packages"; continue; fi
   if [ "$value" = "--bootstrap--" ]; then mode="bootstrap"; continue; fi
   case "$mode" in
     repositories) repositories+=("$value") ;;
+    generation) generation="$value" ;;
     packages) packages+=("$value") ;;
     bootstrap) bootstrap_packages+=("$value") ;;
   esac
@@ -55,6 +61,7 @@ work_dir="$(mktemp -d)"
 trap 'rm -rf -- "$work_dir"' EXIT
 available_packages=$'\n'
 stable_packages=$'\n'
+stable_release_version=""
 for repository in "${repositories[@]}"; do
   db="$work_dir/$repository.db"; signature="$db.sig"
   url="$base_url/$repository/os/x86_64/$repository.db"
@@ -80,7 +87,27 @@ with tarfile.open(sys.argv[1], "r:*") as archive:
 PY
 )"
   available_packages+="$names"$'\n'
-  [ "$repository" != meo ] || stable_packages+="$names"$'\n'
+  if [ "$repository" = meo ]; then
+    stable_packages+="$names"$'\n'
+    stable_release_version="$(python3 - "$db" <<'PY'
+import sys, tarfile
+versions = []
+with tarfile.open(sys.argv[1], "r:*") as archive:
+    for entry in archive:
+        if not entry.isfile() or not entry.name.endswith("/desc"):
+            continue
+        fields = archive.extractfile(entry).read().decode("utf-8").splitlines()
+        if "%NAME%" not in fields or "%VERSION%" not in fields:
+            continue
+        name = fields[fields.index("%NAME%") + 1]
+        if name == "meo-release":
+            versions.append(fields[fields.index("%VERSION%") + 1])
+if len(versions) > 1:
+    raise SystemExit("signed Stable metadata contains duplicate meo-release records")
+print(versions[0] if versions else "")
+PY
+)"
+  fi
 done
 for package in "${bootstrap_packages[@]}"; do
   case "$stable_packages" in *$'\n'"$package"$'\n'*) ;; *)
@@ -92,4 +119,11 @@ for package in "${packages[@]}"; do
     echo "Selected Meo package is absent from signed repository metadata: $package" >&2; exit 4;;
   esac
 done
+case "$stable_release_version" in
+  "$generation"-*) ;;
+  *)
+    echo "Signed Stable meo-release generation does not match the installer catalog: expected $generation, found ${stable_release_version:-missing}" >&2
+    exit 4
+    ;;
+esac
 echo "Repository preflight = PASS"

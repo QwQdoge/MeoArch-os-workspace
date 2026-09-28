@@ -81,13 +81,14 @@ class RepositoryPreflightTests(unittest.TestCase):
         self.plan.write_text(json.dumps({
             "schemaVersion": 2,
             "architecture": "x86_64",
+            "generation": "2026.09",
             "repository": {
                 "channel": "stable",
                 "repositories": ["meo"],
                 "bootstrapPackages": ["meo-keyring", "meo-mirrorlist"],
                 "channelPackage": "meo-channel-stable",
             },
-            "package": {"packages": ["meo-desktop"]},
+            "package": {"packages": ["meo-release", "meo-desktop"]},
         }), encoding="utf-8")
 
     def tearDown(self):
@@ -96,9 +97,14 @@ class RepositoryPreflightTests(unittest.TestCase):
     def _write_signed_database(self, packages):
         database = self.root / "meo.db"
         with tarfile.open(database, "w:gz") as archive:
-            for package in packages:
-                payload = f"%NAME%\n{package}\n\n%VERSION%\n1-1\n".encode()
-                entry = tarfile.TarInfo(f"{package}-1-1/desc")
+            for item in packages:
+                if isinstance(item, tuple):
+                    package, version = item
+                else:
+                    package = item
+                    version = "2026.09-1" if package == "meo-release" else "1-1"
+                payload = f"%NAME%\n{package}\n\n%VERSION%\n{version}\n".encode()
+                entry = tarfile.TarInfo(f"{package}-{version}/desc")
                 entry.size = len(payload)
                 archive.addfile(entry, BytesIO(payload))
         signature = self.root / "meo.db.sig"
@@ -120,20 +126,20 @@ class RepositoryPreflightTests(unittest.TestCase):
 
     def test_complete_meo_transaction_passes_before_archinstall(self):
         database, signature = self._write_signed_database(
-            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-desktop"]
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-release", "meo-desktop"]
         )
         result = self._run_preflight(database, signature)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_missing_bootstrap_or_channel_package_fails_before_archinstall(self):
-        database, signature = self._write_signed_database(["meo-desktop"])
+        database, signature = self._write_signed_database(["meo-release", "meo-desktop"])
         result = self._run_preflight(database, signature)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("meo-keyring", result.stderr)
 
     def test_invalid_repository_signature_fails_before_archinstall(self):
         database, signature = self._write_signed_database(
-            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-desktop"]
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-release", "meo-desktop"]
         )
         signature.write_bytes(b"not a detached signature")
         result = self._run_preflight(database, signature)
@@ -141,19 +147,30 @@ class RepositoryPreflightTests(unittest.TestCase):
 
     def test_missing_selected_package_fails(self):
         result = self._run_preflight(*self._write_signed_database(
-            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable"]))
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-release"]))
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("meo-desktop", result.stderr)
 
     def test_missing_icon_studio_blocks_a_settings_package_plan(self):
         plan = json.loads(self.plan.read_text())
-        plan["package"]["packages"] = ["meo-settings", "meo-icon-studio"]
+        plan["package"]["packages"] = ["meo-release", "meo-settings", "meo-icon-studio"]
         self.plan.write_text(json.dumps(plan))
         result = self._run_preflight(*self._write_signed_database(
-            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-settings"]
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-release", "meo-settings"]
         ))
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("meo-icon-studio", result.stderr)
+
+    def test_signed_stable_generation_must_match_the_installer_catalog(self):
+        database, signature = self._write_signed_database([
+            "meo-keyring", "meo-mirrorlist", "meo-channel-stable",
+            ("meo-release", "2026.08-5"), "meo-desktop",
+        ])
+        result = self._run_preflight(database, signature)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("generation does not match the installer catalog", result.stderr)
+        self.assertIn("expected 2026.09", result.stderr)
+        self.assertIn("found 2026.08-5", result.stderr)
 
     def test_expired_signing_key_fails_even_with_good_signature(self):
         past = str(int(time.time()) - 2 * 24 * 60 * 60)
@@ -166,7 +183,7 @@ class RepositoryPreflightTests(unittest.TestCase):
         (self.bootstrap / "meo.gpg").write_bytes(exported.stdout)
         (self.bootstrap / "meo-trusted").write_text(f"{fingerprint}:6:\n")
         database, signature = self._write_signed_database(
-            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-desktop"])
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-release", "meo-desktop"])
         self._run_gpg("--faked-system-time", past, "--yes", "--detach-sign", "--local-user", fingerprint,
                       "--output", str(signature), str(database))
         result = self._run_preflight(database, signature)
@@ -223,6 +240,20 @@ class RepositoryPreflightTests(unittest.TestCase):
                 self.assertIn("Invalid Meo install plan", result.stderr)
                 self.assertNotIn("cannot stat", result.stderr)
 
+    def test_invalid_generation_or_missing_release_package_fails_before_network_access(self):
+        original = json.loads(self.plan.read_text())
+        for mutation in ("generation", "release-package"):
+            with self.subTest(mutation=mutation):
+                plan = json.loads(json.dumps(original))
+                if mutation == "generation":
+                    plan["generation"] = "latest"
+                else:
+                    plan["package"]["packages"].remove("meo-release")
+                self.plan.write_text(json.dumps(plan))
+                result = self._run_preflight(self.root / "missing-db", self.root / "missing-sig")
+                self.assertEqual(result.returncode, 2, result.stderr)
+                self.assertIn("Invalid Meo install plan", result.stderr)
+
     def test_malformed_json_fails_closed(self):
         self.plan.write_text("{")
         result = self._run_preflight(self.root / "missing-db", self.root / "missing-sig")
@@ -243,14 +274,14 @@ class RepositoryPreflightTests(unittest.TestCase):
     def test_key_in_keyring_but_not_trusted_cannot_sign_repository(self):
         (self.bootstrap / "meo-trusted").write_text(f"{'A' * 40}:6:\n")
         result = self._run_preflight(*self._write_signed_database(
-            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-desktop"]))
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-release", "meo-desktop"]))
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("untrusted", result.stderr)
 
     def test_revoked_trust_root_fails(self):
         (self.bootstrap / "meo-revoked").write_text(f"{self.fingerprint}\n")
         result = self._run_preflight(*self._write_signed_database(
-            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-desktop"]))
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-release", "meo-desktop"]))
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("revoked", result.stderr)
 
@@ -264,7 +295,7 @@ class RepositoryPreflightTests(unittest.TestCase):
         shutil.copyfile(database, stable_database)
         shutil.copyfile(signature, stable_signature)
         database, signature = self._write_signed_database(
-            ["meo-keyring", "meo-mirrorlist", "meo-channel-beta", "meo-desktop"])
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-beta", "meo-release", "meo-desktop"])
         curl = self.bin_dir / "curl"
         curl.write_text(curl.read_text().replace(
             'case "$url" in *.sig)',
@@ -274,13 +305,40 @@ class RepositoryPreflightTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("absent from signed Stable metadata", result.stderr)
 
+    def test_beta_generation_is_bound_to_stable_fallback_not_overlay(self):
+        plan = json.loads(self.plan.read_text())
+        plan["repository"].update(channel="beta", repositories=["meo-beta", "meo"],
+                                  channelPackage="meo-channel-beta")
+        self.plan.write_text(json.dumps(plan))
+
+        stable_database, stable_signature = self._write_signed_database([
+            "meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-channel-beta",
+            ("meo-release", "2026.09-1"), "meo-desktop",
+        ])
+        stable_database_copy = self.root / "stable-generation.db"
+        stable_signature_copy = self.root / "stable-generation.db.sig"
+        shutil.copyfile(stable_database, stable_database_copy)
+        shutil.copyfile(stable_signature, stable_signature_copy)
+
+        overlay_database, overlay_signature = self._write_signed_database([
+            "meo-keyring", "meo-mirrorlist", "meo-channel-beta",
+            ("meo-release", "2099.99-1"), "meo-desktop",
+        ])
+        curl = self.bin_dir / "curl"
+        curl.write_text(curl.read_text().replace(
+            'case "$url" in *.sig)',
+            f'case "$url" in */meo.db.sig) cp "{stable_signature_copy}" "$output" ;; '
+            f'*/meo.db) cp "{stable_database_copy}" "$output" ;; *.sig)'))
+        result = self._run_preflight(overlay_database, overlay_signature)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_beta_order_passes_when_stable_also_supplies_bootstrap(self):
         plan = json.loads(self.plan.read_text())
         plan["repository"].update(channel="beta", repositories=["meo-beta", "meo"],
                                   channelPackage="meo-channel-beta")
         self.plan.write_text(json.dumps(plan))
         result = self._run_preflight(*self._write_signed_database(
-            ["meo-keyring", "meo-mirrorlist", "meo-channel-beta", "meo-desktop"]))
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-beta", "meo-release", "meo-desktop"]))
         self.assertEqual(result.returncode, 0, result.stderr)
 
 
