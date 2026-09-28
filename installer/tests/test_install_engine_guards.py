@@ -75,6 +75,17 @@ class InstallEngineGuardTests(unittest.TestCase):
             source,
         )
 
+    def test_repository_bootstrap_uses_supported_pacman_key_interface(self):
+        source = (ROOT / "backend/configure-meo-repository.sh").read_text(encoding="utf-8")
+        self.assertNotIn("--populate-from", source)
+        self.assertIn("pacman-key --populate archlinux meo", source)
+        self.assertIn('destination="$target_root/usr/share/pacman/keyrings/$file"', source)
+        self.assertIn("remove_temporary_keyring", source)
+        self.assertLess(
+            source.index("pacman-key --populate archlinux meo"),
+            source.index("meo/meo-keyring"),
+        )
+
     def test_arch_package_preflight_does_not_depend_on_curl(self):
         source = ARCH_PACKAGE_PREFLIGHT.read_text(encoding="utf-8")
         self.assertNotIn("curl ", source)
