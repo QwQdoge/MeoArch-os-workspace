@@ -43,11 +43,16 @@ xorriso -indev "${iso_path}" -find / -type f -exec lsdl |
   tee "${evidence_dir}/files.txt"
 grep -Eiq '/EFI/BOOT/BOOTX64\.EFI' "${evidence_dir}/files.txt"
 grep -q '/arch/x86_64/airootfs.sfs' "${evidence_dir}/files.txt"
-# The Live ISO is intentionally UEFI systemd-boot based.  The repository still
-# retains GRUB theme assets for other targets, but they are not ISO payload.
-grep -q '/loader/entries/01-archiso-linux.conf' "${evidence_dir}/files.txt"
-grep -q '/loader/entries/02-archiso-repair-linux.conf' "${evidence_dir}/files.txt"
-grep -q '/loader/entries/03-archiso-tty-linux.conf' "${evidence_dir}/files.txt"
+# The Live ISO uses GRUB for UEFI and Syslinux for legacy BIOS. Validate the
+# actual GRUB payload and its branded menu instead of stale systemd-boot files.
+grep -q '/boot/grub/grub.cfg' "${evidence_dir}/files.txt"
+grep -q '/boot/grub/themes/meoarch/theme.txt' "${evidence_dir}/files.txt"
+grep -q '/boot/grub/themes/meoarch/brand.png' "${evidence_dir}/files.txt"
+grep -q '/boot/grub/themes/meoarch/meoarch-sans-regular-24.pf2' "${evidence_dir}/files.txt"
+if grep -q '/loader/entries/' "${evidence_dir}/files.txt"; then
+  echo "UEFI GRUB ISO unexpectedly contains systemd-boot loader entries." >&2
+  exit 1
+fi
 
 xorriso -osirrox on -indev "${iso_path}" \
   -extract /arch/x86_64/airootfs.sfs "${extract_dir}/airootfs.sfs"

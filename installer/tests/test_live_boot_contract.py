@@ -28,6 +28,7 @@ REPAIR_MAIN = ROOT / "repair/app/main.cpp"
 LIVE_IWD_ENABLE = ROOT / "meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/iwd.service"
 LIVE_SSHD_ENABLE = ROOT / "meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/sshd.service"
 BUILD_ISO = ROOT / "scripts/build-iso.sh"
+INSPECT_ISO = ROOT / "scripts/acceptance/40-inspect-iso.sh"
 CANONICAL_LOGO = ROOT / "assets/icons/Logo.svg"
 
 
@@ -68,6 +69,15 @@ class LiveBootContractTests(unittest.TestCase):
             "meoarch-os/grub/themes/meoarch/meoarch-sans-bold-24.pf2",
         ):
             self.assertTrue((ROOT / relative).is_file(), relative)
+
+    def test_iso_inspection_matches_uefi_grub_boot_contract(self):
+        inspect = INSPECT_ISO.read_text(encoding="utf-8")
+        self.assertIn("/boot/grub/grub.cfg", inspect)
+        self.assertIn("/boot/grub/themes/meoarch/theme.txt", inspect)
+        self.assertIn("/boot/grub/themes/meoarch/brand.png", inspect)
+        self.assertNotIn("/loader/entries/01-archiso-linux.conf", inspect)
+        self.assertNotIn("/loader/entries/02-archiso-repair-linux.conf", inspect)
+        self.assertNotIn("/loader/entries/03-archiso-tty-linux.conf", inspect)
 
     def test_grub_visual_assets_use_canonical_logo_and_dynamic_menu(self):
         theme = GRUB_THEME.read_text(encoding="utf-8")
