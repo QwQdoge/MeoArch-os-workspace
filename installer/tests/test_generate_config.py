@@ -802,6 +802,41 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("unsupported disk layout mode", blockers)
         self.assertIn("disk encryption is unavailable until its tested secret flow is enabled", blockers)
 
+    def test_secure_boot_state_is_read_from_uefi_variable_without_guessing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            efivars = Path(directory)
+            variable = efivars / "SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+            variable.write_bytes(b"\x07\x00\x00\x00\x01")
+            self.assertIs(MODULE.current_secure_boot_state(efivars), True)
+            variable.write_bytes(b"\x07\x00\x00\x00\x00")
+            self.assertIs(MODULE.current_secure_boot_state(efivars), False)
+            variable.write_bytes(b"\x07\x00")
+            self.assertIsNone(MODULE.current_secure_boot_state(efivars))
+        self.assertIsNone(MODULE.current_secure_boot_state(Path("/definitely/missing/efivars")))
+
+    def test_explicit_secure_boot_is_blocked_before_installation(self):
+        self.selections["disk"].update({
+            "stableId": "/dev/vda", "devicePath": "/dev/vda",
+            "sizeBytes": 64 * 1024 * 1024 * 1024,
+        })
+        configuration = MODULE.build_user_configuration(self.selections)
+        credentials = MODULE.build_user_credentials(
+            self.selections, {"userPasswordHash": "$6$hash"}
+        )
+        blockers = MODULE.validate_installation_plan(
+            self.selections, configuration, credentials,
+            boot_mode="uefi", secure_boot_enabled=True,
+        )
+        self.assertIn(
+            "Secure Boot is enabled; disable Secure Boot before installing the current unsigned MeoArch boot chain",
+            blockers,
+        )
+        disabled = MODULE.validate_installation_plan(
+            self.selections, configuration, credentials,
+            boot_mode="uefi", secure_boot_enabled=False,
+        )
+        self.assertFalse(any("Secure Boot" in blocker for blocker in disabled))
+
     def test_bios_live_boot_is_blocked_before_any_real_installation_plan(self):
         self.selections["disk"].update({
             "stableId": "/dev/vda", "devicePath": "/dev/vda",
