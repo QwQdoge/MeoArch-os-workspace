@@ -119,7 +119,12 @@ class GenerateConfigTests(unittest.TestCase):
         config = MODULE.build_user_configuration(self.selections, hardware)
         self.assertEqual(config["packages"][:len(hardware["packages"])], hardware["packages"])
         self.assertIn("nvidia-open", config["packages"])
-        self.assertNotIn("gfx_driver", config["profile_config"])
+        self.assertIsNone(config["profile_config"]["gfx_driver"])
+        self.assertIsNone(config["profile_config"]["greeter"])
+        self.assertEqual(
+            config["profile_config"]["profile"]["custom_settings"]["KDE Plasma"]["plasma_flavor"],
+            "plasma-desktop",
+        )
         for package in MODULE.MEO_DESKTOP_PACKAGES:
             self.assertIn(package, config["packages"])
 
@@ -131,6 +136,11 @@ class GenerateConfigTests(unittest.TestCase):
         config = MODULE.build_user_configuration(self.selections)
         self.assertNotIn("omnistore-bin", MODULE.MEO_DESKTOP_PACKAGES)
         self.assertNotIn("omnistore-bin", config["packages"])
+        # The branded greeter is a Meo repository component. Pulling the
+        # upstream same-name package during the Arch-only phase would satisfy
+        # the later dependency with the wrong binary.
+        self.assertNotIn("plasma-login-manager", MODULE.MEO_DESKTOP_PACKAGES)
+        self.assertNotIn("plasma-login-manager", config["packages"])
 
     def test_erase_mode_generates_explicit_safe_disk_layout(self):
         self.selections["disk"]["stableId"] = "/dev/vda"
