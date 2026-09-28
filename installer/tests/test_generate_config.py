@@ -19,6 +19,12 @@ class GenerateConfigTests(unittest.TestCase):
     def setUp(self):
         self.selections = json.loads((Path(__file__).parents[1] / "data" / "default_selections.json").read_text(encoding="utf-8"))
 
+    def test_default_software_profile_is_conservative_stable_core(self):
+        self.assertEqual(self.selections["software"]["channel"], "stable")
+        self.assertEqual(self.selections["software"]["profile"], "minimal")
+        software_page = (Path(__file__).parents[1] / "qml/pages/SoftwarePage.qml").read_text(encoding="utf-8")
+        self.assertIn('controller.selection("software", "profile", "minimal") : "minimal"', software_page)
+
     def test_archinstall_locale_mapping_and_hidden_defaults(self):
         self.selections["locale"].update({
             "systemLocale": "de_DE.UTF-8", "keyboardLayout": "de", "timezone": "Europe/Berlin"
