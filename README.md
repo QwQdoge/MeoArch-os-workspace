@@ -1,3 +1,12 @@
+> [!WARNING]
+> **Deprecated repository — do not use for new work.**
+>
+> This repository is retained only for historical reference and migration checks.
+> The active MeoArch OS workspace is **QwQdoge/MeoArch-os-workspace**:
+> https://github.com/QwQdoge/MeoArch-os-workspace
+>
+> Do not add features, fixes, releases, CI changes, or new project records here. If a useful change exists only in this repository, migrate it to the active repository first.
+
 # Deprecated repository
 
 > This repository has moved to **QwQdoge/MeoArch-os-workspace**.
