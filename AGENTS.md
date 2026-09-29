@@ -1,3 +1,19 @@
+# DEPRECATED — DO NOT USE FOR NEW WORK
+
+This repository is no longer the active MeoArch OS workspace. The canonical repository is:
+
+**QwQdoge/MeoArch-os-workspace**  
+https://github.com/QwQdoge/MeoArch-os-workspace
+
+Agent requirements:
+- Do not implement new features, fixes, refactors, packaging, release work, CI work, or documentation updates here, except changes whose sole purpose is deprecation/migration.
+- Treat this checkout as read-only historical material unless the user explicitly asks for migration work.
+- If this repository contains content missing from the canonical repository, compare it first, migrate only the still-relevant content to the canonical repository, validate there, and leave the canonical repository as the source of truth.
+- Do not publish, build a release from, or point automation at this repository.
+- Prefer the canonical repository immediately when a task concerns MeoArch OS, the installer, repair tooling, ArchISO, ISO staging, or release integration.
+
+---
+
 # Deprecated MeoArch workspace
 
 This repository is deprecated. The canonical repository is:
