@@ -1,67 +1,38 @@
 # MeoArch OS Workspace agent rules
 
-This repository is the ISO integration worktree. Make the smallest
-source-owned change that satisfies the task, and preserve the ISO profile,
-existing worktrees, package inputs, builds, and historical material.
+## Canonical repository and ownership
 
-## Ownership
+This is the canonical public ISO/integration repository. Do not use the deprecated underscore repository `QwQdoge/MeoArch_os-workspace` for new work.
 
-- Shared QML components, tokens, and reusable showcase behavior belong in the MeoUI repository; resolve an external checkout with `$MEO_UI_ROOT` when needed.
-- Plasma/KWin-specific integration and Meo.System belong in the meo-kde repository; resolve an external checkout with `$MEO_KDE_ROOT` when needed.
-- ArchISO assembly, installer code, repair tooling, and ISO staging belong
-  here.
-- Do not copy a sibling project into this worktree or create an untracked
-  replacement of a sibling component.
+- `installer/`: graphical installer source, backend, tests, and installer-specific data.
+- `repair/`: repair app, checks/actions, tests, and knowledge.
+- `meoarch-os/`: authoritative ArchISO profile and boot/package inputs.
+- `scripts/`: maintained staging/build/acceptance entrypoints.
+- Shared QML/tokens belong in MeoUI via `$MEO_UI_ROOT`; Plasma/Meo.System integration belongs in meo-kde via `$MEO_KDE_ROOT`.
 
-## Portable workspace roots
+Do not copy sibling repositories into this worktree or edit staged duplicates as source authority.
 
-- Never assume a developer username, home directory, checkout location, or Obsidian vault path.
-- Resolve external project records from `$MEO_DOCS_ROOT`, generated artifacts from `$MEO_OUTPUT_ROOT`, MeoUI from `$MEO_UI_ROOT`, and meo-kde from `$MEO_KDE_ROOT`. If a variable is unset, do not invent a machine-specific absolute path.
+## Work sequence
 
-## Repository filing rules
+1. Inspect `git status`, the owning source, and only the directly relevant contract.
+2. Make the smallest source-owned change.
+3. If installer source must enter the ISO tree, stage only with `scripts/sync-installer-to-airootfs.sh`.
+4. Run source/static checks first; build components/ISO only when the task needs that evidence.
 
-- Keep source, tests, assets, and tool configuration in their existing owning
-  directories.
-- Put code-bound design, deployment, build, and operating contracts in docs/
-  or the component documentation directory that already owns them.
-- Do not create root-level plan files, audit reports, architecture drafts,
-  agent journals, screenshots, logs, or one-off notes.
-- Put plans, decisions, audit reports, work journals, and historical evidence
-  under `$MEO_DOCS_ROOT/Projects/meo-arch-os-workspace/`.
-  Use its numbered folders: 00-inbox, 01-overview, 02-decisions, 03-work,
-  04-validation, and 99-archive.
+## Validation
 
-## Output rules
+For normal installer/repair changes, mirror source CI:
+- `python -m compileall -q installer repair`
+- `python -m unittest discover -s installer/tests -p 'test_*.py' -v`
+- `python -m unittest discover -s repair/tests -p 'test_*.py' -v`
+- `bash -n` affected shell entrypoints
 
-New durable output belongs only under `$MEO_OUTPUT_ROOT/meo-arch-os-workspace/`:
+For compiled runtime changes, use `scripts/acceptance/20-build-components.sh`. ISO build/inspection, Live boot, and installed-system boot are progressively stronger and separate evidence levels; none implies the next.
 
-| Kind | Path |
-| --- | --- |
-| Reproducible build work | build/ |
-| Install or VM handoff | install/ |
-| Validation evidence | validation/<UTC-run-id>/ |
-| ISO/package deliverables | packages/ |
-| Disposable work | tmp/ |
+The current UEFI path is GRUB (`profiledef.sh`), not the removed systemd-boot entry set. Do not restore old boot assets merely because they exist in repository history.
 
-Use a UTC run identifier in the form YYYY-MM-DDTHHMMSSZ-short-label. Existing
-script-managed build/ and artifacts/ material is retained; do not move it,
-delete it, or change scripts solely to enforce this filing rule.
+## Files and safety
 
-## ISO integrity and validation
+Use `$MEO_DOCS_ROOT/Projects/meo-arch-os-workspace/` for plans/audits/decisions and `$MEO_OUTPUT_ROOT/meo-arch-os-workspace/{build,install,validation,packages,tmp}/` for new generated output. Existing script-managed legacy build/artifact material is retained.
 
-- Keep meoarch-os/ as the source ArchISO profile. Do not delete, rename, or
-  replace it with a copied profile.
-- Stage installer changes only with scripts/sync-installer-to-airootfs.sh.
-  Manual airootfs copying produces unverifiable state.
-- Keep package lists, boot configuration, versioned assets, and ISO package
-  sources intact. Do not use git reset, git clean, blanket deletion, or an
-  unreviewed recursive command to tidy them.
-- Distinguish source validation, staging provenance, live-ISO boot, and
-  installed-system acceptance in the validation record. None implies the next.
-
-## Authorization boundary
-
-Do not publish an ISO, alter a live device, write a disk, modify a remote
-release, or run destructive deployment/recovery commands unless the user has
-explicitly authorized that exact action. Preserve dirty work and report it
-rather than overwriting it.
+Do not publish an ISO, write a disk, alter a live device, modify a remote release, or run destructive deployment/recovery actions without explicit authorization. Preserve dirty work; avoid reset/clean/broad deletion.
