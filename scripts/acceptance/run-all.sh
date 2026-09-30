@@ -41,7 +41,10 @@ fi
 export MEOARCH_OUTPUT_ROOT="${outputs_root}"
 export MEOARCH_RUN_ID="${run_id}"
 export MEOARCH_RUN_DIR="${run_dir}"
-export MEOARCH_TMP_DIR="${MEOARCH_TMP_DIR:-${outputs_root}/tmp/${run_id}}"
+if [ -z "${MEOARCH_TMP_DIR:-}" ]; then
+  mkdir -p "${outputs_root}/tmp"
+  export MEOARCH_TMP_DIR="$(mktemp -d "${outputs_root}/tmp/${run_id}.XXXXXX")"
+fi
 export MEOARCH_ISO_OUTPUT_DIR="${MEOARCH_ISO_OUTPUT_DIR:-${outputs_root}/packages/iso/${run_id}}"
 mkdir -p "${MEOARCH_RUN_DIR}"
 summary="${MEOARCH_RUN_DIR}/summary.md"

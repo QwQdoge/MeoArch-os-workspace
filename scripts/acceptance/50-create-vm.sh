@@ -30,7 +30,12 @@ else
   run_id="${MEOARCH_RUN_ID:-$(date -u +%Y-%m-%dT%H%M%SZ)-acceptance}"
   run_dir="${outputs_root}/validation/${run_id}"
 fi
-tmp_dir="${MEOARCH_TMP_DIR:-${outputs_root}/tmp/${run_id}}"
+if [ -n "${MEOARCH_TMP_DIR:-}" ]; then
+  tmp_dir="${MEOARCH_TMP_DIR}"
+else
+  mkdir -p "${outputs_root}/tmp"
+  tmp_dir="$(mktemp -d "${outputs_root}/tmp/${run_id}.XXXXXX")"
+fi
 if [ -n "${MEOARCH_VM_DIR:-}" ]; then
   vm_dir="${MEOARCH_VM_DIR}"
 elif [ -n "${MEOARCH_INSTALL_DIR:-}" ] || [ "${MEOARCH_VM_HANDOFF:-0}" = "1" ]; then

@@ -28,7 +28,12 @@ else
   run_id="${MEOARCH_RUN_ID:-$(date -u +%Y-%m-%dT%H%M%SZ)-acceptance}"
   run_dir="${outputs_root}/validation/${run_id}"
 fi
-tmp_dir="${MEOARCH_TMP_DIR:-${outputs_root}/tmp/${run_id}}"
+if [ -n "${MEOARCH_TMP_DIR:-}" ]; then
+  tmp_dir="${MEOARCH_TMP_DIR}"
+else
+  mkdir -p "${outputs_root}/tmp"
+  tmp_dir="$(mktemp -d "${outputs_root}/tmp/${run_id}.XXXXXX")"
+fi
 evidence_dir="${run_dir}/iso"
 extract_dir="${MEOARCH_ISO_EXTRACT_DIR:-${tmp_dir}/iso-inspect}"
 mkdir -p "${evidence_dir}" "${extract_dir}"
