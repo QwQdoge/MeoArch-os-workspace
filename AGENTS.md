@@ -17,6 +17,24 @@ Inspect `git status`, the affected component, and its nearest tests/contracts fi
 - Plasma/KWin/Meo.System desktop integration belongs in meo-kde via `$MEO_KDE_ROOT`.
 - Do not copy sibling repositories into this worktree or treat staged airootfs files as source authority.
 
+## AI router and MCP boundary
+
+For AI-driven system actions, the **System AI Router** is the canonical orchestration boundary. Preserve the internal flow:
+
+`user request -> intent -> capability -> policy/permission/confirmation -> owning app or system executor -> verification -> structured result`.
+
+- Keep MeoArch internal capabilities authoritative. MCP is an interoperability/tool-adapter layer, not a replacement for the internal intent/capability/policy model.
+- Meo AI may act as an MCP client/host for approved external MCP servers. MeoArch may also expose selected approved capabilities through a MeoArch MCP server for external agents.
+- Native MeoArch actions such as audio, Bluetooth, Wi-Fi, launcher, window, settings, notification, power, and file operations should call their owning native APIs/adapters directly when available instead of being split into one MCP server per feature.
+- Prefer one maintained `meo-mcp-gateway` (or equivalent shared adapter boundary) over per-app MCP servers unless isolation, deployment, trust, or versioning requirements justify a separate server.
+- Every MCP tool that can change system state must map to a named MeoArch capability with typed/validated inputs and must pass through the same policy, permission, confirmation, and authorization checks as native AI actions.
+- Never let MCP bypass `CapabilityRegistry`, policy checks, the owning application boundary, or the verification stage.
+- Do not expose an unrestricted `shell.exec`, arbitrary `sudo`, root command runner, or equivalent generic command-execution tool to the model. Privileged operations must be represented as narrow audited capabilities.
+- Treat third-party/remote MCP servers and their outputs as untrusted integration boundaries. Validate schemas and returned data, minimize shared context/secrets, and preserve existing sandbox/authentication boundaries.
+- New app integrations should register explicit intents/capabilities and implement a native or MCP adapter behind them; do not encode provider-specific execution logic directly into the system prompt.
+- After any state-changing tool call, verify the resulting state when practical and return a structured success/failure result instead of assuming execution succeeded.
+- When extending this architecture, preserve the existing security contracts and update the nearest AI/router/security documentation and tests together with the implementation.
+
 ## Validation ladder
 
 Use the lowest sufficient level first; each level proves only itself.
