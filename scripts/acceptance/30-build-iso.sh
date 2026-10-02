@@ -44,8 +44,12 @@ mkdir -p "${evidence_dir}" "${output_dir}"
 
 "${repo_root}/scripts/build-iso.sh" --acceptance --output "${output_dir}" |
   tee "${evidence_dir}/build.log"
-iso_path="$(find "${output_dir}" -maxdepth 1 -type f -name '*.iso' -print -quit)"
-[ -n "${iso_path}" ] && [ -s "${iso_path}" ]
+iso_path="$(sed -n 's/^ISO: //p' "${evidence_dir}/build.log" | tail -n 1)"
+case "${iso_path}" in
+  "${output_dir}/"*.iso) ;;
+  *) echo "Build did not report an ISO in ${output_dir}: ${iso_path}" >&2; exit 1 ;;
+esac
+[ -s "${iso_path}" ]
 sha256sum "${iso_path}" | tee "${evidence_dir}/sha256.txt"
 stat -c '%s' "${iso_path}" | tee "${evidence_dir}/size-bytes.txt"
 printf '%s\n' "${iso_path}" >"${evidence_dir}/iso-path.txt"

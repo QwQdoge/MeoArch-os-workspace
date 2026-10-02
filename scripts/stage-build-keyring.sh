@@ -62,7 +62,12 @@ install -m 644 /dev/null "${gpg_home}/gpg.conf"
 
 gpg_args=(gpg --homedir "${gpg_home}" --batch --no-options --no-auto-key-retrieve --auto-key-locate clear)
 "${gpg_args[@]}" --import "${arch_keyring_dir}/archlinux.gpg"
-"${gpg_args[@]}" --import-ownertrust "${arch_keyring_dir}/archlinux-trusted"
+# pacman-key --populate normally local-signs Arch's reviewed master keys.
+# This public-only build seed has no private pacman key, so anchor exactly the
+# fingerprints in Arch's packaged trusted list as ultimate ownertrust. Their
+# certifications then validate packager keys under SigLevel=Required.
+sed 's/:4:/:6:/' "${arch_keyring_dir}/archlinux-trusted" \
+  | "${gpg_args[@]}" --import-ownertrust
 "${gpg_args[@]}" --import "${bootstrap_dir}/meo.gpg"
 "${gpg_args[@]}" --import-ownertrust "${bootstrap_dir}/meo-trusted"
 

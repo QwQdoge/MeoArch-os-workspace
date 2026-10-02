@@ -4,6 +4,7 @@ import QtQuick
 QtObject {
     readonly property bool previewInstalling: Qt.application.arguments.indexOf("--preview-installing") >= 0
     readonly property bool previewComplete: Qt.application.arguments.indexOf("--preview-complete") >= 0
+    readonly property bool previewFailed: Qt.application.arguments.indexOf("--preview-failed") >= 0
     // The mock controller is used only for visual-regression runs, but it
     // must model the same system-language default as the native controller.
     property string uiLanguage: Qt.uiLanguage.toLowerCase().startsWith("zh") ? "zh_CN" : "en"
@@ -31,11 +32,14 @@ QtObject {
     property string hardwareSummary: qsTr("Automatic PCI detection will select graphics drivers.")
     property bool hardwareDetecting: false
     property bool diskDetecting: false
-    property string installationState: previewComplete ? "complete" : previewInstalling ? "running" : "idle"
-    property int installationProgress: previewComplete ? 100 : previewInstalling ? 35 : 0
-    property string installationStage: previewComplete ? "complete" : previewInstalling ? "installing_base" : "idle"
+    property string installationState: previewComplete ? "complete" : previewFailed ? "failed" : previewInstalling ? "running" : "idle"
+    property int installationProgress: previewComplete ? 100 : previewFailed || previewInstalling ? 35 : 0
+    property string installationStage: previewComplete ? "complete" : previewFailed || previewInstalling ? "installing_base" : "idle"
     property string installationMessage: previewComplete ? qsTr("Installation complete.")
+                                                       : previewFailed ? qsTr("Installation stopped in visual preview.")
                                                        : previewInstalling ? qsTr("Installing the base system and packages") : ""
+    property string installationFailureDetails: previewFailed
+                                                ? qsTr("Visual preview of failure recovery. No disk operation was performed.") : ""
     property string preflightState: "ready"
     property string preflightMessage: qsTr("Visual preview only — no installation backend is invoked.")
     property bool readyToInstall: true

@@ -74,6 +74,9 @@ classify() {
     airootfs/etc/pacman.d/gnupg/*)
       printf '%s\t%s\t%s' 'Build trust seed' 'public Arch keyring and ISO Meo bootstrap' 'pacstrap verification only; no private key material'
       ;;
+    pacman.conf)
+      printf '%s\t%s\t%s' 'Build pacman configuration' 'ISO build script' 'disposable public-keyring path for rootless pacstrap only'
+      ;;
     profiledef.sh)
       printf '%s\t%s\t%s' 'Profile version' 'ISO build script' 'timestamped ISO versioning'
       ;;

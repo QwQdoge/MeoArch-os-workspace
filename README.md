@@ -1,5 +1,9 @@
 # MeoArch OS Workspace
 
+Original MeoArch code in this workspace is licensed under [MIT](LICENSE).
+The ArchISO-derived profile and bundled third-party assets retain their
+upstream licenses; see [third-party notices](THIRD_PARTY_NOTICES.md).
+
 This is the MeoArch ISO integration worktree. It owns the ArchISO profile,
 installer, repair tool, ISO-facing configuration, branding assets, and the
 scripts that assemble and validate a candidate image. Shared UI primitives do

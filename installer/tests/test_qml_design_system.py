@@ -77,7 +77,13 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertNotIn("qml6", launcher)
         self.assertNotIn("qmlscene", launcher)
         self.assertIn("native MeoArch Installer host is missing", launcher)
-        self.assertNotIn("Repeater", welcome)
+        # The live status card now uses a bounded repeater for its four
+        # diagnostic rows. Guard the displayed states instead of rejecting
+        # the component that renders them.
+        self.assertIn('Accessible.name: qsTr("Live environment check")', welcome)
+        self.assertIn('"title": qsTr("Environment")', welcome)
+        self.assertIn('"title": qsTr("Network")', welcome)
+        self.assertIn('"title": qsTr("Hardware")', welcome)
         self.assertIn('qsTr("Review first. Nothing changes until you confirm.")', welcome)
         self.assertLess(
             host.index("loadCatalogs(initialUiLanguage);"),

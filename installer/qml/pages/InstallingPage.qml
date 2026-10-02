@@ -30,6 +30,9 @@ PageFrame {
         if (stage === "blocked") return qsTr("Installation blocked")
         return qsTr("Preparing installation")
     }
+    readonly property bool failedBeforeDiskWork: controller
+                                               && (controller.installationStage === "preflight"
+                                                   || controller.installationStage === "preflighting_meo_repository")
     Column {
         width: parent.width
         spacing: page.compactHeight ? page.dp(12) : page.dp(18)
@@ -87,8 +90,11 @@ PageFrame {
             visible: page.controller && page.controller.installationState === "failed"
             width: parent.width
             tone: "warning"
-            title: qsTr("Restart before another installation")
-            message: qsTr("Some disk changes may already have happened. Read the Live diagnostic log, then restart the Live session before another installation attempt. Summary is available for review only.")
+            title: page.failedBeforeDiskWork ? qsTr("No disk changes were made")
+                                             : qsTr("Restart before another installation")
+            message: page.failedBeforeDiskWork
+                     ? qsTr("Package checks stopped before disk preparation. Read the Live diagnostic log, fix the package source, then restart the Live session before another attempt. Summary is available for review only.")
+                     : qsTr("Some disk changes may already have happened. Read the Live diagnostic log, then restart the Live session before another installation attempt. Summary is available for review only.")
         }
     }
 }

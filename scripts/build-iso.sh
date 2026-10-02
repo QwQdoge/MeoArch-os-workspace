@@ -184,6 +184,19 @@ sed -i -e "s/iso_version=\".*\"/iso_version=\"$(date -u +%Y.%m.%d-%H%M%S)\"/g" "
   "${staged_profile}" "${repo_root}/installer/bootstrap" \
   "${log_dir}/build-keyring-provenance.tsv"
 
+# ArchISO's rootless pacstrap runs pacman against the host build namespace.
+# Give that transaction a short, writable copy of the staged public trust
+# ring; the source profile and the installed system keep their normal paths.
+build_gpg_dir="$(mktemp -d /tmp/meo-archiso-build-gpg.XXXXXX)"
+cleanup_build_gpg_dir() {
+  find "${build_gpg_dir}" -mindepth 1 -delete 2>/dev/null || true
+  rmdir "${build_gpg_dir}" 2>/dev/null || true
+}
+trap cleanup_build_gpg_dir EXIT
+cp -a "${staged_profile}/airootfs/etc/pacman.d/gnupg/." "${build_gpg_dir}/"
+chmod 700 "${build_gpg_dir}"
+sed -i "/^\[options\]$/a GPGDir = ${build_gpg_dir}" "${staged_profile}/pacman.conf"
+
 if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
   [ -f "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" ] || {
     echo "Acceptance SSH public key not found: ${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" >&2

@@ -330,9 +330,10 @@ PageFrame {
                 }
                 MeoCheckbox {
                     id: accept
+                    width: parent.width
                     text: page.existingPartitionInstall
-                          ? qsTr("I understand that only %1 will be formatted.").arg(page.selectedRootPath)
-                          : qsTr("I understand that all data on %1 will be erased.").arg(page.selectedDiskDisplay)
+                          ? qsTr("I understand the selected partition will be formatted.")
+                          : qsTr("I understand the selected disk will be erased.")
                     Accessible.description: page.confirmationWarning()
                     onCheckedChanged: page.riskAccepted = checked
                 }

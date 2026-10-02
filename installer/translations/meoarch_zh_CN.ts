@@ -956,6 +956,16 @@
         <translation>再次安装前请重启</translation>
     </message>
     <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="93"/>
+        <source>No disk changes were made</source>
+        <translation>尚未更改磁盘</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="95"/>
+        <source>Package checks stopped before disk preparation. Read the Live diagnostic log, fix the package source, then restart the Live session before another attempt. Summary is available for review only.</source>
+        <translation>软件包检查在准备磁盘前已停止。请查看 Live 诊断日志、修复软件包源，然后重启 Live 会话再试。摘要页面仅供复核。</translation>
+    </message>
+    <message>
         <location filename="../qml/pages/InstallingPage.qml" line="92"/>
         <source>Some disk changes may already have happened. Read the Live diagnostic log, then restart the Live session before another installation attempt. Summary is available for review only.</source>
         <translation>磁盘可能已经发生部分更改。请查看 Live 诊断日志，然后在再次尝试安装前重启 Live 会话。摘要页面仅供复核。</translation>
@@ -2443,13 +2453,13 @@
     </message>
     <message>
         <location filename="../qml/pages/SummaryPage.qml" line="332"/>
-        <source>I understand that only %1 will be formatted.</source>
-        <translation>我了解只会格式化 %1。</translation>
+        <source>I understand the selected partition will be formatted.</source>
+        <translation>我了解所选分区将被格式化。</translation>
     </message>
     <message>
         <location filename="../qml/pages/SummaryPage.qml" line="333"/>
-        <source>I understand that all data on %1 will be erased.</source>
-        <translation>我了解 %1 上的所有数据都会被删除。</translation>
+        <source>I understand the selected disk will be erased.</source>
+        <translation>我了解所选磁盘将被擦除。</translation>
     </message>
     <message>
         <location filename="../qml/pages/SummaryPage.qml" line="342"/>
