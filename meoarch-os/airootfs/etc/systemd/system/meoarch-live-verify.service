@@ -1,0 +1,15 @@
+[Unit]
+Description=Verify and safely repair the MeoArch Live environment
+Wants=NetworkManager.service pacman-init.service
+After=NetworkManager.service pacman-init.service meo-boot-services.service
+Before=meoarch-installer.service graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/meoarch-live-verify
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

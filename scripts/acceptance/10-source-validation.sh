@@ -59,6 +59,9 @@ required=(
   meoarch-os/grub/themes/meoarch/meoarch-sans-bold-24.pf2
   meoarch-os/efiboot/loader/entries/03-archiso-tty-linux.conf
   meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
+  meoarch-os/airootfs/etc/systemd/system/meoarch-live-verify.service
+  meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-live-verify.service
+  meoarch-os/airootfs/usr/local/bin/meoarch-live-verify
   installer/qml/Main.qml
   installer/live-system/CMakeLists.txt
   installer/live-system/meosystemliveplugin.cpp
@@ -240,6 +243,12 @@ grep -q '^RuntimeDirectoryMode=0700$' meoarch-os/airootfs/etc/systemd/system/meo
 grep -q '^ExecStartPre=/usr/bin/usermod -aG audio,seat,tty live$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^ExecStartPre=/usr/bin/install -m 0600 -o root -g root /dev/null /run/meoarch-installer/production-capability$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^WantedBy=graphical.target$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+test -x meoarch-os/airootfs/usr/local/bin/meoarch-live-verify
+test "$(readlink meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-live-verify.service)" = '../meoarch-live-verify.service'
+grep -q '^ExecStart=/usr/local/bin/meoarch-live-verify$' meoarch-os/airootfs/etc/systemd/system/meoarch-live-verify.service
+grep -q 'meoarch-live-verify.service' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q 'systemctl restart NetworkManager.service' meoarch-os/airootfs/usr/local/bin/meoarch-live-verify
+grep -q 'pacman-key --init' meoarch-os/airootfs/usr/local/bin/meoarch-live-verify
 grep -q '/usr/bin/runuser -u live' installer/bin/meoarch-installer-kiosk
 grep -q 'user-runtime-dir@${live_uid}.service' installer/bin/meoarch-installer-kiosk
 grep -q 'subject.user === "live"' repair/data/org.meo.repair-live.rules

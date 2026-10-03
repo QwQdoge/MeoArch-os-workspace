@@ -28,6 +28,7 @@ file_permissions=(
   ["/usr/local/bin/meoarch-installer-kiosk"]="0:0:755"
   ["/usr/local/bin/meoarch-repair-session"]="0:0:755"
   ["/usr/local/bin/meoarch-install"]="0:0:755"
+  ["/usr/local/bin/meoarch-live-verify"]="0:0:755"
   ["/usr/bin/meoarch-repair"]="0:0:755"
   ["/usr/lib/meo-polkit-agent"]="0:0:755"
   ["/usr/lib/meoarch/meo-boot-status"]="0:0:755"

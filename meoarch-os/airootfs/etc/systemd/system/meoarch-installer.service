@@ -4,7 +4,9 @@ Description=MeoArch graphical installer kiosk
 # getty@tty1.service, so systemd never arbitrates a runtime tty conflict
 # between a login prompt and Cage. Networking is requested in parallel.
 After=systemd-user-sessions.service systemd-logind.service seatd.service
-Wants=NetworkManager.service seatd.service
+Wants=NetworkManager.service seatd.service meoarch-live-verify.service
+Requires=meoarch-live-verify.service
+After=meoarch-live-verify.service
 Conflicts=systemd-networkd.service systemd-networkd.socket
 OnFailure=meo-boot-status-failure@meoarch-installer.service
 # A failed Cage/client pair may be restarted a few times for transient GPU or
