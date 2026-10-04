@@ -106,7 +106,7 @@ required=(
 for path in "${required[@]}"; do
   [ -f "${path}" ] || { echo "Missing ${path}" >&2; exit 1; }
 done
-for helper in Installation_guide choose-mirror livecd-sound; do
+for helper in Installation_guide choose-mirror livecd-sound meoarch-live-verify; do
   helper_path="meoarch-os/airootfs/usr/local/bin/${helper}"
   [ -f "${helper_path}" ] || { echo "Missing ArchISO live helper: ${helper_path}" >&2; exit 1; }
   git ls-files --error-unmatch "${helper_path}" >/dev/null || {

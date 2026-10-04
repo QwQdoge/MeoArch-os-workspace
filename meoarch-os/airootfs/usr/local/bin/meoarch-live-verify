@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+set -u -o pipefail
+
+# Validate the Live installation environment before the graphical installer is
+# allowed to start. Only repairs that cannot touch an installed target are
+# automatic here.
+log_file=/run/meoarch/live-verify.log
+mkdir -p "$(dirname -- "${log_file}")"
+exec > >(tee "${log_file}") 2>&1
+
+mode=""
+for argument in $(cat /proc/cmdline 2>/dev/null); do
+  case "${argument}" in
+    meoarch.mode=*) mode="${argument#meoarch.mode=}" ;;
+  esac
+done
+
+if [ "${mode}" != install ]; then
+  echo "Live verification skipped for meoarch.mode=${mode:-unset}."
+  exit 0
+fi
+
+status=0
+finding=0
+required_commands=(pacman pacman-key archinstall python3 curl systemctl)
+required_files=(
+  /usr/local/bin/meoarch-installer
+  /usr/local/bin/meoarch-installer-kiosk
+  /usr/local/bin/meoarch-install
+  /usr/local/bin/meoarch-repair-session
+  /usr/bin/meoarch-repair
+  /opt/meoarch-installer/bin/meoarch-installer-app
+  /opt/meoarch-installer/backend/verify-target.py
+  /usr/lib/meoarch/meo-boot-status
+  /usr/lib/meoarch-repair/checks/all.sh
+  /usr/lib/meoarch-repair/actions/rebuild-initramfs.sh
+)
+
+echo "MeoArch Live verification started."
+for command_name in "${required_commands[@]}"; do
+  if ! command -v "${command_name}" >/dev/null 2>&1; then
+    echo "MEO_FINDING|error|live.command_missing|Required command is missing: ${command_name}"
+    status=1
+    finding=1
+  fi
+done
+for path in "${required_files[@]}"; do
+  if [ ! -e "${path}" ]; then
+    echo "MEO_FINDING|error|live.payload_missing|Required Live payload is missing: ${path}"
+    status=1
+    finding=1
+  fi
+done
+
+# These repairs are confined to the ephemeral Live environment. No installed
+# disk is mounted or changed and no package transaction is attempted.
+if systemctl show --type=service --all --property=NeedDaemonReload --value 2>/dev/null \
+    | grep -qx yes; then
+  echo "Automatic repair: reloading the system service manager."
+  systemctl daemon-reload || {
+    echo "MEO_FINDING|error|live.daemon_reload_failed|systemd daemon-reload failed."
+    status=1
+  }
+fi
+
+if ! systemctl is-active --quiet NetworkManager.service 2>/dev/null; then
+  echo "Automatic repair: restarting NetworkManager."
+  systemctl restart NetworkManager.service || {
+    echo "MEO_FINDING|error|live.network_restart_failed|NetworkManager could not be restarted."
+    status=1
+  }
+fi
+
+if ! timeout 15 pacman-key --list-keys >/dev/null 2>&1; then
+  echo "Automatic repair: initializing the Live package keyring."
+  pacman-key --init && pacman-key --populate || {
+    echo "MEO_FINDING|error|live.keyring_repair_failed|The Live package keyring could not be initialized."
+    status=1
+  }
+fi
+
+if [ "${finding}" -eq 0 ] && [ "${status}" -eq 0 ]; then
+  echo "MEOARCH_LIVE_VERIFY=PASS"
+else
+  echo "MEOARCH_LIVE_VERIFY=FAIL"
+fi
+exit "${status}"

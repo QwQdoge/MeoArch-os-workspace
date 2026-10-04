@@ -25,7 +25,7 @@ fi
 # helpers must always come from the versioned source profile, never from the
 # generated destination (which is intentionally empty before synchronization).
 profile_live_tools="${repo_root}/meoarch-os/airootfs/usr/local/bin"
-required_live_helpers=(Installation_guide choose-mirror livecd-sound)
+required_live_helpers=(Installation_guide choose-mirror livecd-sound meoarch-live-verify)
 installer_dst="${airootfs}/opt/meoarch-installer"
 repair_dst="${airootfs}/usr/lib/meoarch-repair"
 repair_knowledge_dst="${airootfs}/usr/share/meoarch-repair"
