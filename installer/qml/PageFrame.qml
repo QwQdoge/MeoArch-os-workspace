@@ -8,6 +8,7 @@ Item {
     id: frame
 
     property var controller: PreviewController
+    property bool desktopLive: false
     property int pageIndex: 0
     property int pageCount: 12
     property string pageTitle: ""

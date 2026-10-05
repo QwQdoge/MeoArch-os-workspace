@@ -95,6 +95,11 @@ done
 # Default Live desktop and optional Cage must both be present.
 for live_path in \
   etc/plasmalogin.conf \
+  etc/systemd/system/getty@tty2.service.d/20-meoarch-live.conf \
+  etc/systemd/system/getty.target.wants/getty@tty2.service \
+  etc/sysusers.d/20-meoarch-live.conf \
+  usr/lib/meoarch/live-session \
+  usr/share/wayland-sessions/meoarch-live.desktop \
   etc/systemd/system/display-manager.service \
   etc/systemd/system/plasmalogin.service.d/20-meoarch-live.conf \
   etc/xdg/autostart/meoarch-live.desktop \

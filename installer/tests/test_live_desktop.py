@@ -22,6 +22,9 @@ class LiveAuthorizationTests(unittest.TestCase):
     def setUp(self):
         self.facts = 'User=1000\nActive=yes\nRemote=no\nType=wayland\nClass=user\nDesktop=KDE\n'
         self.user = mock.patch.object(module.pwd, 'getpwnam', return_value=SimpleNamespace(pw_uid=1000))
+        self.peer = mock.patch.object(module, 'verify_kwin_endpoint')
+        self.peer.start()
+        self.addCleanup(self.peer.stop)
         self.user.start()
         self.addCleanup(self.user.stop)
 
@@ -96,12 +99,15 @@ class LiveAuthorizationTests(unittest.TestCase):
                 mock.patch.object(module.os, 'open', side_effect=[51, 52]), \
                 mock.patch.object(module.os, 'close'), mock.patch.object(module.fcntl, 'flock'), \
                 mock.patch.object(module.signal, 'signal'), \
+                mock.patch.object(module, 'reclaim_stale_marker') as reclaim, \
                 mock.patch.object(module.os, 'unlink') as unlink, \
                 mock.patch.object(module.subprocess, 'Popen', return_value=child) as launch:
             self.assertEqual(module.main(), 137)
         args = launch.call_args.args[0]
         self.assertEqual(args, ['/usr/local/bin/meoarch-installer', '--production',
             '--enable-real-install', '--enable-system-actions', '--', '--desktop-live'])
+        self.assertEqual(launch.call_args.kwargs['pass_fds'], (51,))
+        reclaim.assert_called_once_with(50, 'production-capability')
         environment = launch.call_args.kwargs['env']
         for name in poison.keys() - {'PKEXEC_UID'}:
             self.assertNotIn(name, environment)
@@ -109,6 +115,62 @@ class LiveAuthorizationTests(unittest.TestCase):
         self.assertEqual(environment['XDG_RUNTIME_DIR'], '/run/meoarch-installer')
         self.assertEqual(environment['MEOARCH_INSTALLER_STATE_DIR'], '/run/meoarch-installer/state')
         unlink.assert_called_once_with('production-capability', dir_fd=50)
+
+    def test_valid_stale_marker_reclaimed_but_unsafe_objects_preserved(self):
+        good = dict(st_mode=stat.S_IFREG | 0o600, st_uid=0, st_gid=0, st_nlink=1, st_size=0)
+        with mock.patch.object(module.os, 'stat', return_value=SimpleNamespace(**good)), \
+                mock.patch.object(module.os, 'unlink') as unlink:
+            module.reclaim_stale_marker(50, 'production-capability')
+            unlink.assert_called_once_with('production-capability', dir_fd=50)
+        for changes in ({'st_mode': stat.S_IFLNK | 0o600}, {'st_uid': 1000},
+                        {'st_gid': 1000}, {'st_nlink': 2}, {'st_size': 1},
+                        {'st_mode': stat.S_IFREG | 0o644}):
+            with self.subTest(changes=changes), mock.patch.object(module.os, 'stat',
+                    return_value=SimpleNamespace(**(good | changes))), \
+                    mock.patch.object(module.os, 'unlink') as unlink:
+                with self.assertRaises(ValueError):
+                    module.reclaim_stale_marker(50, 'production-capability')
+                unlink.assert_not_called()
+
+    def test_child_inherits_lock_after_launcher_death(self):
+        # Real kernel flock lifetime across exec/parent death; no privileged
+        # session or Installer process is involved in this regression test.
+        import fcntl
+        import os
+        import sys
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'lock'
+            parent_code = """import fcntl, os, subprocess, sys
+fd = os.open(sys.argv[1], os.O_CREAT | os.O_RDWR, 0o600)
+fcntl.flock(fd, fcntl.LOCK_EX)
+p = subprocess.Popen([sys.executable, '-c', 'import sys; sys.stdin.buffer.read(1)'], pass_fds=(fd,))
+print(p.pid, flush=True)
+os._exit(0)
+"""
+            parent = subprocess.Popen([sys.executable, '-c', parent_code, str(path)],
+                                      stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            self.assertTrue(parent.stdout.readline().strip().isdigit())
+            parent.wait(timeout=5)
+            contender = os.open(path, os.O_RDWR)
+            try:
+                with self.assertRaises(BlockingIOError):
+                    fcntl.flock(contender, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                parent.stdin.write(b'x')
+                parent.stdin.flush()
+                import time
+                deadline = time.monotonic() + 5
+                while True:
+                    try:
+                        fcntl.flock(contender, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        break
+                    except BlockingIOError:
+                        if time.monotonic() >= deadline:
+                            self.fail('Inherited lock did not release on child exit')
+                        time.sleep(0.01)
+            finally:
+                os.close(contender)
+                parent.stdin.close()
+                parent.stdout.close()
 
     def test_extra_flags_and_direct_root_launch_are_rejected(self):
         for args, env in ((['helper', '3', 'wayland-0', '--preview'], {'PKEXEC_UID': '1000'}),
@@ -118,6 +180,32 @@ class LiveAuthorizationTests(unittest.TestCase):
                     mock.patch.object(module.os, 'geteuid', return_value=0):
                 with self.assertRaises(ValueError):
                     module.main()
+
+
+class KWinEndpointTests(unittest.TestCase):
+    def test_substituted_compositor_rejected_even_for_live_owned_socket(self):
+        import struct
+        endpoint = Path('/run/user/1000/wayland-0')
+        connection = mock.MagicMock()
+        connection.__enter__.return_value = connection
+        connection.getsockopt.return_value = struct.pack('3i', 1234, 1000, 1000)
+        for exe, bus_pid, cgroup, okay in (
+            ('/usr/bin/python3', 'u 1234', '/user.slice/user-1000.slice/user@1000.service', False),
+            ('/usr/bin/kwin_wayland', 'u 9999', '/user.slice/user-1000.slice/user@1000.service', False),
+            ('/usr/bin/kwin_wayland', 'u 1234', '/system.slice/fake.service', False),
+            ('/usr/bin/kwin_wayland', 'u 1234', '/user.slice/user-1000.slice/user@1000.service/session.slice/kwin.service', True),
+        ):
+            with self.subTest(exe=exe, bus_pid=bus_pid, cgroup=cgroup), \
+                    mock.patch.object(module.socket, 'socket', return_value=connection), \
+                    mock.patch.object(Path, 'resolve', return_value=Path(exe)), \
+                    mock.patch.object(Path, 'stat', return_value=SimpleNamespace(st_uid=0, st_mode=0o755)), \
+                    mock.patch.object(Path, 'read_text', return_value='0::' + cgroup), \
+                    mock.patch.object(module.subprocess, 'run', return_value=SimpleNamespace(stdout=bus_pid)):
+                if okay:
+                    module.verify_kwin_endpoint(endpoint, 1000)
+                else:
+                    with self.assertRaises(ValueError):
+                        module.verify_kwin_endpoint(endpoint, 1000)
 
 
 class LiveDesktopContractTests(unittest.TestCase):
@@ -133,17 +221,23 @@ class LiveDesktopContractTests(unittest.TestCase):
         self.assertIn('ConditionKernelCommandLine=meoarch.session=cage',
                       (profile / 'meoarch-installer.service').read_text())
         config = self.read('meoarch-os/airootfs/etc/plasmalogin.conf')
-        for line in ('[Autologin]', 'User=live', 'Session=plasma.desktop', 'Relogin=true'):
+        for line in ('[Autologin]', 'User=live', 'Session=meoarch-live.desktop', 'Relogin=true'):
             self.assertIn(line, config)
 
     def test_autostart_cannot_own_or_restart_plasma(self):
         service = self.read('installer/data/systemd/user/meoarch-live-app.service')
         self.assertIn('Restart=no', service)
-        self.assertIn('RemainAfterExit=yes', service)
+        self.assertIn('Type=exec', service)
+        self.assertNotIn('RemainAfterExit', service)
+        self.assertNotIn('TimeoutStartSec=infinity', service)
+        self.assertNotIn('plasmashell', service)
         self.assertNotIn('Requires=', service)
         self.assertNotIn('BindsTo=', service)
         launcher = self.read('installer/bin/meoarch-installer-live')
-        self.assertIn('org.kde.plasmashell', launcher)
+        self.assertIn('org.kde.KWin', launcher)
+        self.assertNotIn('org.kde.plasmashell', launcher)
+        self.assertNotIn('XDG_RUNTIME_DIR:?', launcher)
+        self.assertNotIn('WAYLAND_DISPLAY:?}/${', launcher)
         self.assertIn('attempt<60', launcher)
         self.assertNotIn('network-online.target', launcher)
         autostart = self.read('installer/data/autostart/meoarch-live.desktop')
@@ -158,6 +252,8 @@ class LiveDesktopContractTests(unittest.TestCase):
         self.assertEqual([a.get('id') for a in actions], ['org.meo.installer.live.launch'])
         self.assertEqual(actions[0].find("annotate[@key='org.freedesktop.policykit.exec.path']").text,
                          '/usr/lib/meoarch/live-installer-authorize')
+        for tag in ('allow_any', 'allow_inactive', 'allow_active'):
+            self.assertEqual(actions[0].find(f'defaults/{tag}').text, 'no')
         rules = self.read('installer/data/org.meo.installer-live.rules')
         for condition in ('subject.user === "live"', 'subject.local === true',
                           'subject.active === true', 'action.lookup("user") === "root"'):

@@ -11,6 +11,8 @@ import pwd
 import re
 import signal
 import stat
+import socket
+import struct
 import subprocess
 import sys
 
@@ -48,7 +50,54 @@ def session_context(session_id, display, caller_uid, cmdline, live_media=True):
     metadata = socket_path.lstat()
     if not stat.S_ISSOCK(metadata.st_mode) or metadata.st_uid != caller_uid:
         raise ValueError('The Wayland endpoint is not a Live-owned socket')
+    verify_kwin_endpoint(socket_path, caller_uid)
     return socket_path
+
+
+def verify_kwin_endpoint(endpoint, uid):
+    """Bind the endpoint to the authenticated, canonical KWin bus owner.
+
+    This narrows endpoint substitution; the privileged Qt UI still shares a
+    trust boundary with the Live user's compositor (rootless UI is future work).
+    """
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+        connection.settimeout(2)
+        connection.connect(str(endpoint))
+        pid, peer_uid, _gid = struct.unpack('3i', connection.getsockopt(
+            socket.SOL_SOCKET, socket.SO_PEERCRED, struct.calcsize('3i')))
+    if peer_uid != uid or pid <= 0:
+        raise ValueError('Unexpected Wayland peer identity')
+    executable = Path(f'/proc/{pid}/exe').resolve(strict=True)
+    if executable != Path('/usr/bin/kwin_wayland'):
+        raise ValueError('Wayland listener is not KWin')
+    metadata = executable.stat()
+    if metadata.st_uid != 0 or metadata.st_mode & 0o022:
+        raise ValueError('Untrusted KWin executable')
+    cgroups = Path(f'/proc/{pid}/cgroup').read_text().splitlines()
+    if not any(f'/user.slice/user-{uid}.slice/' in line for line in cgroups):
+        raise ValueError('KWin is outside the Live user cgroup')
+    result = subprocess.run(
+        ['/usr/bin/runuser', '-u', 'live', '--', '/usr/bin/busctl',
+         f'--address=unix:path=/run/user/{uid}/bus', 'call',
+         'org.freedesktop.DBus', '/org/freedesktop/DBus',
+         'org.freedesktop.DBus', 'GetConnectionUnixProcessID', 's', 'org.kde.KWin'],
+        check=True, capture_output=True, text=True, timeout=5, env=BASE_ENV)
+    if result.stdout.strip() != f'u {pid}':
+        raise ValueError('Wayland listener is not the session KWin bus owner')
+
+
+def reclaim_stale_marker(directory, marker):
+    # Caller must already own the exclusive desktop lock. The child inherits
+    # that lock, so a live child prevents this reclamation even if we were killed.
+    try:
+        metadata = os.stat(marker, dir_fd=directory, follow_symlinks=False)
+    except FileNotFoundError:
+        return
+    if (not stat.S_ISREG(metadata.st_mode) or metadata.st_uid != 0
+            or metadata.st_gid != 0 or stat.S_IMODE(metadata.st_mode) != 0o600
+            or metadata.st_nlink != 1 or metadata.st_size != 0):
+        raise ValueError('Unsafe stale production capability')
+    os.unlink(marker, dir_fd=directory)
 
 
 def private_runtime():
@@ -86,8 +135,7 @@ def main():
     created_marker = False
     old_handlers = {}
     try:
-        # This directory is root-only. Reject stale/unexpected markers rather
-        # than following or overwriting any existing file.
+        reclaim_stale_marker(directory, marker)
         fd = os.open(marker, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW,
                      0o600, dir_fd=directory)
         os.close(fd)
@@ -109,7 +157,7 @@ def main():
         child = subprocess.Popen(
             ['/usr/local/bin/meoarch-installer', '--production', '--enable-real-install',
              '--enable-system-actions', '--', '--desktop-live'],
-            env=environment, cwd='/root')
+            env=environment, cwd='/root', pass_fds=(lock,))
         return_code = child.wait()
         return return_code if return_code >= 0 else 128 - return_code
     finally:

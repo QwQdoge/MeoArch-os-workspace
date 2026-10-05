@@ -23,6 +23,7 @@ file_permissions=(
   ["/etc/meoarch/account.env"]="0:0:600"
   ["/home/live"]="1000:1000:750"
   ["/usr/local/bin/meoarch-installer-live"]="0:0:755"
+  ["/usr/lib/meoarch/live-session"]="0:0:755"
   ["/usr/lib/meoarch/live-installer-authorize"]="0:0:755"
   ["/root"]="0:0:750"
   ["/root/.automated_script.sh"]="0:0:755"

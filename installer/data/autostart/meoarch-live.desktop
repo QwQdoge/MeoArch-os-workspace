@@ -3,5 +3,5 @@ Type=Application
 Name=MeoArch Live Setup
 Exec=/usr/local/bin/meoarch-installer-live --autostart
 OnlyShowIn=KDE;
-X-KDE-autostart-phase=2
+X-KDE-autostart-phase=0
 NoDisplay=true

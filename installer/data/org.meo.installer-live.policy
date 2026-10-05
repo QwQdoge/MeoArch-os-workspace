@@ -4,7 +4,7 @@
   <action id="org.meo.installer.live.launch">
     <description>Open the MeoArch Live Installer</description>
     <message>Authorization is required to open the Live installation controller.</message>
-    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>auth_admin</allow_active></defaults>
+    <defaults><allow_any>no</allow_any><allow_inactive>no</allow_inactive><allow_active>no</allow_active></defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/meoarch/live-installer-authorize</annotate>
   </action>
 </policyconfig>

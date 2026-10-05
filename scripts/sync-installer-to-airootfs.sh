@@ -277,6 +277,10 @@ install -Dm644 "${desktop_dst}/wallpaper/installer_background.png" \
   "${airootfs}/usr/share/wallpapers/MeoArch/installer_background.png"
 install -Dm644 "${desktop_dst}/branding/Logo.svg" \
   "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg"
+install -Dm755 "${installer_src}/bin/meoarch-live-session" \
+  "${airootfs}/usr/lib/meoarch/live-session"
+install -Dm644 "${installer_src}/data/wayland-sessions/meoarch-live.desktop" \
+  "${airootfs}/usr/share/wayland-sessions/meoarch-live.desktop"
 install -Dm755 "${installer_src}/bin/meoarch-installer-live" \
   "${airootfs}/usr/local/bin/meoarch-installer-live"
 install -Dm755 "${installer_src}/bin/meoarch-live-installer-authorize" \

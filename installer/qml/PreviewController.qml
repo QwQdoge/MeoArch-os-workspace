@@ -162,6 +162,9 @@ QtObject {
     function prepareInstallation() { preflightState = "ready"; preflightMessage = qsTr("Visual preview only — no installation backend is invoked.") }
     function confirmSummary() {}
     function startInstallation() { installationState = "complete"; installationProgress = 100; installationStage = "complete"; installationMessage = qsTr("Visual preview complete.") }
+    function installationLogPath() { return "/tmp/meoarch-installer/logs/install.log" }
+    function installationLogDetails() { return qsTr("Visual preview only — no installation log is written.") }
+    function openLiveRepair() { errorMessage = qsTr("Quick Repair launch is disabled in preview mode.") }
     function requestRestart() { errorMessage = qsTr("Restart is disabled in preview mode.") }
     function requestShutdown() { errorMessage = qsTr("Shut down is disabled in preview mode.") }
 }

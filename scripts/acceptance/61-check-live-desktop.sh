@@ -21,6 +21,7 @@ session="$(loginctl show-user live --property=Display --value)"
 [ "$(loginctl show-session "${session}" --property=Active --value)" = yes ]
 systemctl is-active --quiet plasmalogin.service
 systemctl is-active --quiet NetworkManager.service
+systemctl is-active --quiet getty@tty2.service
 ! systemctl is-active --quiet meoarch-installer.service
 shell_pid="$(pgrep -u live -x plasmashell)"
 kwin_pid="$(pgrep -u live -x kwin_wayland)"
@@ -64,4 +65,4 @@ pgrep -u live -x konsole >/dev/null
 pgrep -u live -f '^/usr/bin/meoarch-repair( |$)' >/dev/null
 "${user_env[@]}" busctl --user status org.kde.KWin >/dev/null
 printf '%s\n' 'PASS: Live Plasma session and desktop recovery processes remain available.'
-printf '%s\n' 'Still required: screenshots, fullscreen/normal-close/reopen, offline boot, network reconnect and Cage/TTY boots.'
+printf '%s\n' 'Still required: Alt+F4/exit rejection during disk installation; helper SIGKILL/reopen; session crash/safe-mode and failed autologin/TTY2; QML failure escape; failure log/repair/restart; screenshots, fullscreen/normal-close/reopen, offline boot, network reconnect and Cage/TTY boots.'

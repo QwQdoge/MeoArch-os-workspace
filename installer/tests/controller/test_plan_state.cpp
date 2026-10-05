@@ -61,6 +61,28 @@ else:
     }
 
 private slots:
+    void privateStateDirectoryIsUsedForBackendAndBoundedLogs()
+    {
+        QTemporaryDir fixture(QStringLiteral("/tmp/meo-controller-XXXXXX"));
+        configureFixture(fixture);
+        writeReadyBackend(fixture.path());
+        const QString state = fixture.path() + QStringLiteral("/private-state");
+        qputenv("MEOARCH_INSTALLER_STATE_DIR", state.toUtf8());
+        {
+            InstallerController controller({QStringLiteral("--production"), QStringLiteral("--enable-real-install")});
+            prepareReady(controller);
+            controller.confirmSummary();
+            QVERIFY(QFileInfo::exists(state + QStringLiteral("/summary_confirmed")));
+            QVERIFY(QFileInfo::exists(state + QStringLiteral("/generated/install-plan.json")));
+            QCOMPARE(controller.installationLogPath(), state + QStringLiteral("/logs/install.log"));
+            write(controller.installationLogPath(), QByteArray(70 * 1024, 'x') + "\nlast diagnostic\n");
+            const QString details = controller.installationLogDetails();
+            QCOMPARE(details.size(), 64 * 1024);
+            QVERIFY(details.endsWith(QStringLiteral("last diagnostic\n")));
+        }
+        qunsetenv("MEOARCH_INSTALLER_STATE_DIR");
+    }
+
     void javascriptSoftwareArraysAreMaterializedBeforeJsonPersistence()
     {
         InstallerController controller({});

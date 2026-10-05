@@ -1,10 +1,12 @@
 import QtQuick
+import QtQuick.Controls
 import MeoUI 1.0
 import ".."
 import "../components"
 
 PageFrame {
     id: page
+    property string logDetails: ""
     showBackButton: false
     showPrimaryButton: controller && (controller.installationState === "complete"
                                       || controller.installationState === "failed")
@@ -66,7 +68,37 @@ PageFrame {
                     MeoText { text: page.stageLabel(page.controller ? page.controller.installationStage : ""); typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface }
                 }
                 MeoText { width: parent.width; text: page.controller && page.controller.installationMessage.length ? page.controller.installationMessage : qsTr("Structured installation events will appear here."); wrapMode: Text.WordWrap; typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant }
-                MeoText { width: parent.width; text: qsTr("Live diagnostic log: /tmp/meoarch-installer/logs/install.log"); typeRole: "body"; typeSize: "small"; color: MeoTheme.outline }
+                MeoText { width: parent.width; text: qsTr("Live diagnostic log: %1").arg(page.controller && !page.controller.visualPreview && typeof page.controller.installationLogPath === "function" ? page.controller.installationLogPath() : "/tmp/meoarch-installer/logs/install.log"); typeRole: "body"; typeSize: "small"; color: MeoTheme.outline }
+            }
+        }
+        Flow {
+            visible: page.controller && page.controller.installationState === "failed"
+            width: parent.width
+            spacing: page.dp(12)
+            MeoButton {
+                text: qsTr("View details")
+                onClicked: {
+                    page.logDetails = page.controller.installationLogDetails()
+                    logPopup.open()
+                }
+            }
+            MeoButton {
+                visible: page.desktopLive
+                text: qsTr("Return to Live Desktop")
+                onClicked: page.exitRequested()
+            }
+            MeoButton {
+                visible: page.desktopLive
+                text: qsTr("Open Quick Repair")
+                onClicked: page.controller.openLiveRepair()
+            }
+            MeoHoldToConfirm {
+                width: page.dp(260)
+                confirmationText: qsTr("Hold to restart Live Environment")
+                holdingText: qsTr("Keep holding to restart…")
+                holdDuration: 1200
+                iconName: "restart_alt"
+                onConfirmed: page.controller.requestRestart()
             }
         }
         InfoBanner {
@@ -90,6 +122,31 @@ PageFrame {
             tone: "warning"
             title: qsTr("Restart before another installation")
             message: qsTr("Some disk changes may already have happened. Read the Live diagnostic log, then restart the Live session before another installation attempt. Summary is available for review only.")
+        }
+    }
+    MeoMotionPopup {
+        id: logPopup
+        parent: page
+        presentation: MeoMotionPopup.Dialog
+        width: Math.min(page.width - page.dp(48), page.dp(900))
+        height: Math.min(page.height - page.dp(48), page.dp(600))
+        x: (page.width - width) / 2
+        y: (page.height - height) / 2
+        contentItem: Column {
+            spacing: page.dp(12)
+            MeoButton { text: qsTr("Close details"); onClicked: logPopup.close() }
+            ScrollView {
+                width: parent.width
+                height: parent.height - page.dp(60)
+                TextArea {
+                    text: page.logDetails
+                    textFormat: TextEdit.PlainText
+                    readOnly: true
+                    selectByMouse: true
+                    wrapMode: TextEdit.Wrap
+                    color: MeoTheme.contentOnSurface
+                }
+            }
         }
     }
 }

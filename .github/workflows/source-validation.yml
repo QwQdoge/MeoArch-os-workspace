@@ -40,6 +40,9 @@ jobs:
       - name: Check release product identity
         run: python scripts/check-product-identity.py
 
+      - name: Compile isolated Live entrypoints
+        run: python -c "import py_compile; [py_compile.compile(p, doraise=True) for p in ('installer/bin/meoarch-live-session', 'installer/bin/meoarch-live-installer-authorize')]"
+
       - name: Run installer contracts
         run: python -m unittest discover -s installer/tests -p 'test_*.py' -v
 
@@ -62,3 +65,4 @@ jobs:
           bash -n scripts/acceptance/10-source-validation.sh
           bash -n scripts/acceptance/40-inspect-iso.sh
           bash -n scripts/acceptance/61-check-live-desktop.sh
+          bash -n scripts/acceptance/62-check-live-recovery.sh

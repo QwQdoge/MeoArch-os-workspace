@@ -61,6 +61,8 @@ required=(
   meoarch-os/airootfs/etc/systemd/system/plasmalogin.service.d/20-meoarch-live.conf
   installer/bin/meoarch-installer-live
   installer/bin/meoarch-live-installer-authorize
+  installer/bin/meoarch-live-session
+  installer/data/wayland-sessions/meoarch-live.desktop
   installer/data/systemd/user/meoarch-live-app.service
   installer/data/org.meo.installer-live.policy
   installer/data/org.meo.installer-live.rules
@@ -280,7 +282,7 @@ done
 grep -q '^ConditionKernelCommandLine=meoarch.session=cage$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^ConditionKernelCommandLine=!meoarch.session=cage$' meoarch-os/airootfs/etc/systemd/system/plasmalogin.service.d/20-meoarch-live.conf
 grep -q '^User=live$' meoarch-os/airootfs/etc/plasmalogin.conf
-grep -q '^Session=plasma.desktop$' meoarch-os/airootfs/etc/plasmalogin.conf
+grep -q '^Session=meoarch-live.desktop$' meoarch-os/airootfs/etc/plasmalogin.conf
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/display-manager.service)" = '/usr/lib/systemd/system/plasmalogin.service'
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
 ! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
