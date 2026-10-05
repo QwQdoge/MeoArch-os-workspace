@@ -6,6 +6,11 @@ scripts that assemble and validate a candidate image. Shared UI primitives do
 not belong here: reusable QML belongs in the sibling MeoUI project, while
 Plasma-specific integration belongs in MeoKDE.
 
+Across the project, **MEO = Modern · Expressive · Open**. It is the shared brand
+idea behind MeoArch and its related components: modern in interaction and
+presentation, expressive in motion and visual language, and open in its Linux
+foundation and user control.
+
 
 ## Install Meo Desktop on an existing Arch system
 
