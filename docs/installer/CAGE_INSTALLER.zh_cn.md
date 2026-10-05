@@ -1,3 +1,5 @@
+> 默认 Live 会话已改为 Plasma Wayland。以下说明仅适用于显式选择的 `meoarch.session=cage` fallback；主启动与权限契约见 [LIVE_DESKTOP.md](LIVE_DESKTOP.md)。
+
 # Cage 安装器运行时
 
 本文档说明 MeoArch 安装器规格如何映射到当前 Live ISO 运行时。产品流程和 UX 规则见 `INSTALLER_SPEC.zh_cn.md`。

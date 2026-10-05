@@ -10,7 +10,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-RUN_STATE_FILE = Path("/run/meoarch/boot-status.json")
+RUN_STATE_FILE = (Path("/run/meoarch/boot-status.json") if os.geteuid() == 0
+                  else Path(f"/run/user/{os.geteuid()}/meoarch-boot-status.json"))
 # Plymouth is a presentation layer, not a boot dependency.  In particular, a
 # stalled Plymouth daemon/socket must never hold a systemd boot milestone (and
 # therefore the Live installer) hostage.
@@ -37,9 +38,13 @@ STAGES = {
         "progress": 68,
         "message": "Starting system background services...",
     },
+    "desktop-ready": {
+        "progress": 100,
+        "message": "MeoArch Live Desktop is ready.",
+    },
     "installer": {
         "progress": 95,
-        "message": "Starting MeoArch Kiosk Installer...",
+        "message": "Starting MeoArch Installer...",
     },
     "ready": {
         "progress": 100,
@@ -116,7 +121,7 @@ def handle_stage(stage_id):
     }
     record_state(state)
 
-    if stage_id == "ready":
+    if stage_id in ("ready", "desktop-ready"):
         # Quit plymouth cleanly on ready
         run_plymouth_cmd("quit")
 

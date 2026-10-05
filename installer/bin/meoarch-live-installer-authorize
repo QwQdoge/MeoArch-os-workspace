@@ -1,0 +1,129 @@
+#!/usr/bin/python3 -I
+"""ISO-only, fixed production Installer launch; never a generic root executor.
+
+Keep the existing root controller/backend boundary. Desktop and diagnostics
+remain unprivileged. Every input from the desktop is revalidated here.
+"""
+import fcntl
+import os
+from pathlib import Path
+import pwd
+import re
+import signal
+import stat
+import subprocess
+import sys
+
+RUNTIME = Path('/run/meoarch-installer')
+BASE_ENV = {'PATH': '/usr/bin:/usr/local/bin', 'LANG': 'C.UTF-8', 'HOME': '/root',
+            'USER': 'root', 'LOGNAME': 'root'}
+
+
+def session_context(session_id, display, caller_uid, cmdline, live_media=True):
+    """Validate immutable logind facts and the bounded compositor endpoint."""
+    if not live_media or caller_uid != pwd.getpwnam('live').pw_uid:
+        raise ValueError('Only the Live media user may launch this controller')
+    options = dict(token.split('=', 1) for token in cmdline.split() if '=' in token)
+    if options.get('meoarch.mode', 'install') != 'install' or options.get('meoarch.session', 'plasma') != 'plasma':
+        raise ValueError('Production desktop installation is disabled in this boot mode')
+    if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}', session_id):
+        raise ValueError('Invalid login session')
+    if not re.fullmatch(r'wayland-[0-9]{1,4}', display):
+        raise ValueError('Invalid Wayland socket name')
+    result = subprocess.run(
+        ['/usr/bin/loginctl', 'show-session', session_id, '--no-pager',
+         '--property=User,Active,Remote,Type,Class,Desktop'],
+        check=True, capture_output=True, text=True, timeout=5, env=BASE_ENV)
+    facts = dict(line.split('=', 1) for line in result.stdout.splitlines() if '=' in line)
+    if (facts.get('User') != str(caller_uid) or facts.get('Active') != 'yes'
+            or facts.get('Remote') != 'no' or facts.get('Type') != 'wayland'
+            or facts.get('Class') != 'user'
+            or 'KDE' not in facts.get('Desktop', '').split(':')):
+        raise ValueError('An active local Live Plasma session is required')
+    user_runtime = Path('/run/user') / str(caller_uid)
+    metadata = user_runtime.lstat()
+    if not stat.S_ISDIR(metadata.st_mode) or metadata.st_uid != caller_uid or metadata.st_mode & 0o077:
+        raise ValueError('Unsafe user runtime directory')
+    socket_path = user_runtime / display
+    metadata = socket_path.lstat()
+    if not stat.S_ISSOCK(metadata.st_mode) or metadata.st_uid != caller_uid:
+        raise ValueError('The Wayland endpoint is not a Live-owned socket')
+    return socket_path
+
+
+def private_runtime():
+    RUNTIME.mkdir(mode=0o700, exist_ok=True)
+    metadata = RUNTIME.lstat()
+    if (not stat.S_ISDIR(metadata.st_mode) or metadata.st_uid != 0
+            or metadata.st_gid != 0 or stat.S_IMODE(metadata.st_mode) != 0o700):
+        raise ValueError('Unsafe production runtime directory')
+    return os.open(RUNTIME, os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC)
+
+
+def main():
+    # pkexec supplies the caller UID. Direct root invocation, extra application
+    # flags, caller-selected roots/import paths and environment inheritance are
+    # intentionally unsupported.
+    if os.geteuid() != 0 or len(sys.argv) != 3:
+        raise ValueError('Use the authorized Live desktop entrypoint')
+    caller = os.environ.get('PKEXEC_UID', '')
+    if not caller.isdecimal():
+        raise ValueError('Missing PolicyKit caller identity')
+    endpoint = session_context(sys.argv[1], sys.argv[2], int(caller),
+                               Path('/proc/cmdline').read_text(), Path('/run/archiso').is_dir())
+    directory = private_runtime()
+    lock = os.open('desktop.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW | os.O_CLOEXEC,
+                   0o600, dir_fd=directory)
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        os.close(lock)
+        os.close(directory)
+        print('The Live Installer is already running.', file=sys.stderr)
+        return 0
+    marker = 'production-capability'
+    child = None
+    created_marker = False
+    old_handlers = {}
+    try:
+        # This directory is root-only. Reject stale/unexpected markers rather
+        # than following or overwriting any existing file.
+        fd = os.open(marker, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW,
+                     0o600, dir_fd=directory)
+        os.close(fd)
+        created_marker = True
+        environment = dict(BASE_ENV, QT_QPA_PLATFORM='wayland',
+                           WAYLAND_DISPLAY=str(endpoint), XDG_RUNTIME_DIR=str(RUNTIME),
+                           XDG_SESSION_TYPE='wayland', XDG_CURRENT_DESKTOP='KDE',
+                           XKB_DEFAULT_LAYOUT='us', QT_STYLE_OVERRIDE='Meo',
+                           MEO_UI_QML_IMPORT_PATH='/usr/lib/qt6/qml',
+                           MEOARCH_INSTALLER_STATE_DIR=str(RUNTIME / 'state'))
+        # Never connect the privileged controller to a user-controlled session
+        # D-Bus bus or user-owned Qt/QML search paths. System network APIs remain
+        # available on the system bus; Plasma owns desktop/session services.
+        def stop(signum, _frame):
+            if child is not None and child.poll() is None:
+                child.send_signal(signum)
+        for signum in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+            old_handlers[signum] = signal.signal(signum, stop)
+        child = subprocess.Popen(
+            ['/usr/local/bin/meoarch-installer', '--production', '--enable-real-install',
+             '--enable-system-actions', '--', '--desktop-live'],
+            env=environment, cwd='/root')
+        return_code = child.wait()
+        return return_code if return_code >= 0 else 128 - return_code
+    finally:
+        if created_marker:
+            os.unlink(marker, dir_fd=directory)
+        for signum, handler in old_handlers.items():
+            signal.signal(signum, handler)
+        os.close(lock)
+        os.close(directory)
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print(f'Live Installer launch rejected: {error}', file=sys.stderr)
+        sys.exit(126)

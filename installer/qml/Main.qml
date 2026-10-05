@@ -7,11 +7,13 @@ Window {
     id: root
     required property var installerController
     property bool visualPreview: false
+    property bool desktopLive: false
     property int initialPage: 0
     width: 1440
     height: 900
     minimumWidth: 960
     minimumHeight: 600
+    visibility: root.desktopLive ? Window.FullScreen : Window.AutomaticVisibility
     visible: true
     color: MeoTheme.windowBg
     title: qsTr("Meo Installer")

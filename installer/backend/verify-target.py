@@ -67,6 +67,13 @@ FORBIDDEN_LIVE_INSTALLER_PATHS = (
     "etc/systemd/system/graphical.target.wants/meoarch-installer.service",
     "usr/local/bin/meoarch-installer",
     "usr/local/bin/meoarch-installer-kiosk",
+    "usr/local/bin/meoarch-installer-live",
+    "usr/lib/meoarch/live-installer-authorize",
+    "usr/lib/systemd/user/meoarch-live-app.service",
+    "etc/xdg/autostart/meoarch-live.desktop",
+    "usr/share/applications/org.meo.installer-live.desktop",
+    "usr/share/polkit-1/actions/org.meo.installer-live.policy",
+    "usr/share/polkit-1/rules.d/49-meoarch-live-installer.rules",
 )
 
 

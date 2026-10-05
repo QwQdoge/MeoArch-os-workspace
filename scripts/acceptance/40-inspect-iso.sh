@@ -89,35 +89,37 @@ for path in \
 done
 grep -q 'opt/meo-desktop/themes/look-and-feel/org.meo.desktop/metadata.json' \
   "${evidence_dir}/airootfs-files.txt"
-for package in alsa-utils cage networkmanager qtkeychain-qt6 lynis noto-fonts pipewire-audio pipewire-pulse wireplumber polkit-qt6; do
+for package in plasma-desktop plasma-workspace plasma-login-manager kwin konsole plasma-nm plasma-pa alsa-utils cage networkmanager qtkeychain-qt6 lynis noto-fonts pipewire-audio pipewire-pulse wireplumber polkit-qt6; do
   grep -q "^${package} " "${evidence_dir}/packages.txt"
 done
-# The Cage Live session deliberately excludes Plasma Desktop, its login manager,
-# Workspace, and KWin.  Time-zone selection uses the installer's searchable
-# offline list and does not require the Plasma Workspace map module.
-for excluded_package in plasma-desktop plasma-login-manager plasma-workspace sddm kwin; do
-  if grep -q "^${excluded_package} " "${evidence_dir}/packages.txt"; then
-    echo "Cage-only Live ISO unexpectedly includes ${excluded_package}." >&2
-    exit 1
-  fi
+# Default Live desktop and optional Cage must both be present.
+for live_path in \
+  etc/plasmalogin.conf \
+  etc/systemd/system/display-manager.service \
+  etc/systemd/system/plasmalogin.service.d/20-meoarch-live.conf \
+  etc/xdg/autostart/meoarch-live.desktop \
+  usr/local/bin/meoarch-installer-live \
+  usr/lib/meoarch/live-installer-authorize \
+  usr/lib/systemd/user/meoarch-live-app.service \
+  usr/share/polkit-1/actions/org.meo.installer-live.policy \
+  usr/share/polkit-1/rules.d/49-meoarch-live-installer.rules \
+  usr/share/plasma/look-and-feel/org.meo.desktop/metadata.json \
+  opt/meoarch-installer/live-qml/Meo/System/libmeosystemplugin.so; do
+  grep -q "${live_path}" "${evidence_dir}/airootfs-files.txt"
 done
+grep -q 'etc/systemd/system/display-manager.service -> /usr/lib/systemd/system/plasmalogin.service' \
+  "${evidence_dir}/airootfs-files.txt"
 grep -q 'etc/systemd/system/graphical.target.wants/meoarch-installer.service' \
   "${evidence_dir}/airootfs-files.txt"
 grep -q 'etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf' \
   "${evidence_dir}/airootfs-files.txt"
 if grep -q 'etc/systemd/system/multi-user.target.wants/meoarch-installer.service' \
   "${evidence_dir}/airootfs-files.txt"; then
-  echo "Cage-only Live ISO starts the installer from multi-user.target as well as graphical.target." >&2
+  echo "Optional Cage must not also start from multi-user.target." >&2
   exit 1
 fi
-if grep -q 'etc/systemd/system/display-manager.service\|etc/sddm.conf.d/10-meoarch-live.conf' \
-  "${evidence_dir}/airootfs-files.txt"; then
-  echo "Cage-only Live ISO still contains an SDDM launch path." >&2
-  exit 1
-fi
-if grep -q 'etc/xdg/autostart/meoarch-installer.desktop\|usr/local/bin/meoarch-installer-live\|etc/sudoers.d/10-meoarch-live-installer' \
-  "${evidence_dir}/airootfs-files.txt"; then
-  echo "Cage-only Live ISO still contains a legacy KDE installer launch path." >&2
+if grep -q 'etc/sudoers.d/10-meoarch-live-installer' "${evidence_dir}/airootfs-files.txt"; then
+  echo "Live Installer must not use general passwordless sudo." >&2
   exit 1
 fi
 for executable in \
@@ -137,6 +139,8 @@ for executable in \
   usr/lib/meo-polkit-agent \
   usr/local/bin/meoarch-installer \
   usr/local/bin/meoarch-installer-kiosk \
+  usr/local/bin/meoarch-installer-live \
+  usr/lib/meoarch/live-installer-authorize \
   usr/local/bin/meoarch-repair-session; do
   grep -Eq "^-rwx[^[:space:]]*[[:space:]].*${executable}$" \
     "${evidence_dir}/airootfs-files.txt"
@@ -149,7 +153,7 @@ fi
 for path in \
   usr/lib/libmeoui.so.0 \
   usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so \
-  usr/lib/qt6/qml/Meo/System/libmeosystemplugin.so; do
+  opt/meoarch-installer/live-qml/Meo/System/libmeosystemplugin.so; do
   destination="${extract_dir}/$(basename "${path}")"
   unsquashfs -cat "${extract_dir}/airootfs.sfs" "${path}" >"${destination}"
 done
@@ -165,7 +169,7 @@ grep -q 'Library soname: \[libmeoui.so.0\]' "${evidence_dir}/libmeoui-readelf.tx
 grep -q 'Shared library: \[libmeoui.so.0\]' "${evidence_dir}/plugin-readelf.txt"
 if grep -Eq 'Shared library: \[(libPlasma\.so\.7|libkrdb\.so)\]' \
   "${evidence_dir}/meosystem-plugin-readelf.txt"; then
-  echo "Live Meo.System must not depend on Plasma Workspace libraries." >&2
+  echo "Private Installer Meo.System must not depend on Plasma Workspace libraries." >&2
   exit 1
 fi
 
@@ -212,6 +216,8 @@ for path in \
   etc/systemd/system/meoarch-installer.service \
   etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf \
   usr/local/bin/meoarch-installer-kiosk \
+  usr/local/bin/meoarch-installer-live \
+  usr/lib/meoarch/live-installer-authorize \
   usr/local/bin/meoarch-repair-session \
   usr/lib/systemd/user/plasma-polkit-agent.service; do
   destination="${extract_dir}/$(basename "${path}")"
@@ -228,4 +234,17 @@ cmp "${repo_root}/installer/bin/meoarch-repair-session" \
 cmp "${projects_root}/meo-kde/native/authentication/data/plasma-polkit-agent.service" \
   "${extract_dir}/plasma-polkit-agent.service"
 
+for mapping in \
+  "installer/bin/meoarch-installer-live:usr/local/bin/meoarch-installer-live" \
+  "installer/bin/meoarch-live-installer-authorize:usr/lib/meoarch/live-installer-authorize" \
+  "installer/data/org.meo.installer-live.policy:usr/share/polkit-1/actions/org.meo.installer-live.policy" \
+  "installer/data/org.meo.installer-live.rules:usr/share/polkit-1/rules.d/49-meoarch-live-installer.rules" \
+  "installer/data/autostart/meoarch-live.desktop:etc/xdg/autostart/meoarch-live.desktop" \
+  "installer/data/systemd/user/meoarch-live-app.service:usr/lib/systemd/user/meoarch-live-app.service" \
+  "meoarch-os/airootfs/etc/plasmalogin.conf:etc/plasmalogin.conf"; do
+  source_path="${mapping%%:*}"
+  iso_relative="${mapping#*:}"
+  unsquashfs -cat "${extract_dir}/airootfs.sfs" "${iso_relative}" >"${extract_dir}/live-compare"
+  cmp "${repo_root}/${source_path}" "${extract_dir}/live-compare"
+done
 echo "PASS: ISO structure and Help/MeoUI runtime payload" | tee "${evidence_dir}/inspect-status.txt"

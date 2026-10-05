@@ -1,10 +1,11 @@
 MeoArch OS Live
 
-The graphical installer starts automatically on tty1.
-For diagnostics and recovery, choose "Diagnostics and repair" from the boot menu.
+Plasma Wayland starts automatically as the Live user. The Installer opens
+full-screen; closing it leaves the desktop, Konsole and Quick Repair available.
+Choose Cage kiosk or terminal-only from the boot menu for alternate sessions.
 
 Network connections are managed by NetworkManager. Use the graphical network
-controls when available; from a shell, use nmcli for wired and Wi-Fi networks.
+controls or nmcli for wired and Wi-Fi networks.
 
-Documentation:
-https://github.com/QwQdoge/MeoArch_os-workspace/tree/main/docs
+Documentation (or run Installation_guide):
+https://github.com/QwQdoge/MeoArch-os-workspace/tree/main/docs

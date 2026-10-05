@@ -1,4 +1,8 @@
-# Cage Installer Runtime
+# Optional Cage Installer Runtime
+
+The default Live session is now Plasma Wayland. See
+[LIVE_DESKTOP.md](LIVE_DESKTOP.md) for the primary boot/permission contract.
+This document describes the explicit `meoarch.session=cage` fallback only.
 
 This document maps the MeoArch installer specification to the current live ISO
 runtime. For the product flow and UX rules, see `INSTALLER_SPEC.md`.
@@ -73,7 +77,8 @@ the required controller or production capability boundary.
 
 ## Service Behavior
 
-The service starts on the live system through `graphical.target`.
+The service is wanted by `graphical.target` but starts only with
+`meoarch.session=cage`; it is skipped in the default Plasma session.
 
 Important properties:
 
@@ -90,7 +95,7 @@ session.
 
 ## Boot-to-Cage visual handoff
 
-Normal Live boot intentionally stays visually minimal. Plymouth paints a pure
+Optional Cage boot intentionally stays visually minimal. Plymouth paints a pure
 black background with only the centered MeoArch logo. It does not show the old
 spinner, progress bar, footer, or routine status text; boot failures may still
 replace the quiet splash with an error diagnostic.
@@ -115,7 +120,7 @@ top actions, footer navigation, and centered power dialog are defined in
 
 ### In-Cage diagnostic console
 
-The Live installer is a single Cage kiosk session, not a KDE Plasma desktop.
+In Cage fallback, the Installer is a single Cage kiosk session.
 Launching Konsole, xterm, a browser, or another normal desktop window is not a
 reliable diagnostic path because Cage is intentionally hosting the installer as
 its single application.

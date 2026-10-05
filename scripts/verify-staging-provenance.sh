@@ -27,9 +27,12 @@ classify() {
   local path="$1"
   case "${path}" in
     airootfs/opt/meoarch-installer/*|airootfs/usr/local/bin/meoarch-installer*|airootfs/usr/local/bin/meoarch-install|airootfs/usr/local/bin/meoarch-repair-session)
-      printf '%s\t%s\t%s' 'Installer' 'this workspace installer source' 'Installer runtime and kiosk entrypoint'
+      printf '%s\t%s\t%s' 'Installer' 'this workspace installer source' 'Installer runtime and desktop/kiosk entrypoints'
       ;;
-    airootfs/usr/bin/meoarch-repair|airootfs/usr/lib/meoarch-repair/*|airootfs/usr/share/meoarch-repair/*|airootfs/usr/share/polkit-1/actions/org.meo.repair*.policy|airootfs/usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules|airootfs/usr/share/applications/org.meo.repair.desktop|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg|airootfs/usr/lib/meo-polkit-agent|airootfs/usr/lib/systemd/user/plasma-polkit-agent.service)
+    airootfs/etc/xdg/autostart/meoarch-live.desktop|airootfs/usr/lib/meoarch/live-installer-authorize|airootfs/usr/lib/systemd/user/meoarch-live-app.service|airootfs/usr/share/applications/org.meo.installer-live.desktop|airootfs/usr/share/polkit-1/actions/org.meo.installer-live.policy|airootfs/usr/share/polkit-1/rules.d/49-meoarch-live-installer.rules)
+      printf '%s\t%s\t%s' 'Live Installer' 'this workspace guarded desktop launcher' 'ISO-only authorized installer autostart'
+      ;;
+    airootfs/usr/bin/meoarch-repair|airootfs/usr/lib/meoarch-repair/*|airootfs/usr/share/meoarch-repair/*|airootfs/usr/share/polkit-1/actions/org.meo.repair*.policy|airootfs/usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules|airootfs/usr/share/applications/org.meo.repair.desktop|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg|airootfs/usr/lib/meo-polkit-agent|airootfs/usr/lib/systemd/user/plasma-polkit-agent.service|airootfs/usr/lib/systemd/user/plasma-workspace.target.wants/plasma-polkit-agent.service)
       printf '%s\t%s\t%s' 'Quick Repair' 'this workspace shared repair source' 'system and Live categorized repair application'
       ;;
     airootfs/usr/lib/libmeoui.so*|airootfs/usr/lib/qt6/qml/MeoUI/*)
@@ -39,9 +42,9 @@ classify() {
       printf '%s\t%s\t%s' 'MeoKDE' 'compiled or copied sibling MeoKDE runtime' 'shared KDE QML and font integration'
       ;;
     airootfs/usr/lib/qt6/qml/Meo/System/*|airootfs/usr/bin/meo-session-actiond|airootfs/usr/bin/meo-weather-refresh|airootfs/usr/share/dbus-1/services/org.meo.SessionAction1.service)
-      printf '%s\t%s\t%s' 'Meo.System' 'Live adapter compiled from validated sibling MeoKDE SystemStateHub source' 'shared NetworkManager and system-state backend without Plasma Workspace runtime coupling'
+      printf '%s\t%s\t%s' 'Meo.System' 'full desktop plugin compiled from validated sibling MeoKDE source' 'shared desktop, NetworkManager and system-state backend'
       ;;
-    airootfs/opt/meo-desktop/*|airootfs/usr/share/plasma/look-and-feel/org.meo.desktop/*|airootfs/usr/share/plasma/desktoptheme/*|airootfs/usr/share/plasma/plasmoids/org.meo.shelf/*|airootfs/usr/share/plasma/plasmoids/org.meo.topbar/*|airootfs/usr/share/plasma/plasmoids/org.meo.timecenter/*|airootfs/usr/share/color-schemes/*|airootfs/usr/share/icons/MeoSymbols*/*)
+    airootfs/opt/meo-desktop/*|airootfs/usr/share/plasma/look-and-feel/org.meo.desktop/*|airootfs/usr/share/plasma/desktoptheme/*|airootfs/usr/share/plasma/plasmoids/org.meo.shelf/*|airootfs/usr/share/plasma/plasmoids/org.meo.topbar/*|airootfs/usr/share/plasma/plasmoids/org.meo.timecenter/*|airootfs/usr/share/plasma/plasmoids/org.meo.toptasks/*|airootfs/usr/share/plasma/plasmoids/org.meo.time/*|airootfs/usr/share/plasma/plasmoids/org.meo.notifications/*|airootfs/usr/share/plasma/plasmoids/org.meo.time-notifications/*|airootfs/usr/share/plasma/plasmoids/org.meo.widget*/*|airootfs/usr/share/color-schemes/*|airootfs/usr/share/icons/MeoSymbols*/*)
       printf '%s\t%s\t%s' 'MeoKDE desktop' 'declared sibling MeoKDE desktop assets' 'live desktop theme, status surfaces, or retired Shelf cleanup'
       ;;
     airootfs/usr/bin/meo-dynamic-colors|airootfs/usr/bin/meo-input-method|airootfs/usr/bin/meo-theme-mode|airootfs/usr/bin/meo-desktop-apply|airootfs/usr/bin/meo-desktop-layout|airootfs/usr/share/meo-desktop/*|airootfs/usr/share/fcitx5/themes/MeoInputMethod-*/*|airootfs/etc/xdg/fcitx5/*|airootfs/etc/environment.d/90-meo-applications.conf|airootfs/usr/lib/systemd/user/meo-dynamic-colors.*|airootfs/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path|airootfs/usr/lib/systemd/user/meo-weather-refresh.*|airootfs/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer)
@@ -50,7 +53,7 @@ classify() {
     airootfs/usr/share/wallpapers/MeoArch/*|airootfs/usr/share/pixmaps/meoarch-logo.svg|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg)
       printf '%s\t%s\t%s' 'MeoArch branding' 'workspace assets' 'live session wallpaper and application branding'
       ;;
-    airootfs/etc/os-release|airootfs/etc/xdg/kdeglobals|airootfs/etc/xdg/kwinrc|airootfs/etc/xdg/plasmarc|airootfs/etc/xdg/plasma-welcomerc)
+    airootfs/etc/os-release|airootfs/etc/xdg/kdeglobals|airootfs/etc/xdg/kwinrc|airootfs/etc/xdg/plasmarc|airootfs/etc/xdg/plasma-welcomerc|airootfs/etc/xdg/meo-shellrc|airootfs/etc/xdg/kglobalshortcutsrc)
       printf '%s\t%s\t%s' 'MeoKDE defaults' 'declared sibling MeoKDE defaults' 'installed desktop defaults and branding'
       ;;
     airootfs/usr/lib/qt6/plugins/org.kde.kdecoration3/org.meo.decoration.so|airootfs/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm/kcm_meodecoration.so|airootfs/usr/lib/qt6/plugins/styles/meostyle.so|airootfs/usr/lib/qt6/plugins/kwin/effects/plugins/org.meo.windowcorners.so)

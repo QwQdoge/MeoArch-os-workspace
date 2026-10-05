@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=MeoArch Quick Repair
+Name[zh_CN]=MeoArch 快速修复
+Exec=/usr/bin/meoarch-repair --live
+Icon=meoarch-ai
+Terminal=false
+Categories=System;
+StartupNotify=true

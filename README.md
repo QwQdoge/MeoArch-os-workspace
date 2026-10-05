@@ -60,7 +60,7 @@ updates rather than source rebuilds.
 | themes/ | ISO-owned theme staging/configuration and its local documentation. |
 | assets/ | Versioned fonts, icons, logos, and wallpapers used by the ISO. |
 | configs/ | ISO/system configuration inputs. |
-| scripts/ | Build, staging, kiosk, and acceptance entry points. |
+| scripts/ | Build, staging, Live desktop/kiosk, and acceptance entry points. |
 | docs/ | Code- and operations-bound documentation for the installer and ISO workflow. |
 
 The root README and AGENTS files are orientation and operating rules. Root-level
@@ -135,3 +135,10 @@ its upstream license; see `THIRD_PARTY_NOTICES.md` and
 
 For detailed build, installer, and release contracts, use the documents already
 under docs/ and installer/.
+
+## Live desktop
+
+The ISO defaults to Plasma Wayland with Live-only automatic login. The existing
+Installer opens full-screen; closing or crashing it leaves the MeoKDE desktop,
+Konsole, Quick Repair and NetworkManager available. Cage remains an explicit
+boot-menu fallback. See [the Live runtime contract](docs/installer/LIVE_DESKTOP.md).

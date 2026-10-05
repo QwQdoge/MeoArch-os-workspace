@@ -58,3 +58,7 @@ jobs:
           bash -n installer/backend/preflight-meo-repository.sh
           bash -n installer/backend/configure-meo-repository.sh
           bash -n installer/backend/apply-target-customizations.sh
+          bash -n installer/bin/meoarch-installer-live
+          bash -n scripts/acceptance/10-source-validation.sh
+          bash -n scripts/acceptance/40-inspect-iso.sh
+          bash -n scripts/acceptance/61-check-live-desktop.sh

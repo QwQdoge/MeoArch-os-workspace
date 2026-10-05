@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Install MeoArch OS
+Name[zh_CN]=安装 MeoArch OS
+Exec=/usr/local/bin/meoarch-installer-live
+Icon=meoarch-logo
+Terminal=false
+Categories=System;
+StartupNotify=true

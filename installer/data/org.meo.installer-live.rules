@@ -1,0 +1,11 @@
+// ISO-only: authorize exactly one fixed launcher, never arbitrary sudo/shell.
+// The launcher independently verifies the Live media, caller and logind session.
+polkit.addRule(function(action, subject) {
+    if (action.id === "org.meo.installer.live.launch"
+        && action.lookup("program") === "/usr/lib/meoarch/live-installer-authorize"
+        && action.lookup("user") === "root"
+        && subject.user === "live"
+        && subject.local === true && subject.active === true) {
+        return polkit.Result.YES;
+    }
+});

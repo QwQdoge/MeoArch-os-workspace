@@ -136,7 +136,7 @@ class LiveBootContractTests(unittest.TestCase):
     def test_normal_and_repair_entries_keep_plymouth_kernel_contract(self):
         expected = (
             "archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% "
-            "meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 "
+            "meoarch.mode=install meoarch.session=plasma quiet splash loglevel=3 rd.udev.log_level=3 "
             "vt.global_cursor_default=0 plymouth.enable=1"
         )
         self.assertEqual(
@@ -188,12 +188,12 @@ class LiveBootContractTests(unittest.TestCase):
     def test_loopback_install_and_repair_keep_quiet_plymouth_handoff(self):
         loopback = GRUB_LOOPBACK.read_text(encoding="utf-8")
         common = "quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1"
-        self.assertIn(f"meoarch.mode=install {common}", loopback)
-        self.assertIn(f"meoarch.mode=repair {common}", loopback)
+        self.assertIn(f"meoarch.mode=install meoarch.session=plasma {common}", loopback)
+        self.assertIn(f"meoarch.mode=repair meoarch.session=plasma {common}", loopback)
         # The speech-reader path intentionally stays unsilenced.
         speech_line = next(
             line for line in loopback.splitlines()
-            if "meoarch.mode=install accessibility=on" in line
+            if "meoarch.mode=install meoarch.session=plasma accessibility=on" in line
         )
         self.assertNotIn(" quiet ", speech_line)
         self.assertNotIn(" splash ", speech_line)

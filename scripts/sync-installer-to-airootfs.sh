@@ -109,7 +109,9 @@ install -d "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meok
 cp -a "${runtime_root}/lib/libmeoui.so"* "${airootfs}/usr/lib/"
 cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
 cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
-cp -a "${meosystem_live_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
+# Plasma widgets need the complete Meo.System desktop API. The Installer's
+# smaller SystemState adapter is staged in its private import tree below.
+cp -a "${meosystem_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
 install -Dm755 "${meosystem_build}/meo-session-actiond" \
   "${airootfs}/usr/bin/meo-session-actiond"
 install -Dm755 "${meosystem_build}/meo-weather-refresh" \
@@ -138,6 +140,11 @@ install -Dm755 "${meokde_native_build}/authentication/meo-polkit-agent" \
   "${airootfs}/usr/lib/meo-polkit-agent"
 install -Dm644 "${meo_kde_src}/native/authentication/data/plasma-polkit-agent.service" \
   "${airootfs}/usr/lib/systemd/user/plasma-polkit-agent.service"
+# Use the standard Plasma agent unit name so packaged startup cannot create
+# a duplicate agent. Explicitly enable the maintained Meo implementation.
+install -d "${airootfs}/usr/lib/systemd/user/plasma-workspace.target.wants"
+ln -sfn ../plasma-polkit-agent.service \
+  "${airootfs}/usr/lib/systemd/user/plasma-workspace.target.wants/plasma-polkit-agent.service"
 install -Dm644 "${runtime_root}/share/icons/hicolor/scalable/apps/meoarch-ai.svg" \
   "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
 install -Dm644 "${meo_kde_src}/defaults/fonts/50-meo-fonts.conf" \
@@ -190,6 +197,8 @@ ln -sfn ../meo-weather-refresh.timer \
 rm -rf "${installer_dst}"
 install -d "${installer_dst}"
 cp -a "${installer_src}/qml" "${installer_dst}/qml"
+install -d "${installer_dst}/live-qml/Meo/System"
+cp -a "${meosystem_live_build}/qml/Meo/System/." "${installer_dst}/live-qml/Meo/System/"
 cp -a "${installer_src}/backend" "${installer_dst}/backend"
 cp -a "${installer_src}/data" "${installer_dst}/data"
 if [ -d "${installer_src}/bootstrap" ]; then
@@ -231,7 +240,10 @@ cp -a "${meo_kde_src}/themes/color-schemes/." \
 cp -a "${meo_kde_src}/themes/icons/." \
   "${desktop_dst}/themes/icons/"
 cp -a "${meo_kde_src}/icons/." "${desktop_dst}/icons/"
-for plasmoid in org.meo.topbar org.meo.timecenter; do
+# Same maintained applet set as MeoKDE's source deployment. No local UI fork.
+for plasmoid in org.meo.topbar org.meo.toptasks org.meo.timecenter org.meo.time \
+  org.meo.notifications org.meo.time-notifications org.meo.widgetexplorer \
+  org.meo.widget.clock org.meo.widget.media org.meo.widget.performance; do
   if [ -d "${meo_kde_src}/plasmoids/${plasmoid}" ]; then
     cp -a "${meo_kde_src}/plasmoids/${plasmoid}" \
       "${desktop_dst}/plasmoids/${plasmoid}"
@@ -243,10 +255,46 @@ install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
 install -Dm644 "${repo_root}/assets/wallpapers/installer_background.png" \
   "${desktop_dst}/wallpaper/installer_background.png"
 
-# Keep the target desktop payload under /opt/meo-desktop for the installer,
-# but do not stage Plasma, KWin, or SDDM files into the Live root.  Cage is the
-# only Live compositor; target customisation installs these assets after the
-# disk installation has succeeded.
+# Retain the target payload, and activate the same versioned MeoKDE inputs in
+# the Live filesystem. Do not run the target customization script against the
+# Live root: it owns target accounts, bootloader and installation side effects.
+install -d "${airootfs}/usr/share/plasma/look-and-feel" \
+  "${airootfs}/usr/share/plasma/desktoptheme" "${airootfs}/usr/share/plasma/plasmoids" \
+  "${airootfs}/usr/share/color-schemes" "${airootfs}/etc/xdg" \
+  "${airootfs}/usr/share/wallpapers/MeoArch"
+cp -a "${desktop_dst}/themes/look-and-feel/org.meo.desktop" \
+  "${airootfs}/usr/share/plasma/look-and-feel/"
+cp -a "${desktop_dst}/themes/desktoptheme/." "${airootfs}/usr/share/plasma/desktoptheme/"
+cp -a "${desktop_dst}/themes/color-schemes/." "${airootfs}/usr/share/color-schemes/"
+cp -a "${desktop_dst}/themes/icons/." "${airootfs}/usr/share/icons/"
+cp -a "${desktop_dst}/plasmoids/." "${airootfs}/usr/share/plasma/plasmoids/"
+for default_file in kde/kdeglobals kde/kglobalshortcutsrc kwin/kwinrc \
+  plasma/plasmarc plasma/plasma-welcomerc plasma/meo-shellrc; do
+  install -Dm644 "${meo_kde_src}/defaults/${default_file}" \
+    "${airootfs}/etc/xdg/$(basename "${default_file}")"
+done
+install -Dm644 "${desktop_dst}/wallpaper/installer_background.png" \
+  "${airootfs}/usr/share/wallpapers/MeoArch/installer_background.png"
+install -Dm644 "${desktop_dst}/branding/Logo.svg" \
+  "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg"
+install -Dm755 "${installer_src}/bin/meoarch-installer-live" \
+  "${airootfs}/usr/local/bin/meoarch-installer-live"
+install -Dm755 "${installer_src}/bin/meoarch-live-installer-authorize" \
+  "${airootfs}/usr/lib/meoarch/live-installer-authorize"
+install -Dm644 "${installer_src}/data/systemd/user/meoarch-live-app.service" \
+  "${airootfs}/usr/lib/systemd/user/meoarch-live-app.service"
+install -Dm644 "${installer_src}/data/autostart/meoarch-live.desktop" \
+  "${airootfs}/etc/xdg/autostart/meoarch-live.desktop"
+install -Dm644 "${installer_src}/data/applications/org.meo.installer-live.desktop" \
+  "${airootfs}/usr/share/applications/org.meo.installer-live.desktop"
+# Override only the Live launcher, so opening Repair from the menu selects the
+# correct live scope without launching Cage or a second authentication agent.
+install -Dm644 "${installer_src}/data/applications/org.meo.repair-live.desktop" \
+  "${airootfs}/usr/share/applications/org.meo.repair.desktop"
+install -Dm644 "${installer_src}/data/org.meo.installer-live.policy" \
+  "${airootfs}/usr/share/polkit-1/actions/org.meo.installer-live.policy"
+install -Dm644 "${installer_src}/data/org.meo.installer-live.rules" \
+  "${airootfs}/usr/share/polkit-1/rules.d/49-meoarch-live-installer.rules"
 install -Dm644 "${meo_kde_src}/defaults/system/os-release" \
   "${airootfs}/etc/os-release"
 

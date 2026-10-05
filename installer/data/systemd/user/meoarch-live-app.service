@@ -1,0 +1,14 @@
+[Unit]
+Description=MeoArch Live application in Plasma
+PartOf=graphical-session.target
+After=plasma-plasmashell.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/meoarch-installer-live
+# Successful close stays completed for this login. A crash is logged without
+# restarting the app or taking down the desktop. Manual launch remains possible.
+RemainAfterExit=yes
+Restart=no
+TimeoutStartSec=infinity
+TimeoutStopSec=10s

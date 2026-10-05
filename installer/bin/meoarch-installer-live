@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Live-only desktop entrypoint. No caller-supplied installer arguments or
+# environment overrides cross the privileged launch boundary.
+[ "$#" -le 1 ] && { [ "$#" -eq 0 ] || [ "$1" = --autostart ]; } || exit 2
+[ "$(id -un)" = live ] || { echo "This entrypoint is for the Live user." >&2; exit 126; }
+[ "${XDG_SESSION_TYPE:-}" = wayland ] || exit 126
+case ":${XDG_CURRENT_DESKTOP:-}:" in *:KDE:*) ;; *) exit 126 ;; esac
+read -r -a kernel_arguments < /proc/cmdline
+boot_mode=install
+for argument in "${kernel_arguments[@]}"; do
+  case "${argument}" in
+    meoarch.session=cage|meoarch.mode=tty) exit 0 ;;
+    meoarch.mode=install) boot_mode=install ;;
+    meoarch.mode=repair) boot_mode=repair ;;
+  esac
+done
+[ -d /run/archiso ] || exit 126
+
+if [ "${1:-}" = --autostart ]; then
+  # Autostart runs in the actual Plasma environment, after PAM/logind created
+  # the user bus. Readiness has a deadline and never waits for Internet access.
+  ready=0
+  for ((attempt=0; attempt<60; attempt++)); do
+    if [ -S "${XDG_RUNTIME_DIR:?}/${WAYLAND_DISPLAY:?}" ] \
+      && /usr/bin/busctl --user status org.kde.plasmashell >/dev/null 2>&1; then
+      ready=1
+      break
+    fi
+    sleep 0.5
+  done
+  [ "${ready}" = 1 ] || { echo "Plasma did not become ready within 30 seconds." >&2; exit 70; }
+  /usr/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP
+  # XDG_SESSION_ID is not exported by every Plasma systemd startup path.
+  if [ -n "${XDG_SESSION_ID:-}" ]; then
+    /usr/bin/systemctl --user import-environment XDG_SESSION_ID
+  fi
+  /usr/lib/meoarch/meo-boot-status stage desktop-ready
+  exec /usr/bin/systemctl --user start --no-block meoarch-live-app.service
+fi
+
+if [ "${boot_mode}" = repair ]; then
+  exec /usr/bin/meoarch-repair --live
+fi
+session_id="${XDG_SESSION_ID:-}"
+if [ -z "${session_id}" ]; then
+  session_id="$(/usr/bin/loginctl show-user live --property=Display --value)"
+fi
+[ -n "${session_id}" ] || { echo "No active Live login session." >&2; exit 126; }
+exec /usr/bin/pkexec /usr/lib/meoarch/live-installer-authorize "${session_id}" "${WAYLAND_DISPLAY:?}"
