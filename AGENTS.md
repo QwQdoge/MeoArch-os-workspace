@@ -17,6 +17,19 @@ Inspect `git status`, the affected component, and its nearest tests/contracts fi
 - Plasma/KWin/Meo.System desktop integration belongs in meo-kde via `$MEO_KDE_ROOT`.
 - Do not copy sibling repositories into this worktree or treat staged airootfs files as source authority.
 
+## Runtime system information
+
+Treat machine, session, hardware, service, account, package, capability, and current-configuration facts as runtime state rather than UI copy.
+
+- If a value can legitimately differ between installations or change while the system is running, detect/read it from the authoritative owning API or system source whenever practical instead of hard-coding a production value.
+- Prefer stable Qt/KDE/native APIs and documented Meo.System contracts. Use stable read-only kernel/system interfaces only when no suitable owner API exists; do not parse generic command output when a maintained native API is available.
+- Never ship guessed or plausible placeholder system facts to make a UI look complete. When reliable detection is unavailable, expose an explicit unavailable/unknown state, hide the hardware-specific presentation, or disable the capability with a real explanation.
+- Keep mutable facts reactive where practical and re-read authoritative state after a requested change instead of assuming success. Snapshot or expensive facts should have a deliberate refresh path.
+- Test/preview fixtures may use deterministic fake values only behind explicit test/preview code paths; production startup must not silently fall back to them.
+- Product constants such as branding, translated UI copy, design tokens, stable protocol identifiers, and the compile-time version of the exact component being run may remain static. A fallback label must not impersonate detected system information.
+
+For Meo Settings, the detailed contract lives in `QwQdoge/MeoSettings` as `docs/RUNTIME_SYSTEM_INFORMATION.md`. Apply the same principle to Installer, Repair, system-monitoring, shell, login/lock, and future system-facing components.
+
 ## AI router and MCP boundary
 
 For AI-driven system actions, the **System AI Router** is the canonical orchestration boundary. Preserve the internal flow:
