@@ -66,8 +66,8 @@ int main(int argc, char *argv[])
     QCoreApplication &app = *application;
     QCoreApplication::setOrganizationName(QStringLiteral("MeoArch"));
     QCoreApplication::setApplicationName(repairRequested
-                                             ? QStringLiteral("MeoArch Repair")
-                                             : QStringLiteral("MeoArch Installer"));
+                                             ? QStringLiteral("Meo Repair")
+                                             : QStringLiteral("Meo Installer"));
     const QStringList arguments = app.arguments();
 
     // Work out the initial UI language before the controller is constructed.
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
                 repairProgram = sibling;
         }
         if (!QFileInfo(repairProgram).isExecutable()) {
-            QTextStream(stderr) << "MeoArch Quick Repair is not installed.\n";
+            QTextStream(stderr) << "Meo Repair is not installed.\n";
             return 127;
         }
         QStringList forwarded = arguments.mid(1);
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
                 *firstFrameReady = true;
                 QProcess::startDetached(QStringLiteral("/usr/bin/systemd-notify"),
                                         {QStringLiteral("--ready"),
-                                         QStringLiteral("--status=MeoArch installer UI is visible")});
+                                         QStringLiteral("--status=Meo Installer UI is visible")});
             }, Qt::SingleShotConnection);
             QTimer::singleShot(20000, quickWindow, [firstFrameReady, &app] {
                 if (!*firstFrameReady)
