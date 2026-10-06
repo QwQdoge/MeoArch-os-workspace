@@ -78,7 +78,7 @@ QString resolvedUiLanguage(const QString &preference)
 void printUsage()
 {
     QTextStream(stdout)
-        << "MeoArch Quick Repair\n\n"
+        << "Meo Repair\n\n"
         << "  meoarch-repair                         Open the MeoUI graphical app\n"
         << "  meoarch-repair --category audio        Open the sound troubleshooting flow\n"
         << "  meoarch-repair --cli --category all    Run fixed read-only checks\n"
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
         application = std::make_unique<QGuiApplication>(argc, argv);
     QCoreApplication &app = *application;
     QCoreApplication::setOrganizationName(QStringLiteral("MeoArch"));
-    QCoreApplication::setApplicationName(QStringLiteral("MeoArch Repair"));
+    QCoreApplication::setApplicationName(QStringLiteral("Meo Repair"));
     const QStringList arguments = app.arguments();
     if (helpRequested) {
         printUsage();
@@ -421,7 +421,7 @@ int main(int argc, char *argv[])
             *firstFrameReady = true;
             QProcess::startDetached(QStringLiteral("/usr/bin/systemd-notify"),
                                     {QStringLiteral("--ready"),
-                                     QStringLiteral("--status=MeoArch Repair UI is visible")});
+                                     QStringLiteral("--status=Meo Repair UI is visible")});
         }, Qt::SingleShotConnection);
         QTimer::singleShot(20000, window, [firstFrameReady, &app] {
             if (!*firstFrameReady)
