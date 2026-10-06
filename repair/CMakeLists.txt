@@ -7,8 +7,6 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(CMAKE_AUTOMOC ON)
     find_package(Qt6 6.6 REQUIRED COMPONENTS Core DBus Gui Qml Quick QuickControls2 Network)
     qt_standard_project_setup(REQUIRES 6.6)
-    set(MEOUI_BUILD_SHOWCASE OFF CACHE BOOL "Build MeoUI showcase" FORCE)
-    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../../meo-ui" "${CMAKE_BINARY_DIR}/meoui")
 endif()
 
 find_package(Qt6Keychain CONFIG REQUIRED)
@@ -88,9 +86,16 @@ target_link_libraries(meoarch-repair PRIVATE
 )
 target_compile_definitions(meoarch-repair PRIVATE
     MEOARCH_REPAIR_QML_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml"
-    MEOUI_QML_BUILD_IMPORT_PATH="${CMAKE_BINARY_DIR}/meoui"
-    MEOUI_TRANSLATIONS_BUILD_DIR="${CMAKE_BINARY_DIR}/meoui/translations"
 )
+# When Repair is built as part of the Installer superbuild, use that in-tree
+# MeoUI import/translation output. A standalone distro package instead consumes
+# the installed meoui-qml runtime from Qt's normal import path.
+if(TARGET meoui_module)
+    target_compile_definitions(meoarch-repair PRIVATE
+        MEOUI_QML_BUILD_IMPORT_PATH="${CMAKE_BINARY_DIR}/meoui"
+        MEOUI_TRANSLATIONS_BUILD_DIR="${CMAKE_BINARY_DIR}/meoui/translations"
+    )
+endif()
 if(TARGET meoarch-repair-translations)
     add_dependencies(meoarch-repair meoarch-repair-translations)
     target_compile_definitions(meoarch-repair PRIVATE
@@ -164,5 +169,3 @@ install(FILES data/org.meo.Repair1.service DESTINATION share/dbus-1/system-servi
 install(FILES data/meoarch-repair-privileged.service DESTINATION lib/systemd/system)
 install(FILES docs/security-architecture.md DESTINATION share/doc/meoarch-repair)
 install(DIRECTORY knowledge/ DESTINATION share/meoarch-repair/knowledge)
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../../meo-ui/assets/icons/meo-ai-f.svg"
-        DESTINATION share/icons/hicolor/scalable/apps RENAME meoarch-ai.svg)
