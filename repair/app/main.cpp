@@ -75,6 +75,12 @@ QString resolvedUiLanguage(const QString &preference)
         ? QStringLiteral("zh_CN") : QStringLiteral("en_US");
 }
 
+QString repairWindowTitle(const QString &language)
+{
+    return language == QStringLiteral("zh_CN")
+        ? QStringLiteral("Meo 修复") : QStringLiteral("Meo Repair");
+}
+
 void printUsage()
 {
     QTextStream(stdout)
@@ -404,6 +410,7 @@ int main(int argc, char *argv[])
         return 1;
 
     auto *rootObject = engine.rootObjects().constFirst();
+    rootObject->setProperty("title", repairWindowTitle(activeUiLanguage));
     QObject::connect(&languageController, &UiLanguageController::languageRequested, &app,
                      [&uiSettings, &loadUiLanguage, rootObject](const QString &requestedPreference) {
         const QString preference = normalizedUiLanguagePreference(requestedPreference);
@@ -412,6 +419,7 @@ int main(int argc, char *argv[])
         loadUiLanguage(language);
         rootObject->setProperty("uiLanguagePreference", preference);
         rootObject->setProperty("uiLanguage", language);
+        rootObject->setProperty("title", repairWindowTitle(language));
     });
 
     auto *window = qobject_cast<QQuickWindow *>(rootObject);
