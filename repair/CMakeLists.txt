@@ -96,6 +96,13 @@ if(TARGET meoarch-repair-translations)
     target_compile_definitions(meoarch-repair PRIVATE
         MEOARCH_REPAIR_TRANSLATIONS_BUILD_DIR="${MEOARCH_REPAIR_TRANSLATIONS_BUILD_DIR}")
 endif()
+# A source build must deliver the QML runtime along with the repair executable.
+if(TARGET meoui_module)
+    add_dependencies(meoarch-repair meoui_module)
+endif()
+if(TARGET meoui_moduleplugin)
+    add_dependencies(meoarch-repair meoui_moduleplugin)
+endif()
 if(TARGET meoui_lrelease)
     add_dependencies(meoarch-repair meoui_lrelease)
 endif()
