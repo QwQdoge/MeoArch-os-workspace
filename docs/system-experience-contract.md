@@ -4,7 +4,7 @@
 
 MeoArch is split across several repositories, but the user must experience one coherent system.
 
-This contract defines the cross-repository ownership required for normal installation, first boot, settings, software installation, input methods, appearance, updates, recovery, and common desktop hardware. It does not replace the detailed contracts in each owning repository.
+This contract defines the cross-repository ownership required for normal installation, first boot, settings, software installation, input methods, appearance, lock screen/session entry, updates, recovery, and common desktop hardware. It does not replace the detailed contracts in each owning repository.
 
 A feature is not complete merely because one repository has a UI or helper. A user-facing capability is complete only when its full path is owned:
 
@@ -46,6 +46,7 @@ Owns KDE/Plasma/KWin/Qt-native integration and Meo.System-style adapters, includ
 - theme/application-style integration;
 - wallpaper/dynamic-color bridge;
 - input-method framework integration;
+- lock-screen presentation/session-lock integration;
 - display/audio/network/power/session adapters that belong to the desktop layer;
 - typed APIs used by Meo Settings and Meo AI.
 
@@ -59,7 +60,7 @@ Its maintained coverage contract is `docs/SETTINGS_COVERAGE.md` in the MeoSettin
 
 ### MeoUI
 
-Owns reusable UI primitives, design tokens, motion and application-level visual contracts. It does not own system state or package transactions.
+Owns reusable UI primitives, design tokens, motion and application-level visual contracts. It does not own system state, authentication, session locking or package transactions.
 
 ### OmniStore
 
@@ -75,11 +76,13 @@ It should provide package-level groupings/capability metadata where MeoArch need
 
 ### MeoArch-account
 
-Owns Meo account/authentication and provider/inference grants. It must not become a generic OS privilege or package-install authority.
+Owns Meo account/authentication and provider/inference grants. It must not become a generic OS privilege, local-session unlock authority or package-install authority.
 
 ### meo-login-manager
 
 Owns the supported login-manager implementation. Login/password entry should remain minimal and security-focused; session input-method frameworks are not implicitly injected into the credential field.
+
+The login manager and lock screen may share MeoUI visual language and carefully reviewed authentication integration, but they must not share transient credential state or pretend to be the same security boundary.
 
 ---
 
@@ -249,7 +252,125 @@ Installer selections already applied to the target should appear as current stat
 
 ---
 
-## 6. Updates, repair and recovery
+## 6. Lock screen and session entry
+
+The lock screen is a security surface, not merely a themed desktop page.
+
+The supported architecture must have exactly one authoritative normal session-lock path. Meo must not allow Plasma/KScreenLocker, a Meo lock process and an emergency locker to race as independent normal lock owners. A fallback may exist only as a bounded fail-safe when the primary Meo locker cannot acquire or provide a secure lock.
+
+### Current direction
+
+The current meo-kde lock path uses a resident, lock-only Quickshell process with source watching disabled. It keeps the service graph needed by the lock surface and idle/suspend locking resident so the normal lock request does not need to start a renderer after the user requests a lock. The launcher keeps lock configuration isolated from the user's ordinary shell configuration, and the lock command has an emergency fallback path if the primary process is unavailable.
+
+This is a useful foundation, but source/package presence alone is not proof of production lock security. Installed-session acceptance must prove the session is actually protected across lock, suspend/resume, crashes and multiple displays.
+
+### meo-kde responsibility
+
+meo-kde owns the installed-session lock presentation and desktop integration, including:
+
+- the primary session-lock process and invocation path;
+- secure lock acquisition through the maintained Wayland/session-lock authority;
+- idle lock and lock-before-suspend coordination;
+- multi-monitor lock surfaces and hotplug behavior while locked;
+- lock/unlock transition presentation without exposing a desktop frame;
+- Meo wallpaper/dynamic-color presentation on the lock surface;
+- battery, network and other read-only status adapters shown while locked;
+- lock-safe media controls when enabled;
+- emergency fallback behavior if the primary lock surface fails;
+- post-crash/restart behavior that fails closed rather than turning the lock action into a no-op.
+
+The lock screen must never own or persist a plaintext password/PIN. It presents authentication prompts and consumes the result of the maintained authentication authority.
+
+### Authentication boundary
+
+Local session unlock remains owned by the supported PAM/session authentication stack. Password, fingerprint and any future local authentication methods must enter through reviewed authentication interfaces.
+
+Required rules:
+
+- password verification is never reimplemented in QML;
+- credentials are not logged, persisted, sent to Meo Account, exposed to AI or copied into general app state;
+- fingerprint may supplement unlock only through the maintained PAM/authentication flow;
+- password fallback remains available when biometrics fail or are unavailable;
+- repeated failed authentication must preserve the upstream security/rate-limit behavior;
+- account/cloud authentication is not a substitute for local session unlock.
+
+### Lock-screen information and privacy
+
+The lock screen may expose useful glanceable information, but every data source must have a lock-safe presentation contract.
+
+Supported product targets may include:
+
+- time/date;
+- battery/charging state;
+- network state without secrets;
+- media title/artwork and playback controls;
+- notification summary/cards;
+- weather;
+- calendar/upcoming events;
+- user/avatar;
+- safe accessibility and session-entry affordances.
+
+Meo Settings must provide privacy controls for sensitive lock-screen data. At minimum support a policy equivalent to:
+
+```text
+Notifications on lock screen
+  - Show content
+  - Hide sensitive content
+  - Do not show notifications
+```
+
+Calendar/event details, message previews, sender names and media metadata should follow explicit privacy policy rather than being exposed merely because the desktop service can provide them.
+
+Do not expose arbitrary app actions, clipboard contents, file previews, AI conversation content, secrets, package actions or privileged settings while locked.
+
+### Meo Settings responsibility
+
+Normal lock-screen settings should live in Meo Settings rather than a KCM handoff. The native page should eventually cover the supported subset of:
+
+- automatic lock timeout;
+- lock on suspend/resume policy where applicable;
+- lock-screen wallpaper mode (follow desktop or separate when supported);
+- notification visibility/privacy;
+- media controls visibility;
+- weather/calendar visibility and privacy;
+- battery/network status visibility;
+- reduced-motion integration;
+- fingerprint/unlock-method status through the maintained authentication backend;
+- safe power/session-entry preferences exposed by the supported login/session stack.
+
+Advanced upstream settings may remain behind the final KDE compatibility escape hatch until Meo has a maintained implementation.
+
+### Login-manager boundary
+
+The lock screen and `meo-login-manager` should look like one Meo product but remain separate lifecycle/security surfaces.
+
+Shared MeoUI components, tokens, wallpapers and authentication adapters are acceptable. Shared transient password state, unlock-session state or assumptions that login and unlock are interchangeable are not.
+
+User switching from the lock screen should hand off to the supported login/session manager rather than implementing a second login manager inside the lock surface.
+
+### Acceptance requirements
+
+Lock screen acceptance requires installed-session evidence for at least:
+
+- manual lock;
+- idle-triggered lock;
+- lock before suspend and resume into a locked state;
+- correct password unlock;
+- incorrect password behavior;
+- fingerprint success/failure/password fallback when supported;
+- primary locker crash/failure and secure fallback;
+- no visible desktop flash during normal lock/unlock;
+- multi-monitor coverage;
+- monitor hotplug/removal while locked;
+- notification privacy modes;
+- media controls not granting broader desktop access;
+- logout/user-switch/power actions using their owning session authorities.
+
+Treat failure to securely acquire or maintain the lock as a release blocker when the Meo locker is the default installed session locker.
+
+---
+
+## 7. Updates, repair and recovery
 
 OmniStore owns normal package/system updates through the maintained `meo-update` contract.
 
@@ -261,7 +382,7 @@ Installer/Live ISO owns offline/live recovery entry points. Destructive reset/re
 
 ---
 
-## 7. Drivers and firmware
+## 8. Drivers and firmware
 
 Installer already detects a target graphics-driver plan. The installed system also needs a maintained post-install path for hardware changes and optional support.
 
@@ -276,7 +397,7 @@ Do not make Settings execute vendor installers or arbitrary downloaded scripts.
 
 ---
 
-## 8. Printers, scanners and common peripherals
+## 9. Printers, scanners and common peripherals
 
 A usable desktop eventually needs a native normal path for printing/scanning and common peripherals.
 
@@ -298,7 +419,7 @@ This is not a P0 installer blocker unless printing/scanning is part of the relea
 
 # Priority order
 
-## P0 — make the installation-to-settings path coherent
+## P0 — make the installation-to-settings path coherent and secure
 
 1. Define input-method selection state and target package resolution in Installer.
 2. Define optional Fcitx integration packaging/capability metadata in meo-repo.
@@ -307,9 +428,12 @@ This is not a P0 installer blocker unless printing/scanning is part of the relea
 5. Define/implement the shared contextual package transaction API so Settings can safely install missing engines/components.
 6. Make Appearance/wallpaper normal native Meo Settings workflows using reusable meo-kde authorities.
 7. Make Welcome reflect incomplete first-boot setup rather than only acting as a list of links.
+8. Formalize the Meo lock screen as the authoritative default session-lock path and prove fail-closed lock/suspend/resume behavior before treating it as production-ready.
+9. Add native Meo Settings coverage for ordinary lock-screen/privacy preferences without moving authentication authority into Settings.
 
 ## P1 — normal installed-system completeness
 
+- richer lock-screen media/notification/calendar/weather surfaces with explicit privacy policy;
 - default applications and associations;
 - driver/firmware status and supported installs;
 - robust language-pack installation;
@@ -346,5 +470,7 @@ Settings/Installer selection
   -> native Wayland sample input works
   -> state survives logout/login
 ```
+
+Likewise, a lock-screen screenshot is not proof of a secure locker. Acceptance requires the primary lock path, authentication, suspend/resume, failure fallback and privacy behavior to work together in an installed session.
 
 Keep source/static, package-build, VM, installed-session and real-hardware evidence separate.
