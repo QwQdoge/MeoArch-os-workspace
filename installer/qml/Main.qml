@@ -14,7 +14,7 @@ Window {
     minimumHeight: 600
     visible: true
     color: MeoTheme.windowBg
-    title: qsTr("MeoArch Installer")
+    title: qsTr("Meo Installer")
 
     readonly property url assetsRoot: String(Qt.resolvedUrl(".")).indexOf("/opt/meoarch-installer/") >= 0
                                       ? Qt.resolvedUrl("../assets/") : Qt.resolvedUrl("../../assets/")
