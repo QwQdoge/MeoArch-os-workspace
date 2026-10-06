@@ -35,7 +35,10 @@ jobs:
           sudo apt-get install -y gnupg libarchive-tools
 
       - name: Compile Python sources
-        run: python -m compileall -q installer repair
+        run: python -m compileall -q installer repair scripts/check-product-identity.py
+
+      - name: Check release product identity
+        run: python scripts/check-product-identity.py
 
       - name: Run installer contracts
         run: python -m unittest discover -s installer/tests -p 'test_*.py' -v
