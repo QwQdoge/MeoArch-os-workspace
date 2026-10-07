@@ -40,7 +40,8 @@ class InputMethodDiagnosticContractTests(unittest.TestCase):
     def test_overview_and_install_payload_include_the_check(self):
         all_check = ALL_CHECK.read_text(encoding="utf-8")
         cmake = CMAKE.read_text(encoding="utf-8")
-        self.assertIn("hardware audio input-method display", all_check)
+        self.assertGreaterEqual(all_check.count("input-method"), 3)
+        self.assertIn("security input-method", all_check)
         self.assertIn("checks/input-method.sh", cmake)
 
 
