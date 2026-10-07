@@ -8,7 +8,7 @@ It defines product ownership and interaction boundaries, not proof that every ca
 
 **MEO = Modern · Expressive · Open.**
 
-MeoArch is not a collection of unrelated KDE themes. KDE Plasma/KWin and maintained Linux services provide the desktop and system foundations; MeoArch provides a coherent Meo platform, MeoUI presentation layer and first-party system applications above them.
+MeoArch is not a collection of unrelated KDE themes. KDE Plasma/KWin and maintained Linux services provide the default desktop and system foundations; MeoArch provides a coherent Meo platform, MeoUI presentation layer and first-party system applications above them.
 
 The target architecture is:
 
@@ -88,14 +88,14 @@ Meo Settings follows a schema-first control path for Meo-owned configuration:
 Schema → Adapter → Transaction → Renderer
 ```
 
-Writes use validation and recovery rather than ad-hoc direct mutation:
+Writes use validation and recovery rather than ad-hoc direct mutation when the operation is privileged, destructive, multi-step or otherwise capable of leaving broken state:
 
 ```text
 Inspect → Validate → Plan → Preview → Authorize
 → Snapshot → Apply → Validate → Commit / Rollback
 ```
 
-User-level and system-level transactions may have different authorities but should share the same transaction/recovery model.
+Low-risk per-user preferences may use a narrower validated authoritative writer, but they still need real read/write/error behavior and must not be decorative state.
 
 Runtime information must be detected from the real system. Do not hard-code hardware, session, version or capability state. Unsupported/unavailable capabilities must be shown as unavailable or omitted, not simulated.
 
@@ -125,24 +125,42 @@ Meo's first-party shell experience includes:
 - widget platform;
 - performance manager.
 
+The product-facing **Meo Desktop** session currently starts Plasma 6 Wayland and KWin. It is a Meo product layer on top of the maintained Plasma platform, not a separate compositor or window manager.
+
 Shell controls must be service-backed, asynchronous and expose per-module busy/error state. A decorative toggle that does not reflect the real system state is not considered implemented.
 
 ## 6. Lock screen and login
 
-The current MeoKDE runtime direction is the standalone Meo Session Lock merged after the Caelestia work: a resident Quickshell/Wayland session-lock process using PAM-backed authentication. Older documents that describe a KScreenLocker Look-and-Feel as the only canonical runtime are historical unless the implementation is intentionally changed back.
+MeoArch currently carries more than one lock implementation because different desktop/session runtimes have different security authorities. Documentation and Settings adapters must always name the runtime they target.
 
-Security rules remain unchanged:
+### Meo Desktop / Plasma Wayland
 
-- authentication success is owned by the trusted PAM/upstream authenticator, never by QML comparison;
-- the visual unlock animation happens *after* successful authentication and must not expose the desktop early;
+The default Meo Desktop product session currently uses Plasma 6 Wayland + KWin. Its lock-screen security core remains KScreenLocker, with the Meo Look-and-Feel providing the Meo presentation.
+
+Meo Settings already has a persistent `LockScreenPresentationBackend` for the supported presentation subset. It reads and writes the Meo Look-and-Feel keys in `kscreenlockerrc` and must not be described as preview-only.
+
+The corresponding notification privacy default is **count only**. Application names and full content are more permissive explicit choices. Album artwork and weather-location visibility are independent presentation/privacy controls.
+
+### Standalone Meo Session Lock
+
+MeoKDE also carries a resident standalone Meo Session Lock for sessions that use a Quickshell/Wayland-session-lock runtime, currently documented around the Hyprland/UWSM path. It uses PAM-backed authentication and has a separate lifecycle/configuration boundary from KScreenLocker.
+
+The existence of this implementation does not make the Plasma/KScreenLocker path obsolete. Likewise, KScreenLocker documentation does not define the standalone runtime. If the standalone runtime becomes a supported user-selectable/configurable session, Settings needs an explicit adapter for it instead of writing both backends blindly.
+
+### Shared security rules
+
+Regardless of runtime:
+
+- authentication success is owned by the trusted PAM/upstream authenticator, never by QML password comparison;
+- visual unlock motion must not cause or precede authentication success;
 - login/greeter is a separate security boundary owned by Meo Login Manager and its upstream authentication/session-start path;
-- the ambient lock screen may show only explicitly permitted bounded data;
-- authentication UI must not expose desktop widgets or unrelated private content;
+- ambient lock surfaces may show only explicitly permitted bounded data;
+- authentication UI must not expose unrelated private content;
 - failures of weather/media/notification providers must never block authentication.
 
-The lock-screen privacy default is conservative: **notification count only**. Application names, full content, album artwork and precise location are opt-in. Login scope is stricter and does not inherit a user's session media/notifications.
+The richer lock-screen layout editor in Settings is a simulated editor until the corresponding validated persistent layout writer exists. Only reviewed Meo secure widgets may be projected into a security surface; arbitrary Plasma applets/QML cannot cross the security boundary.
 
-The lock-screen layout editor in Settings is a simulated editor, not an unlocked security surface. Only reviewed Meo secure widgets may be projected into the lock surface; arbitrary Plasma applets/QML cannot cross the security boundary.
+The privileged Login Manager configuration writer/transaction service is separate unfinished work and must never mutate PAM ad hoc.
 
 ## 7. Widgets
 
@@ -245,13 +263,13 @@ Formal Meo installation must consume built/signed repository packages. It must n
 
 The software catalogue should have a canonical versioned manifest used by Installer, OmniStore and release tooling rather than maintaining separate hard-coded lists.
 
-Core shell/runtime components such as Launcher, Quick Settings, Notification Center, Lock Screen, top bar/dock integration, MeoUI runtime, icons and login manager are system components, not ordinary removable Store apps.
+Core shell/runtime components such as Launcher, Quick Settings, Notification Center, the active lock-screen implementation, top bar/dock integration, MeoUI runtime, icons and login manager are system components, not ordinary removable Store apps.
 
 ## 12. Application ownership boundaries
 
 - **MeoUI**: design/runtime/components/tokens.
 - **MeoStyle**: Qt Widgets/KDE application style using MeoUI design contracts.
-- **MeoKDE / desktop**: shell, session integration, lock screen, widgets and desktop adapters.
+- **MeoKDE / desktop**: shell, session integration, lock-screen integrations, widgets and desktop adapters.
 - **Meo Settings**: user-facing settings and safe configuration transactions.
 - **OmniStore**: catalogue/package/application transactions.
 - **Meo Account**: account/OAuth/KWallet/inference grants and connection state.
@@ -266,9 +284,9 @@ When two applications need the same system state, prefer a shared backend/servic
 
 When repository-local documents conflict, use the following order until the docs are reconciled:
 
-1. current shipped/merged runtime architecture and security boundary;
+1. current merged runtime architecture for the **specific session/backend being discussed** and its security authority;
 2. this cross-system design contract;
-3. repository-local architecture/security contracts that match the current runtime;
+3. repository-local architecture/security contracts that match that runtime;
 4. older implementation plans/roadmaps;
 5. historical acceptance reports and stale runbooks.
 
@@ -276,8 +294,9 @@ A roadmap checkbox, old release note or successful source build must never be tr
 
 Known documentation conflicts that should be normalized around this contract include:
 
-- KScreenLocker-only descriptions versus the merged standalone Meo Session Lock chain;
+- documents that incorrectly treat either KScreenLocker or standalone Meo Session Lock as the only current lock runtime for every session;
 - `full-content` lock-screen notification default versus the conservative `count` default;
+- old statements that the Plasma lock-screen presentation writer does not exist, despite the implemented `LockScreenPresentationBackend`;
 - Cage-only Installer descriptions versus Plasma Wayland Live as the normal path;
 - direct KCM handoffs versus Meo Settings as the day-to-day settings surface;
 - duplicated package/catalog lists versus a single release-pinned canonical catalogue.
