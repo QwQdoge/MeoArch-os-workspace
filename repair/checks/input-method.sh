@@ -5,6 +5,10 @@ set -u -o pipefail
 # This check never installs packages, edits config, starts services, or executes
 # model-provided commands. It only inspects fixed local state.
 
+fcitx_service="org.fcitx.Fcitx5"
+fcitx_controller_path="/controller"
+fcitx_controller_interface="org.fcitx.Fcitx.Controller1"
+
 echo "[input-method] session"
 printf 'Session type: %s\n' "${XDG_SESSION_TYPE:-unknown}"
 printf 'Desktop: %s\n' "${XDG_CURRENT_DESKTOP:-unknown}"
@@ -21,12 +25,19 @@ else
 fi
 
 # Query D-Bus ownership directly. GetNameOwner is read-only and does not ask
-# D-Bus to activate a missing service.
+# D-Bus to activate a missing service. Only after an owner exists do we inspect
+# the exact Controller1 path/interface used by Meo.System/InputMethods.
 echo "[input-method] runtime"
 if command -v busctl >/dev/null 2>&1; then
   if busctl --user call org.freedesktop.DBus /org/freedesktop/DBus \
-      org.freedesktop.DBus GetNameOwner s org.fcitx.Fcitx5 >/dev/null 2>&1; then
+      org.freedesktop.DBus GetNameOwner s "${fcitx_service}" >/dev/null 2>&1; then
     echo "Fcitx 5 session service: active"
+    if busctl --user introspect "${fcitx_service}" "${fcitx_controller_path}" \
+        "${fcitx_controller_interface}" >/dev/null 2>&1; then
+      echo "Fcitx Controller1 contract: available"
+    else
+      echo "MEO_FINDING|warning|input_method.controller_contract_missing|The Fcitx 5 service is running, but the Controller1 interface required by Meo.System/InputMethods is unavailable."
+    fi
   else
     echo "Fcitx 5 session service: inactive"
     if [ "${XDG_SESSION_TYPE:-}" = "wayland" ]; then
