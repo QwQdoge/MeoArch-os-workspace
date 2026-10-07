@@ -72,3 +72,16 @@ jobs:
           MEOARCH_OUTPUT_ROOT: ${{ github.workspace }}/build/ci-output
           MEOARCH_RUN_DIR: ${{ github.workspace }}/build/ci-output/validation/component-build
         run: scripts/acceptance/20-build-components.sh
+
+      - name: Configure installer controller tests
+        run: >-
+          cmake --fresh -S installer/tests/controller -B build/installer-controller
+          -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Build installer controller tests
+        run: cmake --build build/installer-controller --parallel 2
+
+      - name: Test installer controller lifecycle
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build/installer-controller --output-on-failure --timeout 60
