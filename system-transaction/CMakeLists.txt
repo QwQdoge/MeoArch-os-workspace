@@ -5,12 +5,17 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
+enable_testing()
+
 find_package(Qt6 6.6 REQUIRED COMPONENTS Core DBus)
 qt_standard_project_setup(REQUIRES 6.6)
 
 add_library(meo-system-transaction-core STATIC
     src/transactionvalidator.cpp
     src/transactionvalidator.h
+)
+target_include_directories(meo-system-transaction-core PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 target_link_libraries(meo-system-transaction-core PUBLIC Qt6::Core)
 
@@ -27,6 +32,16 @@ target_link_libraries(meo-system-transaction-service PRIVATE
 set_target_properties(meo-system-transaction-service PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
+
+add_executable(meo-system-transaction-validator-test
+    tests/validator-test.cpp
+)
+target_link_libraries(meo-system-transaction-validator-test PRIVATE
+    meo-system-transaction-core
+    Qt6::Core
+)
+add_test(NAME meo-system-transaction-validator-test
+         COMMAND meo-system-transaction-validator-test)
 
 install(TARGETS meo-system-transaction-service
         RUNTIME DESTINATION lib/meo-system-transaction)
