@@ -14,4 +14,25 @@ add_library(meo-system-transaction-core STATIC
 )
 target_link_libraries(meo-system-transaction-core PUBLIC Qt6::Core)
 
-a dd_executable_placeholder()
+a dd_executable(meo-system-transaction-service
+    src/main.cpp
+    src/systemtransactionservice.cpp
+    src/systemtransactionservice.h
+)
+target_link_libraries(meo-system-transaction-service PRIVATE
+    meo-system-transaction-core
+    Qt6::Core
+    Qt6::DBus
+)
+set_target_properties(meo-system-transaction-service PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+install(TARGETS meo-system-transaction-service
+        RUNTIME DESTINATION lib/meo-system-transaction)
+install(FILES data/org.meo.SystemTransaction1.conf
+        DESTINATION share/dbus-1/system.d)
+install(FILES data/org.meo.SystemTransaction1.service
+        DESTINATION share/dbus-1/system-services)
+install(FILES data/meo-system-transaction.service
+        DESTINATION lib/systemd/system)
