@@ -57,7 +57,15 @@ required=(
   meoarch-os/grub/themes/meoarch/brand.png
   meoarch-os/grub/themes/meoarch/meoarch-sans-regular-24.pf2
   meoarch-os/grub/themes/meoarch/meoarch-sans-bold-24.pf2
-  meoarch-os/efiboot/loader/entries/03-archiso-tty-linux.conf
+  meoarch-os/airootfs/etc/plasmalogin.conf
+  meoarch-os/airootfs/etc/systemd/system/plasmalogin.service.d/20-meoarch-live.conf
+  installer/bin/meoarch-installer-live
+  installer/bin/meoarch-live-installer-authorize
+  installer/bin/meoarch-live-session
+  installer/data/wayland-sessions/meoarch-live.desktop
+  installer/data/systemd/user/meoarch-live-app.service
+  installer/data/org.meo.installer-live.policy
+  installer/data/org.meo.installer-live.rules
   meoarch-os/airootfs/etc/systemd/system/getty@tty1.service.d/meoarch-tty.conf
   installer/qml/Main.qml
   installer/live-system/CMakeLists.txt
@@ -137,7 +145,7 @@ grep -q 'After installation' installer/qml/pages/WelcomePage.qml
 ! rg -q 'org\.meo\.Accounts1|requestAuthentication\(|access_token|refresh_token|client_secret' installer/qml installer/app
 ! rg -q 'readonly property var wifiNetworks' installer/qml/pages/NetworkPage.qml
 ! rg -q 'preview-disk' installer/app/installercontroller.cpp
-grep -q 'for plasmoid in org.meo.topbar org.meo.timecenter; do' scripts/sync-installer-to-airootfs.sh
+grep -q 'for plasmoid in org.meo.topbar org.meo.toptasks org.meo.timecenter' scripts/sync-installer-to-airootfs.sh
 # Plasma's native task manager is the sole floating Dock. Meo owns its theme
 # geometry and dynamic colour, not a second task/window model.
 grep -q 'bottomPanel.addWidget("org.kde.plasma.icontasks")' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
@@ -161,7 +169,9 @@ grep -q '^ExecStart=/usr/local/bin/livecd-sound -u$' meoarch-os/airootfs/etc/sys
 grep -q '^ExecStart=/usr/local/bin/livecd-sound -p$' meoarch-os/airootfs/etc/systemd/system/livecd-talk.service
 grep -q 'Installation_guide' meoarch-os/airootfs/etc/motd
 ! rg -q 'installer\.py' meoarch-os installer/bin scripts/sync-installer-to-airootfs.sh scripts/verify-staging-provenance.sh
-! rg -q 'meoarch-installer-live' meoarch-os installer/bin scripts/sync-installer-to-airootfs.sh scripts/verify-staging-provenance.sh
+test -x installer/bin/meoarch-installer-live
+test -x installer/bin/meoarch-live-installer-authorize
+grep -q 'meoarch-live.desktop' scripts/sync-installer-to-airootfs.sh
 ! test -e meoarch-os/airootfs/etc/xdg/autostart/meoarch-installer.desktop
 ! test -e meoarch-os/airootfs/etc/sudoers.d/10-meoarch-live-installer
 ! rg -q '10-meoarch-live-installer' meoarch-os/profiledef.sh
@@ -178,7 +188,7 @@ grep -q '^polkit-qt6$' meoarch-os/packages.x86_64
 for package_name in curl gnupg openssl; do
   grep -q "^${package_name}$" meoarch-os/packages.x86_64
 done
-! grep -q '^konsole$' meoarch-os/packages.x86_64
+grep -q '^konsole$' meoarch-os/packages.x86_64
 for package_name in alsa-utils pipewire-audio pipewire-pulse wireplumber; do
   grep -q "^${package_name}$" meoarch-os/packages.x86_64
   grep -q "\"${package_name}\"" installer/backend/generate-config.py
@@ -266,12 +276,14 @@ grep -q '^PLYMOUTH_COMMAND_TIMEOUT_SECONDS = 1$' installer/bin/meo-boot-status
 for milestone in early storage services; do
   grep -q '^TimeoutStartSec=5s$' "installer/data/systemd/meo-boot-${milestone}.service"
 done
-if rg -q -e '^sddm$' -e '^plasma-login-manager$' -e '^plasma-(desktop|workspace)$' -e '^kwin$' meoarch-os/packages.x86_64; then
-  echo "Cage-only Live package profile includes a Plasma session component." >&2
-  exit 1
-fi
-grep -q '^seatd$' meoarch-os/packages.x86_64
-! test -e meoarch-os/airootfs/etc/systemd/system/display-manager.service
+for package_name in plasma-login-manager plasma-desktop plasma-workspace kwin konsole plasma-nm plasma-pa cage seatd; do
+  grep -q "^${package_name}$" meoarch-os/packages.x86_64
+done
+grep -q '^ConditionKernelCommandLine=meoarch.session=cage$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^ConditionKernelCommandLine=!meoarch.session=cage$' meoarch-os/airootfs/etc/systemd/system/plasmalogin.service.d/20-meoarch-live.conf
+grep -q '^User=live$' meoarch-os/airootfs/etc/plasmalogin.conf
+grep -q '^Session=meoarch-live.desktop$' meoarch-os/airootfs/etc/plasmalogin.conf
+test "$(readlink meoarch-os/airootfs/etc/systemd/system/display-manager.service)" = '/usr/lib/systemd/system/plasmalogin.service'
 test "$(readlink meoarch-os/airootfs/etc/systemd/system/graphical.target.wants/meoarch-installer.service)" = '../meoarch-installer.service'
 ! test -e meoarch-os/airootfs/etc/systemd/system/multi-user.target.wants/meoarch-installer.service
 
@@ -292,7 +304,7 @@ grub_entry_options() {
   ' meoarch-os/grub/grub.cfg
 }
 
-expected_live_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=install quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1'
+expected_live_options='archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% meoarch.mode=install meoarch.session=plasma quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1'
 bios_live_options="$(awk '/^LABEL arch$/ { label=1; next } label && /^APPEND / { sub(/^APPEND /, ""); print; exit }' meoarch-os/syslinux/archiso_sys-linux.cfg)"
 uefi_live_options="$(grub_entry_options archlinux)"
 [ "${bios_live_options}" = "${expected_live_options}" ]
@@ -310,13 +322,13 @@ uefi_tty_options="$(grub_entry_options archlinux-tty)"
 [ "${bios_tty_options}" = "${expected_tty_options}" ]
 [ "${uefi_tty_options}" = "${expected_tty_options}" ]
 
-if find meoarch-os/efiboot/loader/entries -type f -print -quit 2>/dev/null | grep -q .; then
-  echo "Stale systemd-boot loader entries remain in the GRUB UEFI profile." >&2
-  exit 1
-fi
+# Retained legacy efiboot source inputs are not enabled by this profile.
+# The selected GRUB bootmode and actual ISO contents are the active contract;
+# do not reject an unused source directory as if it were a booted payload.
+! grep -q "'uefi.systemd-boot'" meoarch-os/profiledef.sh
 
-grep -q '^APPEND .*meoarch.mode=install accessibility=on$' meoarch-os/syslinux/archiso_sys-linux.cfg
-grep -q 'meoarch.mode=install accessibility=on' meoarch-os/grub/grub.cfg
+grep -q '^APPEND .*meoarch.mode=install meoarch.session=plasma accessibility=on$' meoarch-os/syslinux/archiso_sys-linux.cfg
+grep -q 'meoarch.mode=install meoarch.session=plasma accessibility=on' meoarch-os/grub/grub.cfg
 for hook in base udev plymouth microcode modconf kms archiso block filesystems keyboard; do
   grep -Eq "(^|[[:space:]\\(])${hook}([[:space:]\\)])" meoarch-os/airootfs/etc/mkinitcpio.conf.d/archiso.conf
 done

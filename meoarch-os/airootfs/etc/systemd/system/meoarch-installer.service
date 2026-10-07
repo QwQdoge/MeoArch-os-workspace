@@ -1,4 +1,5 @@
 [Unit]
+ConditionKernelCommandLine=meoarch.session=cage
 Description=MeoArch graphical installer kiosk
 # This Live-only kiosk owns tty1 in graphical install/repair modes. The tty1
 # getty drop-in is eligible only when the bootloader explicitly selects

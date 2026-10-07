@@ -7,11 +7,13 @@ Window {
     id: root
     required property var installerController
     property bool visualPreview: false
+    property bool desktopLive: false
     property int initialPage: 0
     width: 1440
     height: 900
     minimumWidth: 960
     minimumHeight: 600
+    visibility: root.desktopLive ? Window.FullScreen : Window.AutomaticVisibility
     visible: true
     color: MeoTheme.windowBg
     title: qsTr("Meo Installer")
@@ -23,7 +25,23 @@ Window {
     property int startupAttempt: 0
     property bool startupTimedOut: false
     property string screenshotPath: ""
-    property bool handoffSplashVisible: true
+    property bool handoffSplashVisible: !root.desktopLive
+    property bool exitBlocked: false
+    readonly property bool installationRunning: controller && controller.installationState === "running"
+
+    function requestExit() {
+        if (root.installationRunning) {
+            root.exitBlocked = true
+            return
+        }
+        Qt.quit()
+    }
+    onClosing: function(close) {
+        if (root.installationRunning) {
+            close.accepted = false
+            root.exitBlocked = true
+        }
+    }
     readonly property bool startupPending: pageHost.readyPageKey.length === 0
     readonly property var controller: root.visualPreview ? Installer.PreviewController : root.installerController
     readonly property var pages: [
@@ -51,7 +69,8 @@ Window {
         if (screenshotPath.length) {
             MeoTheme.reduceMotion = true
         }
-        handoffTimer.start()
+        if (!root.desktopLive)
+            handoffTimer.start()
     }
 
     Timer {
@@ -89,7 +108,7 @@ Window {
             opacity: 0
 
             SequentialAnimation on opacity {
-                running: true
+                running: !root.desktopLive
                 PauseAnimation { duration: 80 }
                 NumberAnimation {
                     to: 1
@@ -125,7 +144,8 @@ Window {
         sourceProperties: ({
             pageIndex: root.currentPage,
             pageCount: root.pages.length,
-            controller: root.controller
+            controller: root.controller,
+            desktopLive: root.desktopLive
         })
         pageKey: String(root.currentPage) + "-" + String(root.startupAttempt)
         direction: root.navigationDirection
@@ -212,12 +232,17 @@ Window {
             MeoText {
                 visible: root.startupTimedOut
                 width: parent.width
-                text: qsTr("The interface did not finish loading. Retry; diagnostics are available from the in-installer command console once the page loads.")
+                text: qsTr("The interface did not finish loading. Retry or return to the Live desktop to use Quick Repair or Terminal.")
                 horizontalAlignment: Text.AlignHCenter
                 typeRole: "body"
                 typeSize: "small"
                 color: MeoTheme.contentOnSurfaceVariant
                 wrapMode: Text.WordWrap
+            }
+            MeoButton {
+                visible: root.startupTimedOut && root.desktopLive
+                text: qsTr("Exit to Live Desktop")
+                onClicked: root.requestExit()
             }
             MeoButton {
                 visible: root.startupTimedOut
@@ -230,6 +255,34 @@ Window {
                     root.startupAttempt++
                 }
             }
+        }
+    }
+
+    MeoMotionSurface {
+        z: 1100
+        anchors.centerIn: parent
+        width: Math.min(root.width - 64, 480)
+        height: exitNotice.implicitHeight + 48
+        visible: root.exitBlocked
+        color: MeoTheme.surfaceContainerHigh
+        radius: MeoTheme.shapeExtraLargeIncreased
+        Column {
+            id: exitNotice
+            anchors.centerIn: parent
+            width: parent.width - 48
+            spacing: 16
+            MeoText {
+                width: parent.width
+                text: qsTr("Installation in progress")
+                typeRole: "title"
+                wrapMode: Text.WordWrap
+            }
+            MeoText {
+                width: parent.width
+                text: qsTr("Keep the Installer open and this device powered on until installation finishes.")
+                wrapMode: Text.WordWrap
+            }
+            MeoButton { text: qsTr("Continue installation"); onClicked: root.exitBlocked = false }
         }
     }
 
@@ -256,7 +309,7 @@ Window {
                 root.currentPage--
             }
         }
-        function onExitRequested() { Qt.quit() }
+        function onExitRequested() { root.requestExit() }
         function onNavigateRequested(index) {
             if (index >= 0 && index < root.pages.length) {
                 root.navigationDirection = index < root.currentPage ? -1 : 1

@@ -352,16 +352,18 @@ int main(int argc, char *argv[])
         }
         engine.retranslate();
     };
+    // addImportPath prepends: explicit preview roots must override both the
+    // in-tree module and any older installed distribution package.
+    engine.addImportPath(QStringLiteral("/usr/lib/qt6/qml"));
+#ifdef MEOUI_QML_BUILD_IMPORT_PATH
+    engine.addImportPath(QString::fromUtf8(MEOUI_QML_BUILD_IMPORT_PATH));
+#endif
     const QString configuredMeoUiPath = qEnvironmentVariable("MEO_UI_QML_IMPORT_PATH");
     if (!configuredMeoUiPath.isEmpty())
         engine.addImportPath(configuredMeoUiPath);
     const QString configuredMeoSystemPath = qEnvironmentVariable("MEO_SYSTEM_QML_IMPORT_PATH");
     if (!configuredMeoSystemPath.isEmpty())
         engine.addImportPath(configuredMeoSystemPath);
-#ifdef MEOUI_QML_BUILD_IMPORT_PATH
-    engine.addImportPath(QString::fromUtf8(MEOUI_QML_BUILD_IMPORT_PATH));
-#endif
-    engine.addImportPath(QStringLiteral("/usr/lib/qt6/qml"));
 
     QString qmlRoot = qEnvironmentVariable("MEOARCH_REPAIR_QML_ROOT");
     if (qmlRoot.isEmpty()) {

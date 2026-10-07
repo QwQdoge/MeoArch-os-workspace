@@ -1907,7 +1907,7 @@ Window {
         anchors.topMargin: root.dp(12); anchors.bottomMargin: root.dp(20)
         spacing: root.dp(18)
 
-        MeoSettingsSidebar {
+        MeoSidebar {
             id: helpSidebar
             visible: !root.compactLayout
             Layout.preferredWidth: root.compactLayout ? 0 : root.dp(286)

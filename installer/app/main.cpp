@@ -236,7 +236,8 @@ int main(int argc, char *argv[])
     engine.setInitialProperties({
         {QStringLiteral("installerController"), QVariant::fromValue(&controller)},
         {QStringLiteral("initialPage"), initialPage},
-        {QStringLiteral("visualPreview"), visualPreview}
+        {QStringLiteral("visualPreview"), visualPreview},
+        {QStringLiteral("desktopLive"), arguments.contains(QStringLiteral("--desktop-live"))}
     });
 
     QString qmlRoot = qEnvironmentVariable("MEOARCH_INSTALLER_QML_ROOT");
@@ -259,6 +260,11 @@ int main(int argc, char *argv[])
             qmlRoot = development;
     }
     engine.addImportPath(qmlRoot);
+    // The root installer and Cage retain the small, shared SystemState adapter.
+    // Plasma loads the full Meo.System plugin from the global QML tree.
+    const QString liveImports = QStringLiteral("/opt/meoarch-installer/live-qml");
+    if (QDir(liveImports).exists())
+        engine.addImportPath(liveImports);
     // Install the selected translator before the first QML object is created.
     // This prevents an English first frame from flashing before retranslate().
     loadLanguage(controller.uiLanguage());
@@ -272,15 +278,17 @@ int main(int argc, char *argv[])
                          controller.retranslateUserFacingState();
                      });
 
-    // Do not dismiss Plymouth merely because Cage managed to exec this
-    // process. The first swapped Qt Quick frame is the earliest point at which
-    // the graphical handoff is actually visible to the user.
+    // Keep the first-frame watchdog in both launch modes. Only optional Cage
+    // reports readiness to the root kiosk service; Plasma owns its handoff.
     if (productionRequested) {
+        const bool desktopLive = arguments.contains(QStringLiteral("--desktop-live"));
         if (auto *quickWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().constFirst())) {
             auto firstFrameReady = std::make_shared<bool>(false);
             QObject::connect(quickWindow, &QQuickWindow::frameSwapped, quickWindow,
-                             [firstFrameReady] {
+                             [firstFrameReady, desktopLive] {
                 *firstFrameReady = true;
+                if (desktopLive)
+                    return; // Plymouth belongs to the desktop/login handoff.
                 QProcess::startDetached(QStringLiteral("/usr/bin/systemd-notify"),
                                         {QStringLiteral("--ready"),
                                          QStringLiteral("--status=Meo Installer UI is visible")});
@@ -303,13 +311,23 @@ int main(int argc, char *argv[])
     }
     if (!screenshotPath.isEmpty()) {
         if (auto *quickWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().constFirst())) {
-            QTimer::singleShot(2200, quickWindow, [quickWindow, screenshotPath, &app]() {
-                const QImage image = quickWindow->grabWindow();
-                if (image.isNull() || !image.save(screenshotPath))
-                    app.exit(2);
-                else
-                    app.quit();
+            auto *readyTimer = new QTimer(quickWindow);
+            readyTimer->setInterval(100);
+            QObject::connect(readyTimer, &QTimer::timeout, quickWindow,
+                             [quickWindow, readyTimer, screenshotPath, &app]() {
+                if (quickWindow->property("startupPending").toBool()
+                    || quickWindow->property("handoffSplashVisible").toBool())
+                    return;
+                readyTimer->stop();
+                QTimer::singleShot(200, quickWindow, [quickWindow, screenshotPath, &app]() {
+                    const QImage image = quickWindow->grabWindow();
+                    if (image.isNull() || !image.save(screenshotPath))
+                        app.exit(2);
+                    else
+                        app.quit();
+                });
             });
+            QTimer::singleShot(2200, readyTimer, [readyTimer]() { readyTimer->start(); });
             QTimer::singleShot(8000, &app, [&app]() { app.exit(3); });
         }
     }

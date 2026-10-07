@@ -2,6 +2,7 @@
 """Offline checks of the package-managed target; not installed-boot acceptance."""
 from pathlib import Path
 import re
+import configparser
 import sys
 
 REQUIRED_FILES = (
@@ -61,12 +62,24 @@ FORBIDDEN_FILES = (
     "usr/bin/meo-dock",
 )
 FORBIDDEN_LIVE_INSTALLER_PATHS = (
+    "etc/sysusers.d/20-meoarch-live.conf",
+    "usr/lib/meoarch/live-session",
+    "usr/share/wayland-sessions/meoarch-live.desktop",
+    "etc/systemd/system/getty@tty2.service.d/20-meoarch-live.conf",
+    "etc/systemd/system/plasmalogin.service.d/20-meoarch-live.conf",
     # These paths belong exclusively to the ArchISO Live environment.  The
     # installed target must not re-enter a root kiosk installer at first boot.
     "etc/systemd/system/meoarch-installer.service",
     "etc/systemd/system/graphical.target.wants/meoarch-installer.service",
     "usr/local/bin/meoarch-installer",
     "usr/local/bin/meoarch-installer-kiosk",
+    "usr/local/bin/meoarch-installer-live",
+    "usr/lib/meoarch/live-installer-authorize",
+    "usr/lib/systemd/user/meoarch-live-app.service",
+    "etc/xdg/autostart/meoarch-live.desktop",
+    "usr/share/applications/org.meo.installer-live.desktop",
+    "usr/share/polkit-1/actions/org.meo.installer-live.policy",
+    "usr/share/polkit-1/rules.d/49-meoarch-live-installer.rules",
 )
 
 
@@ -170,6 +183,15 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
         path = root / relative
         if path.exists() or path.is_symlink():
             raise ValueError(f"Live installer residue is installed: {relative}")
+
+    for relative in ('etc/plasmalogin.conf', 'usr/lib/plasmalogin/defaults.conf'):
+        config_path = target_path(root, relative)
+        if config_path.is_file():
+            config = configparser.ConfigParser(interpolation=None, strict=False)
+            config.read_string(config_path.read_text())
+            if (config.get('Autologin', 'User', fallback='').strip() == 'live'
+                    or config.get('Autologin', 'Session', fallback='').strip() == 'meoarch-live.desktop'):
+                raise ValueError(f'Live autologin residue is installed: {relative}')
 
     dock_profile = target_path(root, "etc/xdg/meo-shellrc").read_text()
     dock_layout = target_path(

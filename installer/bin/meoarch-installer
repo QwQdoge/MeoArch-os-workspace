@@ -18,7 +18,7 @@ Options:
   --enable-real-install           Allow the guarded Archinstall adapter only together with --production.
   -h, --help                      Show this help.
 
-Defaults are non-destructive. The kiosk launcher is the only ISO entrypoint that supplies production capabilities.
+Defaults are non-destructive. Only the ISO kiosk service or authorized Live desktop launcher supplies production capabilities.
 EOF
 }
 

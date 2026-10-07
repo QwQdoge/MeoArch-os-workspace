@@ -63,6 +63,22 @@ class TargetValidationTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.symlink_to(destination)
 
+    def test_rejects_live_autologin_configuration(self):
+        for content in ('[Autologin]\nUser=live\n',
+                        '[Autologin]\nUser = live\nRelogin=true\n',
+                        '[Autologin]\nSession=meoarch-live.desktop\n'):
+            with self.subTest(content=content), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                self.populate(root)
+                (root / 'etc/plasmalogin.conf').write_text(content)
+                with self.assertRaisesRegex(ValueError, 'Live autologin residue'):
+                    self.verify_fixture(root)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            (root / 'etc/plasmalogin.conf').write_text('[Autologin]\nUser=\nRelogin=false\n')
+            self.verify_fixture(root)
+
     def test_minimal_requires_only_installed_payload_not_live_source_or_extra_apps(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

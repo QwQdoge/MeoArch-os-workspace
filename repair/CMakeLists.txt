@@ -91,6 +91,10 @@ target_compile_definitions(meoarch-repair PRIVATE
 # MeoUI import/translation output. A standalone distro package instead consumes
 # the installed meoui-qml runtime from Qt's normal import path.
 if(TARGET meoui_module)
+    add_dependencies(meoarch-repair meoui_module)
+    if(TARGET meoui_moduleplugin)
+        add_dependencies(meoarch-repair meoui_moduleplugin)
+    endif()
     target_compile_definitions(meoarch-repair PRIVATE
         MEOUI_QML_BUILD_IMPORT_PATH="${CMAKE_BINARY_DIR}/meoui"
         MEOUI_TRANSLATIONS_BUILD_DIR="${CMAKE_BINARY_DIR}/meoui/translations"

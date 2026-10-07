@@ -3,8 +3,9 @@
 ## Overview
 
 The MeoArch OS Installer is a fullscreen graphical installer designed for the
-MeoArch live ISO. It runs as a focused kiosk application instead of exposing a
-traditional desktop session first.
+MeoArch live ISO. It opens full-screen in the default Plasma Wayland Live session.
+Closing it leaves the existing desktop available. Cage remains an optional kiosk
+fallback; see [LIVE_DESKTOP.md](LIVE_DESKTOP.md) for the current runtime contract.
 
 The first implementation target is a safe, non-destructive framework. It can
 present the installation flow, collect future choices, and generate an
@@ -44,7 +45,8 @@ Current assumptions:
 
 - Base distribution: Arch Linux
 - ISO builder: archiso
-- Kiosk compositor: Cage
+- Default Live compositor: Plasma Wayland / KWin
+- Optional kiosk compositor: Cage
 - Installer UI: Qt Quick/QML
 - Future backend: `archinstall`
 - Default bootloader target: GRUB
@@ -57,7 +59,8 @@ implementation.
 
 ## Runtime Architecture
 
-The live ISO starts a single graphical installer inside Cage:
+The default Live startup contract is documented in [LIVE_DESKTOP.md](LIVE_DESKTOP.md).
+The optional `meoarch.session=cage` entry starts a single graphical installer:
 
 ```text
 Live ISO boot

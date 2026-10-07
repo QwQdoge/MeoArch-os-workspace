@@ -84,7 +84,7 @@ grep -Fq 'property bool controlled: false' \
 [ -f "${runtime}/share/dbus-1/system-services/org.meo.Repair1.service" ]
 [ -f "${runtime}/lib/systemd/system/meoarch-repair-privileged.service" ]
 LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" --help \
-  | grep -q '^MeoArch Quick Repair$'
+  | grep -q '^Meo Repair$'
 audio_category="$(LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" \
   --classify='为什么没有声音？' | python -c 'import json,sys; print(json.load(sys.stdin)["category"])')"
 display_category="$(LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" \

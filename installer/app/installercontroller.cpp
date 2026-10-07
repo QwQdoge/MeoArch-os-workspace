@@ -29,6 +29,14 @@
 #include <algorithm>
 
 namespace {
+QString installerStateDirectory()
+{
+    const QString configured = qEnvironmentVariable("MEOARCH_INSTALLER_STATE_DIR");
+    return configured.isEmpty()
+        ? QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"))
+        : configured;
+}
+
 QVariantMap row(std::initializer_list<std::pair<const char *, QVariant>> values)
 {
     QVariantMap result;
@@ -333,7 +341,7 @@ void InstallerController::writeSelection(const QString &sectionName, const QStri
 
 void InstallerController::discardGeneratedPlan()
 {
-    const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    const QString directory = installerStateDirectory();
     QFile::remove(QDir(directory).absoluteFilePath(QStringLiteral("summary_confirmed")));
     QFile::remove(QDir(directory).absoluteFilePath(QStringLiteral("preflight_status.json")));
     // These are inputs to the destructive backend, not historical logs. A stale
@@ -1004,6 +1012,9 @@ void InstallerController::runDiagnosticCommand(const QString &command)
         QStringLiteral("--regid=live"),
         QStringLiteral("--clear-groups"),
         QStringLiteral("--no-new-privs"),
+        QStringLiteral("--bounding-set=-all"),
+        QStringLiteral("--inh-caps=-all"),
+        QStringLiteral("--ambient-caps=-all"),
         QStringLiteral("/usr/bin/timeout"),
         QStringLiteral("--signal=TERM"),
         QStringLiteral("60s"),
@@ -1163,8 +1174,7 @@ void InstallerController::refreshNetworkHandoff()
 
 bool InstallerController::stageNetworkHandoff()
 {
-    const QString stateDirectory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation))
-                                       .absoluteFilePath(QStringLiteral("meoarch-installer/generated"));
+    const QString stateDirectory = QDir(installerStateDirectory()).absoluteFilePath(QStringLiteral("generated"));
     const QString staged = QDir(stateDirectory).absoluteFilePath(QStringLiteral("network-handoff.nmconnection"));
     QFile::remove(staged);
     if (!section(QStringLiteral("network")).value(QStringLiteral("handoffEnabled"), false).toBool())
@@ -1549,7 +1559,7 @@ QString InstallerController::sourceRoot() const
 
 void InstallerController::persistSelections()
 {
-    const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    const QString directory = installerStateDirectory();
     QDir().mkpath(directory);
     const QString path = QDir(directory).absoluteFilePath(QStringLiteral("selections.json"));
     QSaveFile file(path);
@@ -1625,7 +1635,7 @@ void InstallerController::prepareInstallation()
         setPreflight(QStringLiteral("failed"), m_errorMessage);
         return;
     }
-    const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    const QString directory = installerStateDirectory();
     const QString path = QDir(directory).absoluteFilePath(QStringLiteral("selections.json"));
 #ifdef Q_OS_LINUX
     const QString generator = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/generate-config.py"));
@@ -1702,7 +1712,7 @@ void InstallerController::prepareInstallation()
 
 void InstallerController::startArchinstallPreflight()
 {
-    const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    const QString directory = installerStateDirectory();
     const QString script = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/archinstall-preflight.sh"));
     if (!QFileInfo::exists(script)) {
         setPreflight(QStringLiteral("failed"), tr("The Archinstall preflight helper is missing."));
@@ -1760,7 +1770,7 @@ void InstallerController::confirmSummary()
     }
     m_summaryConfirmed = false;
     m_confirmedPlanRevision = 0;
-    const QString directory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    const QString directory = installerStateDirectory();
     if (!QDir().mkpath(directory)) {
         setError(tr("Could not create the installation state directory."));
         return;
@@ -1812,7 +1822,7 @@ void InstallerController::startInstallation()
         setPreflight(QStringLiteral("failed"), tr("The installation backend is missing. Return to a complete Live image before trying again."));
         return;
     }
-    const QString stateDirectory = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).absoluteFilePath(QStringLiteral("meoarch-installer"));
+    const QString stateDirectory = installerStateDirectory();
     auto *process = new QProcess(this);
     m_installationProcess = process;
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
@@ -1917,8 +1927,8 @@ void InstallerController::requestRestart()
         setError(tr("Restart is disabled in preview mode."));
         return;
     }
-    if (m_installationState != QStringLiteral("complete")) {
-        setError(tr("Restart is available only after target validation completes."));
+    if (m_installationState != QStringLiteral("complete") && m_installationState != QStringLiteral("failed")) {
+        setError(tr("Restart is available only after target validation completes or installation fails."));
         return;
     }
     if (!QProcess::startDetached(QStringLiteral("systemctl"), {QStringLiteral("reboot")}))
@@ -1938,3 +1948,45 @@ void InstallerController::requestShutdown()
         setError(tr("Could not request shutdown from the Live system."));
 }
 void InstallerController::setError(const QString &message) { m_errorMessage = message; emit errorMessageChanged(); }
+
+QString InstallerController::installationLogPath() const
+{
+    return QDir(installerStateDirectory()).absoluteFilePath(QStringLiteral("logs/install.log"));
+}
+
+QString InstallerController::installationLogDetails() const
+{
+    QFile log(installationLogPath());
+    if (!log.open(QIODevice::ReadOnly | QIODevice::Text))
+        return tr("The diagnostic log is not available yet.");
+    constexpr qint64 limit = 64 * 1024;
+    if (log.size() > limit)
+        log.seek(log.size() - limit);
+    return QString::fromUtf8(log.read(limit));
+}
+
+void InstallerController::openLiveRepair()
+{
+    // Fixed application and identity; never a privileged desktop shell or
+    // arbitrary caller-supplied command. Only the authorized desktop launch
+    // supplies this bounded endpoint.
+    const QString endpoint = qEnvironmentVariable("WAYLAND_DISPLAY");
+    if (!m_systemActionsEnabled || m_installationState != QStringLiteral("failed")
+        || !QDir(QStringLiteral("/run/archiso")).exists()
+        || !QRegularExpression(QStringLiteral("^/run/user/[0-9]+/wayland-[0-9]{1,4}$")).match(endpoint).hasMatch()) {
+        setError(tr("Quick Repair is available from the Live desktop after installation stops."));
+        return;
+    }
+    const QString runtime = QFileInfo(endpoint).absolutePath();
+    if (!QProcess::startDetached(QStringLiteral("/usr/bin/runuser"),
+        {QStringLiteral("-u"), QStringLiteral("live"), QStringLiteral("--"),
+         QStringLiteral("/usr/bin/env"), QStringLiteral("-i"),
+         QStringLiteral("HOME=/home/live"), QStringLiteral("USER=live"), QStringLiteral("LOGNAME=live"),
+         QStringLiteral("PATH=/usr/bin:/usr/local/bin"), QStringLiteral("LANG=C.UTF-8"),
+         QStringLiteral("XDG_RUNTIME_DIR=") + runtime,
+         QStringLiteral("DBUS_SESSION_BUS_ADDRESS=unix:path=") + runtime + QStringLiteral("/bus"),
+         QStringLiteral("WAYLAND_DISPLAY=") + QFileInfo(endpoint).fileName(),
+         QStringLiteral("XDG_SESSION_TYPE=wayland"), QStringLiteral("XDG_CURRENT_DESKTOP=KDE"),
+         QStringLiteral("/usr/bin/meoarch-repair"), QStringLiteral("--live")}))
+        setError(tr("Could not open Quick Repair. Return to the Live desktop to launch it."));
+}

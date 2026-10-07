@@ -1,0 +1,11 @@
+[Unit]
+Description=MeoArch Live application in Plasma
+PartOf=graphical-session.target
+After=plasma-kwin_wayland.service
+
+[Service]
+Type=exec
+ExecStart=/usr/local/bin/meoarch-installer-live
+Restart=no
+TimeoutStopSec=10s
+# Closing or crashing the Installer must leave the desktop available.

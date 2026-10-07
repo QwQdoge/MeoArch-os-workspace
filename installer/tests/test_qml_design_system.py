@@ -422,7 +422,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertNotIn('row({{"id", "ja"}', controller)
         self.assertIn("uiLanguages.length > 1", (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8"))
 
-    def test_language_page_keeps_timezone_selection_inside_the_cage_only_live_boundary(self):
+    def test_language_page_keeps_offline_timezone_selection_in_all_live_sessions(self):
         page = (QML_ROOT / "pages/LanguageRegionPage.qml").read_text(encoding="utf-8")
         wrapper = (QML_ROOT / "components/MeoTimezoneSelector.qml").read_text(encoding="utf-8")
         packages = (QML_ROOT.parents[1] / "meoarch-os/packages.x86_64").read_text(encoding="utf-8")
@@ -430,7 +430,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("searchable list", wrapper)
         self.assertNotIn("org.kde.plasma.workspace", wrapper)
         self.assertNotIn("KdeTimezoneSelector.qml", wrapper)
-        self.assertNotIn("plasma-workspace", packages)
+        self.assertIn("plasma-workspace", packages)
         self.assertIn("qt6-location", packages)
 
     def test_language_page_is_country_first_with_real_adjustments_and_calendar_boundaries(self):
@@ -550,7 +550,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertNotIn('QStringLiteral("konsole")', controller)
         self.assertNotIn('QStringLiteral("xterm")', controller)
         self.assertNotIn("openDebugTerminal", header)
-        self.assertNotIn("\nkonsole\n", f"\n{packages}\n")
+        self.assertIn("\nkonsole\n", f"\n{packages}\n")
         self.assertTrue((QML_ROOT.parents[1] / "assets/wallpapers/installer_background.png").is_file())
 
     def test_minimum_window_uses_compact_install_and_finish_layouts(self):

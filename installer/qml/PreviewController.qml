@@ -3,6 +3,7 @@ import QtQuick
 
 QtObject {
     readonly property bool previewInstalling: Qt.application.arguments.indexOf("--preview-installing") >= 0
+    readonly property bool previewFailed: Qt.application.arguments.indexOf("--preview-failed") >= 0
     readonly property bool previewComplete: Qt.application.arguments.indexOf("--preview-complete") >= 0
     // The mock controller is used only for visual-regression runs, but it
     // must model the same system-language default as the native controller.
@@ -34,10 +35,11 @@ QtObject {
     property string hardwareWarning: ""
     property bool hardwareDetecting: false
     property bool diskDetecting: false
-    property string installationState: previewComplete ? "complete" : previewInstalling ? "running" : "idle"
-    property int installationProgress: previewComplete ? 100 : previewInstalling ? 35 : 0
-    property string installationStage: previewComplete ? "complete" : previewInstalling ? "installing_base" : "idle"
-    property string installationMessage: previewComplete ? qsTr("Installation complete.")
+    property string installationState: previewFailed ? "failed" : previewComplete ? "complete" : previewInstalling ? "running" : "idle"
+    property int installationProgress: previewFailed ? 5 : previewComplete ? 100 : previewInstalling ? 35 : 0
+    property string installationStage: previewFailed ? "preflighting_meo_repository" : previewComplete ? "complete" : previewInstalling ? "installing_base" : "idle"
+    property string installationFailureDetails: previewFailed ? qsTr("Selected packages could not be verified. Check the connection and repository, then restart before another attempt.") : ""
+    property string installationMessage: previewFailed ? qsTr("Package verification failed before disk preparation.") : previewComplete ? qsTr("Installation complete.")
                                                        : previewInstalling ? qsTr("Installing the base system and packages") : ""
     property string preflightState: "ready"
     property string preflightMessage: qsTr("Visual preview only — no installation backend is invoked.")
@@ -162,6 +164,9 @@ QtObject {
     function prepareInstallation() { preflightState = "ready"; preflightMessage = qsTr("Visual preview only — no installation backend is invoked.") }
     function confirmSummary() {}
     function startInstallation() { installationState = "complete"; installationProgress = 100; installationStage = "complete"; installationMessage = qsTr("Visual preview complete.") }
+    function installationLogPath() { return "/tmp/meoarch-installer/logs/install.log" }
+    function installationLogDetails() { return qsTr("Visual preview only — no installation log is written.") }
+    function openLiveRepair() { errorMessage = qsTr("Quick Repair launch is disabled in preview mode.") }
     function requestRestart() { errorMessage = qsTr("Restart is disabled in preview mode.") }
     function requestShutdown() { errorMessage = qsTr("Shut down is disabled in preview mode.") }
 }

@@ -1,0 +1,106 @@
+#!/usr/bin/python3 -I
+"""Live-only Plasma supervisor. Recovery uses stock Plasma, never a new shell UI."""
+import json
+import os
+from pathlib import Path
+import pwd
+import signal
+import subprocess
+import sys
+import time
+
+WINDOW = 60
+LIMIT = 2
+
+
+def record_exit(previous, now, duration):
+    """Two short session failures within a minute select stock Plasma."""
+    recent = [stamp for stamp in previous if 0 <= now - stamp <= WINDOW]
+    if duration >= WINDOW:
+        return [now]
+    return (recent + [now])[-LIMIT:]
+
+
+def safe_environment(environment, state):
+    config = state / 'safe-config'
+    config.mkdir(mode=0o700, exist_ok=True)
+    # User overrides isolate the stock layout from Meo system defaults. Never
+    # copy a failing custom panel/layout into this profile.
+    (config / 'kdeglobals').write_text(
+        '[KDE]\nLookAndFeelPackage=org.kde.breeze.desktop\nwidgetStyle=Breeze\n'
+        '[Icons]\nTheme=breeze\n[General]\nColorScheme=BreezeLight\n')
+    (config / 'plasmarc').write_text('[Theme]\nname=default\n')
+    (config / 'kwinrc').write_text(
+        '[Plugins]\norg.meo.windowcornersEnabled=false\n'
+        'kwin4_effect_shapecornersEnabled=false\n'
+        '[org.kde.kdecoration2]\nlibrary=org.kde.breeze\ntheme=Breeze\n')
+    # The stock panel includes task launcher, tray/network and application menu.
+    # Plasma's Breeze look-and-feel provides its maintained default layout.
+    for filename in ('plasma-org.kde.plasma.desktop-appletsrc',):
+        (config / filename).unlink(missing_ok=True)
+    return dict(environment, XDG_CONFIG_HOME=str(config),
+                QT_STYLE_OVERRIDE='Breeze', MEOARCH_LIVE_SAFE='1')
+
+
+def main():
+    user = pwd.getpwnam('live')
+    if os.getuid() != user.pw_uid or not Path('/run/archiso').is_dir() or len(sys.argv) != 1:
+        return 126
+    state = Path(user.pw_dir) / '.local/state/meoarch-live'
+    state.mkdir(mode=0o700, parents=True, exist_ok=True)
+    history = state / 'session-failures.json'
+    try:
+        failures = json.loads(history.read_text())
+        if not isinstance(failures, list) or not all(isinstance(x, (int, float)) for x in failures):
+            failures = []
+    except (OSError, ValueError):
+        failures = []
+    environment = dict(os.environ)
+    forced = 'meoarch.live-safe=1' in Path('/proc/cmdline').read_text().split()
+    stopping = False
+    child = None
+
+    def stop(signum, _frame):
+        nonlocal stopping
+        stopping = True
+        if child is not None and child.poll() is None:
+            child.send_signal(signum)
+    for signum in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+        signal.signal(signum, stop)
+    while not stopping:
+        now = time.monotonic()
+        failures = [stamp for stamp in failures if 0 <= now - stamp <= WINDOW]
+        safe = forced or len(failures) >= LIMIT
+        forced = safe  # Stay in stock recovery until reboot.
+        launch_environment = safe_environment(environment, state) if safe else environment
+        try:
+            # startplasma delegates KWin/shell to the user manager. Import the safe
+            # profile there too, so those services get the same configuration.
+            for name in ('XDG_CONFIG_HOME', 'QT_STYLE_OVERRIDE', 'MEOARCH_LIVE_SAFE'):
+                if name in launch_environment:
+                    subprocess.run(['/usr/bin/systemctl', '--user', 'set-environment',
+                                    f'{name}={launch_environment[name]}'], check=True)
+            print('MeoArch Live: starting ' + ('stock Plasma safe mode' if safe else 'Meo Plasma'), flush=True)
+            child = subprocess.Popen(['/usr/bin/startplasma-wayland'], env=launch_environment)
+            child.wait()
+        except (OSError, subprocess.SubprocessError) as error:
+            print(f'Live Plasma start failed: {error}', file=sys.stderr, flush=True)
+        if stopping:
+            break
+        finished = time.monotonic()
+        failures = record_exit(failures, finished, finished - now)
+        history.write_text(json.dumps(failures))
+        if safe and finished - now < WINDOW:
+            # Keep the session wrapper alive instead of returning to an
+            # impossible locked-account greeter or making a relogin loop.
+            print('Safe Plasma stopped. Ctrl+Alt+F2 opens the Live diagnostic shell.', flush=True)
+            while not stopping:
+                signal.pause()
+        else:
+            # Bound retries even if a compositor fails instantly.
+            time.sleep(1)
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())

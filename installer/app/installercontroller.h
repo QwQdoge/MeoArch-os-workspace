@@ -138,6 +138,9 @@ public:
     Q_INVOKABLE void prepareInstallation();
     Q_INVOKABLE void confirmSummary();
     Q_INVOKABLE void startInstallation();
+    Q_INVOKABLE QString installationLogPath() const;
+    Q_INVOKABLE QString installationLogDetails() const;
+    Q_INVOKABLE void openLiveRepair();
     Q_INVOKABLE void requestRestart();
     Q_INVOKABLE void requestShutdown();
 
