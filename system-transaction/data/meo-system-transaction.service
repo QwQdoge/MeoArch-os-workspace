@@ -1,0 +1,25 @@
+[Unit]
+Description=MeoArch System Transaction Service
+Documentation=file:/usr/share/doc/meo-system-transaction/SYSTEM_TRANSACTION_SERVICE.md
+
+[Service]
+Type=dbus
+BusName=org.meo.SystemTransaction1
+ExecStart=/usr/lib/meo-system-transaction/meo-system-transaction-service
+User=root
+Group=root
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
