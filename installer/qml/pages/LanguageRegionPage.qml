@@ -10,6 +10,7 @@ PageFrame {
     property bool adjustmentsOpen: false
     readonly property var recommendation: controller ? controller.regionRecommendation : ({})
     readonly property string secondaryCalendar: controller ? controller.selection("preferences", "secondaryCalendar", "none") : "none"
+    readonly property string inputMethodMode: controller ? controller.selection("inputMethod", "mode", "meo-managed") : "meo-managed"
 
     function calendarLabel(id) {
         const all = controller ? controller.calendarCapabilities : []
@@ -19,6 +20,28 @@ PageFrame {
         return id
     }
 
+    function inputMethodModeLabel(mode) {
+        return mode === "self-managed" ? qsTr("Manage it myself") : qsTr("Meo-managed Fcitx 5")
+    }
+
+    function applyInputMethodMode(mode) {
+        if (!controller)
+            return
+        if (mode === "self-managed") {
+            controller.setSelection("inputMethod", "mode", "self-managed")
+            controller.setSelection("inputMethod", "framework", "")
+            controller.setSelection("inputMethod", "engineCapabilities", [])
+            controller.setSelection("inputMethod", "initialEngine", "")
+            return
+        }
+        controller.setSelection("inputMethod", "mode", "meo-managed")
+        controller.setSelection("inputMethod", "framework", "fcitx5")
+        // Engine packages are resolved later by the trusted capability catalog.
+        // Do not turn this UI into a second package mapping authority.
+        controller.setSelection("inputMethod", "engineCapabilities", [])
+        controller.setSelection("inputMethod", "initialEngine", "")
+    }
+
     Column {
         width: parent.width
         spacing: page.compactHeight ? page.dp(12) : page.dp(18)
@@ -26,7 +49,7 @@ PageFrame {
         PageHeading {
             width: parent.width
             title: page.pageTitle
-            subtitle: qsTr("Choose where you live. Meo will prepare a recommended language, format, time zone, and keyboard that you can adjust at any time.")
+            subtitle: qsTr("Choose where you live. Meo will prepare a recommended language, format, time zone, keyboard, and input-method setup that you can adjust at any time.")
         }
 
         SelectionCard {
@@ -66,6 +89,7 @@ PageFrame {
                         { icon: "format_list_numbered", label: qsTr("Date and number format"), value: page.controller ? page.controller.formatLocale : "" },
                         { icon: "schedule", label: qsTr("Time zone"), value: page.controller ? page.controller.timeZone : "" },
                         { icon: "keyboard", label: qsTr("Keyboard"), value: page.controller ? page.controller.keyboardLayout : "" },
+                        { icon: "language", label: qsTr("Input method"), value: page.inputMethodModeLabel(page.inputMethodMode) },
                         { icon: "calendar_month", label: qsTr("Calendar"), value: qsTr("Gregorian") + (page.secondaryCalendar !== "none" ? qsTr(" · %1").arg(page.calendarLabel(page.secondaryCalendar)) : "") }
                     ]
                     delegate: Row {
@@ -82,7 +106,7 @@ PageFrame {
         }
 
         MeoButton {
-            text: page.adjustmentsOpen ? qsTr("Hide adjustments") : qsTr("Adjust language, format, time zone, and calendar")
+            text: page.adjustmentsOpen ? qsTr("Hide adjustments") : qsTr("Adjust language, format, time zone, input, and calendar")
             type: "tonal"
             onClicked: page.adjustmentsOpen = !page.adjustmentsOpen
         }
@@ -96,6 +120,20 @@ PageFrame {
             SelectionCard { width: parent.width; iconText: "format_list_numbered"; title: qsTr("Date and number format"); value: page.controller ? page.controller.formatLocale : ""; onClicked: formatDialog.openFrom(this) }
             SelectionCard { width: parent.width; iconText: "schedule"; title: qsTr("Time zone"); value: page.controller ? page.controller.timeZone : ""; onClicked: zoneDialog.openFrom(this) }
             SelectionCard { width: parent.width; iconText: "keyboard"; title: qsTr("Keyboard"); value: page.controller ? page.controller.keyboardLayout : ""; onClicked: keyboardDialog.openFrom(this) }
+            SelectionCard {
+                width: parent.width
+                iconText: "language"
+                title: qsTr("Input method")
+                value: page.inputMethodModeLabel(page.inputMethodMode)
+                onClicked: inputMethodDialog.openFrom(this)
+            }
+            InfoBanner {
+                width: parent.width
+                title: page.inputMethodMode === "self-managed" ? qsTr("You keep control") : qsTr("Meo-managed input method")
+                message: page.inputMethodMode === "self-managed"
+                         ? qsTr("MeoArch will not choose an input-method framework or language engine for you. You can configure one after installation.")
+                         : qsTr("MeoArch will use the Fcitx 5 framework through Plasma Wayland. Language engines such as Pinyin or Rime can be added later from Meo Settings and the app flow.")
+            }
             SelectionCard { width: parent.width; iconText: "calendar_month"; title: qsTr("Secondary calendar"); value: page.calendarLabel(page.secondaryCalendar); onClicked: calendarDialog.openFrom(this) }
             ToggleRow {
                 visible: page.secondaryCalendar === "hebcal"
@@ -129,5 +167,18 @@ PageFrame {
     SelectorDialog { id: formatDialog; title: qsTr("Date and number formats"); sourceModel: page.controller ? page.controller.systemLocales : []; primaryKey: "id"; labelKey: "nativeName"; secondaryKey: "code"; selectedId: page.controller ? page.controller.formatLocale : ""; onApplied: id => page.controller.setFormatLocale(id) }
     SelectorDialog { id: zoneDialog; title: qsTr("Time zones"); sourceModel: page.controller ? page.controller.timeZones : []; primaryKey: "id"; labelKey: "label"; secondaryKey: "id"; selectedId: page.controller ? page.controller.timeZone : ""; onApplied: id => page.controller.setTimeZone(id) }
     SelectorDialog { id: keyboardDialog; title: qsTr("Keyboard layouts"); sourceModel: page.controller ? page.controller.keyboardLayouts : []; primaryKey: "id"; labelKey: "name"; secondaryKey: "id"; selectedId: page.controller ? page.controller.keyboardLayout : ""; onApplied: id => page.controller.setKeyboardLayout(id) }
+    SelectorDialog {
+        id: inputMethodDialog
+        title: qsTr("Input method")
+        sourceModel: [
+            { id: "meo-managed", name: qsTr("Meo-managed Fcitx 5"), description: qsTr("Recommended. Plasma owns the Fcitx session and Meo Settings manages it after installation.") },
+            { id: "self-managed", name: qsTr("Manage it myself"), description: qsTr("Do not choose an input-method framework or language engine during installation.") }
+        ]
+        primaryKey: "id"
+        labelKey: "name"
+        secondaryKey: "description"
+        selectedId: page.inputMethodMode
+        onApplied: id => page.applyInputMethodMode(id)
+    }
     SelectorDialog { id: calendarDialog; title: qsTr("Secondary calendar"); sourceModel: page.controller ? page.controller.calendarCapabilities : []; primaryKey: "id"; labelKey: "name"; secondaryKey: "description"; selectedId: page.secondaryCalendar; onApplied: id => page.controller.setSecondaryCalendar(id) }
 }
