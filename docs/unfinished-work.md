@@ -6,14 +6,19 @@ The cross-system product contract is `docs/design.md`.
 
 ## P0 — product paths that are still incomplete
 
-### Meo Settings real writers and transactions
+### Meo Settings session-entry writers and transactions
 
-- Replace preview-only/session-only configuration paths with validated real writers where the owning backend exists.
-- Lock-screen user configuration needs a real per-user writer with schema validation, atomic persistence and rollback.
-- Login-screen configuration needs a privileged, narrow transaction service that snapshots, validates and rolls back without editing PAM directly.
-- Keep the transaction sequence consistent: `Inspect -> Validate -> Plan -> Preview -> Authorize -> Snapshot -> Apply -> Validate -> Commit / Rollback`.
-- Continue converting normal KCM handoffs into native Meo Settings pages; KDE System Settings remains the advanced fallback.
-- Do not claim an area complete until the page changes the real authoritative system state and reads it back successfully.
+The Plasma/Meo Desktop lock-screen presentation writer is already implemented and tested in Meo Settings. `LockScreenPresentationBackend` validates and persists the allowlisted Meo KScreenLocker Look-and-Feel keys in `kscreenlockerrc`, and the Meo lock-screen `config.xml` consumes the same keys. Do not reimplement or remove this working path as if it were preview-only.
+
+Remaining work:
+
+- privileged Login Manager configuration needs a narrow transaction service that snapshots, validates and rolls back without editing PAM directly;
+- the richer secure-widget/layout editor still needs a validated persistent writer before preview layout state can be described as applied system state;
+- per-output presentation/layout and future schema-backed session-entry fields need real adapters before they are marked implemented;
+- if the standalone Quickshell Meo Session Lock is exposed as a configurable supported session, add a separate maintained adapter for that runtime rather than blindly writing both lock backends;
+- keep the target transaction sequence consistent for sensitive or multi-step writes: `Inspect -> Validate -> Plan -> Preview -> Authorize -> Snapshot -> Apply -> Validate -> Commit / Rollback`;
+- continue converting normal KCM handoffs into native Meo Settings pages; KDE System Settings remains the advanced fallback;
+- do not claim an area complete until the page changes the real authoritative state and reads it back successfully.
 
 ### Shared Meo system service/API
 
@@ -83,11 +88,16 @@ Keep model output untrusted, capability typed, caller-bound and policy checked. 
 
 ### Lock-screen runtime
 
-Current merged/runtime direction is standalone Meo Session Lock (resident Quickshell + Wayland session-lock + PAM). Older KScreenLocker Look-and-Feel-only wording must be updated or clearly marked historical.
+Do not force two different session runtimes into one answer:
+
+- **Meo Desktop / Plasma Wayland** currently uses Plasma 6 + KWin and the Meo KScreenLocker Look-and-Feel path. Its presentation settings writer is real and already persists the corresponding `kscreenlockerrc` keys.
+- **Hyprland/UWSM-style sessions** may use the standalone resident Meo Session Lock based on Quickshell + Wayland session-lock + PAM.
+
+Repository docs must say which session/runtime they describe. KScreenLocker documents are not automatically obsolete merely because the standalone lock also exists, and standalone-lock documents must not claim to be the only lock implementation for every MeoArch session.
 
 ### Lock-screen privacy default
 
-Canonical default: notification **count only**. App names, full content, album artwork and precise location are opt-in. Update older `full-content` defaults to match.
+Canonical default: notification **count only**. App names and full content are opt-in. Album artwork and precise weather location are controlled independently and are not permission to reveal notification content. Update older `full-content` defaults to match.
 
 ### Installer Live mode
 
@@ -142,7 +152,8 @@ Prefer consistency work over adding components for its own sake:
 The following require runtime evidence and should not be marked complete from static/source tests alone:
 
 - real Plasma/Wayland session behavior;
-- lock/unlock success/failure, suspend/resume, DPMS and multi-monitor;
+- KScreenLocker lock/unlock success/failure, suspend/resume, DPMS and multi-monitor in Meo Desktop;
+- standalone session-lock behavior in sessions that ship/use that runtime;
 - Login Manager authentication/session-start behavior;
 - real package transaction and channel changes;
 - full installer disk operation, reboot and first login;
@@ -175,4 +186,4 @@ For an ordinary user-facing capability, "done" means all of the following where 
 7. changes are validated and recoverable where failure could leave bad state;
 8. the result is read back or otherwise verified;
 9. runtime evidence exists for the relevant environment;
-10. docs no longer describe an obsolete competing architecture as current.
+10. docs no longer describe another session/runtime's implementation as if it were the only current architecture.
