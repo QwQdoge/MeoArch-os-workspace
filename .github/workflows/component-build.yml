@@ -5,6 +5,7 @@ on:
     paths:
       - 'installer/**'
       - 'repair/**'
+      - 'system-transaction/**'
       - 'scripts/acceptance/20-build-components.sh'
       - 'scripts/build-installer-app.sh'
       - '.github/workflows/component-build.yml'
@@ -23,7 +24,7 @@ concurrency:
 
 jobs:
   build:
-    name: Installer + repair runtime
+    name: Installer + repair + transaction runtime
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -72,6 +73,19 @@ jobs:
           MEOARCH_OUTPUT_ROOT: ${{ github.workspace }}/build/ci-output
           MEOARCH_RUN_DIR: ${{ github.workspace }}/build/ci-output/validation/component-build
         run: scripts/acceptance/20-build-components.sh
+
+      - name: Build and test system transaction service
+        run: |
+          cmake --fresh -S system-transaction -B build/system-transaction \
+            -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          cmake --build build/system-transaction --parallel 2
+          ctest --test-dir build/system-transaction --output-on-failure --timeout 30
+          DESTDIR="$PWD/build/system-transaction-root" \
+            cmake --install build/system-transaction --prefix /usr
+          test -x build/system-transaction-root/usr/lib/meo-system-transaction/meo-system-transaction-service
+          test -f build/system-transaction-root/usr/share/dbus-1/system.d/org.meo.SystemTransaction1.conf
+          test -f build/system-transaction-root/usr/share/dbus-1/system-services/org.meo.SystemTransaction1.service
+          test -f build/system-transaction-root/usr/lib/systemd/system/meo-system-transaction.service
 
       - name: Configure installer controller tests
         run: >-
