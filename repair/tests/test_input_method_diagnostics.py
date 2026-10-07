@@ -12,8 +12,11 @@ class InputMethodDiagnosticContractTests(unittest.TestCase):
     def test_check_is_read_only_and_fixed_scope(self):
         source = CHECK.read_text(encoding="utf-8")
         self.assertIn("set -u -o pipefail", source)
-        self.assertIn("org.fcitx.Fcitx5", source)
+        self.assertIn('fcitx_service="org.fcitx.Fcitx5"', source)
+        self.assertIn('fcitx_controller_path="/controller"', source)
+        self.assertIn('fcitx_controller_interface="org.fcitx.Fcitx.Controller1"', source)
         self.assertIn("GetNameOwner", source)
+        self.assertIn('busctl --user introspect "${fcitx_service}" "${fcitx_controller_path}"', source)
         self.assertIn('pacman -Q "${package}"', source)
         self.assertNotIn("pacman -S", source)
         self.assertNotIn("sudo ", source)
@@ -28,6 +31,7 @@ class InputMethodDiagnosticContractTests(unittest.TestCase):
         for finding in (
             "input_method.framework_missing",
             "input_method.runtime_inactive",
+            "input_method.controller_contract_missing",
             "input_method.package_framework_missing",
             "input_method.qt_bridge_missing",
             "input_method.gtk_bridge_missing",
