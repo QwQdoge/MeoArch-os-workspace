@@ -51,3 +51,5 @@ install(FILES data/org.meo.SystemTransaction1.service
         DESTINATION share/dbus-1/system-services)
 install(FILES data/meo-system-transaction.service
         DESTINATION lib/systemd/system)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../docs/SYSTEM_TRANSACTION_SERVICE.md"
+        DESTINATION share/doc/meo-system-transaction)
