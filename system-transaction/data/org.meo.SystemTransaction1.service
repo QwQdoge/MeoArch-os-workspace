@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=org.meo.SystemTransaction1
+Exec=/usr/lib/meo-system-transaction/meo-system-transaction-service
+User=root
+SystemdService=meo-system-transaction.service
