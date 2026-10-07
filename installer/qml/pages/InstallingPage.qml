@@ -7,6 +7,10 @@ import "../components"
 PageFrame {
     id: page
     property string logDetails: ""
+    readonly property bool failedBeforeDiskWork: controller && controller.installationState === "failed"
+        && (controller.installationStage === "preflight"
+            || controller.installationStage === "preflighting_arch_packages"
+            || controller.installationStage === "preflighting_meo_repository")
     showBackButton: false
     showPrimaryButton: controller && (controller.installationState === "complete"
                                       || controller.installationState === "failed")
@@ -121,7 +125,9 @@ PageFrame {
             width: parent.width
             tone: "warning"
             title: qsTr("Restart before another installation")
-            message: qsTr("Some disk changes may already have happened. Read the Live diagnostic log, then restart the Live session before another installation attempt. Summary is available for review only.")
+            message: page.failedBeforeDiskWork
+                     ? qsTr("Package checks stopped before disk preparation. No disk changes were made by this attempt. Read the Live diagnostic log, then restart before another installation attempt.")
+                     : qsTr("Some disk changes may already have happened. Read the Live diagnostic log, then restart the Live session before another installation attempt. Summary is available for review only.")
         }
     }
     MeoMotionPopup {
