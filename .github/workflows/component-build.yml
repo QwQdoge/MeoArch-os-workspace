@@ -84,4 +84,6 @@ jobs:
       - name: Test installer controller lifecycle
         env:
           QT_QPA_PLATFORM: offscreen
-        run: ctest --test-dir build/installer-controller --output-on-failure --timeout 60
+        run: |
+          id -u live >/dev/null 2>&1 || useradd --system --create-home live
+          ctest --test-dir build/installer-controller --output-on-failure --timeout 60
