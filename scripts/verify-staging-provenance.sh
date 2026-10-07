@@ -77,6 +77,15 @@ classify() {
     airootfs/etc/pacman.d/gnupg/*)
       printf '%s\t%s\t%s' 'Build trust seed' 'public Arch keyring and ISO Meo bootstrap' 'pacstrap verification only; no private key material'
       ;;
+    pacman.conf)
+      # Declaring this path must not authorize repository or signature-policy
+      # changes. Only the generated short GnuPG home may differ from baseline.
+      if ! cmp -s "${baseline}/pacman.conf" \
+        <(sed '/^GPGDir = \/tmp\/meo-archiso-build-gpg\.[[:alnum:]]\{6\}$/d' "${staged}/pacman.conf"); then
+        return 1
+      fi
+      printf '%s\t%s\t%s' 'Build pacman configuration' 'ISO build script' 'disposable public-keyring path for rootless pacstrap only'
+      ;;
     profiledef.sh)
       printf '%s\t%s\t%s' 'Profile version' 'ISO build script' 'timestamped ISO versioning'
       ;;

@@ -184,6 +184,22 @@ sed -i -e "s/iso_version=\".*\"/iso_version=\"$(date -u +%Y.%m.%d-%H%M%S)\"/g" "
   "${staged_profile}" "${repo_root}/installer/bootstrap" \
   "${log_dir}/build-keyring-provenance.tsv"
 
+# Rootless pacstrap opens this keyring in the host build namespace. Keep its
+# writable GnuPG home short enough for Unix sockets; never copy the host ring.
+build_gpg_dir="$(mktemp -d /tmp/meo-archiso-build-gpg.XXXXXX)"
+readonly build_gpg_dir
+cleanup_build_gpg_dir() {
+  gpgconf --homedir "${build_gpg_dir}" --kill gpg-agent >/dev/null 2>&1 || true
+  find "${build_gpg_dir}" -mindepth 1 -delete 2>/dev/null || true
+  rmdir "${build_gpg_dir}" 2>/dev/null || true
+}
+trap cleanup_build_gpg_dir EXIT
+for public_file in pubring.gpg trustdb.gpg gpg.conf; do
+  install -m 600 "${staged_profile}/airootfs/etc/pacman.d/gnupg/${public_file}" \
+    "${build_gpg_dir}/${public_file}"
+done
+sed -i "/^\[options\]$/a GPGDir = ${build_gpg_dir}" "${staged_profile}/pacman.conf"
+
 if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
   [ -f "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" ] || {
     echo "Acceptance SSH public key not found: ${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" >&2
