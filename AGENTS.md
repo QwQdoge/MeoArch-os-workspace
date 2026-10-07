@@ -6,6 +6,18 @@ This is the active/canonical MeoArch OS ISO integration repository. The legacy `
 
 Inspect `git status`, the affected component, and its nearest tests/contracts first. Do not read every document or build the whole ISO unless the task requires it.
 
+## Scope and documentation authority
+
+Start with `docs/README.md` when a task crosses multiple product documents. `docs/CURRENT_MILESTONE.md` defines the current implementation scope; long-term product contracts are not automatic task lists.
+
+- Do not implement a newly noticed feature merely because a long-term contract mentions it.
+- Do not restore historical branch functionality merely because it is absent from current `main`.
+- Expand scope only for the requested/current-milestone capability, work required to integrate it safely, or a security/data-loss correctness issue discovered directly in that work.
+- Record unrelated bugs, missing features, architecture improvements, and technical debt for a separate task instead of implementing them automatically.
+- Keep evidence levels distinct: `Specified`, `Implemented`, `Build-tested`, `Session-tested`, `VM-tested`, `Hardware-tested`, and `Release-ready` are not interchangeable.
+
+Repository consolidation, review, validation, and cleanup must not silently become open-ended feature development.
+
 ## Ownership and cross-repository boundaries
 
 - `installer/`: installer app, backend, tests, translations, and live Meo.System bridge.
