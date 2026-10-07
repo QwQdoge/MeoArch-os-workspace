@@ -14,7 +14,7 @@ add_library(meo-system-transaction-core STATIC
 )
 target_link_libraries(meo-system-transaction-core PUBLIC Qt6::Core)
 
-a dd_executable(meo-system-transaction-service
+add_executable(meo-system-transaction-service
     src/main.cpp
     src/systemtransactionservice.cpp
     src/systemtransactionservice.h
