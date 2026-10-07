@@ -311,13 +311,23 @@ int main(int argc, char *argv[])
     }
     if (!screenshotPath.isEmpty()) {
         if (auto *quickWindow = qobject_cast<QQuickWindow *>(engine.rootObjects().constFirst())) {
-            QTimer::singleShot(2200, quickWindow, [quickWindow, screenshotPath, &app]() {
-                const QImage image = quickWindow->grabWindow();
-                if (image.isNull() || !image.save(screenshotPath))
-                    app.exit(2);
-                else
-                    app.quit();
+            auto *readyTimer = new QTimer(quickWindow);
+            readyTimer->setInterval(100);
+            QObject::connect(readyTimer, &QTimer::timeout, quickWindow,
+                             [quickWindow, readyTimer, screenshotPath, &app]() {
+                if (quickWindow->property("startupPending").toBool()
+                    || quickWindow->property("handoffSplashVisible").toBool())
+                    return;
+                readyTimer->stop();
+                QTimer::singleShot(200, quickWindow, [quickWindow, screenshotPath, &app]() {
+                    const QImage image = quickWindow->grabWindow();
+                    if (image.isNull() || !image.save(screenshotPath))
+                        app.exit(2);
+                    else
+                        app.quit();
+                });
             });
+            QTimer::singleShot(2200, readyTimer, [readyTimer]() { readyTimer->start(); });
             QTimer::singleShot(8000, &app, [&app]() { app.exit(3); });
         }
     }
