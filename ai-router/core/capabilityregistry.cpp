@@ -96,15 +96,14 @@ Capability terminalWorkspaceCapability()
     capability.id = QStringLiteral("terminal.workspace.run");
     capability.owner = QStringLiteral("org.meo.ai-router");
     capability.description = QStringLiteral(
-        "Run a user-level command inside an explicitly granted workspace sandbox.");
+        "Run a user-level shell command inside the explicitly granted workspace sandbox.");
     capability.effect = QStringLiteral("persistent");
     capability.privilege = QStringLiteral("user");
     capability.confirmation = QStringLiteral("never");
+    capability.executorId = QStringLiteral("terminal.workspace");
     capability.inputSchema = terminalWorkspaceSchema();
     capability.requiredPermissions = {QStringLiteral("terminal.workspace")};
-    // The product contract is registered now, but the executor stays disabled
-    // until it runs in a real sandbox boundary rather than Router-local shell.
-    capability.executable = false;
+    capability.executable = true;
     capability.mcpExposed = false;
     return capability;
 }
@@ -191,7 +190,7 @@ CapabilityRegistry::CapabilityRegistry()
 
 QString CapabilityRegistry::policyVersion()
 {
-    return QStringLiteral("org.meo.ai-router-policy/2026.10.08.3");
+    return QStringLiteral("org.meo.ai-router-policy/2026.10.08.4");
 }
 
 const Capability *CapabilityRegistry::find(const QString &id) const

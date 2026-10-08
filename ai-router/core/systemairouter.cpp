@@ -2,6 +2,7 @@
 
 #include "policyengine.h"
 #include "settingsdeeplinkexecutor.h"
+#include "terminalworkspaceexecutor.h"
 
 #include <QCryptographicHash>
 #include <QJsonArray>
@@ -27,8 +28,10 @@ QJsonObject CapabilityResult::toJson() const
 
 SystemAiRouter::SystemAiRouter(bool installDefaultExecutors)
 {
-    if (installDefaultExecutors)
+    if (installDefaultExecutors) {
         registerExecutor(std::make_unique<SettingsDeepLinkExecutor>());
+        registerExecutor(std::make_unique<TerminalWorkspaceExecutor>());
+    }
 }
 
 bool SystemAiRouter::registerExecutor(std::unique_ptr<CapabilityExecutor> executor,

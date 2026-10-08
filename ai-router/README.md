@@ -28,8 +28,6 @@ Currently executable built-ins:
 - `settings.appearance.open`
 - `terminal.workspace.run`
 
-The Settings route is compiled into the capability descriptor. Model/tool input cannot replace it with another program, path or route.
-
 Declared but deliberately unavailable until their owning typed services exist:
 
 - `network.status.read`
@@ -58,7 +56,7 @@ The current runner:
 - disables networking by default; a separate `terminal.network` permission enables host-network access;
 - is never exported through the external MCP gateway.
 
-This means Meo AI can do normal terminal work such as builds, tests, Git operations and source edits inside the granted workspace without converting every command into a typed capability. Host root and system configuration are still outside that grant. `sudo`, package/system service changes, disk operations and other privileged work must go through the appropriate Meo-owned typed capability/service.
+This allows normal terminal work such as builds, tests, Git operations and source edits inside the granted workspace without converting every command into a typed capability. Host root and system configuration remain outside that grant. Privileged package/service/disk work continues through the appropriate Meo-owned typed capability/service.
 
 A future persistent PTY/session layer can build on the same permission and sandbox contract; the first implementation is bounded command execution.
 
@@ -101,8 +99,6 @@ meo-ai-router --invoke settings.bluetooth.open
 The inspection CLI remains capability-oriented; model terminal permission should be granted by the Meo AI/session UI rather than by an ambient global default.
 
 ## Next adapters
-
-Priority order:
 
 1. persistent PTY/session support on top of the same workspace sandbox contract;
 2. shared read-only network/Bluetooth state;

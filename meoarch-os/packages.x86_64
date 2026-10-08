@@ -26,6 +26,7 @@ kirigami-addons
 ki18n
 b43-fwcutter
 base
+bubblewrap
 bcachefs-tools
 bind
 bolt
