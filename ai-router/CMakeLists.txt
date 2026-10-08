@@ -17,8 +17,6 @@ add_library(meo-ai-router-core STATIC
     core/systemairouter.h
     core/settingsdeeplinkexecutor.cpp
     core/settingsdeeplinkexecutor.h
-    core/terminalworkspaceexecutor.cpp
-    core/terminalworkspaceexecutor.h
     core/mcpgatewayadapter.cpp
     core/mcpgatewayadapter.h
 )
