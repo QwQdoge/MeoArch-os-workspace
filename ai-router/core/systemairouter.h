@@ -2,8 +2,11 @@
 
 #include "capabilityregistry.h"
 
+#include <QDateTime>
+#include <QHash>
 #include <QJsonObject>
 #include <QString>
+#include <QStringList>
 
 #include <memory>
 #include <vector>
@@ -16,7 +19,8 @@ struct CapabilityRequest final
     QJsonObject input;
     QString callerId;
     QString origin = QStringLiteral("native");
-    bool confirmed = false;
+    QStringList grantedPermissions;
+    QString confirmationToken;
 };
 
 struct CapabilityResult final
@@ -51,13 +55,29 @@ public:
 
     bool registerExecutor(std::unique_ptr<CapabilityExecutor> executor,
                           QString *error = nullptr);
+
+    // The UI calls this only after a real user confirmation. The returned
+    // token is one-shot, short-lived, and bound to capability/input/caller/origin.
+    QString issueConfirmationGrant(const CapabilityRequest &request,
+                                   int ttlSeconds = 60,
+                                   QString *error = nullptr);
     CapabilityResult invoke(const CapabilityRequest &request);
 
 private:
+    struct ConfirmationGrant final
+    {
+        QString binding;
+        QDateTime expiresAt;
+    };
+
     CapabilityExecutor *executorFor(const QString &id) const;
+    QString requestBinding(const CapabilityRequest &request) const;
+    bool consumeMatchingConfirmation(const CapabilityRequest &request);
+    void purgeExpiredConfirmations();
 
     CapabilityRegistry m_registry;
     std::vector<std::unique_ptr<CapabilityExecutor>> m_executors;
+    QHash<QString, ConfirmationGrant> m_confirmationGrants;
 };
 
 } // namespace MeoAi
