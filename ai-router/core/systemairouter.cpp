@@ -2,7 +2,6 @@
 
 #include "policyengine.h"
 #include "settingsdeeplinkexecutor.h"
-#include "terminalworkspaceexecutor.h"
 
 #include <QCryptographicHash>
 #include <QJsonArray>
@@ -28,10 +27,8 @@ QJsonObject CapabilityResult::toJson() const
 
 SystemAiRouter::SystemAiRouter(bool installDefaultExecutors)
 {
-    if (installDefaultExecutors) {
+    if (installDefaultExecutors)
         registerExecutor(std::make_unique<SettingsDeepLinkExecutor>());
-        registerExecutor(std::make_unique<TerminalWorkspaceExecutor>());
-    }
 }
 
 bool SystemAiRouter::registerExecutor(std::unique_ptr<CapabilityExecutor> executor,
@@ -137,7 +134,7 @@ bool SystemAiRouter::consumeMatchingConfirmation(const CapabilityRequest &reques
         return false;
 
     const QString expectedBinding = it->binding;
-    m_confirmationGrants.erase(it); // one shot even if a caller tries to mutate the request
+    m_confirmationGrants.erase(it);
     return expectedBinding == requestBinding(request);
 }
 
