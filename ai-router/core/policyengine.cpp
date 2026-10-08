@@ -3,6 +3,9 @@
 #include <QJsonArray>
 #include <QJsonValue>
 
+#include <cmath>
+#include <limits>
+
 namespace MeoAi {
 namespace {
 
