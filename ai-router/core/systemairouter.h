@@ -4,9 +4,9 @@
 
 #include <QJsonObject>
 #include <QString>
-#include <QVector>
 
 #include <memory>
+#include <vector>
 
 namespace MeoAi {
 
@@ -57,7 +57,7 @@ private:
     CapabilityExecutor *executorFor(const QString &id) const;
 
     CapabilityRegistry m_registry;
-    QVector<std::unique_ptr<CapabilityExecutor>> m_executors;
+    std::vector<std::unique_ptr<CapabilityExecutor>> m_executors;
 };
 
 } // namespace MeoAi
