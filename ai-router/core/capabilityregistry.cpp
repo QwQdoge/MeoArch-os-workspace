@@ -46,6 +46,31 @@ QJsonObject fileSearchSchema()
     };
 }
 
+QJsonObject terminalWorkspaceSchema()
+{
+    return {
+        {QStringLiteral("type"), QStringLiteral("object")},
+        {QStringLiteral("additionalProperties"), false},
+        {QStringLiteral("required"), QJsonArray{QStringLiteral("command")}},
+        {QStringLiteral("properties"), QJsonObject{
+             {QStringLiteral("command"), QJsonObject{
+                  {QStringLiteral("type"), QStringLiteral("string")},
+                  {QStringLiteral("minLength"), 1},
+                  {QStringLiteral("maxLength"), 4096},
+              }},
+             {QStringLiteral("cwd"), QJsonObject{
+                  {QStringLiteral("type"), QStringLiteral("string")},
+                  {QStringLiteral("maxLength"), 512},
+              }},
+             {QStringLiteral("timeoutSeconds"), QJsonObject{
+                  {QStringLiteral("type"), QStringLiteral("integer")},
+                  {QStringLiteral("minimum"), 1},
+                  {QStringLiteral("maximum"), 120},
+              }},
+         }},
+    };
+}
+
 Capability settingsOpenCapability(const QString &id,
                                   const QString &route,
                                   const QString &description)
@@ -62,6 +87,27 @@ Capability settingsOpenCapability(const QString &id,
     capability.fixedArguments = {{QStringLiteral("route"), route}};
     capability.executable = true;
     capability.mcpExposed = true;
+    return capability;
+}
+
+Capability terminalWorkspaceCapability()
+{
+    Capability capability;
+    capability.id = QStringLiteral("terminal.workspace.run");
+    capability.owner = QStringLiteral("org.meo.ai-router");
+    capability.description = QStringLiteral(
+        "Run a user-level shell command inside the explicitly granted workspace sandbox.");
+    capability.effect = QStringLiteral("persistent");
+    capability.privilege = QStringLiteral("user");
+    // Terminal access is gated by a session/workspace permission rather than a
+    // modal confirmation before every command. It cannot obtain host root.
+    capability.confirmation = QStringLiteral("never");
+    capability.executorId = QStringLiteral("terminal.workspace");
+    capability.inputSchema = terminalWorkspaceSchema();
+    capability.requiredPermissions = {QStringLiteral("terminal.workspace")};
+    capability.executable = true;
+    // Never project a shell-like tool to arbitrary external MCP clients.
+    capability.mcpExposed = false;
     return capability;
 }
 
@@ -109,6 +155,7 @@ CapabilityRegistry::CapabilityRegistry()
         settingsOpenCapability(QStringLiteral("settings.appearance.open"),
                                QStringLiteral("appearance"),
                                QStringLiteral("Open the native appearance settings page.")),
+        terminalWorkspaceCapability(),
 
         // Declared now so model/provider prompts can target stable names, but
         // deliberately non-executable until the owning shared service exposes
@@ -153,7 +200,7 @@ CapabilityRegistry::CapabilityRegistry()
 
 QString CapabilityRegistry::policyVersion()
 {
-    return QStringLiteral("org.meo.ai-router-policy/2026.10.08.1");
+    return QStringLiteral("org.meo.ai-router-policy/2026.10.08.2");
 }
 
 const Capability *CapabilityRegistry::find(const QString &id) const
