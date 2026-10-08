@@ -17,10 +17,14 @@ from typing import Any
 SUPPORTED_ARCHITECTURE = "x86_64"
 PROFILES = {"recommended", "minimal", "custom"}
 CHANNELS = {"stable", "beta"}
+INPUT_METHOD_MODES = {"meo-managed", "self-managed"}
 PACKAGE_NAME = re.compile(r"^[A-Za-z0-9@._+:-]{1,128}$")
+INPUT_METHOD_CAPABILITY_ID = re.compile(r"^fcitx5\.[a-z0-9][a-z0-9._-]{0,63}$")
+
 
 class PlanError(ValueError):
     pass
+
 
 @dataclass(frozen=True)
 class RepositoryPlan:
@@ -30,17 +34,30 @@ class RepositoryPlan:
     bootstrap_packages: tuple[str, ...]
     channel_package: str
 
+
 @dataclass(frozen=True)
 class PackagePlan:
     profile: str
     packages: tuple[str, ...]
     required: tuple[str, ...]
 
+
 @dataclass(frozen=True)
 class ApplicationPlan:
     selected: tuple[str, ...]
     native_packages: tuple[str, ...]
     source: str
+
+
+@dataclass(frozen=True)
+class InputMethodPlan:
+    """User intent only; package resolution belongs to the signed repo catalog."""
+
+    mode: str
+    framework: str
+    engine_capabilities: tuple[str, ...]
+    initial_engine: str
+
 
 @dataclass(frozen=True)
 class InstallPlan:
@@ -50,6 +67,8 @@ class InstallPlan:
     repository: RepositoryPlan
     package: PackagePlan
     applications: ApplicationPlan
+    input_method: InputMethodPlan
+
 
 def load_json(path: str | Path) -> dict[str, Any]:
     with Path(path).open(encoding="utf-8") as handle:
@@ -57,6 +76,7 @@ def load_json(path: str | Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise PlanError("configuration must be a JSON object")
     return data
+
 
 def load_config(path: str | Path) -> dict[str, Any]:
     path = Path(path)
@@ -71,6 +91,7 @@ def load_config(path: str | Path) -> dict[str, Any]:
         return data
     return load_json(path)
 
+
 def catalog_from(path: str | Path) -> dict[str, Any]:
     catalog = load_json(path)
     if catalog.get("schemaVersion") != 1:
@@ -81,6 +102,7 @@ def catalog_from(path: str | Path) -> dict[str, Any]:
     if not isinstance(generation, str) or not re.fullmatch(r"[0-9]{4}\.[0-9]{2}", generation):
         raise PlanError("package catalog has an invalid release generation")
     return catalog
+
 
 def application_catalog_from(path: str | Path, generation: str | None = None) -> dict[str, Any]:
     catalog = load_json(path)
@@ -112,6 +134,7 @@ def application_catalog_from(path: str | Path, generation: str | None = None) ->
             raise PlanError(f"third-party application {app_id} must be opt-in")
     return catalog
 
+
 def resolve_applications(config: dict[str, Any], catalog: dict[str, Any], profile: str) -> ApplicationPlan:
     by_id = {application["id"]: application for application in catalog["applications"]}
     requested = config.get("applications", [])
@@ -127,6 +150,62 @@ def resolve_applications(config: dict[str, Any], catalog: dict[str, Any], profil
     native_packages = {by_id[app_id]["installer"]["package"] for app_id in selected}
     return ApplicationPlan(tuple(sorted(selected)), tuple(sorted(native_packages)), "arch-official")
 
+
+def resolve_input_method(config: dict[str, Any]) -> InputMethodPlan:
+    """Validate input-method intent without resolving or installing packages.
+
+    Package names and availability are deliberately outside the Installer plan.
+    The transaction layer must resolve the selected capability IDs against the
+    versioned, signed-repository-owned input-method capability catalog.
+    """
+
+    raw = config.get("inputMethod", {})
+    if raw is None:
+        raw = {}
+    if not isinstance(raw, dict):
+        raise PlanError("inputMethod must be an object")
+
+    allowed_keys = {"mode", "framework", "engineCapabilities", "initialEngine"}
+    unknown_keys = sorted(set(raw) - allowed_keys)
+    if unknown_keys:
+        raise PlanError(f"inputMethod contains an unsupported key: {unknown_keys[0]}")
+
+    mode = raw.get("mode", "meo-managed")
+    if not isinstance(mode, str) or mode not in INPUT_METHOD_MODES:
+        raise PlanError("inputMethod.mode must be meo-managed or self-managed")
+
+    framework_default = "fcitx5" if mode == "meo-managed" else ""
+    framework = raw.get("framework", framework_default)
+    if not isinstance(framework, str):
+        raise PlanError("inputMethod.framework must be a string")
+
+    engines = raw.get("engineCapabilities", [])
+    if (not isinstance(engines, list)
+            or len(engines) > 16
+            or any(not isinstance(engine, str) or not INPUT_METHOD_CAPABILITY_ID.fullmatch(engine)
+                   for engine in engines)):
+        raise PlanError("inputMethod.engineCapabilities must be a bounded list of Fcitx capability IDs")
+    if len(set(engines)) != len(engines):
+        raise PlanError("inputMethod.engineCapabilities must not contain duplicates")
+
+    initial_engine = raw.get("initialEngine", "")
+    if not isinstance(initial_engine, str):
+        raise PlanError("inputMethod.initialEngine must be a string")
+    if initial_engine and initial_engine not in engines:
+        raise PlanError("inputMethod.initialEngine must be one of engineCapabilities")
+
+    if mode == "meo-managed":
+        if framework != "fcitx5":
+            raise PlanError("Meo-managed input method currently requires the fcitx5 framework")
+    else:
+        if framework or engines or initial_engine:
+            raise PlanError(
+                "self-managed input method cannot request a Meo-managed framework or engine capabilities"
+            )
+
+    return InputMethodPlan(mode, framework, tuple(engines), initial_engine)
+
+
 def _closure(selected: set[str], catalog: dict[str, Any]) -> set[str]:
     packages = catalog.get("packages", {})
     pending = list(selected)
@@ -139,6 +218,7 @@ def _closure(selected: set[str], catalog: dict[str, Any]) -> set[str]:
                 selected.add(dependency)
                 pending.append(dependency)
     return selected
+
 
 def build_install_plan(config: dict[str, Any], catalog: dict[str, Any], architecture: str = SUPPORTED_ARCHITECTURE,
                        application_catalog: dict[str, Any] | None = None) -> InstallPlan:
@@ -175,7 +255,9 @@ def build_install_plan(config: dict[str, Any], catalog: dict[str, Any], architec
     package = PackagePlan(profile, tuple(sorted(selected | {"meo-release"})), tuple(sorted(required)))
     applications = (resolve_applications(config, application_catalog, profile)
                     if application_catalog is not None else ApplicationPlan((), (), "arch-official"))
-    return InstallPlan(2, architecture, catalog["generation"], repository, package, applications)
+    input_method = resolve_input_method(config)
+    return InstallPlan(2, architecture, catalog["generation"], repository, package, applications, input_method)
+
 
 def plan_as_dict(plan: InstallPlan) -> dict[str, Any]:
     return {
@@ -190,14 +272,20 @@ def plan_as_dict(plan: InstallPlan) -> dict[str, Any]:
                     "required": list(plan.package.required)},
         "applications": {"selected": list(plan.applications.selected),
                          "nativePackages": list(plan.applications.native_packages),
-                         "source": plan.applications.source}
+                         "source": plan.applications.source},
+        "inputMethod": {"mode": plan.input_method.mode,
+                        "framework": plan.input_method.framework,
+                        "engineCapabilities": list(plan.input_method.engine_capabilities),
+                        "initialEngine": plan.input_method.initial_engine}
     }
+
 
 def pacman_channel_fragment(plan: InstallPlan) -> str:
     sections = []
     for repo in plan.repository.repositories:
         sections += [f"[{repo}]", "SigLevel = Required TrustedOnly", "Include = /etc/pacman.d/meo-mirrorlist", ""]
     return "\n".join(sections)
+
 
 def write_json_atomic(path: str | Path, payload: dict[str, Any], mode: int = 0o600) -> None:
     target = Path(path)
