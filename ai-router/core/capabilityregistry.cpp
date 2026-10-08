@@ -96,17 +96,15 @@ Capability terminalWorkspaceCapability()
     capability.id = QStringLiteral("terminal.workspace.run");
     capability.owner = QStringLiteral("org.meo.ai-router");
     capability.description = QStringLiteral(
-        "Run a user-level shell command inside the explicitly granted workspace sandbox.");
+        "Run a user-level command inside an explicitly granted workspace sandbox.");
     capability.effect = QStringLiteral("persistent");
     capability.privilege = QStringLiteral("user");
-    // Terminal access is gated by a session/workspace permission rather than a
-    // modal confirmation before every command. It cannot obtain host root.
     capability.confirmation = QStringLiteral("never");
-    capability.executorId = QStringLiteral("terminal.workspace");
     capability.inputSchema = terminalWorkspaceSchema();
     capability.requiredPermissions = {QStringLiteral("terminal.workspace")};
-    capability.executable = true;
-    // Never project a shell-like tool to arbitrary external MCP clients.
+    // The product contract is registered now, but the executor stays disabled
+    // until it runs in a real sandbox boundary rather than Router-local shell.
+    capability.executable = false;
     capability.mcpExposed = false;
     return capability;
 }
@@ -136,9 +134,6 @@ Capability unavailableCapability(const QString &id,
 
 CapabilityRegistry::CapabilityRegistry()
 {
-    // These routes are already owned and validated by Meo Settings. The
-    // model never supplies a binary, path, or route string; the route is a
-    // compiled part of the capability descriptor.
     m_capabilities = {
         settingsOpenCapability(QStringLiteral("settings.wifi.open"),
                                QStringLiteral("wifi"),
@@ -156,10 +151,6 @@ CapabilityRegistry::CapabilityRegistry()
                                QStringLiteral("appearance"),
                                QStringLiteral("Open the native appearance settings page.")),
         terminalWorkspaceCapability(),
-
-        // Declared now so model/provider prompts can target stable names, but
-        // deliberately non-executable until the owning shared service exposes
-        // the maintained typed API required by docs/design.md.
         unavailableCapability(QStringLiteral("network.status.read"),
                               QStringLiteral("meo-system-service"),
                               QStringLiteral("Read a structured network summary."),
@@ -200,7 +191,7 @@ CapabilityRegistry::CapabilityRegistry()
 
 QString CapabilityRegistry::policyVersion()
 {
-    return QStringLiteral("org.meo.ai-router-policy/2026.10.08.2");
+    return QStringLiteral("org.meo.ai-router-policy/2026.10.08.3");
 }
 
 const Capability *CapabilityRegistry::find(const QString &id) const
