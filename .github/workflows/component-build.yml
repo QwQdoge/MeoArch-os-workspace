@@ -6,6 +6,8 @@ on:
       - 'installer/**'
       - 'repair/**'
       - 'system-transaction/**'
+      - 'ai-router/**'
+      - 'meoarch-os/packages.x86_64'
       - 'scripts/acceptance/20-build-components.sh'
       - 'scripts/build-installer-app.sh'
       - '.github/workflows/component-build.yml'
@@ -24,7 +26,7 @@ concurrency:
 
 jobs:
   build:
-    name: Installer + repair + transaction runtime
+    name: Installer + repair + transaction + AI router runtime
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -37,7 +39,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm
           pacman -S --needed --noconfirm \
-            base-devel cmake ninja git extra-cmake-modules python \
+            base-devel cmake ninja git extra-cmake-modules python bubblewrap \
             qt6-base qt6-declarative qt6-tools qt6-shadertools \
             kconfig kcoreaddons kguiaddons ki18n kirigami \
             networkmanager-qt bluez-qt solid pulseaudio-qt \
@@ -86,6 +88,13 @@ jobs:
           test -f build/system-transaction-root/usr/share/dbus-1/system.d/org.meo.SystemTransaction1.conf
           test -f build/system-transaction-root/usr/share/dbus-1/system-services/org.meo.SystemTransaction1.service
           test -f build/system-transaction-root/usr/lib/systemd/system/meo-system-transaction.service
+
+      - name: Build and test system AI router
+        run: |
+          cmake --fresh -S ai-router -B build/ai-router \
+            -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          cmake --build build/ai-router --parallel 2
+          ctest --test-dir build/ai-router --output-on-failure --timeout 30
 
       - name: Configure installer controller tests
         run: >-
