@@ -55,7 +55,8 @@ bool McpGatewayAdapter::requestForTool(const QString &toolName,
         request->input = arguments;
         request->callerId = callerId;
         request->origin = QStringLiteral("mcp");
-        request->confirmed = false;
+        request->confirmationToken.clear();
+        request->grantedPermissions.clear();
         return true;
     }
 
