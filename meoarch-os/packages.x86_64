@@ -31,6 +31,7 @@ fcitx5-qt
 fcitx5-gtk
 b43-fwcutter
 base
+bubblewrap
 bcachefs-tools
 bind
 bolt
