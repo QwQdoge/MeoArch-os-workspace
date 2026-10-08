@@ -24,6 +24,11 @@ qtkeychain-qt6
 polkit-qt6
 kirigami-addons
 ki18n
+# Match the installed Meo Desktop input-method runtime. KWin owns Fcitx 5
+# startup on Plasma Wayland; language engines remain optional user choices.
+fcitx5
+fcitx5-qt
+fcitx5-gtk
 b43-fwcutter
 base
 bcachefs-tools
