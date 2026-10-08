@@ -83,7 +83,7 @@ void SystemAiRouter::purgeExpiredConfirmations()
 {
     const QDateTime now = QDateTime::currentDateTimeUtc();
     for (auto it = m_confirmationGrants.begin(); it != m_confirmationGrants.end();) {
-        if (it->expiresAt <= now)
+        if (it.value().expiresAt <= now)
             it = m_confirmationGrants.erase(it);
         else
             ++it;
@@ -133,7 +133,7 @@ bool SystemAiRouter::consumeMatchingConfirmation(const CapabilityRequest &reques
     if (it == m_confirmationGrants.end())
         return false;
 
-    const QString expectedBinding = it->binding;
+    const QString expectedBinding = it.value().binding;
     m_confirmationGrants.erase(it);
     return expectedBinding == requestBinding(request);
 }
