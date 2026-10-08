@@ -2,7 +2,6 @@
 
 #include <QJsonArray>
 #include <QJsonValue>
-#include <QSet>
 
 namespace MeoAi {
 namespace {
@@ -33,14 +32,14 @@ bool validateValue(const QJsonObject &schema, const QJsonValue &value, QString *
     }
 
     if (type == QStringLiteral("integer")) {
-        if (!value.isDouble() || value.toDouble() != static_cast<int>(value.toDouble()))
+        const double number = value.toDouble(std::numeric_limits<double>::quiet_NaN());
+        if (!value.isDouble() || !std::isfinite(number) || std::floor(number) != number)
             return fail(QStringLiteral("expected integer"));
-        const int integer = value.toInt();
         if (schema.contains(QStringLiteral("minimum"))
-            && integer < schema.value(QStringLiteral("minimum")).toInt())
+            && number < schema.value(QStringLiteral("minimum")).toDouble())
             return fail(QStringLiteral("integer is below minimum"));
         if (schema.contains(QStringLiteral("maximum"))
-            && integer > schema.value(QStringLiteral("maximum")).toInt())
+            && number > schema.value(QStringLiteral("maximum")).toDouble())
             return fail(QStringLiteral("integer is above maximum"));
         return true;
     }
@@ -56,8 +55,18 @@ bool validateValue(const QJsonObject &schema, const QJsonValue &value, QString *
 
 } // namespace
 
+bool PolicyEngine::requiresConfirmation(const Capability &capability)
+{
+    const bool stateChanging = capability.effect == QStringLiteral("session")
+        || capability.effect == QStringLiteral("persistent")
+        || capability.effect == QStringLiteral("destructive");
+    return capability.confirmation == QStringLiteral("always")
+        || (capability.confirmation == QStringLiteral("state-change") && stateChanging);
+}
+
 PolicyDecision PolicyEngine::evaluate(const Capability &capability,
-                                      const CapabilityRequest &request) const
+                                      const CapabilityRequest &request,
+                                      bool confirmationSatisfied) const
 {
     if (!capability.executable) {
         return {false, false, QStringLiteral("capability_unavailable"),
@@ -81,13 +90,14 @@ PolicyDecision PolicyEngine::evaluate(const Capability &capability,
         return {false, false, QStringLiteral("invalid_input"), inputError};
     }
 
-    const bool stateChanging = capability.effect == QStringLiteral("session")
-        || capability.effect == QStringLiteral("persistent")
-        || capability.effect == QStringLiteral("destructive");
-    const bool needsConfirmation = capability.confirmation == QStringLiteral("always")
-        || (capability.confirmation == QStringLiteral("state-change") && stateChanging);
+    for (const QString &permission : capability.requiredPermissions) {
+        if (!request.grantedPermissions.contains(permission)) {
+            return {false, false, QStringLiteral("permission_required"),
+                    QStringLiteral("Required permission is missing: %1").arg(permission)};
+        }
+    }
 
-    if (needsConfirmation && !request.confirmed) {
+    if (requiresConfirmation(capability) && !confirmationSatisfied) {
         return {false, true, QStringLiteral("confirmation_required"),
                 QStringLiteral("User confirmation is required for this exact capability request.")};
     }
