@@ -108,3 +108,7 @@ The inspection CLI remains capability-oriented; model terminal permission should
 6. file search through an owning search service;
 7. first-party app action registration;
 8. MCP transport/server wiring around the existing adapter, without exposing the terminal capability.
+
+## Terminal contribution
+
+See [terminal integration](docs/system-ai-router.md) for canonical catalog search, informational risk classification, and incremental bounded output capture.
