@@ -92,3 +92,5 @@ Do not publish an ISO, write a disk, modify a live device, change a remote relea
 Keep code/operations contracts in `docs/` or the owning component docs. Project records belong under `$MEO_DOCS_ROOT/Projects/meo-arch-os-workspace/`; new generated output under `$MEO_OUTPUT_ROOT/meo-arch-os-workspace/{build,install,validation,packages,tmp}/`. Existing script-managed legacy build/artifact directories may remain; do not reorganize them as incidental work.
 
 If required root variables are unset, do not invent machine-specific paths. Preserve unrelated dirty work and avoid `git reset`, `git clean`, or broad deletion.
+
+- Terminal command risk labels are explanatory metadata, not an authorization boundary. Tool discovery must reuse the canonical capability registry and must not introduce a second unrestricted host runner.

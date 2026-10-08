@@ -1,5 +1,6 @@
 #include "mcpgatewayadapter.h"
 #include "systemairouter.h"
+#include "toolregistry.h"
 
 #include <QCommandLineParser>
 #include <QCoreApplication>
@@ -15,13 +16,25 @@ int main(int argc, char **argv)
     parser.addHelpOption();
     parser.addOption({QStringLiteral("list"), QStringLiteral("List registered capabilities as JSON.")});
     parser.addOption({QStringLiteral("list-mcp"), QStringLiteral("List capabilities exported by the MCP adapter as JSON.")});
+    parser.addOption({QStringLiteral("search-tools"), QStringLiteral("Search the canonical capability catalog; discovery does not grant execution."), QStringLiteral("query")});
     parser.addOption({QStringLiteral("invoke"), QStringLiteral("Invoke a registered no-argument capability."), QStringLiteral("capability")});
     parser.process(app);
 
     MeoAi::SystemAiRouter router;
     QJsonDocument document;
 
-    if (parser.isSet(QStringLiteral("list"))) {
+    if (parser.isSet(QStringLiteral("search-tools"))) {
+        QJsonArray tools;
+        for (const auto *tool : MeoAi::ToolRegistry::search(parser.value(QStringLiteral("search-tools")))) {
+            tools.append(QJsonObject{
+                {QStringLiteral("name"), tool->name},
+                {QStringLiteral("capabilityId"), tool->capabilityId},
+                {QStringLiteral("description"), tool->description},
+                {QStringLiteral("inputSchema"), tool->inputSchema},
+            });
+        }
+        document = QJsonDocument(tools);
+    } else if (parser.isSet(QStringLiteral("list"))) {
         QJsonArray capabilities;
         for (const MeoAi::Capability &capability : router.registry().all()) {
             capabilities.append(QJsonObject{
