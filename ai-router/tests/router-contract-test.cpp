@@ -103,36 +103,51 @@ int main(int argc, char **argv)
 
     request.capabilityId = write.id;
     request.input = {{QStringLiteral("value"), 30}};
-    request.confirmed = false;
     result = router.invoke(request);
     if (result.ok || result.status != QStringLiteral("confirmation_required"))
         return fail(8, QStringLiteral("state change bypassed confirmation"));
 
-    request.confirmed = true;
+    const QString grant = router.issueConfirmationGrant(request, 60, &error);
+    if (grant.isEmpty())
+        return fail(9, QStringLiteral("confirmation grant was not issued: %1").arg(error));
+    request.confirmationToken = grant;
     result = router.invoke(request);
     if (!result.ok)
-        return fail(9, QStringLiteral("confirmed state change was not dispatched"));
+        return fail(10, QStringLiteral("bound confirmation was not accepted"));
+
+    const QString mismatchGrant = router.issueConfirmationGrant(request, 60, &error);
+    if (mismatchGrant.isEmpty())
+        return fail(11, QStringLiteral("second confirmation grant was not issued"));
+    request.confirmationToken = mismatchGrant;
+    request.input = {{QStringLiteral("value"), 31}};
+    result = router.invoke(request);
+    if (result.ok || result.status != QStringLiteral("confirmation_required"))
+        return fail(12, QStringLiteral("confirmation grant was not bound to exact arguments"));
 
     MeoAi::McpGatewayAdapter gateway(&router.registry());
     const QString toolName = MeoAi::McpGatewayAdapter::toolNameForCapability(read.id);
     MeoAi::CapabilityRequest mcpRequest;
     if (!gateway.requestForTool(toolName, {{QStringLiteral("value"), 7}},
                                 QStringLiteral("external-agent"), &mcpRequest, &error))
-        return fail(10, error);
+        return fail(13, error);
     if (mcpRequest.origin != QStringLiteral("mcp") || mcpRequest.capabilityId != read.id)
-        return fail(11, QStringLiteral("MCP mapping escaped the capability identity"));
+        return fail(14, QStringLiteral("MCP mapping escaped the capability identity"));
 
     if (gateway.requestForTool(QStringLiteral("shell_exec"), {},
                                QStringLiteral("external-agent"), &mcpRequest, &error))
-        return fail(12, QStringLiteral("unregistered MCP tool was accepted"));
+        return fail(15, QStringLiteral("unregistered MCP tool was accepted"));
 
+    request.confirmationToken.clear();
     request.capabilityId = QStringLiteral("desktop.audio.setVolume");
     request.input = {{QStringLiteral("percent"), 30}};
-    request.confirmed = true;
     result = router.invoke(request);
     if (result.ok || result.code != QStringLiteral("capability_unavailable"))
-        return fail(13, QStringLiteral("unimplemented system adapter was treated as executable"));
+        return fail(16, QStringLiteral("unimplemented system adapter was treated as executable"));
 
-    QTextStream(stdout) << "PASS: typed routing, policy, confirmation and MCP boundaries\n";
+    const MeoAi::Capability *terminal = router.registry().find(QStringLiteral("terminal.workspace.run"));
+    if (!terminal || terminal->executable || terminal->mcpExposed)
+        return fail(17, QStringLiteral("terminal capability escaped the sandbox-ready boundary"));
+
+    QTextStream(stdout) << "PASS: typed routing, bound confirmation and MCP boundaries\n";
     return 0;
 }
