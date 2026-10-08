@@ -19,8 +19,10 @@ class PolicyEngine final
 {
 public:
     PolicyDecision evaluate(const Capability &capability,
-                            const CapabilityRequest &request) const;
+                            const CapabilityRequest &request,
+                            bool confirmationSatisfied = false) const;
 
+    static bool requiresConfirmation(const Capability &capability);
     static bool validateInput(const QJsonObject &schema,
                               const QJsonObject &input,
                               QString *error = nullptr);
