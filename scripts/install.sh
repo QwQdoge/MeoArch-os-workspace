@@ -160,8 +160,6 @@ if [ "${interactive}" -eq 1 ]; then
   else
     profile="core"
   fi
-
-
 fi
 
 case "${profile}" in
