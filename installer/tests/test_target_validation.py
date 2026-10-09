@@ -133,6 +133,13 @@ class TargetValidationTests(unittest.TestCase):
             root = Path(directory)
             self.populate(root)  # Other OS packages are fixtures, not boot evidence.
             payload = Path(os.environ["MEO_DESKTOP_PAYLOAD_ROOT"])
+            # Replace only fixture paths in this disposable target before
+            # copying package-owned symlinks (copytree cannot overwrite them).
+            for source in payload.rglob("*"):
+                if source.is_symlink():
+                    fixture = root / source.relative_to(payload)
+                    if fixture.is_file() or fixture.is_symlink():
+                        fixture.unlink()
             shutil.copytree(payload, root, dirs_exist_ok=True, symlinks=True)
             self.verify_fixture(root)
 
