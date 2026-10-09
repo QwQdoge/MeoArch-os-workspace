@@ -20,6 +20,7 @@ CHANNELS = {"stable", "beta"}
 INPUT_METHOD_MODES = {"meo-managed", "self-managed"}
 PACKAGE_NAME = re.compile(r"^[A-Za-z0-9@._+:-]{1,128}$")
 INPUT_METHOD_CAPABILITY_ID = re.compile(r"^fcitx5\.[a-z0-9][a-z0-9._-]{0,63}$")
+INSTALLED_SYSTEM_PACKAGES = {"meo-plasma-login-manager"}
 
 
 class PlanError(ValueError):
@@ -244,8 +245,15 @@ def build_install_plan(config: dict[str, Any], catalog: dict[str, Any], architec
             raise PlanError("custom profile requires meo-desktop")
     else:
         selected = {name for name, metadata in packages.items() if profile in metadata.get("profiles", [])}
+
+    # A standalone meo-desktop package must remain display-manager neutral so
+    # an existing Arch/KDE installation only gains another session. The
+    # MeoArch OS installer, however, owns the complete installed-system login
+    # experience and therefore installs Meo Login explicitly for every profile.
+    selected.update(INSTALLED_SYSTEM_PACKAGES)
     selected = _closure(selected, catalog)
-    required = _closure({"meo-desktop"}, catalog)
+    required = _closure({"meo-desktop", *INSTALLED_SYSTEM_PACKAGES}, catalog)
+
     mirror = str(config.get("mirror", "automatic"))
     if mirror != "automatic":
         raise PlanError("only official automatic mirror selection is currently supported")
