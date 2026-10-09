@@ -128,7 +128,7 @@ PageFrame {
         InfoBanner {
             width: parent.width
             title: qsTr("Password sign-in required")
-            message: qsTr("Automatic login is not offered because Plasma Login Manager has no tested password-preserving Meo backend yet.")
+            message: qsTr("You will sign in with your password when you start MeoArch.")
             tone: "info"
         }
     }

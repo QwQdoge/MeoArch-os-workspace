@@ -41,7 +41,7 @@ Item {
     readonly property real footerHeight: compactHeight ? dp(64)
                                                         : windowMetrics.isExtraLargeWidth ? dp(96)
                                                                                           : windowMetrics.isLargeWidth ? dp(80) : dp(72)
-    readonly property bool compactHeight: windowMetrics.isCompactHeight || mainCardHeight < dp(560)
+    readonly property bool compactHeight: windowMetrics.isCompactHeight || mainCardHeight < dp(680)
     // A 960 px kiosk can still have a high UI scale.  Collapse decorative
     // chrome before the brand and footer controls compete for the same space.
     readonly property bool compactChrome: windowMetrics.isCompactWidth || width < dp(760)
@@ -77,7 +77,7 @@ Item {
         case 3:
             return qsTr("Connect to a network when you need online packages. Continue offline only when this page says that it is available.")
         case 4:
-            return qsTr("Review privacy choices. This installer shows only settings that have a real backend.")
+            return qsTr("Review your privacy choices before continuing.")
         case 5:
             return qsTr("Check the target storage carefully. Erase actions run only after final confirmation and remove data from that device.")
         case 6:
@@ -607,7 +607,7 @@ Item {
 
             Item {
                 id: bodyHost
-                width: contentFlick.width
+                width: Math.max(0, contentFlick.width - frame.dp(12))
                 height: Math.max(contentFlick.height,
                                  children.length && children[0].implicitHeight !== undefined
                                  ? children[0].implicitHeight : contentFlick.height)

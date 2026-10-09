@@ -1058,7 +1058,7 @@ void InstallerController::refreshNetworkHandoff()
         if (!source.startsWith(prefix) || !info.isFile() || info.isSymLink() || !info.isReadable()) {
             disableNetworkHandoff();
             m_networkHandoffState = QStringLiteral("unsupported");
-            m_networkHandoffMessage = tr("This NetworkManager profile is temporary or protected by another credential service.");
+            m_networkHandoffMessage = tr("This connection is only for the live session. You can reconnect after installation.");
             emit networkHandoffChanged();
             return;
         }

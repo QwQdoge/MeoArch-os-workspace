@@ -23,7 +23,7 @@ PageFrame {
         SelectionCard {
             width: parent.width
             title: qsTr("Stable")
-            value: qsTr("Recommended for most users. Receives fully tested MeoArch release trains. Repository: meo")
+            value: qsTr("Recommended for most people. Receives tested MeoArch updates.")
             wrapValue: true
             selected: page.channel === "stable"
             selectionIndicator: true
@@ -32,7 +32,7 @@ PageFrame {
         SelectionCard {
             width: parent.width
             title: qsTr("Beta")
-            value: qsTr("Receives newer Meo components before Stable and may be less tested. Repositories: meo-beta, then meo fallback.")
+            value: qsTr("Receives new features sooner. Updates may be less tested.")
             wrapValue: true
             selected: page.channel === "beta"
             selectionIndicator: true
@@ -42,13 +42,13 @@ PageFrame {
             visible: page.channel === "beta"
             width: parent.width
             title: qsTr("Beta is opt-in")
-            message: qsTr("Beta is not recommended for critical systems. Beta packages take priority; Stable remains available as fallback.")
+            message: qsTr("Choose Stable if you depend on this computer for important work.")
             tone: "warning"
         }
         InfoBanner {
             width: parent.width
             title: qsTr("Official mirror")
-            message: qsTr("Automatic uses packages.meoarch.org. Mirrors change download location, not update channel.")
+            message: qsTr("Downloads use the official MeoArch package mirror by default.")
         }
     }
 }

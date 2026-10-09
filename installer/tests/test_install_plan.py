@@ -20,21 +20,19 @@ class InstallPlanTests(unittest.TestCase):
         self.assertEqual(self.catalog["generation"], "2026.08")
         self.assertEqual(self.catalog["repositoryNames"], {"stable": "meo", "beta": "meo-beta"})
 
-    def test_recommended_stable_has_complete_package_set(self):
+    def test_recommended_stable_uses_published_core_packages(self):
         plan = build_install_plan({"schemaVersion": 2, "profile": "recommended", "channel": "stable"}, self.catalog)
         self.assertEqual(plan.repository.repositories, ("meo",))
-        self.assertIn("meo-settings", plan.package.packages)
-        self.assertIn("meo-icon-studio", plan.package.packages)
-        self.assertIn("meo-account", plan.package.packages)
-        self.assertIn("omnistore-bin", plan.package.packages)
-        self.assertIn("meo-release", plan.package.packages)
+        self.assertEqual(set(plan.package.packages), {
+            "meo-desktop", "meoui-qml", "meo-icons", "meo-core-meta", "meo-release"
+        })
 
     def test_minimal_has_no_optional_apps(self):
         plan = build_install_plan({"schemaVersion": 2, "profile": "minimal", "channel": "stable"}, self.catalog)
         self.assertIn("meo-desktop", plan.package.packages)
-        self.assertNotIn("meo-settings", plan.package.packages)
-        self.assertNotIn("meo-icon-studio", plan.package.packages)
-        self.assertNotIn("omnistore-bin", plan.package.packages)
+        self.assertEqual(set(plan.package.packages), {
+            "meo-desktop", "meoui-qml", "meo-icons", "meo-core-meta", "meo-release"
+        })
 
     def test_beta_orders_overlay_before_stable(self):
         plan = build_install_plan({"schemaVersion": 2, "profile": "recommended", "channel": "beta"}, self.catalog)
@@ -88,21 +86,20 @@ class InstallPlanTests(unittest.TestCase):
         self.assertIn('transaction_packages = list(dict.fromkeys(', script)
 
     def test_custom_forces_desktop_dependencies(self):
-        plan = build_install_plan({"schemaVersion": 2, "profile": "custom", "channel": "stable", "components": ["meo-desktop", "omnistore-bin"]}, self.catalog)
-        self.assertTrue({"meo-desktop", "meoui-qml", "meo-icons", "omnistore-bin"}.issubset(plan.package.packages))
+        plan = build_install_plan({"schemaVersion": 2, "profile": "custom", "channel": "stable", "components": ["meo-desktop"]}, self.catalog)
+        self.assertEqual(set(plan.package.packages), {"meo-desktop", "meoui-qml", "meo-icons", "meo-release"})
 
     def test_custom_without_desktop_is_rejected(self):
         with self.assertRaises(PlanError):
-            build_install_plan({"schemaVersion": 2, "profile": "custom", "components": ["omnistore-bin"]}, self.catalog)
+            build_install_plan({"schemaVersion": 2, "profile": "custom", "components": []}, self.catalog)
 
-    def test_custom_settings_closes_the_package_owned_icon_studio(self):
-        plan = build_install_plan(
+    def test_unpublished_custom_component_is_rejected(self):
+        with self.assertRaisesRegex(PlanError, "unknown Meo package selection"):
+            build_install_plan(
             {"schemaVersion": 2, "profile": "custom", "channel": "stable",
              "components": ["meo-desktop", "meo-settings"]},
             self.catalog,
         )
-        self.assertIn("meo-icon-studio", plan.package.packages)
-        self.assertIn("meo-icons", plan.package.packages)
 
     def test_custom_components_must_be_a_real_package_list(self):
         for invalid in (None, "meo-desktop", ["meo-desktop", None], ["meo-desktop", "bad package"]):

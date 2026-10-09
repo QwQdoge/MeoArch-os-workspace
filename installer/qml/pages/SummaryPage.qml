@@ -31,6 +31,13 @@ PageFrame {
     function channelLabel(channel) {
         return channel === "beta" ? qsTr("Beta") : qsTr("Stable")
     }
+    function countryLabel(id) {
+        const countries = controller ? controller.countries : []
+        for (let index = 0; index < countries.length; ++index)
+            if (countries[index].alpha2 === id)
+                return countries[index].name
+        return id
+    }
     function joined(values, separator, fallback) {
         return values && values.length ? Array.from(values).join(separator) : fallback
     }
@@ -89,12 +96,12 @@ PageFrame {
                                               : controller ? controller.hardwareSummary
                                                            : qsTr("Automatic PCI detection")
     readonly property var summaryRows: [
-        { pageIndex: 1, title: qsTr("Language & Region"), value: controller ? controller.systemLocale + " · " + controller.formatCountry + " · " + controller.timeZone : "" },
+        { pageIndex: 5, title: qsTr("Disk"), value: page.diskPlanSummary },
+        { pageIndex: 6, title: qsTr("User Account"), value: InstallerSession.username + " · " + InstallerSession.hostname },
+        { pageIndex: 1, title: qsTr("Language & Region"), value: controller ? controller.systemLocale + " · " + page.countryLabel(controller.formatCountry) + " · " + controller.timeZone : "" },
         { pageIndex: 2, title: qsTr("Keyboard"), value: controller ? controller.keyboardLayout : "" },
         { pageIndex: 3, title: qsTr("Network"), value: controller ? controller.networkDetail + (controller.networkHandoffEnabled ? qsTr(" · Will be remembered after installation") : qsTr(" · Will not be copied")) : "" },
         { pageIndex: 4, title: qsTr("Privacy & Security"), value: controller && controller.selection("privacy", "firewall", true) ? qsTr("Firewall enabled") : qsTr("Firewall not selected") },
-        { pageIndex: 5, title: qsTr("Disk"), value: page.diskPlanSummary },
-        { pageIndex: 6, title: qsTr("User Account"), value: InstallerSession.username + " · " + InstallerSession.hostname },
         { pageIndex: 7, title: qsTr("Software"), value: controller ? page.profileLabel(controller.selection("software", "profile", "recommended")) : "" },
         { pageIndex: 8, title: qsTr("Meo channel"), value: controller ? page.channelLabel(controller.selection("software", "channel", "stable")) : "" },
         { pageIndex: -1, title: qsTr("Graphics support"), value: page.graphicsSummary }
@@ -119,7 +126,7 @@ PageFrame {
                 anchors.right: detailsButton.left
                 anchors.rightMargin: page.dp(8)
                 title: qsTr("Summary")
-                subtitle: qsTr("Prepare a validated Archinstall plan before any destructive action is enabled.")
+                subtitle: qsTr("Review your choices, then prepare the installation plan. Nothing changes until you confirm.")
             }
             MeoButton {
                 id: detailsButton
@@ -143,54 +150,9 @@ PageFrame {
                         ? qsTr("Review the selected root and EFI partitions. Install now opens one final formatting confirmation.")
                         : qsTr("Review the selected disk and settings. Install now opens one final erase confirmation."))
                      : page.controller.preflightMessage.length ? page.controller.preflightMessage
-                                                               : qsTr("Select a valid disk and account, then prepare the plan.")
+                                                               : qsTr("Prepare the plan to check your choices before installing.")
             tone: page.controller.preflightState === "ready" ? "success"
                   : page.controller.preflightState === "failed" ? "error" : "info"
-        }
-        MeoCard {
-            visible: page.resolvedPackage.packages && page.resolvedPackage.packages.length > 0
-            width: parent.width
-            type: "outlined"
-            padding: page.dp(16)
-            implicitHeight: resolvedPlanColumn.implicitHeight + page.dp(32)
-
-            Column {
-                id: resolvedPlanColumn
-                width: parent.width
-                spacing: page.dp(8)
-                MeoText {
-                    width: parent.width
-                    text: qsTr("Validated Meo package plan")
-                    typeRole: "title"
-                    typeSize: "small"
-                    emphasized: true
-                    color: MeoTheme.contentOnSurface
-                }
-                MeoText {
-                    width: parent.width
-                    text: qsTr("Repositories: %1").arg(page.joined(page.resolvedRepository.repositories, " → ", qsTr("Not prepared")))
-                    typeRole: "body"
-                    typeSize: "medium"
-                    color: MeoTheme.contentOnSurfaceVariant
-                    wrapMode: Text.WordWrap
-                }
-                MeoText {
-                    width: parent.width
-                    text: qsTr("System application packages: %1").arg(page.joined(page.resolvedApplications.nativePackages, ", ", qsTr("None")))
-                    typeRole: "body"
-                    typeSize: "medium"
-                    color: MeoTheme.contentOnSurfaceVariant
-                    wrapMode: Text.WordWrap
-                }
-                MeoText {
-                    width: parent.width
-                    text: qsTr("Meo packages: %1").arg(page.joined(page.resolvedPackage.packages, ", ", qsTr("Not prepared")))
-                    typeRole: "body"
-                    typeSize: "medium"
-                    color: MeoTheme.contentOnSurfaceVariant
-                    wrapMode: Text.WordWrap
-                }
-            }
         }
         MeoCard {
             width: parent.width
@@ -212,7 +174,8 @@ PageFrame {
 
                         MeoListItem {
                             width: parent.width
-                            implicitHeight: page.compactHeight ? page.dp(48) : page.dp(52)
+                            isDense: page.compactHeight
+                            supportingTextLines: 2
                             headline: summaryRow.modelData.title
                             supportingText: summaryRow.modelData.value
                             interactive: summaryRow.modelData.pageIndex >= 0

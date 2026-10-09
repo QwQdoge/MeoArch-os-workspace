@@ -32,8 +32,8 @@ PageFrame {
                 }
                 ToggleRow {
                     width: parent.width
-                    title: qsTr("Enable firewalld")
-                    subtitle: qsTr("Installs firewalld and enables its service on the installed system.")
+                    title: qsTr("Enable firewall")
+                    subtitle: qsTr("Installs and enables the firewall on the installed system.")
                     checked: page.controller ? page.controller.selection("privacy", "firewall", true) : true
                     onToggled: checked => page.controller.setSelection("privacy", "firewall", checked)
                 }
@@ -42,13 +42,13 @@ PageFrame {
         InfoBanner {
             width: parent.width
             title: qsTr("Disk encryption")
-            message: qsTr("Disk encryption is not available in this installer yet. It is intentionally hidden until its secret, recovery, and rollback flow is tested.")
+            message: qsTr("Disk encryption is not available during installation. Data on the installed disk will not be encrypted.")
             tone: "info"
         }
         InfoBanner {
             width: parent.width
             title: qsTr("No telemetry or unattended updates")
-            message: qsTr("MeoArch does not show settings without a real backend. Updates and diagnostics stay under your control.")
+            message: qsTr("MeoArch does not send usage data or install updates without your action.")
             tone: "info"
         }
     }

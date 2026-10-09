@@ -24,11 +24,18 @@ class GenerateConfigTests(unittest.TestCase):
             "systemLocale": "de_DE.UTF-8", "keyboardLayout": "de", "timezone": "Europe/Berlin"
         })
         config = MODULE.build_user_configuration(self.selections)
-        self.assertEqual(config["locale_config"], {"kb_layout": "de", "sys_enc": "UTF-8", "sys_lang": "de_DE.UTF-8"})
+        self.assertEqual(config["locale_config"], {"kb_layout": "", "sys_enc": "UTF-8", "sys_lang": "de_DE.UTF-8"})
+        customizations = MODULE.build_target_customizations(self.selections)
+        self.assertEqual(customizations["keyboardLayout"], "de")
         self.assertEqual(config["timezone"], "Europe/Berlin")
         self.assertEqual(config["bootloader_config"]["bootloader"], "Grub")
         self.assertEqual(config["kernels"], ["linux"])
         self.assertEqual(config["network_config"], {"type": "nm"})
+
+    def test_keyboard_layout_cannot_inject_target_configuration(self):
+        self.selections["locale"]["keyboardLayout"] = "us\nOption XkbLayout evil"
+        with self.assertRaisesRegex(ValueError, "keyboard layout is invalid"):
+            MODULE.build_user_configuration(self.selections)
 
     def test_selections_never_contain_secrets(self):
         forbidden = {"password", "passphrase", "wifiSecret", "rootPasswordHash", "userPasswordHash"}

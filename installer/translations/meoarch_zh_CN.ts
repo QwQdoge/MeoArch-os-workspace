@@ -77,8 +77,8 @@
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="59"/>
-        <source>Use one existing partition, or explicitly erase an entire disk. The installer never guesses.</source>
-        <translation>使用现有分区，或明确选择擦除整块磁盘。安装程序不会自行猜测。</translation>
+        <source>Choose an existing partition or erase an entire disk. Check the device path before continuing.</source>
+        <translation>选择现有分区或擦除整块磁盘。继续前请核对设备路径。</translation>
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="63"/>
@@ -97,8 +97,8 @@
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="70"/>
-        <source>Disk detection must complete before installation. The installer does not invent preview disks in production.</source>
-        <translation>必须先完成磁盘检测才能安装。生产安装程序不会虚构预览磁盘。</translation>
+        <source>No installation disk is available. Check its connection, then scan again.</source>
+        <translation>没有可用的安装磁盘。请检查连接，然后重新扫描。</translation>
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="132"/>
@@ -107,8 +107,8 @@
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="139"/>
-        <source>To use one existing partition, create the EFI and root partitions outside this installer first. Otherwise choose Erase entire disk below.</source>
-        <translation>若要使用一个现有分区，请先在本安装程序外创建 EFI 和根分区。否则请在下方选择“擦除整个磁盘”。</translation>
+        <source>This disk is empty. Choose Erase and use entire disk to continue.</source>
+        <translation>此磁盘为空。选择“擦除并使用整个磁盘”以继续。</translation>
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="140"/>
@@ -177,8 +177,8 @@
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="217"/>
-        <source>Review the disk path above carefully. Existing partitions are not preserved in this mode.</source>
-        <translation>请仔细确认上方磁盘路径。此模式不会保留现有分区。</translation>
+        <source>All existing partitions on the selected disk will be erased. Check the device path below.</source>
+        <translation>所选磁盘上的所有现有分区都将被擦除。请核对下方设备路径。</translation>
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="246"/>
@@ -237,8 +237,8 @@
     </message>
     <message>
         <location filename="../qml/pages/DiskSelectionPage.qml" line="260"/>
-        <source>It remains unavailable until creation, resizing, encryption, recovery, and rollback have one tested transaction path. Use only the safe choices on this page.</source>
-        <translation>在创建、调整大小、加密、恢复和回滚共用一条经过测试的事务路径前，它会保持不可用。请仅使用本页的安全选项。</translation>
+        <source>To create or resize partitions, use a separate disk tool before returning to this installer.</source>
+        <translation>如需创建分区或调整分区大小，请先使用其他磁盘工具，再返回此安装程序。</translation>
     </message>
     <message>
         <source>Checking whether the Internet and MeoArch package source are available…</source>
@@ -403,8 +403,8 @@
     </message>
     <message>
         <location filename="../app/installercontroller.cpp" line="889"/>
-        <source>This NetworkManager profile is temporary or protected by another credential service.</source>
-        <translation>此 NetworkManager 配置为临时配置，或受其他凭据服务保护。</translation>
+        <source>This connection is only for the live session. You can reconnect after installation.</source>
+        <translation>此连接仅用于当前试用会话。安装完成后可以重新连接。</translation>
     </message>
     <message>
         <location filename="../app/installercontroller.cpp" line="896"/>
@@ -1587,8 +1587,8 @@
     </message>
     <message>
         <location filename="../qml/PageFrame.qml" line="80"/>
-        <source>Review privacy choices. This installer shows only settings that have a real backend.</source>
-        <translation>检查隐私选项。这里仅显示已具备实际后端的设置。</translation>
+        <source>Review your privacy choices before continuing.</source>
+        <translation>继续前请检查隐私选项。</translation>
     </message>
     <message>
         <location filename="../qml/PageFrame.qml" line="82"/>
@@ -2176,13 +2176,13 @@
     </message>
     <message>
         <location filename="../qml/pages/PrivacySecurityPage.qml" line="35"/>
-        <source>Enable firewalld</source>
-        <translation>启用 firewalld 防火墙</translation>
+        <source>Enable firewall</source>
+        <translation>启用防火墙</translation>
     </message>
     <message>
         <location filename="../qml/pages/PrivacySecurityPage.qml" line="36"/>
-        <source>Installs firewalld and enables its service on the installed system.</source>
-        <translation>在已安装的系统中安装并启用 firewalld 服务。</translation>
+        <source>Installs and enables the firewall on the installed system.</source>
+        <translation>在已安装的系统中安装并启用防火墙。</translation>
     </message>
     <message>
         <source>Disk encryption unavailable</source>
@@ -2195,8 +2195,8 @@
     </message>
     <message>
         <location filename="../qml/pages/PrivacySecurityPage.qml" line="45"/>
-        <source>Disk encryption is not available in this installer yet. It is intentionally hidden until its secret, recovery, and rollback flow is tested.</source>
-        <translation>此安装程序暂不提供磁盘加密。只有在密钥、恢复和回滚流程经过测试后才会显示此选项。</translation>
+        <source>Disk encryption is not available during installation. Data on the installed disk will not be encrypted.</source>
+        <translation>安装时无法启用磁盘加密。安装后磁盘上的数据将不会加密。</translation>
     </message>
     <message>
         <location filename="../qml/pages/PrivacySecurityPage.qml" line="50"/>
@@ -2205,8 +2205,8 @@
     </message>
     <message>
         <location filename="../qml/pages/PrivacySecurityPage.qml" line="51"/>
-        <source>MeoArch does not show settings without a real backend. Updates and diagnostics stay under your control.</source>
-        <translation>MeoArch 不会显示没有实际后端的设置。更新和诊断始终由你掌控。</translation>
+        <source>MeoArch does not send usage data or install updates without your action.</source>
+        <translation>未经你操作，MeoArch 不会发送使用数据或安装更新。</translation>
     </message>
 </context>
 <context>
@@ -2246,8 +2246,8 @@
     </message>
     <message>
         <location filename="../qml/pages/SoftwarePage.qml" line="53"/>
-        <source>All selections resolve through the signed MeoArch package repository.</source>
-        <translation>所有选择均通过已签名的 MeoArch 软件源解析。</translation>
+        <source>MeoArch components come from the signed Meo repository; optional apps come from Arch.</source>
+        <translation>MeoArch 组件来自已签名的 Meo 软件源；可选应用来自 Arch 官方软件源。</translation>
     </message>
     <message>
         <location filename="../qml/pages/SoftwarePage.qml" line="62"/>
@@ -2296,18 +2296,18 @@
     </message>
     <message>
         <location filename="../qml/pages/SoftwarePage.qml" line="63"/>
-        <source>Meo Desktop, MeoUI, icons, Settings, OmniStore, and required integration.</source>
-        <translation>Meo Desktop、MeoUI、图标、设置、OmniStore 以及必需集成。</translation>
+        <source>Meo Desktop and essential apps for documents, archives, text, and screenshots.</source>
+        <translation>包含 Meo Desktop，以及阅读文档、管理压缩文件、编辑文本和截图所需的应用。</translation>
     </message>
     <message>
         <location filename="../qml/pages/SoftwarePage.qml" line="72"/>
-        <source>Meo Desktop core, MeoUI, icons, and required system integration.</source>
-        <translation>Meo Desktop 核心、MeoUI、图标和必需系统集成。</translation>
+        <source>Meo Desktop and required system components, without extra apps.</source>
+        <translation>仅安装 Meo Desktop 和必需的系统组件，不添加额外应用。</translation>
     </message>
     <message>
         <location filename="../qml/pages/SoftwarePage.qml" line="81"/>
-        <source>Choose the official components to install. Required desktop components stay enabled.</source>
-        <translation>选择要安装的官方组件。必需的桌面组件会保持启用。</translation>
+        <source>Start with Meo Desktop, then choose the apps you want below.</source>
+        <translation>以 Meo Desktop 为基础，再从下方选择需要的应用。</translation>
     </message>
     <message>
         <location filename="../qml/pages/SoftwarePage.qml" line="101"/>
@@ -2573,8 +2573,8 @@
     </message>
     <message>
         <location filename="../qml/pages/SummaryPage.qml" line="122"/>
-        <source>Prepare a validated Archinstall plan before any destructive action is enabled.</source>
-        <translation>在启用任何破坏性操作前，先准备经过验证的 Archinstall 计划。</translation>
+        <source>Review your choices, then prepare the installation plan. Nothing changes until you confirm.</source>
+        <translation>检查你的选择，然后准备安装计划。只有在你确认后才会更改磁盘。</translation>
     </message>
     <message>
         <location filename="../qml/pages/SummaryPage.qml" line="128"/>
@@ -2608,8 +2608,8 @@
     </message>
     <message>
         <location filename="../qml/pages/SummaryPage.qml" line="146"/>
-        <source>Select a valid disk and account, then prepare the plan.</source>
-        <translation>请选择有效的磁盘和账户，然后准备安装计划。</translation>
+        <source>Prepare the plan to check your choices before installing.</source>
+        <translation>先准备安装计划，检查所选设置，再开始安装。</translation>
     </message>
     <message>
         <location filename="../qml/pages/SummaryPage.qml" line="163"/>
@@ -2777,8 +2777,8 @@ PipeWire · NetworkManager
     </message>
     <message>
         <location filename="../qml/pages/UpdateChannelPage.qml" line="20"/>
-        <source>Recommended for most users. Receives fully tested MeoArch release trains. Repository: meo</source>
-        <translation>适合大多数人。接收经过完整测试的 MeoArch 发布版本。软件源：meo</translation>
+        <source>Recommended for most people. Receives tested MeoArch updates.</source>
+        <translation>适合大多数人。接收经过测试的 MeoArch 更新。</translation>
     </message>
     <message>
         <location filename="../qml/pages/UpdateChannelPage.qml" line="28"/>
@@ -2787,8 +2787,8 @@ PipeWire · NetworkManager
     </message>
     <message>
         <location filename="../qml/pages/UpdateChannelPage.qml" line="29"/>
-        <source>Receives newer Meo components before Stable and may be less tested. Repositories: meo-beta, then meo fallback.</source>
-        <translation>比稳定版更早接收新的 Meo 组件，测试可能较少。软件源顺序：meo-beta，其后回退到 meo。</translation>
+        <source>Receives new features sooner. Updates may be less tested.</source>
+        <translation>更早获得新功能。更新可能尚未经过充分测试。</translation>
     </message>
     <message>
         <location filename="../qml/pages/UpdateChannelPage.qml" line="38"/>
@@ -2797,8 +2797,8 @@ PipeWire · NetworkManager
     </message>
     <message>
         <location filename="../qml/pages/UpdateChannelPage.qml" line="39"/>
-        <source>Beta is not recommended for critical systems. Beta packages take priority; Stable remains available as fallback.</source>
-        <translation>关键系统不建议使用测试版。测试版软件包优先，稳定版仍可作为回退来源。</translation>
+        <source>Choose Stable if you depend on this computer for important work.</source>
+        <translation>如果这台电脑用于重要工作，请选择稳定版。</translation>
     </message>
     <message>
         <location filename="../qml/pages/UpdateChannelPage.qml" line="44"/>
@@ -2807,8 +2807,8 @@ PipeWire · NetworkManager
     </message>
     <message>
         <location filename="../qml/pages/UpdateChannelPage.qml" line="45"/>
-        <source>Automatic uses packages.meoarch.org. Mirrors change download location, not update channel.</source>
-        <translation>自动选择会使用 packages.meoarch.org。镜像只改变下载位置，不改变更新通道。</translation>
+        <source>Downloads use the official MeoArch package mirror by default.</source>
+        <translation>默认从 MeoArch 官方软件镜像下载。</translation>
     </message>
 </context>
 <context>
@@ -2905,8 +2905,8 @@ PipeWire · NetworkManager
     </message>
     <message>
         <location filename="../qml/pages/UserAccountPage.qml" line="131"/>
-        <source>Automatic login is not offered because Plasma Login Manager has no tested password-preserving Meo backend yet.</source>
-        <translation>尚未有经过测试且可保留密码安全性的 Plasma Login Manager Meo 后端，因此不提供自动登录。</translation>
+        <source>You will sign in with your password when you start MeoArch.</source>
+        <translation>启动 MeoArch 时，你需要使用密码登录。</translation>
     </message>
     <message>
         <location filename="../qml/pages/UserAccountPage.qml" line="18"/>

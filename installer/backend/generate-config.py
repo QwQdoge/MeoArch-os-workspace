@@ -594,8 +594,16 @@ def build_package_list(hardware_plan=None, firewall=False, application_packages=
     return list(dict.fromkeys(packages))
 
 
+def selected_keyboard_layout(selections):
+    layout = selections.get("locale", {}).get("keyboardLayout", "us")
+    if not isinstance(layout, str) or not re.fullmatch(r"[A-Za-z0-9_+-]{1,32}", layout):
+        raise ValueError("selected keyboard layout is invalid")
+    return layout
+
+
 def build_user_configuration(selections, hardware_plan=None, application_packages=()):
     locale = selections.get("locale", {})
+    selected_keyboard_layout(selections)
     user = selections.get("user", {})
     disk = selections.get("disk", {})
     swap_mode = disk.get("swap", "zram")
@@ -609,7 +617,10 @@ def build_user_configuration(selections, hardware_plan=None, application_package
         "kernels": ["linux"],
         "kernel_extra_args": ["splash", "quiet", "loglevel=3", "rd.udev.log_level=3", "vt.global_cursor_default=0", "plymouth.enable=1"],
         "locale_config": {
-            "kb_layout": locale.get("keyboardLayout", "us"),
+            # Archinstall's keyboard setter boots the partial target in
+            # systemd-nspawn and can wait indefinitely for its login prompt.
+            # Apply the validated selection after base installation instead.
+            "kb_layout": "",
             "sys_enc": "UTF-8",
             "sys_lang": locale.get("systemLocale", "en_US.UTF-8"),
         },
@@ -685,6 +696,7 @@ def build_target_customizations(selections):
         # password-preserving backend transaction is implemented.
         "automaticLogin": False,
         "loginManager": "plasma-login-manager",
+        "keyboardLayout": selected_keyboard_layout(selections),
         "firewall": bool(privacy.get("firewall", True)),
         "networkHandoff": {
             "enabled": bool(network.get("handoffEnabled", False)),

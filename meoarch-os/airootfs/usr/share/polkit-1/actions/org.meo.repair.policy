@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+  "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>MeoArch</vendor>
+  <vendor_url>https://meoarch.org</vendor_url>
+
+  <action id="org.meo.repair.reload-systemd-manager">
+    <description>Reload the system service manager</description>
+    <message>Authentication is required to reload the system service manager.</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>auth_admin</allow_inactive><allow_active>auth_admin_keep</allow_active></defaults>
+  </action>
+
+  <action id="org.meo.repair.restart-network-manager">
+    <description>Restart the system network service</description>
+    <message>Authentication is required because restarting NetworkManager temporarily interrupts connectivity.</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>auth_admin</allow_inactive><allow_active>auth_admin_keep</allow_active></defaults>
+  </action>
+
+  <action id="org.meo.repair.rebuild-initramfs">
+    <description>Rebuild boot-critical initramfs images</description>
+    <message>Authentication is required to rebuild boot-critical initramfs images.</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>auth_admin</allow_inactive><allow_active>auth_admin</allow_active></defaults>
+  </action>
+
+  <action id="org.meo.repair.refresh-pacman-keyring">
+    <description>Refresh the Arch Linux package trust keyring</description>
+    <message>Authentication is required to change the system package trust state.</message>
+    <defaults><allow_any>no</allow_any><allow_inactive>auth_admin</allow_inactive><allow_active>auth_admin</allow_active></defaults>
+  </action>
+</policyconfig>

@@ -143,9 +143,11 @@ grep -q 'After installation' installer/qml/pages/WelcomePage.qml
 grep -q 'for plasmoid in org.meo.topbar org.meo.timecenter; do' scripts/sync-installer-to-airootfs.sh
 # Plasma's native task manager is the sole floating Dock. Meo owns its theme
 # geometry and dynamic colour, not a second task/window model.
-grep -q 'bottomPanel.addWidget("org.kde.plasma.icontasks")' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
-grep -q 'DockImplementation=native' "${projects_root}/meo-kde/defaults/plasma/meo-shellrc"
-! rg -q 'data/autostart/org.meo.dock.desktop' "${projects_root}/meo-kde/packaging/arch/PKGBUILD"
+plasma_layout="${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
+grep -q 'var topPanel = new Panel' "${plasma_layout}"
+! grep -q 'var bottomPanel = new Panel' "${plasma_layout}"
+grep -q 'DockImplementation=standalone' "${projects_root}/meo-kde/defaults/plasma/meo-shellrc"
+grep -q 'data/autostart/org.meo.dock.desktop' "${projects_root}/meo-kde/packaging/arch/PKGBUILD"
 grep -q 'meo-dynamic-colors.path' scripts/sync-installer-to-airootfs.sh
 grep -q 'meo-weather-refresh' scripts/sync-installer-to-airootfs.sh
 grep -q 'preflight-meo-repository.sh.*0:0:755' meoarch-os/profiledef.sh
@@ -234,7 +236,7 @@ grep -q 'QProcess::execute(repairProgram, forwarded)' installer/app/main.cpp
 ! rg -q 'RepairMain.qml' installer
 grep -q 'EnvironmentFile=-/etc/meoarch/account.env' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^After=systemd-user-sessions.service systemd-logind.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
-grep -q '^Wants=NetworkManager.service seatd.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
+grep -q '^Wants=NetworkManager.service seatd.service meoarch-live-verify.service$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^StartLimitIntervalSec=30s$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^StartLimitBurst=3$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
 grep -q '^Environment=XDG_RUNTIME_DIR=/run/meoarch-installer$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service

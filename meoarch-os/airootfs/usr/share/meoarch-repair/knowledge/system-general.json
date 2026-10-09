@@ -1,0 +1,36 @@
+{
+  "schema": "org.meo.help-runbook/v1",
+  "id": "system.general.problem",
+  "version": 1,
+  "intents": ["电脑有问题", "系统不正常", "不知道哪里坏了", "computer problem", "system not working", "unknown problem"],
+  "questions": [
+    {
+      "id": "desktop_usable",
+      "label": "你现在可以正常打开并操作桌面吗？",
+      "options": [
+        {"id": "yes", "label": "是，桌面可以操作"},
+        {"id": "no", "label": "否，桌面不可用"}
+      ]
+    },
+    {
+      "id": "after_update",
+      "label": "这个问题是在系统更新后出现的吗？",
+      "options": [
+        {"id": "yes", "label": "是，更新后出现"},
+        {"id": "no", "label": "否，不确定或无关"}
+      ]
+    },
+    {
+      "id": "reproducible",
+      "label": "每次执行相同操作都会出现这个问题吗？",
+      "options": [
+        {"id": "yes", "label": "是，每次都会出现"},
+        {"id": "no", "label": "否，只是偶尔出现"}
+      ]
+    }
+  ],
+  "diagnostics": ["audio", "display", "network", "boot", "packages", "storage", "graphics", "security"],
+  "guidedCapabilities": [],
+  "allowedRepairActions": ["restart_network_manager", "refresh_pacman_keyring", "rebuild_initramfs", "reload_systemd_manager"],
+  "manualHandoffs": ["insufficient_evidence", "intermittent_problem", "hardware_or_application_specific_problem"]
+}

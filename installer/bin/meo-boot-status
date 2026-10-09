@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 RUN_STATE_FILE = Path("/run/meoarch/boot-status.json")
+PLYMOUTH_PID_FILE = Path("/run/plymouth/pid")
 # Plymouth is a presentation layer, not a boot dependency.  In particular, a
 # stalled Plymouth daemon/socket must never hold a systemd boot milestone (and
 # therefore the Live installer) hostage.
@@ -78,6 +79,12 @@ DEFAULT_FAILURE = {
 
 def run_plymouth_cmd(*args):
     """Safely execute a plymouth command if plymouth is running."""
+    # Plymouth clients can wait on the daemon socket even when their subprocess
+    # timeout expires (notably on the terminal-only Live entry, which disables
+    # plymouth.enable). Never put a cosmetic update on a systemd critical path
+    # unless the boot daemon actually published its runtime pid file.
+    if not PLYMOUTH_PID_FILE.is_file():
+        return
     try:
         subprocess.run(
             ["plymouth", *args],

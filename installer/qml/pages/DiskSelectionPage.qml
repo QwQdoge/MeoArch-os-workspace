@@ -28,6 +28,8 @@ PageFrame {
         return Math.floor(Number(controller.selection("disk", "sizeBytes", 0)) / 1073741824)
     }
     readonly property bool eraseAvailable: controller && controller.selectedDisk.length > 0 && diskSizeGiB >= 16
+    readonly property bool hasExistingPartitions: controller && Array.from(controller.disks || []).some(
+        disk => disk.partitions && disk.partitions.length > 0)
 
     primaryEnabled: controller && !controller.diskDetecting
                     && (existingPartitionReady || (diskMode !== "partition" && eraseAvailable))
@@ -56,9 +58,20 @@ PageFrame {
         PageHeading {
             width: parent.width
             title: qsTr("Choose where MeoArch is installed")
-            subtitle: qsTr("Use one existing partition, or explicitly erase an entire disk. The installer never guesses.")
+            subtitle: qsTr("Choose an existing partition or erase an entire disk. Check the device path before continuing.")
         }
         InfoBanner {
+            visible: page.existingPartitionReady
+            width: parent.width; tone: "error"; title: qsTr("Selected root partition will be erased")
+            message: qsTr("MeoArch will preserve %1 and erase only %2. Other partitions are not selected for modification.").arg(page.selectedEfi.path).arg(page.selectedRoot.path)
+        }
+        InfoBanner {
+            visible: !page.existingPartitionReady && page.diskMode !== "partition" && page.eraseAvailable
+            width: parent.width; tone: "error"; title: qsTr("Entire selected disk will be erased")
+            message: qsTr("All existing partitions on the selected disk will be erased. Check the device path below.")
+        }
+        InfoBanner {
+            visible: page.hasExistingPartitions
             width: parent.width; tone: "info"
             title: qsTr("Use one existing partition")
             message: qsTr("Select an unmounted partition of at least 16 GiB below. Meo preserves an existing EFI System Partition and rebuilds and formats only the partition you select for MeoArch.")
@@ -67,7 +80,7 @@ PageFrame {
             visible: page.controller && !page.controller.diskDetecting && page.controller.disks.length === 0
             width: parent.width; tone: "error"
             title: qsTr("No disk detected")
-            message: qsTr("Disk detection must complete before installation. The installer does not invent preview disks in production.")
+            message: qsTr("No installation disk is available. Check its connection, then scan again.")
         }
         MeoButton {
             visible: page.controller && !page.controller.diskDetecting && page.controller.disks.length === 0
@@ -136,7 +149,7 @@ PageFrame {
                     MeoText {
                         width: parent.width
                         text: diskCard.modelData.partitions.length === 0
-                              ? qsTr("To use one existing partition, create the EFI and root partitions outside this installer first. Otherwise choose Erase entire disk below.")
+                              ? qsTr("This disk is empty. Choose Erase and use entire disk to continue.")
                               : qsTr("Choose a partition for MeoArch root. EFI is recognized from its GPT type and is never reformatted here.")
                         typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap
                     }
@@ -206,16 +219,6 @@ PageFrame {
                 }
             }
         }
-        InfoBanner {
-            visible: page.existingPartitionReady
-            width: parent.width; tone: "error"; title: qsTr("Selected root partition will be erased")
-            message: qsTr("MeoArch will preserve %1 and erase only %2. Other partitions are not selected for modification.").arg(page.selectedEfi.path).arg(page.selectedRoot.path)
-        }
-        InfoBanner {
-            visible: !page.existingPartitionReady && page.diskMode !== "partition" && page.eraseAvailable
-            width: parent.width; tone: "error"; title: qsTr("Entire selected disk will be erased")
-            message: qsTr("Review the disk path above carefully. Existing partitions are not preserved in this mode.")
-        }
         Row {
             spacing: page.dp(8)
             MeoButton { text: qsTr("Advanced options"); type: "text"; onClicked: advanced.openFrom(this) }
@@ -257,7 +260,7 @@ PageFrame {
                     model: [{ id: "zram", name: qsTr("Automatic ZRAM"), detail: qsTr("Compressed memory swap") }, { id: "file", name: qsTr("Swap file"), detail: qsTr("Creates a 4 GiB target swap file") }, { id: "none", name: qsTr("None"), detail: qsTr("No swap configured") }]
                     delegate: SelectionCard { required property var modelData; width: parent.width; implicitHeight: page.dp(60); iconText: "swap_horiz"; title: modelData.name; value: modelData.detail; selected: page.controller && page.controller.selection("disk", "swap", "zram") === modelData.id; selectionIndicator: true; onClicked: page.controller.setSelection("disk", "swap", modelData.id) }
                 }
-                InfoBanner { width: parent.width; title: qsTr("Manual partition editor unavailable"); message: qsTr("It remains unavailable until creation, resizing, encryption, recovery, and rollback have one tested transaction path. Use only the safe choices on this page."); tone: "error" }
+                InfoBanner { width: parent.width; title: qsTr("Manual partition editor unavailable"); message: qsTr("To create or resize partitions, use a separate disk tool before returning to this installer."); tone: "error" }
                 MeoButton { anchors.right: parent.right; text: qsTr("Done"); type: "filled"; onClicked: advanced.close() }
             }
         }

@@ -384,6 +384,7 @@ username="$(read_customization username)"
 full_name="$(read_customization fullName)"
 automatic_login="$(read_customization automaticLogin)"
 login_manager="$(read_customization loginManager)"
+keyboard_layout="$(read_customization keyboardLayout)"
 firewall="$(read_customization firewall)"
 network_handoff_enabled="$(read_customization networkHandoff.enabled)"
 network_handoff_file="$(read_customization networkHandoff.file)"
@@ -406,11 +407,36 @@ case "${login_manager}" in
   plasma-login-manager) ;;
   *) echo "Unsupported generated login manager." >&2; exit 7 ;;
 esac
+# Plans generated before keyboard handoff used the US layout by default.
+keyboard_layout="${keyboard_layout:-us}"
+if [[ ! "${keyboard_layout}" =~ ^[A-Za-z0-9_+-]{1,32}$ ]]; then
+  echo "Invalid generated keyboard layout." >&2
+  exit 7
+fi
 case "${swap_mode}" in zram|file|none) ;; *) echo "Unsupported generated swap mode." >&2; exit 7 ;; esac
 case "${swap_size_mib}" in *[!0-9]*|"") echo "Invalid generated swap size." >&2; exit 7 ;; esac
 case "${calendar_primary}" in gregorian) ;; *) echo "Unsupported primary calendar." >&2; exit 7 ;; esac
 case "${calendar_secondary}" in none|buddhist|islamic-civil|hebcal) ;; *) echo "Unsupported secondary calendar." >&2; exit 7 ;; esac
 case "${calendar_hebcal_enabled}" in true|false) ;; *) echo "Invalid online calendar setting." >&2; exit 7 ;; esac
+
+# localectl inside Archinstall uses a temporary nspawn boot; write the same
+# target files directly so a missing container login prompt cannot stall the
+# installation after disk preparation.
+for keyboard_file in "${target_root}/etc/vconsole.conf" \
+                     "${target_root}/etc/X11/xorg.conf.d/00-keyboard.conf"; do
+  [ ! -L "${keyboard_file}" ] || { echo "Unsafe target keyboard configuration." >&2; exit 7; }
+done
+printf 'KEYMAP=%s\n' "${keyboard_layout}" >"${target_root}/etc/vconsole.conf"
+chmod 644 "${target_root}/etc/vconsole.conf"
+install -d -m755 "${target_root}/etc/X11/xorg.conf.d"
+cat >"${target_root}/etc/X11/xorg.conf.d/00-keyboard.conf" <<EOF
+Section "InputClass"
+    Identifier "MeoArch keyboard"
+    MatchIsKeyboard "on"
+    Option "XkbLayout" "${keyboard_layout}"
+EndSection
+EOF
+chmod 644 "${target_root}/etc/X11/xorg.conf.d/00-keyboard.conf"
 
 if [ -n "${full_name}" ]; then
   chroot "${target_root}" /usr/bin/usermod -c "${full_name}" "${username}"

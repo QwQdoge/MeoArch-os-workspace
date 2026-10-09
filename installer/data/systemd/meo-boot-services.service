@@ -1,6 +1,5 @@
 [Unit]
 Description=MeoArch Boot Services Stage Milestone
-After=multi-user.target
 
 [Service]
 Type=oneshot

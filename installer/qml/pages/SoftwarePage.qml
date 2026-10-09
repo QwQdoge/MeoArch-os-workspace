@@ -8,17 +8,13 @@ PageFrame {
     id: page
     // selection() is an invokable, so its result is not itself a reactive QML
     // property. Depend on the controller's revision to make a clicked profile
-    // and component checkbox update immediately rather than only after this
-    // page is reloaded.
+    // and application checkbox update immediately rather than only after
+    // this page is reloaded.
     readonly property var selectionRevision: controller && controller.selectionRevision !== undefined
                                            ? controller.selectionRevision : 0
     readonly property string profile: {
         const revision = selectionRevision
         return revision >= 0 && controller ? controller.selection("software", "profile", "recommended") : "recommended"
-    }
-    readonly property var selectedComponents: {
-        const revision = selectionRevision
-        return revision >= 0 && controller ? controller.selection("software", "components", []) : []
     }
     readonly property var selectedApplications: {
         const revision = selectionRevision
@@ -28,15 +24,6 @@ PageFrame {
     function selectProfile(value) {
         controller.setSelection("software", "profile", value)
         controller.setSelection("software", "components", value === "custom" ? ["meo-desktop"] : [])
-    }
-    function setComponent(name, enabled) {
-        let next = Array.from(page.selectedComponents)
-        const index = next.indexOf(name)
-        if (enabled && index < 0)
-            next.push(name)
-        if (!enabled && index >= 0)
-            next.splice(index, 1)
-        controller.setSelection("software", "components", next)
     }
     function applicationsForTier(tier) {
         return Array.from(page.softwareCatalog).filter(application => application.tier === tier)
@@ -68,7 +55,7 @@ PageFrame {
         PageHeading {
             width: parent.width
             title: qsTr("Choose what to install")
-            subtitle: qsTr("All selections resolve through the signed MeoArch package repository.")
+            subtitle: qsTr("MeoArch components come from the signed Meo repository; optional apps come from Arch.")
         }
         // Keep the three product profiles as direct children of the page
         // layout.  In a real compact Live session, the dynamic delegate
@@ -78,7 +65,7 @@ PageFrame {
         SelectionCard {
             width: parent.width
             title: qsTr("Recommended")
-            value: qsTr("Meo Desktop, MeoUI, icons, Settings, OmniStore, and required integration.")
+            value: qsTr("Meo Desktop and essential apps for documents, archives, text, and screenshots.")
             wrapValue: true
             selected: page.profile === "recommended"
             selectionIndicator: true
@@ -87,7 +74,7 @@ PageFrame {
         SelectionCard {
             width: parent.width
             title: qsTr("Minimal")
-            value: qsTr("Meo Desktop core, MeoUI, icons, and required system integration.")
+            value: qsTr("Meo Desktop and required system components, without extra apps.")
             wrapValue: true
             selected: page.profile === "minimal"
             selectionIndicator: true
@@ -96,40 +83,11 @@ PageFrame {
         SelectionCard {
             width: parent.width
             title: qsTr("Custom")
-            value: qsTr("Choose the official components to install. Required desktop components stay enabled.")
+            value: qsTr("Start with Meo Desktop, then choose the apps you want below.")
             wrapValue: true
             selected: page.profile === "custom"
             selectionIndicator: true
             onClicked: page.selectProfile("custom")
-        }
-        MeoCard {
-            visible: page.profile === "custom"
-            width: parent.width
-            implicitHeight: customColumn.implicitHeight + page.dp(24)
-            type: "filled"
-            padding: page.dp(12)
-            Column {
-                id: customColumn
-                width: parent.width
-                spacing: page.dp(8)
-                MeoText { text: qsTr("Core"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
-                MeoText { width: parent.width; text: qsTr("Included with every MeoArch installation: Meo Desktop, MeoUI runtime, and Meo Icons."); typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
-                MeoText { text: qsTr("Applications"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
-                MeoCheckbox {
-                    text: qsTr("Meo Settings")
-                    controlled: true
-                    checked: page.selectedComponents.indexOf("meo-settings") >= 0
-                    onToggled: checked => page.setComponent("meo-settings", checked)
-                }
-                MeoCheckbox {
-                    text: qsTr("OmniStore")
-                    controlled: true
-                    checked: page.selectedComponents.indexOf("omnistore-bin") >= 0
-                    onToggled: checked => page.setComponent("omnistore-bin", checked)
-                }
-                MeoText { text: qsTr("System"); typeRole: "label"; typeSize: "large"; emphasized: true; color: MeoTheme.contentOnSurface }
-                MeoText { width: parent.width; text: qsTr("Included with every MeoArch installation: signed Meo repository integration and release compatibility metadata."); typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap }
-            }
         }
         MeoCard {
             width: parent.width

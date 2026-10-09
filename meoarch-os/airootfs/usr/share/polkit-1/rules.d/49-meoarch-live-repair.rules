@@ -1,0 +1,19 @@
+// This vendor rule is staged only into the physical Live repair image. It is
+// deliberately not installed on a normal MeoArch system.
+polkit.addRule(function(action, subject) {
+    var fixedLiveActions = {
+        "org.meo.repair.live.reload-systemd-manager": "/usr/lib/meoarch-repair/live-actions/reload-systemd-manager.sh",
+        "org.meo.repair.live.restart-network-manager": "/usr/lib/meoarch-repair/live-actions/restart-network-manager.sh",
+        "org.meo.repair.live.rebuild-initramfs": "/usr/lib/meoarch-repair/live-actions/rebuild-initramfs.sh",
+        "org.meo.repair.live.refresh-pacman-keyring": "/usr/lib/meoarch-repair/live-actions/refresh-pacman-keyring.sh"
+    };
+
+    if (fixedLiveActions[action.id] !== undefined
+        && action.lookup("program") === fixedLiveActions[action.id]
+        && action.lookup("user") === "root"
+        && subject.user === "live"
+        && subject.local === true
+        && subject.active === true) {
+        return polkit.Result.YES;
+    }
+});

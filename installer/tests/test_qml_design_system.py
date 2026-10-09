@@ -167,16 +167,17 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("controller.installPlan.repository", summary)
         self.assertIn("controller.installPlan.package", summary)
         self.assertIn("controller.installPlan.applications", summary)
-        self.assertIn("Validated Meo package plan", summary)
+        self.assertIn("id: detailsSheet", summary)
+        self.assertIn("page.joined(page.resolvedPackage.packages", summary)
         # A generic invokable read is not reactive on its own. Both choice
         # pages must bind through the controller revision so a click updates
-        # its indicator and the Custom component controls in the same view.
+        # its indicator and the application controls in the same view.
         self.assertIn("Q_PROPERTY(quint64 selectionRevision", header)
         self.assertIn("property int selectionRevision: 0", preview)
         self.assertIn("++selectionRevision", preview)
         self.assertIn("readonly property var selectionRevision", software)
-        self.assertIn("readonly property var selectedComponents", software)
-        self.assertEqual(software.count("controlled: true"), 5)
+        self.assertIn("readonly property var selectedApplications", software)
+        self.assertEqual(software.count("controlled: true"), 3)
         self.assertIn("readonly property var selectionRevision", channel)
 
     def test_selection_cards_measure_their_content_column(self):
@@ -296,7 +297,8 @@ class InstallerDesignSystemTests(unittest.TestCase):
         controller = (QML_ROOT.parents[0] / "app/installercontroller.cpp").read_text(encoding="utf-8")
         self.assertIn("Password sign-in required", user)
         self.assertNotIn("Automatic login\")", user)
-        self.assertIn("Included with every MeoArch installation", software)
+        self.assertIn("Meo Desktop and required system components", software)
+        self.assertNotIn('qsTr("Meo Settings")', software)
         self.assertNotIn('enabled: false', software)
         self.assertIn('row({{"id", "zh_CN"}', controller)
         self.assertNotIn('row({{"id", "ja"}', controller)

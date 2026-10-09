@@ -18,6 +18,13 @@ PageFrame {
                 return all[index].name
         return id
     }
+    function countryLabel(id) {
+        const all = controller ? controller.countries : []
+        for (let index = 0; index < all.length; ++index)
+            if (all[index].alpha2 === id)
+                return all[index].name
+        return id
+    }
 
     Column {
         width: parent.width
@@ -33,7 +40,7 @@ PageFrame {
             width: parent.width
             iconText: "public"
             title: qsTr("Country or region")
-            value: page.controller ? page.controller.formatCountry : ""
+            value: page.controller ? page.countryLabel(page.controller.formatCountry) : ""
             onClicked: countryDialog.openFrom(this)
         }
 
