@@ -15,12 +15,18 @@ REQUIRED_FILES = (
     "usr/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js",
     "usr/share/plasma/plasmoids/org.meo.topbar/metadata.json",
     "usr/share/plasma/plasmoids/org.meo.timecenter/metadata.json",
-    "etc/xdg/autostart/org.meo.welcome.desktop", "etc/xdg/meo-shellrc",
+    "usr/share/wayland-sessions/meo.desktop",
+    "usr/share/meo-desktop/session-defaults/kdeglobals",
+    "usr/share/meo-desktop/session-defaults/kwinrc",
+    "usr/share/meo-desktop/session-defaults/plasmarc",
+    "usr/share/meo-desktop/session-defaults/meo-shellrc",
+    "usr/share/meo-desktop/session-defaults/fcitx5/conf/classicui.conf",
+    "etc/xdg/autostart/org.meo.welcome.desktop",
     "etc/xdg/MeoArch/Calendar.ini",
     "usr/share/applications/org.meo.welcome.desktop",
     "usr/lib/systemd/system/plasmalogin.service", "usr/share/wayland-sessions/plasma.desktop",
     "usr/share/pixmaps/meoarch-logo.svg", "usr/share/meo-release/package-catalog.json",
-    "etc/environment.d/90-meo-applications.conf", "usr/lib/systemd/user/meo-dynamic-colors.path",
+    "usr/lib/systemd/user/meo-dynamic-colors.path",
     "usr/lib/systemd/user/meo-dynamic-colors.service", "usr/lib/systemd/user/pipewire.service",
     "usr/share/fcitx5/themes/MeoInputMethod-Light/theme.conf",
     "usr/share/meo-desktop/input-method/ibus/gtk.css.in", "etc/plymouth/plymouthd.conf",
@@ -31,7 +37,6 @@ REQUIRED_FILES = (
     "usr/share/dbus-1/services/org.meo.SessionAction1.service",
     "usr/lib/systemd/user/meo-weather-refresh.service",
     "usr/lib/systemd/user/meo-weather-refresh.timer",
-    "usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer",
     "etc/gamemode.ini",
     "etc/system76-scheduler/process-scheduler/meo-cachyos.kdl",
     "usr/lib/systemd/zram-generator.conf.d/50-meo-desktop.conf",
@@ -43,11 +48,11 @@ REQUIRED_FILES = (
     "usr/lib/systemd/system/dbus.service",
 )
 REQUIRED_EXECUTABLES = ("usr/bin/meo-dynamic-colors", "usr/bin/meo-input-method",
-                        "usr/bin/plasmalogin", "usr/bin/startplasma-wayland", "usr/bin/NetworkManager",
-                        "usr/bin/meo-welcome", "usr/bin/meo-session-actiond",
-                        "usr/bin/meo-weather-refresh",
-                        "usr/bin/system76-scheduler", "usr/bin/gamemoded", "usr/bin/powerprofilesctl",
-                        "usr/bin/dbus-broker-launch", "usr/lib/systemd/system-generators/zram-generator")
+                        "usr/bin/startmeo-wayland", "usr/bin/plasmalogin", "usr/bin/startplasma-wayland",
+                        "usr/bin/NetworkManager", "usr/bin/meo-welcome", "usr/bin/meo-session-actiond",
+                        "usr/bin/meo-weather-refresh", "usr/bin/system76-scheduler", "usr/bin/gamemoded",
+                        "usr/bin/powerprofilesctl", "usr/bin/dbus-broker-launch",
+                        "usr/lib/systemd/system-generators/zram-generator")
 REQUIRED_ENABLED_SERVICES = (
     "display-manager.service",
     "multi-user.target.wants/NetworkManager.service",
@@ -60,6 +65,13 @@ FORBIDDEN_ENABLED_SERVICES = (
 FORBIDDEN_FILES = (
     "etc/xdg/autostart/org.meo.dock.desktop",
     "usr/bin/meo-dock",
+    # Meo Desktop is a distinct session. These used to alter ordinary Plasma
+    # merely by installing the package and must never return as global defaults.
+    "etc/environment.d/90-meo-applications.conf",
+    "etc/xdg/meo-shellrc",
+    "etc/xdg/fcitx5/conf/classicui.conf",
+    "usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path",
+    "usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer",
 )
 FORBIDDEN_LIVE_INSTALLER_PATHS = (
     "etc/sysusers.d/20-meoarch-live.conf",
@@ -67,8 +79,6 @@ FORBIDDEN_LIVE_INSTALLER_PATHS = (
     "usr/share/wayland-sessions/meoarch-live.desktop",
     "etc/systemd/system/getty@tty2.service.d/20-meoarch-live.conf",
     "etc/systemd/system/plasmalogin.service.d/20-meoarch-live.conf",
-    # These paths belong exclusively to the ArchISO Live environment.  The
-    # installed target must not re-enter a root kiosk installer at first boot.
     "etc/systemd/system/meoarch-installer.service",
     "etc/systemd/system/graphical.target.wants/meoarch-installer.service",
     "usr/local/bin/meoarch-installer",
@@ -110,7 +120,6 @@ def target_path(root: Path, relative: str) -> Path:
 
 
 def fstab_has_root_mount(contents: str) -> bool:
-    """Require an actual root entry, not merely a non-empty fstab file."""
     for line in contents.splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
@@ -122,11 +131,28 @@ def fstab_has_root_mount(contents: str) -> bool:
 
 
 def grub_references_linux_kernel(contents: str) -> bool:
-    """Check the generated GRUB config references both boot-critical images."""
     linux = re.search(r"(?m)^\s*(?:linux|linuxefi)\s+.*\bvmlinuz-linux(?:\s|$)", contents)
-    # GRUB may load CPU microcode and initramfs from the same initrd line.
     initramfs = re.search(r"(?m)^\s*(?:initrd|initrdefi)\s+.*\binitramfs-linux\.img(?:\s|$)", contents)
     return bool(linux and initramfs)
+
+
+def verify_meo_session(root: Path) -> None:
+    entry = target_path(root, "usr/share/wayland-sessions/meo.desktop").read_text(encoding="utf-8")
+    if "Name=Meo Desktop" not in entry or "Exec=/usr/bin/startmeo-wayland" not in entry:
+        raise ValueError("Meo Desktop Wayland session entry is invalid")
+
+    launcher = target_path(root, "usr/bin/startmeo-wayland").read_text(encoding="utf-8")
+    required_launcher_contract = (
+        'XDG_CONFIG_HOME="${meo_config_home}"',
+        'XDG_STATE_HOME="${meo_state_home}"',
+        "MEO_DESKTOP_SESSION=1",
+        "/usr/bin/startplasma-wayland",
+    )
+    for marker in required_launcher_contract:
+        if marker not in launcher:
+            raise ValueError(f"Meo Desktop session launcher is missing isolation contract: {marker}")
+    if "/etc/xdg" in launcher or "~/.config/kdeglobals" in launcher:
+        raise ValueError("Meo Desktop session launcher writes into the normal Plasma configuration")
 
 
 def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
@@ -151,6 +177,9 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
             raise ValueError(f"target payload missing: {relative}")
         if relative in REQUIRED_EXECUTABLES and not path.stat().st_mode & 0o111:
             raise ValueError(f"target command is not executable: {relative}")
+
+    verify_meo_session(root)
+
     fstab = target_path(root, "etc/fstab").read_text()
     if not fstab_has_root_mount(fstab):
         raise ValueError("target fstab has no root filesystem entry")
@@ -177,7 +206,7 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
     for relative in FORBIDDEN_FILES:
         path = root / relative
         if path.exists() or path.is_symlink():
-            raise ValueError(f"retired standalone Dock payload is installed: {relative}")
+            raise ValueError(f"normal Plasma isolation violation is installed: {relative}")
 
     for relative in FORBIDDEN_LIVE_INSTALLER_PATHS:
         path = root / relative
@@ -193,13 +222,13 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
                     or config.get('Autologin', 'Session', fallback='').strip() == 'meoarch-live.desktop'):
                 raise ValueError(f'Live autologin residue is installed: {relative}')
 
-    dock_profile = target_path(root, "etc/xdg/meo-shellrc").read_text()
+    dock_profile = target_path(root, "usr/share/meo-desktop/session-defaults/meo-shellrc").read_text()
     dock_layout = target_path(
         root,
         "usr/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js",
     ).read_text()
     if "DockImplementation=native" not in dock_profile:
-        raise ValueError("target desktop does not select the native Plasma Dock")
+        raise ValueError("Meo session defaults do not select the native Plasma Dock")
     if 'bottomPanel.addWidget("org.kde.plasma.icontasks")' not in dock_layout:
         raise ValueError("target desktop is missing the native Plasma Icons-Only Task Manager")
     if "org.meo.dock" in dock_layout:
@@ -234,4 +263,4 @@ if __name__ == "__main__":
         verify(Path(sys.argv[1]))
     except (ValueError, OSError) as error:
         raise SystemExit(f"FAIL: {error}")
-    print("PASS: package-managed target file and service validation; installed boot remains unverified")
+    print("PASS: package-managed target and isolated Meo session validation; installed boot remains unverified")
