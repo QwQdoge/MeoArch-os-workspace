@@ -31,7 +31,26 @@ class TargetValidationTests(unittest.TestCase):
                     "  initrd /initramfs-linux.img\n"
                     "}\n"
                 ),
-                "etc/xdg/meo-shellrc": "[Panels]\nDockImplementation=native\n",
+                "usr/share/wayland-sessions/meo.desktop": (
+                    "[Desktop Entry]\n"
+                    "Type=Application\n"
+                    "Name=Meo Desktop\n"
+                    "Exec=/usr/bin/startmeo-wayland\n"
+                    "TryExec=/usr/bin/startmeo-wayland\n"
+                    "DesktopNames=KDE;Meo\n"
+                ),
+                "usr/bin/startmeo-wayland": (
+                    "#!/usr/bin/env bash\n"
+                    "meo_config_home=\"${HOME}/.config/meo-desktop\"\n"
+                    "meo_state_home=\"${HOME}/.local/state/meo-desktop\"\n"
+                    "export XDG_CONFIG_HOME=\"${meo_config_home}\"\n"
+                    "export XDG_STATE_HOME=\"${meo_state_home}\"\n"
+                    "export MEO_DESKTOP_SESSION=1\n"
+                    "exec /usr/bin/startplasma-wayland\n"
+                ),
+                "usr/share/meo-desktop/session-defaults/meo-shellrc": (
+                    "[Panels]\nDockImplementation=native\n"
+                ),
                 "usr/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js": (
                     'var bottomPanel = new Panel\n'
                     'bottomPanel.addWidget("org.kde.plasma.icontasks")\n'
@@ -181,7 +200,7 @@ class TargetValidationTests(unittest.TestCase):
             legacy = root / "etc/xdg/autostart/org.meo.dock.desktop"
             legacy.parent.mkdir(parents=True, exist_ok=True)
             legacy.write_text("[Desktop Entry]\n")
-            with self.assertRaisesRegex(ValueError, "retired standalone Dock payload"):
+            with self.assertRaisesRegex(ValueError, "isolation violation"):
                 self.verify_fixture(root)
 
     def test_target_rejects_live_installer_residue_and_incomplete_boot_contract(self):
@@ -212,7 +231,9 @@ class TargetValidationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             self.populate(root)
-            (root / "etc/xdg/meo-shellrc").write_text("[Panels]\nDockImplementation=standalone\n")
+            (root / "usr/share/meo-desktop/session-defaults/meo-shellrc").write_text(
+                "[Panels]\nDockImplementation=standalone\n"
+            )
             with self.assertRaisesRegex(ValueError, "native Plasma Dock"):
                 self.verify_fixture(root)
 
