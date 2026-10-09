@@ -207,10 +207,10 @@ if [ -d "${desktop_source}/themes/icons" ]; then
 fi
 
 if [ -d "${desktop_source}/plasmoids" ]; then
-  for retired_plasmoid in org.meo.shelf org.meo.toptasks org.meo.launcher org.meo.quicksettings; do
+  for retired_plasmoid in org.meo.toptasks org.meo.launcher org.meo.quicksettings; do
     rm -rf "${target_root}/usr/share/plasma/plasmoids/${retired_plasmoid}"
   done
-  for plasmoid in org.meo.topbar org.meo.timecenter; do
+  for plasmoid in org.meo.systemmenu org.meo.shelf org.meo.topbar org.meo.timecenter org.meo.time org.meo.notifications org.meo.time-notifications org.meo.widgetexplorer org.meo.widget.clock org.meo.widget.media org.meo.widget.performance; do
     if [ -d "${desktop_source}/plasmoids/${plasmoid}" ]; then
       rm -rf "${target_root}/usr/share/plasma/plasmoids/${plasmoid}"
       cp -a "${desktop_source}/plasmoids/${plasmoid}" "${target_root}/usr/share/plasma/plasmoids/${plasmoid}"
@@ -238,6 +238,29 @@ install_file 644 "${desktop_source}/defaults/plasma/plasma-welcomerc" \
   "${target_root}/etc/xdg/plasma-welcomerc"
 fi
 
+# Fresh OS installations select the separate Meo profile, without autologin.
+if [ "${MEOARCH_PACKAGE_MANAGED:-1}" != "1" ]; then
+  "${desktop_source}/tools/session/install-meo-session" "${desktop_source}" "${target_root}"
+fi
+if [ ! -x "${target_root}/usr/bin/start-meo-desktop" ] || [ ! -f "${target_root}/usr/share/wayland-sessions/meoarch-wayland.desktop" ]; then
+  echo "Meo Desktop session is missing; install the current meo-desktop package." >&2
+  exit 14
+fi
+install -d "${target_root}/etc/plasmalogin.conf.d"
+printf '[Greeter]\nPreselectedSession=meoarch-wayland.desktop\n' > "${target_root}/etc/plasmalogin.conf.d/60-meo-session.conf"
+
+# Machine policy is an OS-install choice, not a side effect of installing the
+# Meo Desktop session on an existing KDE machine.
+if [ "${MEOARCH_PACKAGE_MANAGED:-1}" = "1" ]; then
+  os_defaults="${target_root}/usr/share/meo-desktop/os-defaults"
+  install_file 644 "${os_defaults}/responsiveness/zram-generator.conf" "${target_root}/usr/lib/systemd/zram-generator.conf.d/50-meo-desktop.conf"
+  install_file 644 "${os_defaults}/responsiveness/gamemode.ini" "${target_root}/etc/gamemode.ini"
+  install_file 644 "${os_defaults}/responsiveness/cachyos-ananicy.kdl" "${target_root}/etc/system76-scheduler/process-scheduler/meo-cachyos.kdl"
+  install_file 644 "${os_defaults}/systemd/50-meo-responsiveness.preset" "${target_root}/usr/lib/systemd/system-preset/50-meo-responsiveness.preset"
+  install_file 644 "${os_defaults}/responsiveness/preload-ng-meo.toml" "${target_root}/usr/share/meo-desktop/optional/preload-ng.toml"
+  install_file 644 "${os_defaults}/responsiveness/prelockd-meo.conf" "${target_root}/usr/share/meo-desktop/optional/prelockd.conf"
+fi
+
 # Apply the signed package's branding template without dereferencing Arch's
 # /etc/os-release symlink (which may otherwise point outside this host view).
 if [ "${MEOARCH_PACKAGE_MANAGED:-1}" = "1" ]; then
@@ -260,7 +283,7 @@ fi
 # independent first-login flow for every user.  meo-welcome itself stores the
 # explicit Skip/Done decision in that user's settings and exits thereafter.
 install_file 644 "$(dirname -- "${BASH_SOURCE[0]}")/../data/autostart/org.meo.welcome.desktop" \
-  "${target_root}/etc/xdg/autostart/org.meo.welcome.desktop"
+  "${target_root}/usr/share/meo-desktop/runtime/etc/xdg/autostart/org.meo.welcome.desktop"
 
 # Target System Plymouth Theme & Hook Configuration
 boot_theme_source="${MEOARCH_GRUB_THEME_SOURCE:-$(dirname -- "${BASH_SOURCE[0]}")/../boot-theme}"
@@ -327,6 +350,7 @@ if [ -f "${runtime_source}/lib/meoarch/meo-boot-status" ]; then
   ln -sfn /usr/lib/meoarch/meo-boot-status "${target_root}/usr/bin/meo-boot-status"
 fi
 
+if [ "${MEOARCH_PACKAGE_MANAGED:-1}" != "1" ]; then
 for session_action_file in \
   "${runtime_source}/bin/meo-session-actiond" \
   "${runtime_source}/share/dbus-1/services/org.meo.SessionAction1.service"; do
@@ -335,6 +359,8 @@ done
 install_file 755 "${runtime_source}/bin/meo-session-actiond" "${target_root}/usr/bin/meo-session-actiond"
 install_file 644 "${runtime_source}/share/dbus-1/services/org.meo.SessionAction1.service" \
   "${target_root}/usr/share/dbus-1/services/org.meo.SessionAction1.service"
+
+fi
 
 for unit_file in meo-boot-status-failure@.service meo-boot-early.service meo-boot-storage.service meo-boot-services.service; do
   if [ -f "${runtime_source}/lib/systemd/system/${unit_file}" ]; then

@@ -24,6 +24,9 @@ class TargetValidationTests(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             content = {
                 "etc/os-release": "ID=meoarch\n",
+                "usr/share/wayland-sessions/meoarch-wayland.desktop": "[Desktop Entry]\nExec=/usr/bin/start-meo-desktop\nTryExec=/usr/bin/start-meo-desktop\n",
+                "usr/share/meo-desktop/runtime/session-defaults/kdeglobals": "[KDE]\nLookAndFeelPackage=org.meo.desktop\n",
+                "etc/plasmalogin.conf.d/60-meo-session.conf": "[Greeter]\nPreselectedSession=meoarch-wayland.desktop\n",
                 "etc/fstab": "UUID=fixture-root / ext4 defaults 0 1\n",
                 "boot/grub/grub.cfg": (
                     "menuentry 'MeoArch' {\n"
@@ -31,10 +34,10 @@ class TargetValidationTests(unittest.TestCase):
                     "  initrd /initramfs-linux.img\n"
                     "}\n"
                 ),
-                "etc/xdg/meo-shellrc": "[Panels]\nDockImplementation=native\n",
-                "usr/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js": (
-                    'var bottomPanel = new Panel\n'
-                    'bottomPanel.addWidget("org.kde.plasma.icontasks")\n'
+                "usr/share/meo-desktop/runtime/session-defaults/meo-shellrc": "[Panels]\nDockImplementation=native\n",
+                "usr/share/meo-desktop/runtime/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js": (
+                    'var shelf = new Panel\n'
+                    'shelf.addWidget("org.kde.plasma.icontasks")\n'
                 ),
                 "usr/lib/systemd/zram-generator.conf.d/50-meo-desktop.conf": (
                     "[zram0]\nzram-size = min(ram / 2, 8192)\nswap-priority = 100\n"
@@ -62,6 +65,14 @@ class TargetValidationTests(unittest.TestCase):
             path = root / "etc/systemd/system" / link
             path.parent.mkdir(parents=True, exist_ok=True)
             path.symlink_to(destination)
+
+    def test_rejects_an_incorrect_default_session(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            (root / "etc/plasmalogin.conf.d/60-meo-session.conf").write_text("[Greeter]\nPreselectedSession=plasma.desktop\n")
+            with self.assertRaisesRegex(ValueError, "default session is not Meo Desktop"):
+                self.verify_fixture(root)
 
     def test_rejects_live_autologin_configuration(self):
         for content in ('[Autologin]\nUser=live\n',
@@ -115,6 +126,25 @@ class TargetValidationTests(unittest.TestCase):
                         script.index('/backend/verify-target.py'))
         self.assertIn('pacman -Syu --needed --noconfirm', script)
 
+    @unittest.skipUnless(os.environ.get("MEO_DESKTOP_PAYLOAD_ROOT"), "requires an assembled Meo Desktop candidate")
+    def test_real_desktop_payload_matches_the_installer_contract(self):
+        import shutil
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)  # Other OS packages are fixtures, not boot evidence.
+            payload = Path(os.environ["MEO_DESKTOP_PAYLOAD_ROOT"])
+            shutil.copytree(payload, root, dirs_exist_ok=True, symlinks=True)
+            self.verify_fixture(root)
+
+    def test_target_rejects_a_session_that_bypasses_the_profile(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            (root / "usr/share/wayland-sessions/meoarch-wayland.desktop").write_text(
+                "[Desktop Entry]\nExec=/usr/bin/startplasma-wayland\nTryExec=/usr/bin/startplasma-wayland\n")
+            with self.assertRaisesRegex(ValueError, "isolated session wrapper"):
+                self.verify_fixture(root)
+
     def test_target_rejects_unsafe_top_level_system_ownership(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -147,7 +177,7 @@ class TargetValidationTests(unittest.TestCase):
 
     def test_target_contract_requires_the_independent_first_login_flow(self):
         self.assertIn("usr/bin/meo-welcome", target.REQUIRED_EXECUTABLES)
-        self.assertIn("etc/xdg/autostart/org.meo.welcome.desktop", target.REQUIRED_FILES)
+        self.assertIn("usr/share/meo-desktop/runtime/etc/xdg/autostart/org.meo.welcome.desktop", target.REQUIRED_FILES)
         self.assertIn("usr/share/applications/org.meo.welcome.desktop", target.REQUIRED_FILES)
 
     def test_target_contract_persists_the_calendar_display_preference(self):
@@ -212,7 +242,7 @@ class TargetValidationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             self.populate(root)
-            (root / "etc/xdg/meo-shellrc").write_text("[Panels]\nDockImplementation=standalone\n")
+            (root / "usr/share/meo-desktop/runtime/session-defaults/meo-shellrc").write_text("[Panels]\nDockImplementation=standalone\n")
             with self.assertRaisesRegex(ValueError, "native Plasma Dock"):
                 self.verify_fixture(root)
 

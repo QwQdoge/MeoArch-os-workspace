@@ -21,6 +21,12 @@ comes from the signed Meo pacman repository:
 curl -fsSL https://raw.githubusercontent.com/QwQdoge/MeoArch-os-workspace/main/scripts/install.sh | bash
 ```
 
+Installation adds **Meo Desktop** to the login session chooser. Existing Plasma
+preferences and the current display manager remain in place. Meo uses its own
+configuration profile and shares the upstream KDE packages and updates.
+The selected signed channel must publish `meo-desktop-session=1`; older channels
+are rejected before the desktop package transaction.
+
 The bootstrap pins and verifies the public Meo keyring payload, configures the
 selected signed channel, installs the repository-control packages, then installs
 a Meo meta package with pacman. It does **not** clone or build MeoKDE, MeoUI, or

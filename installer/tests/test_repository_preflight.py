@@ -104,6 +104,8 @@ class RepositoryPreflightTests(unittest.TestCase):
                     package = item
                     version = "2026.09-1" if package == "meo-release" else "1-1"
                 payload = f"%NAME%\n{package}\n\n%VERSION%\n{version}\n".encode()
+                if package == "meo-desktop" and version != "legacy":
+                    payload += b"\n%PROVIDES%\nmeo-desktop-session=1\n"
                 entry = tarfile.TarInfo(f"{package}-{version}/desc")
                 entry.size = len(payload)
                 archive.addfile(entry, BytesIO(payload))
@@ -123,6 +125,14 @@ class RepositoryPreflightTests(unittest.TestCase):
             capture_output=True,
             env=environment,
         )
+
+    def test_legacy_desktop_is_rejected_before_disk_installation(self):
+        database, signature = self._write_signed_database(
+            ["meo-keyring", "meo-mirrorlist", "meo-channel-stable", "meo-release", ("meo-desktop", "legacy")]
+        )
+        result = self._run_preflight(database, signature)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("predates the independent Meo session", result.stderr)
 
     def test_complete_meo_transaction_passes_before_archinstall(self):
         database, signature = self._write_signed_database(

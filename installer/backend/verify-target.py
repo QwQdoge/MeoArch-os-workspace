@@ -8,30 +8,45 @@ import sys
 REQUIRED_FILES = (
     "etc/fstab", "etc/os-release", "boot/vmlinuz-linux", "boot/initramfs-linux.img", "boot/grub/grub.cfg",
     "usr/lib/libmeoui.so.0", "usr/lib/qt6/qml/MeoUI/qmldir",
-    "usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so", "usr/lib/qt6/qml/MeoKDE/qmldir",
-    "usr/lib/qt6/qml/Meo/System/qmldir", "usr/lib/qt6/qml/Meo/System/plugins.qmltypes",
-    "usr/lib/qt6/qml/Meo/System/libmeosystemplugin.so",
-    "usr/share/plasma/look-and-feel/org.meo.desktop/metadata.json",
-    "usr/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js",
-    "usr/share/plasma/plasmoids/org.meo.topbar/metadata.json",
-    "usr/share/plasma/plasmoids/org.meo.timecenter/metadata.json",
-    "etc/xdg/autostart/org.meo.welcome.desktop", "etc/xdg/meo-shellrc",
+    "usr/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so", "usr/share/meo-desktop/runtime/qml/MeoKDE/qmldir",
+    "usr/share/meo-desktop/runtime/qml/Meo/System/qmldir", "usr/share/meo-desktop/runtime/qml/Meo/System/plugins.qmltypes",
+    "usr/share/meo-desktop/runtime/qml/Meo/System/libmeosystemplugin.so",
+    "usr/share/meo-desktop/runtime/share/plasma/look-and-feel/org.meo.desktop/metadata.json",
+    "usr/share/meo-desktop/runtime/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js",
+    "usr/share/meo-desktop/runtime/share/plasma/plasmoids/org.meo.topbar/metadata.json",
+    "usr/share/meo-desktop/runtime/share/plasma/plasmoids/org.meo.systemmenu/metadata.json",
+    "usr/share/meo-desktop/runtime/share/plasma/plasmoids/org.meo.shelf/metadata.json",
+    "usr/share/meo-desktop/runtime/share/plasma/plasmoids/org.meo.time-notifications/metadata.json",
+    "usr/share/wayland-sessions/meoarch-wayland.desktop",
+    "etc/plasmalogin.conf.d/60-meo-session.conf",
+    "usr/share/meo-desktop/runtime/qml/Meo/KScreenLocker/qmldir",
+    "usr/share/meo-desktop/runtime/qml/Meo/KScreenLocker/libmeolockscreenplugin.so",
+    "usr/share/meo-desktop/runtime/plugins/styles/meostyle.so",
+    "usr/share/meo-desktop/runtime/plugins/org.kde.kdecoration3/org.meo.decoration.so",
+    "usr/share/meo-desktop/runtime/session-defaults/kwinrc",
+    "usr/share/meo-desktop/runtime/session-defaults/plasmarc",
+    "usr/share/meo-desktop/runtime/session-defaults/kglobalshortcutsrc",
+    "usr/share/meo-desktop/runtime/share/wallpapers/MeoArch/installer_background.png",
+    "usr/share/meo-desktop/runtime/share/dbus-1/services/org.meo.AIRouter1.service",
+    "usr/share/meo-desktop/runtime/etc/fonts/fonts.conf",
+    "usr/share/meo-desktop/runtime/etc/xdg/autostart/org.meo.session-services.desktop",
+    "usr/share/meo-desktop/runtime/session-defaults/kdeglobals",
+    "usr/share/meo-desktop/runtime/session-defaults/meo-shellrc",
+    "usr/share/meo-desktop/runtime/share/plasma/plasmoids/org.meo.timecenter/metadata.json",
+    "usr/share/meo-desktop/runtime/etc/xdg/autostart/org.meo.welcome.desktop",
     "etc/xdg/MeoArch/Calendar.ini",
     "usr/share/applications/org.meo.welcome.desktop",
     "usr/lib/systemd/system/plasmalogin.service", "usr/share/wayland-sessions/plasma.desktop",
-    "usr/share/pixmaps/meoarch-logo.svg", "usr/share/meo-release/package-catalog.json",
-    "etc/environment.d/90-meo-applications.conf", "usr/lib/systemd/user/meo-dynamic-colors.path",
-    "usr/lib/systemd/user/meo-dynamic-colors.service", "usr/lib/systemd/user/pipewire.service",
-    "usr/share/fcitx5/themes/MeoInputMethod-Light/theme.conf",
-    "usr/share/meo-desktop/input-method/ibus/gtk.css.in", "etc/plymouth/plymouthd.conf",
+    "usr/share/meo-desktop/runtime/share/icons/hicolor/scalable/apps/meoarch-logo.svg", "usr/share/meo-release/package-catalog.json",
+
+    "usr/lib/systemd/user/pipewire.service",
+    "usr/share/meo-desktop/runtime/share/fcitx5/themes/MeoInputMethod-Light/theme.conf",
+    "usr/share/meo-desktop/runtime/share/meo-desktop/input-method/ibus/gtk.css.in", "etc/plymouth/plymouthd.conf",
     "usr/share/plymouth/themes/meoarch/meoarch.plymouth", "usr/share/plymouth/themes/meoarch/meoarch.script",
     "boot/grub/themes/meoarch/theme.txt", "boot/grub/splash.png",
-    "usr/share/plasma/look-and-feel/org.meo.desktop/contents/splash/Splash.qml",
-    "usr/share/plasma/look-and-feel/org.meo.desktop/contents/logout/Logout.qml",
+    "usr/share/meo-desktop/runtime/share/plasma/look-and-feel/org.meo.desktop/contents/splash/Splash.qml",
+    "usr/share/meo-desktop/runtime/share/plasma/look-and-feel/org.meo.desktop/contents/logout/Logout.qml",
     "usr/share/dbus-1/services/org.meo.SessionAction1.service",
-    "usr/lib/systemd/user/meo-weather-refresh.service",
-    "usr/lib/systemd/user/meo-weather-refresh.timer",
-    "usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer",
     "etc/gamemode.ini",
     "etc/system76-scheduler/process-scheduler/meo-cachyos.kdl",
     "usr/lib/systemd/zram-generator.conf.d/50-meo-desktop.conf",
@@ -45,7 +60,10 @@ REQUIRED_FILES = (
 REQUIRED_EXECUTABLES = ("usr/bin/meo-dynamic-colors", "usr/bin/meo-input-method",
                         "usr/bin/plasmalogin", "usr/bin/startplasma-wayland", "usr/bin/NetworkManager",
                         "usr/bin/meo-welcome", "usr/bin/meo-session-actiond",
-                        "usr/bin/meo-weather-refresh",
+                        "usr/bin/meo-weather-refresh", "usr/bin/start-meo-desktop",
+                        "usr/share/meo-desktop/runtime/bin/meo-ai-router",
+                        "usr/share/meo-desktop/runtime/bin/start-meo-session-services",
+                        "usr/share/meo-desktop/runtime/bin/meo-session-colors",
                         "usr/bin/system76-scheduler", "usr/bin/gamemoded", "usr/bin/powerprofilesctl",
                         "usr/bin/dbus-broker-launch", "usr/lib/systemd/system-generators/zram-generator")
 REQUIRED_ENABLED_SERVICES = (
@@ -151,6 +169,19 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
             raise ValueError(f"target payload missing: {relative}")
         if relative in REQUIRED_EXECUTABLES and not path.stat().st_mode & 0o111:
             raise ValueError(f"target command is not executable: {relative}")
+    session_config = configparser.ConfigParser(interpolation=None)
+    session_config.read_string(target_path(root, "etc/plasmalogin.conf.d/60-meo-session.conf").read_text())
+    if session_config.get("Greeter", "PreselectedSession", fallback="") != "meoarch-wayland.desktop":
+        raise ValueError("installed default session is not Meo Desktop")
+    desktop = configparser.ConfigParser(interpolation=None)
+    desktop.read_string(target_path(root, "usr/share/wayland-sessions/meoarch-wayland.desktop").read_text())
+    for key in ("Exec", "TryExec"):
+        if desktop.get("Desktop Entry", key, fallback="") != "/usr/bin/start-meo-desktop":
+            raise ValueError("Meo Desktop entry does not launch the isolated session wrapper")
+    kde_defaults = configparser.ConfigParser(interpolation=None)
+    kde_defaults.read_string(target_path(root, "usr/share/meo-desktop/runtime/session-defaults/kdeglobals").read_text())
+    if kde_defaults.get("KDE", "LookAndFeelPackage", fallback="") != "org.meo.desktop":
+        raise ValueError("Meo Desktop first login does not select the Meo shell layout")
     fstab = target_path(root, "etc/fstab").read_text()
     if not fstab_has_root_mount(fstab):
         raise ValueError("target fstab has no root filesystem entry")
@@ -193,14 +224,14 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
                     or config.get('Autologin', 'Session', fallback='').strip() == 'meoarch-live.desktop'):
                 raise ValueError(f'Live autologin residue is installed: {relative}')
 
-    dock_profile = target_path(root, "etc/xdg/meo-shellrc").read_text()
+    dock_profile = target_path(root, "usr/share/meo-desktop/runtime/session-defaults/meo-shellrc").read_text()
     dock_layout = target_path(
         root,
-        "usr/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js",
+        "usr/share/meo-desktop/runtime/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js",
     ).read_text()
     if "DockImplementation=native" not in dock_profile:
         raise ValueError("target desktop does not select the native Plasma Dock")
-    if 'bottomPanel.addWidget("org.kde.plasma.icontasks")' not in dock_layout:
+    if not re.search(r'\b\w+\.addWidget\("org\.kde\.plasma\.icontasks"\)', dock_layout):
         raise ValueError("target desktop is missing the native Plasma Icons-Only Task Manager")
     if "org.meo.dock" in dock_layout:
         raise ValueError("target desktop layout still references the retired standalone Dock")

@@ -119,6 +119,30 @@ for package in "${packages[@]}"; do
     echo "Selected Meo package is absent from signed repository metadata: $package" >&2; exit 4;;
   esac
 done
+# Pacman takes the first matching package in repository order. A new installer
+# must reject old desktop payloads before the first destructive disk operation.
+python3 - "$work_dir" "${repositories[@]}" <<'PYCODE'
+import pathlib, sys, tarfile
+for repository in sys.argv[2:]:
+    with tarfile.open(pathlib.Path(sys.argv[1]) / f"{repository}.db", "r:*") as archive:
+        for entry in archive:
+            if not entry.isfile() or not entry.name.endswith("/desc"):
+                continue
+            fields = archive.extractfile(entry).read().decode("utf-8").splitlines()
+            if "%NAME%" not in fields or fields[fields.index("%NAME%") + 1] != "meo-desktop":
+                continue
+            provides = []
+            if "%PROVIDES%" in fields:
+                for value in fields[fields.index("%PROVIDES%") + 1:]:
+                    if not value:
+                        break
+                    provides.append(value)
+            if "meo-desktop-session=1" not in provides:
+                raise SystemExit(f"Signed {repository}/meo-desktop predates the independent Meo session; disk installation has not started")
+            raise SystemExit(0)
+raise SystemExit("Signed repository is missing meo-desktop; disk installation has not started")
+PYCODE
+
 case "$stable_release_version" in
   "$generation"-*) ;;
   *)

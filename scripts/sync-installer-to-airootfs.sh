@@ -3,7 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 projects_root="$(cd "${repo_root}/.." && pwd)"
-meo_kde_src="${projects_root}/meo-kde"
+meo_kde_src="${MEO_KDE_ROOT:-${projects_root}/meo-kde}"
 meoui_source="${MEOUI_SOURCE_DIR:-${projects_root}/meo-ui}"
 if [ ! -f "${meoui_source}/CMakeLists.txt" ] && [ -f "${projects_root}/MeoUI/CMakeLists.txt" ]; then
   meoui_source="${projects_root}/MeoUI"
@@ -241,7 +241,7 @@ cp -a "${meo_kde_src}/themes/icons/." \
   "${desktop_dst}/themes/icons/"
 cp -a "${meo_kde_src}/icons/." "${desktop_dst}/icons/"
 # Same maintained applet set as MeoKDE's source deployment. No local UI fork.
-for plasmoid in org.meo.topbar org.meo.toptasks org.meo.timecenter org.meo.time \
+for plasmoid in org.meo.systemmenu org.meo.shelf org.meo.topbar org.meo.toptasks org.meo.timecenter org.meo.time \
   org.meo.notifications org.meo.time-notifications org.meo.widgetexplorer \
   org.meo.widget.clock org.meo.widget.media org.meo.widget.performance; do
   if [ -d "${meo_kde_src}/plasmoids/${plasmoid}" ]; then
@@ -250,6 +250,8 @@ for plasmoid in org.meo.topbar org.meo.toptasks org.meo.timecenter org.meo.time 
   fi
 done
 cp -a "${meo_kde_src}/defaults/." "${desktop_dst}/defaults/"
+install -d "${desktop_dst}/tools/session"
+cp -a "${meo_kde_src}/tools/session/." "${desktop_dst}/tools/session/"
 install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
   "${desktop_dst}/branding/Logo.svg"
 install -Dm644 "${repo_root}/assets/wallpapers/installer_background.png" \

@@ -5,7 +5,6 @@ channel="stable"
 profile="recommended"
 full_mode=0
 dry_run=0
-apply_desktop=1
 force_no_color=0
 
 bootstrap_base="https://raw.githubusercontent.com/QwQdoge/MeoArch-os-workspace/main/installer/bootstrap"
@@ -34,7 +33,7 @@ Options:
   --stable      Use the Stable channel (default).
   --core        Install meo-core-meta instead of the recommended app bundle.
   --kde-only    Alias for --core.
-  --no-apply    Install packages but do not activate/reset the current Plasma layout.
+  --no-apply    Compatibility option; existing KDE preferences are always preserved.
   --dry-run     Show the package/repository plan without modifying the system.
   --no-color    Disable ANSI color.
   -h, --help    Show this help.
@@ -48,11 +47,11 @@ EOF
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --full) full_mode=1; channel="stable"; profile="recommended"; apply_desktop=1 ;;
+    --full) full_mode=1; channel="stable"; profile="recommended" ;;
     --beta) channel="beta" ;;
     --stable) channel="stable" ;;
     --core|--kde-only) profile="core" ;;
-    --no-apply) apply_desktop=0 ;;
+    --no-apply) : ;;
     --dry-run) dry_run=1 ;;
     --no-color) force_no_color=1 ;;
     -h|--help) usage; exit 0 ;;
@@ -162,11 +161,7 @@ if [ "${interactive}" -eq 1 ]; then
     profile="core"
   fi
 
-  if ask_yes_no "Apply the Meo Plasma theme and recommended panel layout after installation?" yes; then
-    apply_desktop=1
-  else
-    apply_desktop=0
-  fi
+
 fi
 
 case "${profile}" in
@@ -186,11 +181,7 @@ note "Channel: ${channel}"
 note "Package profile: ${meta_package}"
 note "Meo software source: signed packages.meoarch.org repository"
 note "Arch/Qt/KDE dependencies: configured Arch repositories"
-if [ "${apply_desktop}" -eq 1 ]; then
-  note "After packages install: apply Meo Look-and-Feel and recommended Plasma layout"
-else
-  note "Current Plasma layout will not be activated/reset"
-fi
+note "Adds Meo Desktop to the login session chooser; keeps existing KDE preferences."
 note "No Meo source repositories will be cloned or compiled on this machine."
 
 if [ "${dry_run}" -eq 1 ]; then
@@ -198,7 +189,7 @@ if [ "${dry_run}" -eq 1 ]; then
   note "Would bootstrap Meo public trust material if [meo] is not configured."
   note "Would install: meo-keyring meo-mirrorlist ${channel_package} meo-release"
   note "Would install: ${meta_package}"
-  [ "${apply_desktop}" -eq 0 ] || note "Would run: meo-desktop-apply --reset-layout"
+  note "Would require independent Meo Desktop session support from the selected channel."
   exit 0
 fi
 
@@ -372,16 +363,12 @@ ok "Repository order: ${resolved_meo_repositories[*]}"
 
 section "Installing MeoArch"
 note "pacman will resolve Meo-owned packages from the selected Meo channel and upstream dependencies from Arch."
-sudo pacman -Syu --needed "${meta_package}"
-
-if [ "${apply_desktop}" -eq 1 ]; then
-  section "Applying Meo Plasma experience"
-  if command -v meo-desktop-apply >/dev/null 2>&1; then
-    meo-desktop-apply --reset-layout
-  else
-    warning "meo-desktop-apply is unavailable after package installation; packages are installed but the current Plasma layout was not activated."
-  fi
+# Reject an older published desktop before installing a profile that could
+# still carry global KDE defaults. pacman has already authenticated sync DBs.
+if ! LC_ALL=C pacman -Si meo-desktop | grep -E '(^|[[:space:]])meo-desktop-session=1([[:space:]]|$)' >/dev/null; then
+  die "Selected channel does not yet provide the independent Meo Desktop session."
 fi
+sudo pacman -Syu --needed "${meta_package}"
 
 trap - ERR
 
@@ -390,6 +377,4 @@ ok "MeoArch packages installed through pacman"
 note "Future Meo updates now arrive through normal pacman/OmniStore updates."
 note "No Meo component source checkout was installed."
 note "The installer did not force a logout or reboot."
-if [ "${apply_desktop}" -eq 1 ]; then
-  note "Log out and sign back into Plasma when convenient so all native integration is reloaded."
-fi
+note "At your next login, choose Meo Desktop; Plasma remains available."

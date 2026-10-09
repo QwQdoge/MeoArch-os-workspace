@@ -170,6 +170,20 @@ echo "Output directory: ${out_dir}"
 echo "Acceptance mode: ${acceptance_mode}"
 echo "Log: ${log_file}"
 
+# Do not produce a new ISO whose default installation can only fetch the old
+# global-KDE payload. This reads signed metadata and never touches a disk.
+python3 - "$repo_root" "$log_dir/default-install-plan.json" <<'PYCODE'
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+sys.path.insert(0, str(root / "installer/backend"))
+from install_plan import build_install_plan, catalog_from, plan_as_dict
+selection = json.loads((root / "installer/data/default_selections.json").read_text())
+plan = build_install_plan(selection["software"], catalog_from(root / "installer/data/package-catalog.json"))
+pathlib.Path(sys.argv[2]).write_text(json.dumps(plan_as_dict(plan), indent=2) + "\n")
+PYCODE
+"${repo_root}/installer/backend/preflight-meo-repository.sh" \
+  "${log_dir}/default-install-plan.json" "${repo_root}/installer/bootstrap"
+
 for profile_dir in "${baseline_profile}" "${staged_profile}"; do
   if [ -e "${profile_dir}" ]; then
     find "${profile_dir}" -mindepth 1 -delete

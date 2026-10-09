@@ -37,8 +37,23 @@ class TargetBootTests(unittest.TestCase):
             outside.write_text("HOST MUST REMAIN UNCHANGED\n")
             (target / "etc/os-release").symlink_to(outside)
             (target / "usr/share/meo-desktop/os-release").write_text("ID=meoarch\n")
+            defaults = target / "usr/share/meo-desktop/os-defaults"
+            for group, name in (("responsiveness", "zram-generator.conf"),
+                                ("responsiveness", "gamemode.ini"),
+                                ("responsiveness", "cachyos-ananicy.kdl"),
+                                ("responsiveness", "preload-ng-meo.toml"),
+                                ("responsiveness", "prelockd-meo.conf"),
+                                ("systemd", "50-meo-responsiveness.preset")):
+                path = defaults / group / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("fixture\n")
+
             (target / "etc/mkinitcpio.conf").write_text("HOOKS=(base systemd autodetect block filesystems fsck)\n")
             (target / "etc/default/grub").write_text("GRUB_TIMEOUT=5\n")
+            (target / "usr/bin/start-meo-desktop").touch(mode=0o755)
+            session = target / "usr/share/wayland-sessions/meoarch-wayland.desktop"
+            session.parent.mkdir(parents=True)
+            session.write_text("[Desktop Entry]\nExec=/usr/bin/start-meo-desktop\n")
             (target / "usr/bin/mkinitcpio").touch(mode=0o755)
             (target / "usr/bin/grub-mkconfig").touch(mode=0o755)
             theme = runtime / "share/plymouth/themes/meoarch"
@@ -84,6 +99,8 @@ class TargetBootTests(unittest.TestCase):
             self.assertEqual(outside.read_text(), "HOST MUST REMAIN UNCHANGED\n")
             self.assertEqual((target / "etc/os-release").read_text(), "ID=meoarch\n")
             self.assertFalse((target / "etc/os-release").is_symlink())
+            self.assertEqual((target / "etc/plasmalogin.conf.d/60-meo-session.conf").read_text(),
+                             "[Greeter]\nPreselectedSession=meoarch-wayland.desktop\n")
             calls = (root / "calls").read_text() if (root / "calls").exists() else ""
             grub_defaults = (target / "etc/default/grub").read_text()
             grub_splash = (target / "boot/grub/splash.png").read_bytes() if (target / "boot/grub/splash.png").is_file() else None
