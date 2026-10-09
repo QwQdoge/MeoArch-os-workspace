@@ -8,7 +8,7 @@ Inspect `git status`, the affected component, and its nearest tests/contracts fi
 
 ## Scope and documentation authority
 
-Start with `docs/README.md` when a task crosses multiple product documents. `docs/CURRENT_MILESTONE.md` defines the current implementation scope; long-term product contracts are not automatic task lists.
+Start with `docs/README.md` when a task crosses multiple product documents. `docs/CURRENT_MILESTONE.md` defines the current implementation scope; long-term product contracts are not automatic task lists. Cross-repository ownership is defined in `docs/repository-architecture.md`.
 
 - Do not implement a newly noticed feature merely because a long-term contract mentions it.
 - Do not restore historical branch functionality merely because it is absent from current `main`.
@@ -20,13 +20,18 @@ Repository consolidation, review, validation, and cleanup must not silently beco
 
 ## Ownership and cross-repository boundaries
 
+This repository is an **integration/ISO/system-services repository**, not a general application monorepo.
+
 - `installer/`: installer app, backend, tests, translations, and live Meo.System bridge.
 - `repair/`: Quick Repair source, checks/actions, privileged service, knowledge, and tests.
 - `meoarch-os/`: authoritative ArchISO profile, package list, boot config, and airootfs inputs.
 - `scripts/`: staging, build, acceptance, bootstrap, and verification entry points.
 - `assets/`, `configs/`, `themes/`: ISO-owned versioned inputs.
+- `ai-router/`: System AI Router and OS-level AI orchestration/security boundary.
+- Cross-repository compatibility definitions, ISO composition, acceptance, and orchestration may live here.
 - Generic reusable QML/tokens/motion belong in MeoUI via `$MEO_UI_ROOT`.
 - Plasma/KWin/Meo.System desktop integration belongs in meo-kde via `$MEO_KDE_ROOT`.
+- Standalone app implementations such as Settings, Store, Meo AI frontend, login manager, or other product clients must remain in their owning repositories; do not add second implementations here.
 - Do not copy sibling repositories into this worktree or treat staged airootfs files as source authority.
 
 ## Runtime system information
