@@ -10,7 +10,7 @@ if [ ! -f "${meoui_source}/CMakeLists.txt" ] && [ -f "${projects_root}/MeoUI/CMa
 fi
 # Persistent releases and validation evidence are centralized by project.
 # Reproducible ArchISO working state still stays under this checkout's build/.
-default_outputs_root="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace"
+default_outputs_root="${MEOARCH_OUTPUT_ROOT:-${MEO_OUTPUT_ROOT:-${projects_root}/outputs}}/meo-arch-os-workspace"
 outputs_root="${MEOARCH_OUTPUT_ROOT:-${default_outputs_root}}"
 source_profile="${repo_root}/meoarch-os"
 build_root="${repo_root}/build/archiso"
