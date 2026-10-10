@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Seed ArchISO's pacstrap root with only the public trust material needed to
-# validate the Arch and Meo package repositories.  This is not a copy of the
-# host pacman keyring and it must never create or retain a private key.
+# validate the Arch and Meo package repositories. The Arch package keyring is
+# certified by pacman's local public master key, so preserve that one public
+# certificate without copying the host keyring or any private material.
 set -Eeuo pipefail
 
 usage() {
@@ -28,6 +29,8 @@ seed_dir="${profile_dir}/airootfs/etc/pacman.d/gnupg"
 }
 
 arch_keyring_dir="/usr/share/pacman/keyrings"
+pacman_keyring_dir="/etc/pacman.d/gnupg"
+pacman_master_fingerprint="4BEE4F38DA9136C689B993848E515C23C12BB757"
 for source in \
   "${arch_keyring_dir}/archlinux.gpg" \
   "${arch_keyring_dir}/archlinux-trusted" \
@@ -40,6 +43,10 @@ for source in \
     exit 3
   }
 done
+[ -r "${pacman_keyring_dir}/pubring.gpg" ] || {
+  echo "Pacman public master keyring is missing: ${pacman_keyring_dir}/pubring.gpg" >&2
+  exit 3
+}
 
 install -d -m 700 "${seed_dir}"
 # pacman-key checks this compatibility file before libgpgme opens the public
@@ -62,6 +69,11 @@ install -m 644 /dev/null "${gpg_home}/gpg.conf"
 
 gpg_args=(gpg --homedir "${gpg_home}" --batch --no-options --no-auto-key-retrieve --auto-key-locate clear --keyring "${gpg_home}/pubring.gpg")
 "${gpg_args[@]}" --import "${arch_keyring_dir}/archlinux.gpg"
+# archlinux.gpg intentionally carries the archive keys but not pacman's local
+# trust anchor. Import only that anchor's public packet and mark it ultimate;
+# never copy the host ring or its trust database into the ISO build.
+"${gpg_args[@]}" --import <(gpg --homedir "${pacman_keyring_dir}" --no-options --export "${pacman_master_fingerprint}")
+printf '%s:6:\n' "${pacman_master_fingerprint}" | "${gpg_args[@]}" --import-ownertrust
 "${gpg_args[@]}" --import-ownertrust "${arch_keyring_dir}/archlinux-trusted"
 "${gpg_args[@]}" --import "${bootstrap_dir}/meo.gpg"
 "${gpg_args[@]}" --import-ownertrust "${bootstrap_dir}/meo-trusted"
@@ -120,10 +132,12 @@ install -d "$(dirname -- "${provenance_file}")"
   printf 'kind\tvalue\n'
   printf 'archlinux-keyring\t%s\n' "$(pacman -Q archlinux-keyring 2>/dev/null || printf unavailable)"
   printf 'meo-archive-fingerprint\t%s\n' "${meo_fingerprint}"
+  printf 'pacman-master-fingerprint\t%s\n' "${pacman_master_fingerprint}"
   printf 'public-key-count\t%s\n' "${key_count}"
   printf 'private-key-count\t0\n'
   for source in \
     "${arch_keyring_dir}/archlinux.gpg" \
+    "${pacman_keyring_dir}/pubring.gpg" \
     "${arch_keyring_dir}/archlinux-trusted" \
     "${arch_keyring_dir}/archlinux-revoked" \
     "${bootstrap_dir}/meo.gpg" \
