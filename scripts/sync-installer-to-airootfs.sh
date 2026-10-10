@@ -142,13 +142,9 @@ install -m755 "${repo_root}/repair/live-actions/"*.sh \
   "${repair_dst}/live-actions/"
 install -Dm755 "${meokde_native_build}/authentication/meo-polkit-agent" \
   "${airootfs}/usr/lib/meo-polkit-agent"
-install -Dm644 "${meo_kde_src}/native/authentication/data/plasma-polkit-agent.service" \
-  "${airootfs}/usr/lib/systemd/user/plasma-polkit-agent.service"
-# Use the standard Plasma agent unit name so packaged startup cannot create
-# a duplicate agent. Explicitly enable the maintained Meo implementation.
-install -d "${airootfs}/usr/lib/systemd/user/plasma-workspace.target.wants"
-ln -sfn ../plasma-polkit-agent.service \
-  "${airootfs}/usr/lib/systemd/user/plasma-workspace.target.wants/plasma-polkit-agent.service"
+# polkit-kde-agent owns plasma-polkit-agent.service in the ISO package set.
+# Keep the Meo helper binary available to repair tooling, but do not stage a
+# second unit with the same path or bus name.
 repair_icon="${runtime_root}/share/icons/hicolor/scalable/apps/meo-ai.svg"
 if [ ! -f "${repair_icon}" ]; then
   repair_icon="${runtime_root}/share/icons/hicolor/scalable/apps/meoarch-ai.svg"

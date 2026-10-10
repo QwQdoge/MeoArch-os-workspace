@@ -32,7 +32,7 @@ classify() {
     airootfs/usr/lib/meoarch/live-session|airootfs/usr/share/wayland-sessions/meoarch-live.desktop|airootfs/etc/xdg/autostart/meoarch-live.desktop|airootfs/usr/lib/meoarch/live-installer-authorize|airootfs/usr/lib/systemd/user/meoarch-live-app.service|airootfs/usr/share/applications/org.meo.installer-live.desktop|airootfs/usr/share/polkit-1/actions/org.meo.installer-live.policy|airootfs/usr/share/polkit-1/rules.d/49-meoarch-live-installer.rules)
       printf '%s\t%s\t%s' 'Live Installer' 'this workspace guarded desktop launcher' 'ISO-only authorized installer autostart'
       ;;
-    airootfs/usr/bin/meoarch-repair|airootfs/usr/lib/meoarch-repair/*|airootfs/usr/share/meoarch-repair/*|airootfs/usr/share/polkit-1/actions/org.meo.repair*.policy|airootfs/usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules|airootfs/usr/share/applications/org.meo.repair.desktop|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg|airootfs/usr/lib/meo-polkit-agent|airootfs/usr/lib/systemd/user/plasma-polkit-agent.service|airootfs/usr/lib/systemd/user/plasma-workspace.target.wants/plasma-polkit-agent.service)
+    airootfs/usr/bin/meoarch-repair|airootfs/usr/lib/meoarch-repair/*|airootfs/usr/share/meoarch-repair/*|airootfs/usr/share/polkit-1/actions/org.meo.repair*.policy|airootfs/usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules|airootfs/usr/share/applications/org.meo.repair.desktop|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg|airootfs/usr/lib/meo-polkit-agent)
       printf '%s\t%s\t%s' 'Quick Repair' 'this workspace shared repair source' 'system and Live categorized repair application'
       ;;
     airootfs/usr/lib/libmeoui.so*|airootfs/usr/lib/qt6/qml/MeoUI/*)

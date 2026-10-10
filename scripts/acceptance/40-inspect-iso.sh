@@ -223,8 +223,7 @@ for path in \
   usr/local/bin/meoarch-installer-kiosk \
   usr/local/bin/meoarch-installer-live \
   usr/lib/meoarch/live-installer-authorize \
-  usr/local/bin/meoarch-repair-session \
-  usr/lib/systemd/user/plasma-polkit-agent.service; do
+  usr/local/bin/meoarch-repair-session; do
   destination="${extract_dir}/$(basename "${path}")"
   unsquashfs -cat "${extract_dir}/airootfs.sfs" "${path}" >"${destination}"
 done
@@ -236,9 +235,6 @@ cmp "${repo_root}/installer/bin/meoarch-installer-kiosk" \
   "${extract_dir}/meoarch-installer-kiosk"
 cmp "${repo_root}/installer/bin/meoarch-repair-session" \
   "${extract_dir}/meoarch-repair-session"
-cmp "${projects_root}/meo-kde/native/authentication/data/plasma-polkit-agent.service" \
-  "${extract_dir}/plasma-polkit-agent.service"
-
 for mapping in \
   "installer/bin/meoarch-installer-live:usr/local/bin/meoarch-installer-live" \
   "installer/bin/meoarch-live-installer-authorize:usr/lib/meoarch/live-installer-authorize" \
