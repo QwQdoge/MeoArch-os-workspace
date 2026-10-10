@@ -40,12 +40,12 @@ exec > >(tee "${evidence_dir}/component-build.log") 2>&1
 "${repo_root}/scripts/build-installer-app.sh"
 cmake --fresh -S "${repo_root}/../meo-kde/native/system" -B "${repo_root}/build/meo-system" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build "${repo_root}/build/meo-system" --parallel
+cmake --build "${repo_root}/build/meo-system" --parallel 1
 cmake --fresh -S "${repo_root}/installer/live-system" \
   -B "${repo_root}/build/meo-system-live" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
   -DMEO_KDE_SOURCE_DIR="${repo_root}/../meo-kde"
-cmake --build "${repo_root}/build/meo-system-live" --parallel
+cmake --build "${repo_root}/build/meo-system-live" --parallel 1
 runtime="${repo_root}/build/installer-runtime-root/usr"
 library="${runtime}/lib/libmeoui.so.0"
 plugin="${runtime}/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so"
