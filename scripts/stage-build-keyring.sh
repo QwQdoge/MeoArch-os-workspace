@@ -60,7 +60,7 @@ trap cleanup_gpg_home EXIT
 install -m 644 /dev/null "${gpg_home}/pubring.gpg"
 install -m 644 /dev/null "${gpg_home}/gpg.conf"
 
-gpg_args=(gpg --homedir "${gpg_home}" --batch --no-options --no-auto-key-retrieve --auto-key-locate clear)
+gpg_args=(gpg --homedir "${gpg_home}" --batch --no-options --no-auto-key-retrieve --auto-key-locate clear --keyring "${gpg_home}/pubring.gpg")
 "${gpg_args[@]}" --import "${arch_keyring_dir}/archlinux.gpg"
 "${gpg_args[@]}" --import-ownertrust "${arch_keyring_dir}/archlinux-trusted"
 "${gpg_args[@]}" --import "${bootstrap_dir}/meo.gpg"
