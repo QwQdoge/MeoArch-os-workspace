@@ -57,16 +57,17 @@ class InstallPlanTests(unittest.TestCase):
         fragment = pacman_channel_fragment(plan)
         self.assertLess(fragment.index("[meo-beta]"), fragment.index("[meo]"))
 
-    def test_live_profile_uses_only_official_arch_repositories(self):
+    def test_preview_profile_uses_signed_beta_ai_packages(self):
         profile = (ROOT.parent / "meoarch-os/pacman.conf").read_text(encoding="utf-8")
         packages = (ROOT.parent / "meoarch-os/packages.x86_64").read_text(encoding="utf-8")
         active_profile = "\n".join(
             line for line in profile.splitlines() if not line.lstrip().startswith("#")
         )
         self.assertNotIn("\nomnistore-bin\n", f"\n{packages}\n")
-        self.assertNotIn("[meo-beta]", active_profile)
-        self.assertNotIn("[meo]", active_profile)
-        self.assertNotIn("packages.meoarch.org", active_profile)
+        self.assertLess(active_profile.index("[meo-beta]"), active_profile.index("[meo]"))
+        self.assertEqual(active_profile.count("SigLevel = Required"), 2)
+        self.assertIn("\nmeo-ai\n", f"\n{packages}\n")
+        self.assertIn("\nmeoui-qml\n", f"\n{packages}\n")
         self.assertNotIn("TrustAll", active_profile)
 
     def test_iso_build_stages_only_public_arch_and_meo_keyring_inputs(self):

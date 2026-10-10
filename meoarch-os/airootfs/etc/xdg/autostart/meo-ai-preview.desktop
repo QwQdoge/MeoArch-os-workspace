@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Meo AI preview service
+Exec=/usr/bin/systemctl --user start meo-agent-service.service
+TryExec=/usr/bin/meo-agent-service
+OnlyShowIn=KDE;
+NoDisplay=true
+# Live profile only; no permanent enable and SystemTool remains opt-in.

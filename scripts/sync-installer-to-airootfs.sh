@@ -106,8 +106,12 @@ install -d "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meok
   "${airootfs}/usr/share/fcitx5/themes" \
   "${airootfs}/usr/lib/systemd/user/default.target.wants" \
   "${airootfs}/etc/environment.d" "${airootfs}/etc/xdg/fcitx5/conf"
-cp -a "${runtime_root}/lib/libmeoui.so"* "${airootfs}/usr/lib/"
-cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
+# The preview profile installs the signed MeoUI package. Pre-staging the same
+# paths would cause pacstrap's file-conflict check to reject that transaction.
+if ! grep -qx 'meoui-qml' "${repo_root}/meoarch-os/packages.x86_64"; then
+  cp -a "${runtime_root}/lib/libmeoui.so"* "${airootfs}/usr/lib/"
+  cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
+fi
 cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
 # Plasma widgets need the complete Meo.System desktop API. The Installer's
 # smaller SystemState adapter is staged in its private import tree below.

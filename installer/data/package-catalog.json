@@ -118,6 +118,14 @@
         "recommended"
       ],
       "kind": "meta"
+    },
+    "meo-ai": {
+      "requires": [
+        "meoui-qml"
+      ],
+      "profiles": [
+        "recommended"
+      ]
     }
   }
 }

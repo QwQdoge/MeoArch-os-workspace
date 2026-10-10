@@ -186,3 +186,8 @@ bluedevil
 kscreen
 xdg-desktop-portal-kde
 qt6-5compat
+
+# Preview integration: the signed package supplies the complete Python engine,
+# schemas, native client and disabled user service through its dependencies.
+meo-ai
+meoui-qml
