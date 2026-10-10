@@ -37,6 +37,10 @@ evidence_dir="${run_dir}/runtime"
 mkdir -p "${evidence_dir}"
 exec > >(tee "${evidence_dir}/component-build.log") 2>&1
 export MEO_QT_QML_NO_CACHEGEN=1
+if command -v clang >/dev/null 2>&1 && command -v clang++ >/dev/null 2>&1; then
+  export CC=clang
+  export CXX=clang++
+fi
 
 "${repo_root}/scripts/build-installer-app.sh"
 cmake --fresh -S "${repo_root}/../meo-kde/native/system" -B "${repo_root}/build/meo-system" \
