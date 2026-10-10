@@ -10,7 +10,7 @@ When two documents appear to disagree, use the first applicable source in this o
 2. **Cross-repository product contract** — `system-experience-contract.md` owns repository responsibilities and end-to-end user flows.
 3. **Owning-repository contract** — the repository that owns a capability defines its detailed runtime and security architecture. Examples: Meo Settings owns normal settings workflows; MeoKDE owns desktop/session integration; Meo Login owns login-manager behavior.
 4. **Current milestone** — `CURRENT_MILESTONE.md` defines what is in scope now. A long-term contract is not automatically a current implementation task.
-5. **Production readiness evidence** — `production-readiness-matrix.md` records what has actually been implemented and verified. It does not redefine architecture.
+5. **Production readiness evidence** — `production-readiness-matrix.md` records what has actually been implemented and verified. It does not redefine architecture. `product-maturity-gates.md` is the cross-repository checklist for what a mature user-facing release must prove; it also does not promote evidence or expand the milestone by itself.
 6. **Validation/build guides** — VM, ISO, build, and release-validation documents describe how evidence is collected.
 7. **Historical notes and superseded design material** — useful for provenance and intent, but not authoritative when they conflict with the sources above.
 
