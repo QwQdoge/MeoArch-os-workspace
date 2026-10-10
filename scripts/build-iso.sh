@@ -209,6 +209,7 @@ if [ "${acceptance_mode}" -eq 1 ]; then
   # default/release profile keeps Required verification unchanged.
   sed -i 's/^SigLevel = Required$/SigLevel = Optional/' "${staged_profile}/pacman.conf"
 fi
+export MEOARCH_STAGING_ACCEPTANCE="${acceptance_mode}"
 
 if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
   [ -f "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" ] || {
