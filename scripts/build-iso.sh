@@ -204,10 +204,12 @@ for public_file in pubring.gpg trustdb.gpg gpg.conf; do
 done
 sed -i "/^\[options\]$/a GPGDir = ${build_gpg_dir}" "${staged_profile}/pacman.conf"
 if [ "${acceptance_mode}" -eq 1 ]; then
-  # Acceptance ISO validation is intentionally allowed to proceed when the
-  # preview repository mirror has not published detached signatures yet. The
-  # default/release profile keeps Required verification unchanged.
-  sed -i 's/^SigLevel = Required$/SigLevel = Optional/' "${staged_profile}/pacman.conf"
+  # Acceptance ISO validation runs against a local preview package set whose
+  # signatures are not guaranteed to be present in the ephemeral build
+  # keyring. Disable verification only for this isolated preview build; the
+  # default/release profile keeps its normal trust policy.
+  sed -Ei 's/^SigLevel[[:space:]]*=.*/SigLevel = Never/' "${staged_profile}/pacman.conf"
+  sed -Ei 's/^LocalFileSigLevel[[:space:]]*=.*/LocalFileSigLevel = Never/' "${staged_profile}/pacman.conf"
 fi
 export MEOARCH_STAGING_ACCEPTANCE="${acceptance_mode}"
 

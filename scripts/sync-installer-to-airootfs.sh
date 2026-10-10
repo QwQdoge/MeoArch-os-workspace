@@ -89,14 +89,14 @@ MEOUI_SOURCE_DIR="${meoui_source}" \
 
 cmake --fresh -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build "${meosystem_build}" --parallel
+cmake --build "${meosystem_build}" --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
 cmake --fresh -S "${repo_root}/installer/live-system" -B "${meosystem_live_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEO_KDE_SOURCE_DIR="${meo_kde_src}"
-cmake --build "${meosystem_live_build}" --parallel
+cmake --build "${meosystem_live_build}" --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
 cmake --fresh -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEOUI_SOURCE_DIR="${meoui_source}" \
   -DMEO_BUILD_STANDALONE_DOCK=OFF
-cmake --build "${meokde_native_build}" --parallel
+cmake --build "${meokde_native_build}" --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
 
 rm -rf "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}"
 install -d "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}" \

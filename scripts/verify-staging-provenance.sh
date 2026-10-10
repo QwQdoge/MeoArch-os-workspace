@@ -86,11 +86,24 @@ classify() {
       normalized_pacman_conf="$(mktemp)"
       sed '/^GPGDir = \/tmp\/meo-archiso-build-gpg\.[[:alnum:]]\{6\}$/d' "${staged}/pacman.conf" >"${normalized_pacman_conf}"
       if [ "${MEOARCH_STAGING_ACCEPTANCE:-0}" = 1 ]; then
-        sed -i 's/^SigLevel = Optional$/SigLevel = Required/' "${normalized_pacman_conf}"
+        # Acceptance intentionally disables signature verification for the
+        # unsigned local preview mirror. Compare policy lines as a declared
+        # exception while keeping every other pacman setting exact.
+        sed -Ei 's/^SigLevel[[:space:]]*=.*/SigLevel = <acceptance-policy>/; s/^LocalFileSigLevel[[:space:]]*=.*/LocalFileSigLevel = <acceptance-policy>/' "${normalized_pacman_conf}"
+        baseline_normalized_pacman_conf="$(mktemp)"
+        sed -E 's/^SigLevel[[:space:]]*=.*/SigLevel = <acceptance-policy>/; s/^LocalFileSigLevel[[:space:]]*=.*/LocalFileSigLevel = <acceptance-policy>/' "${baseline}/pacman.conf" >"${baseline_normalized_pacman_conf}"
+      else
+        baseline_normalized_pacman_conf="${baseline}/pacman.conf"
       fi
-      if ! cmp -s "${baseline}/pacman.conf" "${normalized_pacman_conf}"; then
+      if ! cmp -s "${baseline_normalized_pacman_conf}" "${normalized_pacman_conf}"; then
+        if [ "${baseline_normalized_pacman_conf}" != "${baseline}/pacman.conf" ]; then
+          rm -f -- "${baseline_normalized_pacman_conf}"
+        fi
         rm -f -- "${normalized_pacman_conf}"
         return 1
+      fi
+      if [ "${baseline_normalized_pacman_conf}" != "${baseline}/pacman.conf" ]; then
+        rm -f -- "${baseline_normalized_pacman_conf}"
       fi
       rm -f -- "${normalized_pacman_conf}"
       printf '%s\t%s\t%s' 'Build pacman configuration' 'ISO build script' 'disposable public-keyring path for rootless pacstrap only'

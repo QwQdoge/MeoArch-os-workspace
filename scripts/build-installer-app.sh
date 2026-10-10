@@ -30,6 +30,6 @@ if [ "${MEO_QT_QML_NO_CACHEGEN:-0}" = "1" ]; then
   build_type=Debug
 fi
 cmake -S "${repo_root}/installer" -B "${build_dir}" -G Ninja "-DCMAKE_BUILD_TYPE=${build_type}" "${qml_cachegen_args[@]}"
-cmake --build "${build_dir}"
+cmake --build "${build_dir}" --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
 rm -rf "${runtime_root}"
 DESTDIR="${runtime_root}" cmake --install "${build_dir}" --prefix /usr
