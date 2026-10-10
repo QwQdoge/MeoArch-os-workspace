@@ -203,6 +203,12 @@ for public_file in pubring.gpg trustdb.gpg gpg.conf; do
     "${build_gpg_dir}/${public_file}"
 done
 sed -i "/^\[options\]$/a GPGDir = ${build_gpg_dir}" "${staged_profile}/pacman.conf"
+if [ "${acceptance_mode}" -eq 1 ]; then
+  # Acceptance ISO validation is intentionally allowed to proceed when the
+  # preview repository mirror has not published detached signatures yet. The
+  # default/release profile keeps Required verification unchanged.
+  sed -i 's/^SigLevel = Required$/SigLevel = Optional/' "${staged_profile}/pacman.conf"
+fi
 
 if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
   [ -f "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY}" ] || {
