@@ -149,7 +149,12 @@ install -Dm644 "${meo_kde_src}/native/authentication/data/plasma-polkit-agent.se
 install -d "${airootfs}/usr/lib/systemd/user/plasma-workspace.target.wants"
 ln -sfn ../plasma-polkit-agent.service \
   "${airootfs}/usr/lib/systemd/user/plasma-workspace.target.wants/plasma-polkit-agent.service"
-install -Dm644 "${runtime_root}/share/icons/hicolor/scalable/apps/meoarch-ai.svg" \
+repair_icon="${runtime_root}/share/icons/hicolor/scalable/apps/meo-ai.svg"
+if [ ! -f "${repair_icon}" ]; then
+  repair_icon="${runtime_root}/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
+fi
+[ -f "${repair_icon}" ] || { echo "Repair icon is missing from installer runtime." >&2; exit 1; }
+install -Dm644 "${repair_icon}" \
   "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
 install -Dm644 "${meo_kde_src}/defaults/fonts/50-meo-fonts.conf" \
   "${airootfs}/etc/fonts/conf.avail/50-meo-fonts.conf"
