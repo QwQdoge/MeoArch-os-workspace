@@ -29,7 +29,7 @@ seed_dir="${profile_dir}/airootfs/etc/pacman.d/gnupg"
 }
 
 arch_keyring_dir="/usr/share/pacman/keyrings"
-pacman_keyring_dir="/etc/pacman.d/gnupg"
+pacman_keyring_dir="${MEO_PACMAN_KEYRING_DIR:-/etc/pacman.d/gnupg}"
 pacman_master_fingerprint="4BEE4F38DA9136C689B993848E515C23C12BB757"
 for source in \
   "${arch_keyring_dir}/archlinux.gpg" \
