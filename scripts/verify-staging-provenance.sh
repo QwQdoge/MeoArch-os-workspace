@@ -83,10 +83,16 @@ classify() {
     pacman.conf)
       # Declaring this path must not authorize repository or signature-policy
       # changes. Only the generated short GnuPG home may differ from baseline.
-      if ! cmp -s "${baseline}/pacman.conf" \
-        <(sed '/^GPGDir = \/tmp\/meo-archiso-build-gpg\.[[:alnum:]]\{6\}$/d' "${staged}/pacman.conf"); then
+      normalized_pacman_conf="$(mktemp)"
+      sed '/^GPGDir = \/tmp\/meo-archiso-build-gpg\.[[:alnum:]]\{6\}$/d' "${staged}/pacman.conf" >"${normalized_pacman_conf}"
+      if [ "${MEOARCH_STAGING_ACCEPTANCE:-0}" = 1 ]; then
+        sed -i 's/^SigLevel = Optional$/SigLevel = Required/' "${normalized_pacman_conf}"
+      fi
+      if ! cmp -s "${baseline}/pacman.conf" "${normalized_pacman_conf}"; then
+        rm -f -- "${normalized_pacman_conf}"
         return 1
       fi
+      rm -f -- "${normalized_pacman_conf}"
       printf '%s\t%s\t%s' 'Build pacman configuration' 'ISO build script' 'disposable public-keyring path for rootless pacstrap only'
       ;;
     profiledef.sh)

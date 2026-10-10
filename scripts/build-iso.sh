@@ -230,6 +230,7 @@ if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
   echo "Injected an ephemeral acceptance-only SSH public key and enabled acceptance SSH."
 fi
 
+MEOARCH_STAGING_ACCEPTANCE="${acceptance_mode}" \
 MEOARCH_AIROOTFS="${staged_profile}/airootfs" \
   "${repo_root}/scripts/sync-installer-to-airootfs.sh"
 "${repo_root}/scripts/verify-staging-provenance.sh" \
