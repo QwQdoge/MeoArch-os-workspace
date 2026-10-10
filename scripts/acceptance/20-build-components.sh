@@ -43,11 +43,11 @@ if command -v clang >/dev/null 2>&1 && command -v clang++ >/dev/null 2>&1; then
 fi
 
 "${repo_root}/scripts/build-installer-app.sh"
-cmake --fresh -S "${repo_root}/../meo-kde/native/system" -B "${repo_root}/build/meo-system" \
+cmake -S "${repo_root}/../meo-kde/native/system" -B "${repo_root}/build/meo-system" \
   -DCMAKE_BUILD_TYPE=Debug \
   -DQT_QML_NO_CACHEGEN=ON
 cmake --build "${repo_root}/build/meo-system" --parallel 1
-cmake --fresh -S "${repo_root}/installer/live-system" \
+cmake -S "${repo_root}/installer/live-system" \
   -B "${repo_root}/build/meo-system-live" \
   -DCMAKE_BUILD_TYPE=Debug \
   -DQT_QML_NO_CACHEGEN=ON \

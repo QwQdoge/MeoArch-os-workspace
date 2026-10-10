@@ -29,7 +29,7 @@ if [ "${MEO_QT_QML_NO_CACHEGEN:-0}" = "1" ]; then
   qml_cachegen_args+=("-DQT_QML_NO_CACHEGEN=ON")
   build_type=Debug
 fi
-cmake --fresh -S "${repo_root}/installer" -B "${build_dir}" -G Ninja "-DCMAKE_BUILD_TYPE=${build_type}" "${qml_cachegen_args[@]}"
+cmake -S "${repo_root}/installer" -B "${build_dir}" -G Ninja "-DCMAKE_BUILD_TYPE=${build_type}" "${qml_cachegen_args[@]}"
 cmake --build "${build_dir}"
 rm -rf "${runtime_root}"
 DESTDIR="${runtime_root}" cmake --install "${build_dir}" --prefix /usr
