@@ -134,6 +134,16 @@ class LiveBootContractTests(unittest.TestCase):
         self.assertIn("PasswordAuthentication no", sshd_config)
         self.assertIn("PermitRootLogin no", sshd_config)
 
+    def test_build_defers_custom_airootfs_overlay_until_after_pacstrap(self):
+        build = BUILD_ISO.read_text(encoding="utf-8")
+        self.assertIn("meoarch-airootfs-overlay.tar", build)
+        self.assertIn('"${repo_root}/scripts/verify-staging-provenance.sh"', build)
+        self.assertLess(build.index('"${repo_root}/scripts/verify-staging-provenance.sh"'), build.index('mkarchiso -v'))
+        self.assertIn("customize_airootfs.sh", build)
+        self.assertIn("pacman-bootstrap-hooks", build)
+        self.assertIn("--exclude='./etc/pacman.d/hooks/*.hook'", build)
+        self.assertIn("tar -C / -xpf /root/meoarch-airootfs-overlay.tar", build)
+
     def test_normal_and_repair_entries_keep_plymouth_kernel_contract(self):
         expected = (
             "archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% "

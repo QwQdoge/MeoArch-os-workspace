@@ -89,7 +89,7 @@ if ! flock -n "${iso_lock_fd}"; then
 fi
 printf 'pid=%s\nstarted_utc=%s\n' "$$" "$(date -u +%FT%TZ)" 1>&"${iso_lock_fd}"
 
-for tool in cmake ninja pkg-config mkarchiso realpath sha256sum stat tee gpg; do
+for tool in cmake ninja pkg-config mkarchiso realpath sha256sum stat tee gpg tar; do
   command -v "${tool}" >/dev/null 2>&1 || {
     echo "Missing required tool: ${tool}" >&2
     exit 127
@@ -223,6 +223,44 @@ MEOARCH_AIROOTFS="${staged_profile}/airootfs" \
   "${repo_root}/scripts/sync-installer-to-airootfs.sh"
 "${repo_root}/scripts/verify-staging-provenance.sh" \
   "${baseline_profile}" "${staged_profile}" "${log_dir}/staging-provenance.tsv"
+
+# ArchISO copies custom airootfs files before pacstrap. This profile contains
+# source-managed files that are also owned by installed packages, so let the
+# package transaction complete first and apply the exact staged filesystem
+# overlay from customize_airootfs.sh afterward. The source profile remains
+# intact; only this generated candidate tree is deferred.
+airootfs_root="${staged_profile}/airootfs"
+if [ -e "${airootfs_root}/root/customize_airootfs.sh" ] \
+  || [ -L "${airootfs_root}/root/customize_airootfs.sh" ]; then
+  echo "Refusing to replace a source-provided customize_airootfs.sh." >&2
+  exit 4
+fi
+airootfs_overlay_tar="${work_dir}/meoarch-airootfs-overlay.tar"
+pacman_hook_source="${airootfs_root}/etc/pacman.d/hooks"
+pacman_hook_staging="${work_dir}/pacman-bootstrap-hooks"
+install -d "${pacman_hook_staging}"
+if [ -d "${pacman_hook_source}" ]; then
+  find "${pacman_hook_source}" -maxdepth 1 -type f -name '*.hook' \
+    -exec install -m 644 {} "${pacman_hook_staging}/" \;
+fi
+tar --numeric-owner --exclude='./etc/pacman.d/hooks/*.hook' \
+  -C "${airootfs_root}" -cpf "${airootfs_overlay_tar}" .
+find "${airootfs_root}" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+install -d "${airootfs_root}/root"
+install -m 600 "${airootfs_overlay_tar}" \
+  "${airootfs_root}/root/meoarch-airootfs-overlay.tar"
+if find "${pacman_hook_staging}" -maxdepth 1 -type f -name '*.hook' -print -quit | grep -q .; then
+  install -d "${airootfs_root}/etc/pacman.d/hooks"
+  install -m 644 "${pacman_hook_staging}/"*.hook \
+    "${airootfs_root}/etc/pacman.d/hooks/"
+fi
+cat >"${airootfs_root}/root/customize_airootfs.sh" <<'EOF'
+#!/usr/bin/env bash
+set -Eeuo pipefail
+tar -C / -xpf /root/meoarch-airootfs-overlay.tar --no-same-owner
+rm -f /root/meoarch-airootfs-overlay.tar
+EOF
+chmod 755 "${airootfs_root}/root/customize_airootfs.sh"
 
 mapfile -t before_isos < <(find "${out_dir}" -maxdepth 1 -type f -name '*.iso' -print)
 mkarchiso -v -w "${work_dir}" -o "${out_dir}" "${staged_profile}"
