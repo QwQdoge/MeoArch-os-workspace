@@ -141,8 +141,9 @@ if [ "${acceptance_mode}" -eq 1 ]; then
   fi
 fi
 work_dir="${MEOARCH_ARCHISO_WORK_DIR:-${outputs_root}/tmp/${run_id}/archiso-work}"
-baseline_profile="${work_dir}/baseline-profile"
-staged_profile="${work_dir}/profile"
+staging_root="${build_root}/${run_id}"
+baseline_profile="${staging_root}/baseline-profile"
+staged_profile="${staging_root}/profile"
 log_dir="${outputs_root}/validation/${run_id}/logs"
 mkdir -p "${log_dir}" "${build_root}" "${work_dir}" "${out_dir}"
 log_file="${log_dir}/build-iso.log"
