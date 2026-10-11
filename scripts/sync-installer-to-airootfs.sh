@@ -145,6 +145,12 @@ install -Dm755 "${meokde_native_build}/authentication/meo-polkit-agent" \
 # polkit-kde-agent owns plasma-polkit-agent.service in the ISO package set.
 # Keep the Meo helper binary available to repair tooling, but do not stage a
 # second unit with the same path or bus name.
+# AgentService is a Live ISO dependency of the native Meo AI client.  Activate
+# it through the user manager rather than relying on KDE autostart ordering;
+# this symlink is ISO-only and is not copied into an installed target.
+install -d "${airootfs}/usr/lib/systemd/user/default.target.wants"
+ln -sfn ../meo-agent-service.service \
+  "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-agent-service.service"
 repair_icon="${runtime_root}/share/icons/hicolor/scalable/apps/meo-ai.svg"
 if [ ! -f "${repair_icon}" ]; then
   repair_icon="${runtime_root}/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
