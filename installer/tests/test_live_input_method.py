@@ -36,6 +36,12 @@ class LiveInputMethodContractTests(unittest.TestCase):
         source = SYNC.read_text(encoding="utf-8")
         self.assertIn("for default_file in kde/kdeglobals kde/kglobalshortcutsrc kwin/kwinrc", source)
         self.assertIn('"${airootfs}/etc/xdg/$(basename "${default_file}")"', source)
+
+    def test_live_sync_leaves_package_owned_meo_desktop_files_to_pacman(self):
+        source = SYNC.read_text(encoding="utf-8")
+        self.assertIn("profile_has_meo_desktop", source)
+        self.assertIn("profile_has_meo_icons", source)
+        self.assertIn('if [ "${profile_has_meo_desktop}" -eq 0 ]; then', source)
         self.assertIn('defaults/environment/90-meo-applications.conf', source)
         self.assertIn('defaults/input-method/fcitx5/conf/classicui.conf', source)
         self.assertIn('themes/input-method/fcitx5/MeoInputMethod-Light', source)

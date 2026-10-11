@@ -12,6 +12,14 @@ meo_kde_src="$(realpath -e -- "${meo_kde_src}")"
 meoui_source="$(realpath -e -- "${meoui_source}")"
 airootfs="${MEOARCH_AIROOTFS:-${repo_root}/meoarch-os/airootfs}"
 installer_src="${repo_root}/installer"
+profile_packages="${repo_root}/meoarch-os/packages.x86_64"
+profile_has_meo_desktop=0
+profile_has_meo_icons=0
+grep -qx 'meo-desktop' "${profile_packages}" && profile_has_meo_desktop=1
+grep -qx 'meo-icons' "${profile_packages}" && profile_has_meo_icons=1
+# meo-desktop depends on meo-icons even when only the desktop is listed in the
+# ISO profile; pacman owns their installed paths after its package transaction.
+[ "${profile_has_meo_desktop}" -eq 1 ] && profile_has_meo_icons=1
 airootfs="$(realpath -m -- "${airootfs}")"
 case "${airootfs}" in
   "${repo_root}"/*) ;;
@@ -47,6 +55,10 @@ meokde_fonts_dst="${airootfs}/usr/share/fonts/meo"
 meosystem_build="${build_root}/meo-system"
 meosystem_live_build="${build_root}/meo-system-live"
 meokde_native_build="${build_root}/meo-kde-native"
+cmake_refresh_args=()
+if [ -z "${MEOARCH_BUILD_ROOT:-}" ]; then
+  cmake_refresh_args+=(--fresh)
+fi
 legacy_meoui_dst="${airootfs}/opt/meo-ui"
 
 for destructive_target in \
@@ -93,13 +105,13 @@ MEOUI_IMPORT_ROOT="${runtime_root}/lib/qt6/qml" \
 MEOUI_SOURCE_DIR="${meoui_source}" \
   "${meo_kde_src}/scripts/validate.sh"
 
-cmake --fresh -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
+cmake "${cmake_refresh_args[@]}" -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build "${meosystem_build}" --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
-cmake --fresh -S "${repo_root}/installer/live-system" -B "${meosystem_live_build}" \
+cmake "${cmake_refresh_args[@]}" -S "${repo_root}/installer/live-system" -B "${meosystem_live_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEO_KDE_SOURCE_DIR="${meo_kde_src}"
 cmake --build "${meosystem_live_build}" --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
-cmake --fresh -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
+cmake "${cmake_refresh_args[@]}" -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEOUI_SOURCE_DIR="${meoui_source}" \
   -DMEO_BUILD_STANDALONE_DOCK=OFF
 cmake --build "${meokde_native_build}" --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
@@ -118,17 +130,19 @@ if ! grep -qx 'meoui-qml' "${repo_root}/meoarch-os/packages.x86_64"; then
   cp -a "${runtime_root}/lib/libmeoui.so"* "${airootfs}/usr/lib/"
   cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
 fi
-cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
-# Plasma widgets need the complete Meo.System desktop API. The Installer's
-# smaller SystemState adapter is staged in its private import tree below.
-cp -a "${meosystem_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
-install -Dm755 "${meosystem_build}/meo-session-actiond" \
-  "${airootfs}/usr/bin/meo-session-actiond"
-install -Dm755 "${meosystem_build}/meo-weather-refresh" \
-  "${airootfs}/usr/bin/meo-weather-refresh"
-install -Dm644 "${meo_kde_src}/native/system/org.meo.SessionAction1.service" \
-  "${airootfs}/usr/share/dbus-1/services/org.meo.SessionAction1.service"
-cp -a "${meo_kde_src}/assets/fonts/"*.ttf "${meokde_fonts_dst}/"
+if [ "${profile_has_meo_desktop}" -eq 0 ]; then
+  cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
+  # Plasma widgets need the complete Meo.System desktop API. The Installer's
+  # smaller SystemState adapter is staged in its private import tree below.
+  cp -a "${meosystem_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
+  install -Dm755 "${meosystem_build}/meo-session-actiond" \
+    "${airootfs}/usr/bin/meo-session-actiond"
+  install -Dm755 "${meosystem_build}/meo-weather-refresh" \
+    "${airootfs}/usr/bin/meo-weather-refresh"
+  install -Dm644 "${meo_kde_src}/native/system/org.meo.SessionAction1.service" \
+    "${airootfs}/usr/share/dbus-1/services/org.meo.SessionAction1.service"
+  cp -a "${meo_kde_src}/assets/fonts/"*.ttf "${meokde_fonts_dst}/"
+fi
 
 rm -rf "${repair_dst}" "${repair_knowledge_dst}"
 cp -a "${runtime_root}/lib/meoarch-repair" "${repair_dst}"
@@ -164,52 +178,57 @@ fi
 [ -f "${repair_icon}" ] || { echo "Repair icon is missing from installer runtime." >&2; exit 1; }
 install -Dm644 "${repair_icon}" \
   "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
-install -Dm644 "${meo_kde_src}/defaults/fonts/50-meo-fonts.conf" \
-  "${airootfs}/etc/fonts/conf.avail/50-meo-fonts.conf"
-install -d "${airootfs}/etc/fonts/conf.d"
-ln -sfn ../conf.avail/50-meo-fonts.conf \
-  "${airootfs}/etc/fonts/conf.d/50-meo-fonts.conf"
-install -Dm755 "${meokde_native_build}/dynamic-color/meo-dynamic-colors" \
-  "${airootfs}/usr/bin/meo-dynamic-colors"
-install -Dm755 "${meo_kde_src}/tools/input-method/meo-input-method.sh" \
-  "${airootfs}/usr/bin/meo-input-method"
-install -Dm755 "${meo_kde_src}/tools/theme/apply-meo-mode.sh" \
-  "${airootfs}/usr/bin/meo-theme-mode"
-install -Dm755 "${meo_kde_src}/tools/theme/apply-meo-desktop.sh" \
-  "${airootfs}/usr/bin/meo-desktop-apply"
-install -Dm755 "${meo_kde_src}/tools/shell/apply-meo-panel-layout.sh" \
-  "${airootfs}/usr/bin/meo-desktop-layout"
-install -Dm644 "${meo_kde_src}/defaults/kwin/kwinrc" \
-  "${airootfs}/usr/share/meo-desktop/defaults/kwinrc"
+if [ "${profile_has_meo_desktop}" -eq 0 ]; then
+  install -Dm644 "${meo_kde_src}/defaults/fonts/50-meo-fonts.conf" \
+    "${airootfs}/etc/fonts/conf.avail/50-meo-fonts.conf"
+  install -d "${airootfs}/etc/fonts/conf.d"
+  ln -sfn ../conf.avail/50-meo-fonts.conf \
+    "${airootfs}/etc/fonts/conf.d/50-meo-fonts.conf"
+  install -Dm755 "${meokde_native_build}/dynamic-color/meo-dynamic-colors" \
+    "${airootfs}/usr/bin/meo-dynamic-colors"
+  install -Dm755 "${meo_kde_src}/tools/input-method/meo-input-method.sh" \
+    "${airootfs}/usr/bin/meo-input-method"
+  install -Dm755 "${meo_kde_src}/tools/theme/apply-meo-mode.sh" \
+    "${airootfs}/usr/bin/meo-theme-mode"
+  install -Dm755 "${meo_kde_src}/tools/theme/apply-meo-desktop.sh" \
+    "${airootfs}/usr/bin/meo-desktop-apply"
+  install -Dm755 "${meo_kde_src}/tools/shell/apply-meo-panel-layout.sh" \
+    "${airootfs}/usr/bin/meo-desktop-layout"
+  install -Dm644 "${meo_kde_src}/defaults/kwin/kwinrc" \
+    "${airootfs}/usr/share/meo-desktop/defaults/kwinrc"
+fi
 install -Dm644 "${meo_kde_src}/defaults/environment/90-meo-applications.conf" \
   "${airootfs}/etc/environment.d/90-meo-applications.conf"
 install -Dm644 "${meo_kde_src}/defaults/kde/kglobalshortcutsrc" \
   "${airootfs}/etc/xdg/kglobalshortcutsrc"
 install -Dm644 "${meo_kde_src}/defaults/input-method/fcitx5/conf/classicui.conf" \
   "${airootfs}/etc/xdg/fcitx5/conf/classicui.conf"
-rm -rf "${airootfs}/usr/share/fcitx5/themes/MeoInputMethod-Light" \
-  "${airootfs}/usr/share/fcitx5/themes/MeoInputMethod-Dark"
-cp -a "${meo_kde_src}/themes/input-method/fcitx5/MeoInputMethod-Light" \
-  "${meo_kde_src}/themes/input-method/fcitx5/MeoInputMethod-Dark" \
-  "${airootfs}/usr/share/fcitx5/themes/"
-install -Dm644 "${meo_kde_src}/themes/input-method/ibus/gtk.css.in" \
-  "${airootfs}/usr/share/meo-desktop/input-method/ibus/gtk.css.in"
-install -Dm644 "${meo_kde_src}/themes/input-method/ibus/index.theme" \
-  "${airootfs}/usr/share/meo-desktop/input-method/ibus/index.theme"
-install -Dm644 "${meo_kde_src}/defaults/systemd/meo-dynamic-colors.path" \
-  "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.path"
-install -Dm644 "${meo_kde_src}/defaults/systemd/meo-dynamic-colors.service" \
-  "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.service"
-sed -i 's|%h/.local/bin/|/usr/bin/|g' \
-  "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.service"
-ln -sfn ../meo-dynamic-colors.path \
-  "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path"
-install -Dm644 "${meo_kde_src}/defaults/systemd/meo-weather-refresh.service" \
-  "${airootfs}/usr/lib/systemd/user/meo-weather-refresh.service"
-install -Dm644 "${meo_kde_src}/defaults/systemd/meo-weather-refresh.timer" \
-  "${airootfs}/usr/lib/systemd/user/meo-weather-refresh.timer"
-ln -sfn ../meo-weather-refresh.timer \
-  "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer"
+if [ "${profile_has_meo_desktop}" -eq 0 ]; then
+  install -d "${airootfs}/etc/fonts/conf.d"
+  rm -rf "${airootfs}/usr/share/fcitx5/themes/MeoInputMethod-Light" \
+    "${airootfs}/usr/share/fcitx5/themes/MeoInputMethod-Dark"
+  cp -a "${meo_kde_src}/themes/input-method/fcitx5/MeoInputMethod-Light" \
+    "${meo_kde_src}/themes/input-method/fcitx5/MeoInputMethod-Dark" \
+    "${airootfs}/usr/share/fcitx5/themes/"
+  install -Dm644 "${meo_kde_src}/themes/input-method/ibus/gtk.css.in" \
+    "${airootfs}/usr/share/meo-desktop/input-method/ibus/gtk.css.in"
+  install -Dm644 "${meo_kde_src}/themes/input-method/ibus/index.theme" \
+    "${airootfs}/usr/share/meo-desktop/input-method/ibus/index.theme"
+  install -Dm644 "${meo_kde_src}/defaults/systemd/meo-dynamic-colors.path" \
+    "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.path"
+  install -Dm644 "${meo_kde_src}/defaults/systemd/meo-dynamic-colors.service" \
+    "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.service"
+  sed -i 's|%h/.local/bin/|/usr/bin/|g' \
+    "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.service"
+  ln -sfn ../meo-dynamic-colors.path \
+    "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path"
+  install -Dm644 "${meo_kde_src}/defaults/systemd/meo-weather-refresh.service" \
+    "${airootfs}/usr/lib/systemd/user/meo-weather-refresh.service"
+  install -Dm644 "${meo_kde_src}/defaults/systemd/meo-weather-refresh.timer" \
+    "${airootfs}/usr/lib/systemd/user/meo-weather-refresh.timer"
+  ln -sfn ../meo-weather-refresh.timer \
+    "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer"
+fi
 
 rm -rf "${installer_dst}"
 install -d "${installer_dst}"
@@ -279,21 +298,27 @@ install -d "${airootfs}/usr/share/plasma/look-and-feel" \
   "${airootfs}/usr/share/plasma/desktoptheme" "${airootfs}/usr/share/plasma/plasmoids" \
   "${airootfs}/usr/share/color-schemes" "${airootfs}/etc/xdg" \
   "${airootfs}/usr/share/wallpapers/MeoArch"
-cp -a "${desktop_dst}/themes/look-and-feel/org.meo.desktop" \
-  "${airootfs}/usr/share/plasma/look-and-feel/"
-cp -a "${desktop_dst}/themes/desktoptheme/." "${airootfs}/usr/share/plasma/desktoptheme/"
-cp -a "${desktop_dst}/themes/color-schemes/." "${airootfs}/usr/share/color-schemes/"
-cp -a "${desktop_dst}/themes/icons/." "${airootfs}/usr/share/icons/"
-cp -a "${desktop_dst}/plasmoids/." "${airootfs}/usr/share/plasma/plasmoids/"
+if [ "${profile_has_meo_desktop}" -eq 0 ]; then
+  cp -a "${desktop_dst}/themes/look-and-feel/org.meo.desktop" \
+    "${airootfs}/usr/share/plasma/look-and-feel/"
+  cp -a "${desktop_dst}/themes/desktoptheme/." "${airootfs}/usr/share/plasma/desktoptheme/"
+  cp -a "${desktop_dst}/themes/color-schemes/." "${airootfs}/usr/share/color-schemes/"
+  cp -a "${desktop_dst}/plasmoids/." "${airootfs}/usr/share/plasma/plasmoids/"
+fi
+if [ "${profile_has_meo_icons}" -eq 0 ]; then
+  cp -a "${desktop_dst}/themes/icons/." "${airootfs}/usr/share/icons/"
+fi
 for default_file in kde/kdeglobals kde/kglobalshortcutsrc kwin/kwinrc \
   plasma/plasmarc plasma/plasma-welcomerc plasma/meo-shellrc; do
   install -Dm644 "${meo_kde_src}/defaults/${default_file}" \
     "${airootfs}/etc/xdg/$(basename "${default_file}")"
 done
-install -Dm644 "${desktop_dst}/wallpaper/installer_background.png" \
-  "${airootfs}/usr/share/wallpapers/MeoArch/installer_background.png"
-install -Dm644 "${desktop_dst}/branding/Logo.svg" \
-  "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg"
+if [ "${profile_has_meo_desktop}" -eq 0 ]; then
+  install -Dm644 "${desktop_dst}/wallpaper/installer_background.png" \
+    "${airootfs}/usr/share/wallpapers/MeoArch/installer_background.png"
+  install -Dm644 "${desktop_dst}/branding/Logo.svg" \
+    "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg"
+fi
 install -Dm755 "${installer_src}/bin/meoarch-live-session" \
   "${airootfs}/usr/lib/meoarch/live-session"
 install -Dm644 "${installer_src}/data/wayland-sessions/meoarch-live.desktop" \
