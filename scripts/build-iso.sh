@@ -18,8 +18,6 @@ else
 fi
 source_profile="${repo_root}/meoarch-os"
 build_root="${repo_root}/build/archiso"
-staged_profile="${build_root}/profile"
-baseline_profile="${build_root}/baseline-profile"
 out_dir="${outputs_root}/packages/iso"
 clean=0
 acceptance_mode=0
@@ -91,35 +89,6 @@ if ! flock -n "${iso_lock_fd}"; then
 fi
 printf 'pid=%s\nstarted_utc=%s\n' "$$" "$(date -u +%FT%TZ)" 1>&"${iso_lock_fd}"
 
-clear_generated_tree() {
-  local generated_root="$1"
-  [ ! -L "${generated_root}" ] && [ -d "${generated_root}" ] || {
-    echo "Refusing to clear a missing or symlinked generated tree: ${generated_root}" >&2
-    return 4
-  }
-  if find "${generated_root}" -mindepth 1 -delete 2>/dev/null; then
-    return 0
-  fi
-
-  # ArchISO may leave generated files owned by root. Map the current user as
-  # namespace root for this exact generated tree instead of changing ownership
-  # or requiring a privileged build.
-  local task_uid task_gid task_user task_subuid task_subgid
-  task_uid="$(id -u)"
-  task_gid="$(id -g)"
-  task_user="$(id -un)"
-  task_subuid="$(awk -F: -v user="${task_user}" '$1 == user { print $2; exit }' /etc/subuid)"
-  task_subgid="$(awk -F: -v user="${task_user}" '$1 == user { print $2; exit }' /etc/subgid)"
-  if [ -z "${task_subuid}" ] || [ -z "${task_subgid}" ] || ! command -v unshare >/dev/null 2>&1; then
-    echo "Cannot clear root-owned generated files; unprivileged UID/GID mappings are unavailable." >&2
-    return 4
-  fi
-  unshare --user \
-    --map-users "0:${task_uid}:1" --map-users "1:${task_subuid}:65536" \
-    --map-groups "0:${task_gid}:1" --map-groups "1:${task_subgid}:65536" \
-    find "${generated_root}" -mindepth 1 -delete
-}
-
 for tool in cmake ninja pkg-config mkarchiso realpath sha256sum stat tee gpg; do
   command -v "${tool}" >/dev/null 2>&1 || {
     echo "Missing required tool: ${tool}" >&2
@@ -155,11 +124,6 @@ case "${build_root}" in
   *) echo "Refusing unsafe build root: ${build_root}" >&2; exit 4 ;;
 esac
 
-if [ "${clean}" -eq 1 ] && [ -d "${build_root}" ]; then
-  echo "Cleaning reproducible work directory: ${build_root}"
-  clear_generated_tree "${build_root}"
-fi
-
 run_id="$(date -u +%Y-%m-%dT%H%M%SZ)-iso-build"
 out_dir="$(realpath -m -- "${out_dir}")"
 acceptance_output_root="$(realpath -m -- "${outputs_root}/packages/iso/acceptance")"
@@ -177,6 +141,8 @@ if [ "${acceptance_mode}" -eq 1 ]; then
   fi
 fi
 work_dir="${MEOARCH_ARCHISO_WORK_DIR:-${outputs_root}/tmp/${run_id}/archiso-work}"
+baseline_profile="${work_dir}/baseline-profile"
+staged_profile="${work_dir}/profile"
 log_dir="${outputs_root}/validation/${run_id}/logs"
 mkdir -p "${log_dir}" "${build_root}" "${work_dir}" "${out_dir}"
 log_file="${log_dir}/build-iso.log"
@@ -189,13 +155,13 @@ echo "Output directory: ${out_dir}"
 echo "Acceptance mode: ${acceptance_mode}"
 echo "Log: ${log_file}"
 
-for profile_dir in "${baseline_profile}" "${staged_profile}"; do
-  if [ -e "${profile_dir}" ]; then
-    clear_generated_tree "${profile_dir}"
-  else
-    mkdir -p "${profile_dir}"
-  fi
-done
+if [ "${clean}" -eq 1 ] && [ -d "${build_root}" ]; then
+  archived_build_dir="${outputs_root}/tmp/${run_id}/archiso-previous-build"
+  mkdir -p "${archived_build_dir}"
+  echo "Preserving prior generated ArchISO files at ${archived_build_dir}"
+  find "${build_root}" -mindepth 1 -maxdepth 1 -exec mv -t "${archived_build_dir}" -- {} +
+fi
+mkdir -p "${baseline_profile}" "${staged_profile}"
 git archive --format=tar HEAD meoarch-os | tar -x -C "${baseline_profile}" --strip-components=1
 cp -a "${baseline_profile}/." "${staged_profile}/"
 sed -i -e "s/iso_version=\".*\"/iso_version=\"$(date -u +%Y.%m.%d-%H%M%S)\"/g" "${staged_profile}/profiledef.sh"
