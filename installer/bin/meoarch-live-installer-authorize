@@ -37,11 +37,16 @@ def session_context(session_id, display, caller_uid, cmdline, live_media=True):
          '--property=User,Active,Remote,Type,Class,Desktop'],
         check=True, capture_output=True, text=True, timeout=5, env=BASE_ENV)
     facts = dict(line.split('=', 1) for line in result.stdout.splitlines() if '=' in line)
-    if (facts.get('User') != str(caller_uid) or facts.get('Active') != 'yes'
-            or facts.get('Remote') != 'no' or facts.get('Type') != 'wayland'
-            or facts.get('Class') != 'user'
-            or 'KDE' not in facts.get('Desktop', '').split(':')):
-        raise ValueError('An active local Live Plasma session is required')
+    required = {
+        'User': str(caller_uid), 'Active': 'yes', 'Remote': 'no',
+        'Type': 'wayland', 'Class': 'user',
+    }
+    invalid = {key: (facts.get(key), expected) for key, expected in required.items()
+               if facts.get(key) != expected}
+    if 'KDE' not in facts.get('Desktop', '').split(':'):
+        invalid['Desktop'] = (facts.get('Desktop', ''), 'KDE')
+    if invalid:
+        raise ValueError(f'An active local Live Plasma session is required: {invalid}')
     user_runtime = Path('/run/user') / str(caller_uid)
     metadata = user_runtime.lstat()
     if not stat.S_ISDIR(metadata.st_mode) or metadata.st_uid != caller_uid or metadata.st_mode & 0o077:
