@@ -2,13 +2,16 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-build_dir="${repo_root}/build/installer-host"
-runtime_root="${repo_root}/build/installer-runtime-root"
-
-case "${runtime_root}" in
-  "${repo_root}/build/"*) ;;
-  *) echo "Refusing unsafe installer runtime root: ${runtime_root}" >&2; exit 2 ;;
+build_root="${MEOARCH_BUILD_ROOT:-${repo_root}/build}"
+build_root="$(realpath -m -- "${build_root}")"
+outputs_tmp_root="$(realpath -m -- "${MEO_OUTPUT_ROOT:-${repo_root}/../outputs}/meo-arch-os-workspace/tmp")"
+case "${build_root}" in
+  "${repo_root}/build"|"${repo_root}/build/"*|"${outputs_tmp_root}/"*) ;;
+  *) echo "Refusing unsafe installer build root: ${build_root}" >&2; exit 2 ;;
 esac
+build_dir="${build_root}/installer-host"
+runtime_root="${build_root}/installer-runtime-root"
+
 if [ -L "${runtime_root}" ]; then
   echo "Refusing recursive replacement of symlink: ${runtime_root}" >&2
   exit 2

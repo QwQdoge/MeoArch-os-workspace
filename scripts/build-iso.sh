@@ -216,6 +216,8 @@ if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
 fi
 
 MEOARCH_STAGING_ACCEPTANCE="${acceptance_mode}" \
+MEOARCH_BUILD_ROOT="${outputs_root}/tmp/${run_id}/project-build" \
+MEO_OUTPUT_ROOT="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}" \
 MEOARCH_AIROOTFS="${staged_profile}/airootfs" \
   "${repo_root}/scripts/sync-installer-to-airootfs.sh"
 "${repo_root}/scripts/verify-staging-provenance.sh" \

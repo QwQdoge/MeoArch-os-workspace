@@ -33,14 +33,20 @@ repair_policy_dst="${airootfs}/usr/share/polkit-1/actions/org.meo.repair.policy"
 repair_live_policy_dst="${airootfs}/usr/share/polkit-1/actions/org.meo.repair-live.policy"
 repair_live_rule_dst="${airootfs}/usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules"
 desktop_dst="${airootfs}/opt/meo-desktop"
-runtime_root="${repo_root}/build/installer-runtime-root/usr"
+build_root="$(realpath -m -- "${MEOARCH_BUILD_ROOT:-${repo_root}/build}")"
+outputs_tmp_root="$(realpath -m -- "${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace/tmp")"
+case "${build_root}" in
+  "${repo_root}/build"|"${repo_root}/build/"*|"${outputs_tmp_root}/"*) ;;
+  *) echo "Refusing unsafe ISO build root: ${build_root}" >&2; exit 2 ;;
+esac
+runtime_root="${build_root}/installer-runtime-root/usr"
 meoui_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoUI"
 meokde_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoKDE"
 meosystem_qml_dst="${airootfs}/usr/lib/qt6/qml/Meo/System"
 meokde_fonts_dst="${airootfs}/usr/share/fonts/meo"
-meosystem_build="${repo_root}/build/meo-system"
-meosystem_live_build="${repo_root}/build/meo-system-live"
-meokde_native_build="${repo_root}/build/meo-kde-native"
+meosystem_build="${build_root}/meo-system"
+meosystem_live_build="${build_root}/meo-system-live"
+meokde_native_build="${build_root}/meo-kde-native"
 legacy_meoui_dst="${airootfs}/opt/meo-ui"
 
 for destructive_target in \
@@ -220,8 +226,8 @@ cp -a "${repo_root}/meoarch-os/grub/themes/meoarch" "${installer_dst}/boot-theme
 install -Dm644 "${repo_root}/meoarch-os/grub/splash.png" "${installer_dst}/boot-splash.png"
 install -Dm600 "${installer_src}/data/account.env.example" \
   "${airootfs}/etc/meoarch/account.env"
-if [ -d "${repo_root}/build/installer-host/translations" ]; then
-  cp -a "${repo_root}/build/installer-host/translations" "${installer_dst}/translations"
+if [ -d "${build_root}/installer-host/translations" ]; then
+  cp -a "${build_root}/installer-host/translations" "${installer_dst}/translations"
 else
   echo "Installer translations are missing; build the native installer before ISO synchronization." >&2
   exit 1
