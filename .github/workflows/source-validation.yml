@@ -35,10 +35,13 @@ jobs:
           sudo apt-get install -y gnupg libarchive-tools
 
       - name: Compile Python sources
-        run: python -m compileall -q installer repair scripts/check-product-identity.py
+        run: python -m compileall -q installer repair scripts/check-product-identity.py scripts/check-live-ai-closure.py
 
       - name: Check release product identity
         run: python scripts/check-product-identity.py
+
+      - name: Check Live AI account closure
+        run: python scripts/check-live-ai-closure.py
 
       - name: Compile isolated Live entrypoints
         run: python -c "import py_compile; [py_compile.compile(p, doraise=True) for p in ('installer/bin/meoarch-live-session', 'installer/bin/meoarch-live-installer-authorize')]"
