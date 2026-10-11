@@ -91,6 +91,35 @@ if ! flock -n "${iso_lock_fd}"; then
 fi
 printf 'pid=%s\nstarted_utc=%s\n' "$$" "$(date -u +%FT%TZ)" 1>&"${iso_lock_fd}"
 
+clear_generated_tree() {
+  local generated_root="$1"
+  [ ! -L "${generated_root}" ] && [ -d "${generated_root}" ] || {
+    echo "Refusing to clear a missing or symlinked generated tree: ${generated_root}" >&2
+    return 4
+  }
+  if find "${generated_root}" -mindepth 1 -delete 2>/dev/null; then
+    return 0
+  fi
+
+  # ArchISO may leave generated files owned by root. Map the current user as
+  # namespace root for this exact generated tree instead of changing ownership
+  # or requiring a privileged build.
+  local task_uid task_gid task_user task_subuid task_subgid
+  task_uid="$(id -u)"
+  task_gid="$(id -g)"
+  task_user="$(id -un)"
+  task_subuid="$(awk -F: -v user="${task_user}" '$1 == user { print $2; exit }' /etc/subuid)"
+  task_subgid="$(awk -F: -v user="${task_user}" '$1 == user { print $2; exit }' /etc/subgid)"
+  if [ -z "${task_subuid}" ] || [ -z "${task_subgid}" ] || ! command -v unshare >/dev/null 2>&1; then
+    echo "Cannot clear root-owned generated files; unprivileged UID/GID mappings are unavailable." >&2
+    return 4
+  fi
+  unshare --user \
+    --map-users "0:${task_uid}:1" --map-users "1:${task_subuid}:65536" \
+    --map-groups "0:${task_gid}:1" --map-groups "1:${task_subgid}:65536" \
+    find "${generated_root}" -mindepth 1 -delete
+}
+
 for tool in cmake ninja pkg-config mkarchiso realpath sha256sum stat tee gpg; do
   command -v "${tool}" >/dev/null 2>&1 || {
     echo "Missing required tool: ${tool}" >&2
@@ -128,21 +157,7 @@ esac
 
 if [ "${clean}" -eq 1 ] && [ -d "${build_root}" ]; then
   echo "Cleaning reproducible work directory: ${build_root}"
-  if ! find "${build_root}" -mindepth 1 -delete 2>/dev/null; then
-    task_uid="$(id -u)"
-    task_gid="$(id -g)"
-    task_user="$(id -un)"
-    task_subuid="$(awk -F: -v user="${task_user}" '$1 == user { print $2; exit }' /etc/subuid)"
-    task_subgid="$(awk -F: -v user="${task_user}" '$1 == user { print $2; exit }' /etc/subgid)"
-    if [ -z "${task_subuid}" ] || [ -z "${task_subgid}" ] || ! command -v unshare >/dev/null 2>&1; then
-      echo "Could not clean rootless ArchISO ownership; subuid/subgid mappings are unavailable." >&2
-      exit 4
-    fi
-    unshare --user \
-      --map-users "0:${task_uid}:1" --map-users "1:${task_subuid}:65536" \
-      --map-groups "0:${task_gid}:1" --map-groups "1:${task_subgid}:65536" \
-      find "${build_root}" -mindepth 1 -delete
-  fi
+  clear_generated_tree "${build_root}"
 fi
 
 run_id="$(date -u +%Y-%m-%dT%H%M%SZ)-iso-build"
@@ -176,7 +191,7 @@ echo "Log: ${log_file}"
 
 for profile_dir in "${baseline_profile}" "${staged_profile}"; do
   if [ -e "${profile_dir}" ]; then
-    find "${profile_dir}" -mindepth 1 -delete
+    clear_generated_tree "${profile_dir}"
   else
     mkdir -p "${profile_dir}"
   fi
