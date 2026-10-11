@@ -187,8 +187,12 @@ kscreen
 xdg-desktop-portal-kde
 qt6-5compat
 
-# Preview integration: the signed package supplies the complete Python engine,
-# schemas, native client and disabled user service through its dependencies.
+# Preview integration: install the complete local Meo AI account/provider path,
+# not only the chat executable. meo-account owns the KWallet credential broker;
+# meo-settings owns provider editing; meo-ai consumes only manifest-authorized
+# metadata and brokered operations.
+meo-account
+meo-settings
 meo-ai
 meoui-qml
 meo-desktop
