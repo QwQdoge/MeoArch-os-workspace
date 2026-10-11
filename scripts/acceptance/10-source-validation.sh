@@ -148,7 +148,7 @@ grep -q 'After installation' installer/qml/pages/WelcomePage.qml
 grep -q 'for plasmoid in org.meo.topbar org.meo.toptasks org.meo.timecenter' scripts/sync-installer-to-airootfs.sh
 # Plasma's native task manager is the sole floating Dock. Meo owns its theme
 # geometry and dynamic colour, not a second task/window model.
-grep -q 'bottomPanel.addWidget("org.kde.plasma.icontasks")' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
+grep -q 'shelf.addWidget("org.kde.plasma.icontasks")' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
 grep -q 'DockImplementation=native' "${projects_root}/meo-kde/defaults/plasma/meo-shellrc"
 ! rg -q 'data/autostart/org.meo.dock.desktop' "${projects_root}/meo-kde/packaging/arch/PKGBUILD"
 grep -q 'meo-dynamic-colors.path' scripts/sync-installer-to-airootfs.sh
@@ -217,7 +217,13 @@ grep -q 'import Meo.System 1.0' repair/qml/Main.qml
 grep -q 'Never request an administrator password' repair/knowledge/system-prompt.md
 grep -q 'wiki.archlinux.org/title/Installation_guide' installer/qml/PageFrame.qml
 grep -q 'meoarch.mode=repair' meoarch-os/grub/grub.cfg
-grep -q 'themes/meoarch/theme.txt' meoarch-os/grub/grub.cfg
+grep -q 'meoarch_theme_root=.*themes/meoarch' meoarch-os/grub/grub.cfg
+! grep -q 'if loadfont "${prefix}/fonts/unicode.pf2"' meoarch-os/grub/grub.cfg
+! grep -q 'if loadfont "${prefix}/fonts/unicode.pf2"' meoarch-os/grub/loopback.cfg
+grep -q 'loadfont "${meoarch_theme_root}/meoarch-sans-regular-24.pf2"' meoarch-os/grub/grub.cfg
+grep -q 'loadfont "${meoarch_theme_root}/meoarch-sans-regular-24.pf2"' meoarch-os/grub/loopback.cfg
+grep -q 'set meoarch_theme_root="(${root})/boot/grub/themes/meoarch"' meoarch-os/grub/grub.cfg
+grep -q 'set meoarch_theme_root="(${root})/boot/grub/themes/meoarch"' meoarch-os/grub/loopback.cfg
 grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/grub.cfg
 grep -q 'Diagnostics and repair - no installation' meoarch-os/grub/loopback.cfg
 grep -q 'MeoArch OS - terminal only' meoarch-os/grub/grub.cfg

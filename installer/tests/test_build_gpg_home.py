@@ -24,7 +24,7 @@ class BuildGpgHomeTests(unittest.TestCase):
                     (seed / name).write_text('public fixture')
                 (seed / 'private-key').write_text('must never be copied')
                 (profile / 'pacman.conf').write_text('[options]\nSigLevel = Required\n')
-                command = section + '\nprintf "%s\\n" "$build_gpg_dir"\nls -A "$build_gpg_dir"\nexit ' + str(exit_status)
+                command = 'acceptance_mode=0\n' + section + '\nprintf "%s\\n" "$build_gpg_dir"\nls -A "$build_gpg_dir"\nexit ' + str(exit_status)
                 result = subprocess.run(['bash', '-Eeuo', 'pipefail', '-c', command],
                                         env={**os.environ, 'staged_profile': str(profile)},
                                         capture_output=True, text=True)

@@ -60,7 +60,8 @@ class LiveBootContractTests(unittest.TestCase):
         self.assertNotIn("'uefi.systemd-boot'", profile)
 
         grub = GRUB.read_text(encoding="utf-8")
-        self.assertIn('set theme="${prefix}/themes/meoarch/theme.txt"', grub)
+        self.assertIn('set meoarch_theme_root="(${root})/boot/grub/themes/meoarch"', grub)
+        self.assertIn('set theme="${meoarch_theme_root}/theme.txt"', grub)
         self.assertIn("export theme", grub)
         for relative in (
             "meoarch-os/grub/themes/meoarch/theme.txt",
