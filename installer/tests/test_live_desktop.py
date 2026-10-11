@@ -192,6 +192,7 @@ class KWinEndpointTests(unittest.TestCase):
         for exe, bus_pid, cgroup, okay in (
             ('/usr/bin/python3', 'u 1234', '/user.slice/user-1000.slice/user@1000.service', False),
             ('/usr/bin/kwin_wayland', 'u 9999', '/user.slice/user-1000.slice/user@1000.service', False),
+            ('/usr/bin/kwin_wayland_wrapper', 'u 1234', '/user.slice/user-1000.slice/user@1000.service/session.slice/kwin.service', True),
             ('/usr/bin/kwin_wayland', 'u 1234', '/system.slice/fake.service', False),
             ('/usr/bin/kwin_wayland', 'u 1234', '/user.slice/user-1000.slice/user@1000.service/session.slice/kwin.service', True),
         ):
@@ -274,7 +275,7 @@ class LiveDesktopContractTests(unittest.TestCase):
                      'airootfs/usr/share/plasma/plasmoids/org.meo.toptasks/metadata.json',
                      'airootfs/usr/share/plasma/plasmoids/org.meo.widgetexplorer/metadata.json',
                      'airootfs/etc/xdg/meo-shellrc',
-                     'airootfs/usr/lib/systemd/user/plasma-workspace.target.wants/plasma-polkit-agent.service')
+                     'airootfs/usr/lib/systemd/user/default.target.wants/meo-agent-service.service')
             for relative in paths:
                 item = staged / relative
                 item.parent.mkdir(parents=True, exist_ok=True)

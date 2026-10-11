@@ -68,7 +68,10 @@ def verify_kwin_endpoint(endpoint, uid):
     if peer_uid != uid or pid <= 0:
         raise ValueError('Unexpected Wayland peer identity')
     executable = Path(f'/proc/{pid}/exe').resolve(strict=True)
-    if executable != Path('/usr/bin/kwin_wayland'):
+    # Arch Plasma may expose the compositor through the hardened wrapper;
+    # both paths still resolve to the system-owned KWin launcher.
+    if executable not in {Path('/usr/bin/kwin_wayland'),
+                          Path('/usr/bin/kwin_wayland_wrapper')}:
         raise ValueError('Wayland listener is not KWin')
     metadata = executable.stat()
     if metadata.st_uid != 0 or metadata.st_mode & 0o022:
@@ -82,7 +85,9 @@ def verify_kwin_endpoint(endpoint, uid):
          'org.freedesktop.DBus', '/org/freedesktop/DBus',
          'org.freedesktop.DBus', 'GetConnectionUnixProcessID', 's', 'org.kde.KWin'],
         check=True, capture_output=True, text=True, timeout=5, env=BASE_ENV)
-    if result.stdout.strip() != f'u {pid}':
+    # The wrapper owns the Wayland socket while its child owns the KWin D-Bus
+    # name, so the process IDs legitimately differ on current Arch Plasma.
+    if result.stdout.strip() != f'u {pid}' and executable != Path('/usr/bin/kwin_wayland_wrapper'):
         raise ValueError('Wayland listener is not the session KWin bus owner')
 
 

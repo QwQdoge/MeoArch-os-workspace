@@ -191,3 +191,4 @@ qt6-5compat
 # schemas, native client and disabled user service through its dependencies.
 meo-ai
 meoui-qml
+meo-desktop

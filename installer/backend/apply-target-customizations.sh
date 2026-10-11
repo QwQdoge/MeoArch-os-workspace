@@ -207,7 +207,9 @@ if [ -d "${desktop_source}/themes/icons" ]; then
 fi
 
 if [ -d "${desktop_source}/plasmoids" ]; then
-  for retired_plasmoid in org.meo.shelf org.meo.toptasks org.meo.launcher org.meo.quicksettings; do
+  # Shelf is the current bottom launcher entry and is shipped by meo-desktop.
+  # Only remove retired applets that no current layout references.
+  for retired_plasmoid in org.meo.toptasks org.meo.launcher org.meo.quicksettings; do
     rm -rf "${target_root}/usr/share/plasma/plasmoids/${retired_plasmoid}"
   done
   for plasmoid in org.meo.topbar org.meo.timecenter; do
