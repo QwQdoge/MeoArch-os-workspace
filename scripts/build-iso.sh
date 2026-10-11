@@ -144,6 +144,7 @@ work_dir="${MEOARCH_ARCHISO_WORK_DIR:-${outputs_root}/tmp/${run_id}/archiso-work
 staging_root="${build_root}/${run_id}"
 baseline_profile="${staging_root}/baseline-profile"
 staged_profile="${staging_root}/profile"
+project_build_root="${MEOARCH_PROJECT_BUILD_ROOT:-${outputs_root}/tmp/${run_id}/project-build}"
 log_dir="${outputs_root}/validation/${run_id}/logs"
 mkdir -p "${log_dir}" "${build_root}" "${work_dir}" "${out_dir}"
 log_file="${log_dir}/build-iso.log"
@@ -216,7 +217,7 @@ if [ -n "${MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY:-}" ]; then
 fi
 
 MEOARCH_STAGING_ACCEPTANCE="${acceptance_mode}" \
-MEOARCH_BUILD_ROOT="${outputs_root}/tmp/${run_id}/project-build" \
+MEOARCH_BUILD_ROOT="${project_build_root}" \
 MEO_OUTPUT_ROOT="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}" \
 MEOARCH_AIROOTFS="${staged_profile}/airootfs" \
   "${repo_root}/scripts/sync-installer-to-airootfs.sh"
