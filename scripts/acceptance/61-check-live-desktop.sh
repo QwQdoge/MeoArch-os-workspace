@@ -37,8 +37,10 @@ display="$("${user_env[@]}" systemctl --user show-environment | sed -n 's/^WAYLA
 user_env+=(WAYLAND_DISPLAY="${display}")
 "${user_env[@]}" busctl --user status org.kde.plasmashell >/dev/null
 "${user_env[@]}" busctl --user status org.kde.KWin >/dev/null
-"${user_env[@]}" systemctl --user show meoarch-live-app.service --property=ActiveState,SubState,Result
-loginctl show-session "${session}" --property=User,Type,Active,Remote,Desktop
+"${user_env[@]}" systemctl --user show meoarch-live-app.service \
+  --property=ActiveState --property=SubState --property=Result
+loginctl show-session "${session}" --property=User --property=Type \
+  --property=Active --property=Remote --property=Desktop
 nmcli -t -f DEVICE,TYPE,STATE device status
 
 if [ "${1:-}" = --crash-installer ]; then

@@ -36,6 +36,8 @@ fi
 evidence_dir="${run_dir}/runtime"
 mkdir -p "${evidence_dir}"
 exec > >(tee "${evidence_dir}/component-build.log") 2>&1
+build_root="${MEOARCH_BUILD_ROOT:-${outputs_root}/tmp/$(basename "${run_dir}")/component-build}"
+export MEOARCH_BUILD_ROOT="${build_root}"
 export MEO_QT_QML_NO_CACHEGEN=1
 if command -v clang >/dev/null 2>&1 && command -v clang++ >/dev/null 2>&1; then
   export CC=clang
@@ -43,20 +45,20 @@ if command -v clang >/dev/null 2>&1 && command -v clang++ >/dev/null 2>&1; then
 fi
 
 "${repo_root}/scripts/build-installer-app.sh"
-cmake -S "${repo_root}/../meo-kde/native/system" -B "${repo_root}/build/meo-system" \
+cmake -S "${repo_root}/../meo-kde/native/system" -B "${build_root}/meo-system" \
   -DCMAKE_BUILD_TYPE=Debug \
   -DQT_QML_NO_CACHEGEN=ON
-cmake --build "${repo_root}/build/meo-system" --parallel 1
+cmake --build "${build_root}/meo-system" --parallel 1
 cmake -S "${repo_root}/installer/live-system" \
-  -B "${repo_root}/build/meo-system-live" \
+  -B "${build_root}/meo-system-live" \
   -DCMAKE_BUILD_TYPE=Debug \
   -DQT_QML_NO_CACHEGEN=ON \
   -DMEO_KDE_SOURCE_DIR="${repo_root}/../meo-kde"
-cmake --build "${repo_root}/build/meo-system-live" --parallel 1
-runtime="${repo_root}/build/installer-runtime-root/usr"
+cmake --build "${build_root}/meo-system-live" --parallel 1
+runtime="${build_root}/installer-runtime-root/usr"
 library="${runtime}/lib/libmeoui.so.0"
 plugin="${runtime}/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so"
-live_system_plugin="${repo_root}/build/meo-system-live/qml/Meo/System/libmeosystemplugin.so"
+live_system_plugin="${build_root}/meo-system-live/qml/Meo/System/libmeosystemplugin.so"
 
 [ -f "${library}" ]
 [ -L "${runtime}/lib/libmeoui.so.0" ]
@@ -73,14 +75,14 @@ grep -Fq 'property bool controlled: false' \
     echo "MeoUI MeoCheckbox is missing the controlled property required by the installer." >&2
     exit 1
   }
-[ -f "${repo_root}/build/meo-system/qml/Meo/System/qmldir" ]
-[ -f "${repo_root}/build/meo-system/qml/Meo/System/plugins.qmltypes" ]
+[ -f "${build_root}/meo-system/qml/Meo/System/qmldir" ]
+[ -f "${build_root}/meo-system/qml/Meo/System/plugins.qmltypes" ]
 [ -f "${live_system_plugin}" ]
-[ -f "${repo_root}/build/meo-system-live/qml/Meo/System/qmldir" ]
+[ -f "${build_root}/meo-system-live/qml/Meo/System/qmldir" ]
 [ -x "${runtime}/bin/meoarch-repair" ]
 [ -x "${runtime}/lib/meoarch-repair/meoarch-repair-privileged-service" ]
-[ -x "${repo_root}/build/installer-host/meoarch-repair-ai-flow-smoke" ]
-[ -x "${repo_root}/build/installer-host/meoarch-repair-core-contract-test" ]
+[ -x "${build_root}/installer-host/meoarch-repair-ai-flow-smoke" ]
+[ -x "${build_root}/installer-host/meoarch-repair-core-contract-test" ]
 [ -f "${runtime}/lib/meoarch-repair/qml/Main.qml" ]
 [ -x "${runtime}/lib/meoarch-repair/checks/all.sh" ]
 [ -x "${runtime}/lib/meoarch-repair/checks/audio.sh" ]
@@ -114,13 +116,13 @@ LD_LIBRARY_PATH="${runtime}/lib" "${runtime}/bin/meoarch-repair" \
   | python -c 'import json,sys; d=json.load(sys.stdin); assert d["answers"]["scope"] == "one_app"; assert d["automaticAudioRepairAllowed"] is False; assert d["handoffMessage"]'
 if unshare -Ur true >/dev/null 2>&1; then
   "${repo_root}/repair/tests/run-ai-write-flow-smoke.sh" \
-    "${repo_root}/build/installer-host/meoarch-repair-ai-flow-smoke" \
+    "${build_root}/installer-host/meoarch-repair-ai-flow-smoke" \
     | tee "${evidence_dir}/repair-ai-flow-smoke.log"
 else
   echo "SKIP: repair AI write-flow bubblewrap smoke requires user namespaces on the build host." \
     | tee "${evidence_dir}/repair-ai-flow-smoke.log"
 fi
-"${repo_root}/build/installer-host/meoarch-repair-core-contract-test" \
+"${build_root}/installer-host/meoarch-repair-core-contract-test" \
   | tee "${evidence_dir}/repair-core-contract.log"
 # The following ABI assertions intentionally match stable readelf labels.
 # Pin its locale so the validation result does not depend on the build host's
@@ -148,8 +150,8 @@ mapfile -t installer_qml_files < <(find "${repo_root}/installer/qml" -type f -na
   echo "No installer QML files were found for validation." >&2
   exit 2
 }
-"${qmllint_bin}" -i "${repo_root}/build/meo-system/qml/Meo/System/qmldir" \
-  -I "${runtime}/lib/qt6/qml" -I "${repo_root}/build/meo-system/qml" \
+"${qmllint_bin}" -i "${build_root}/meo-system/qml/Meo/System/qmldir" \
+  -I "${runtime}/lib/qt6/qml" -I "${build_root}/meo-system/qml" \
   -I "${repo_root}/installer/qml" \
   "${installer_qml_files[@]}" "${repo_root}/repair/qml/Main.qml"
 

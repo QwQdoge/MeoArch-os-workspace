@@ -44,6 +44,8 @@ class LiveAuthorizationTests(unittest.TestCase):
             self.assertEqual(self.context(), Path('/run/user/1000/wayland-0'))
         command = run.call_args.args[0]
         self.assertEqual(command[:3], ['/usr/bin/loginctl', 'show-session', '3'])
+        self.assertEqual(command[4:], [f'--property={name}' for name in
+            ('User', 'Active', 'Remote', 'Type', 'Class', 'Desktop')])
         self.assertEqual(run.call_args.kwargs['env'], module.BASE_ENV)
         self.assertEqual(run.call_args.kwargs['timeout'], 5)
 

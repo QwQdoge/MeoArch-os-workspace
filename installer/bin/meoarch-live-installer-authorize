@@ -34,7 +34,8 @@ def session_context(session_id, display, caller_uid, cmdline, live_media=True):
         raise ValueError('Invalid Wayland socket name')
     result = subprocess.run(
         ['/usr/bin/loginctl', 'show-session', session_id, '--no-pager',
-         '--property=User,Active,Remote,Type,Class,Desktop'],
+         '--property=User', '--property=Active', '--property=Remote',
+         '--property=Type', '--property=Class', '--property=Desktop'],
         check=True, capture_output=True, text=True, timeout=5, env=BASE_ENV)
     facts = dict(line.split('=', 1) for line in result.stdout.splitlines() if '=' in line)
     required = {
