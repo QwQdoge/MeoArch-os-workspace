@@ -147,6 +147,8 @@ class LiveBootContractTests(unittest.TestCase):
         self.assertIn('ln -s "${resolv_link}" "${airootfs_root}/etc/resolv.conf"', build)
         self.assertIn("--exclude='./etc/passwd'", build)
         self.assertIn('cp -a "${account_seed_dir}/." "${airootfs_root}/etc/"', build)
+        self.assertIn("--exclude='./etc/mkinitcpio.conf.d/archiso.conf'", build)
+        self.assertIn('cp -a "${mkinitcpio_seed}" "${airootfs_root}/etc/mkinitcpio.conf.d/archiso.conf"', build)
         self.assertIn("pacman-bootstrap-hooks", build)
         self.assertIn("--exclude='./etc/pacman.d/hooks/*.hook'", build)
         self.assertIn("tar -C / -xpf /root/meoarch-airootfs-overlay.tar", build)

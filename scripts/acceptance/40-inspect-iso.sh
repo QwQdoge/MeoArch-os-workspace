@@ -43,6 +43,10 @@ xorriso -indev "${iso_path}" -find / -type f -exec lsdl |
   tee "${evidence_dir}/files.txt"
 grep -Eiq '/EFI/BOOT/BOOTX64\.EFI' "${evidence_dir}/files.txt"
 grep -q '/arch/x86_64/airootfs.sfs' "${evidence_dir}/files.txt"
+xorriso -osirrox on -indev "${iso_path}" \
+  -extract /arch/boot/x86_64/initramfs-linux.img "${extract_dir}/initramfs-linux.img"
+lsinitcpio -l "${extract_dir}/initramfs-linux.img" >"${evidence_dir}/initramfs-files.txt"
+grep -q '^hooks/archiso$' "${evidence_dir}/initramfs-files.txt"
 # The Live ISO uses GRUB for UEFI and Syslinux for legacy BIOS. Validate the
 # actual GRUB payload and its branded menu instead of stale systemd-boot files.
 grep -q '/boot/grub/grub.cfg' "${evidence_dir}/files.txt"

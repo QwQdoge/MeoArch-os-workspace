@@ -246,6 +246,8 @@ install -d "${account_seed_dir}"
 for account_file in passwd group shadow gshadow; do
   cp -a "${airootfs_root}/etc/${account_file}" "${account_seed_dir}/${account_file}"
 done
+mkinitcpio_seed="${work_dir}/archiso-mkinitcpio.conf"
+cp -a "${airootfs_root}/etc/mkinitcpio.conf.d/archiso.conf" "${mkinitcpio_seed}"
 pacman_hook_source="${airootfs_root}/etc/pacman.d/hooks"
 pacman_hook_staging="${work_dir}/pacman-bootstrap-hooks"
 install -d "${pacman_hook_staging}"
@@ -257,11 +259,14 @@ tar --numeric-owner --exclude='./etc/pacman.d/hooks/*.hook' \
   --exclude='./etc/resolv.conf' \
   --exclude='./etc/passwd' --exclude='./etc/group' \
   --exclude='./etc/shadow' --exclude='./etc/gshadow' \
+  --exclude='./etc/mkinitcpio.conf.d/archiso.conf' \
   -C "${airootfs_root}" -cpf "${airootfs_overlay_tar}" .
 find "${airootfs_root}" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
 install -d "${airootfs_root}/root" "${airootfs_root}/etc"
 ln -s "${resolv_link}" "${airootfs_root}/etc/resolv.conf"
 cp -a "${account_seed_dir}/." "${airootfs_root}/etc/"
+install -d "${airootfs_root}/etc/mkinitcpio.conf.d"
+cp -a "${mkinitcpio_seed}" "${airootfs_root}/etc/mkinitcpio.conf.d/archiso.conf"
 install -m 600 "${airootfs_overlay_tar}" \
   "${airootfs_root}/root/meoarch-airootfs-overlay.tar"
 # mkarchiso applies file_permissions before pacstrap and before our deferred
