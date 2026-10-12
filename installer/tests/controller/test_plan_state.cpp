@@ -45,6 +45,11 @@ state = pathlib.Path(sys.argv[sys.argv.index('--state-dir') + 1] if stage == 'ge
                      else os.environ['MEOARCH_INSTALLER_STATE_DIR'])
 if stage == 'generator':
     (state / 'generated').mkdir(exist_ok=True)
+    secrets = json.loads((state / 'credential-input.json').read_text())
+    (state / 'test-credential-hashes.json').write_text(json.dumps({
+        'rootSet': bool(secrets.get('rootPasswordHash')),
+        'same': secrets.get('rootPasswordHash') == secrets.get('userPasswordHash'),
+    }))
     plan = {'schemaVersion': 2, 'repository': {'repositories': ['meo']},
             'package': {'packages': ['meo-desktop']}, 'applications': {'source': 'arch-official'}}
     (state / 'generated/install-plan.json').write_text(json.dumps(plan))
@@ -65,6 +70,33 @@ else:
     }
 
 private slots:
+    void rootPasswordDefaultsToUserPasswordAndCanBeSeparate()
+    {
+        QTemporaryDir fixture(QStringLiteral("/tmp/meo-controller-XXXXXX"));
+        configureFixture(fixture);
+        writeReadyBackend(fixture.path());
+        const QString state = fixture.path() + QStringLiteral("/private-state");
+        qputenv("MEOARCH_INSTALLER_STATE_DIR", state.toUtf8());
+        InstallerController controller({QStringLiteral("--production"), QStringLiteral("--enable-real-install")});
+        prepareReady(controller);
+        QFile hashes(state + QStringLiteral("/test-credential-hashes.json"));
+        QVERIFY(hashes.open(QIODevice::ReadOnly));
+        QVERIFY(hashes.readAll().contains("\"same\": true"));
+        hashes.close();
+
+        QSignalSpy account(&controller, &InstallerController::accountReady);
+        controller.saveAccount("Disposable Test", "meotest", "meotest", "Fixture-Only-123!",
+                               "Fixture-Only-123!", true, "Separate-Root-456!", "Separate-Root-456!");
+        QTRY_COMPARE(account.count(), 1);
+        controller.prepareInstallation();
+        QTRY_VERIFY(controller.readyToInstall());
+        QVERIFY(hashes.open(QIODevice::ReadOnly));
+        const QByteArray result = hashes.readAll();
+        QVERIFY(result.contains("\"rootSet\": true"));
+        QVERIFY(result.contains("\"same\": false"));
+        qunsetenv("MEOARCH_INSTALLER_STATE_DIR");
+    }
+
     void privateStateDirectoryIsUsedForBackendAndBoundedLogs()
     {
         QTemporaryDir fixture(QStringLiteral("/tmp/meo-controller-XXXXXX"));

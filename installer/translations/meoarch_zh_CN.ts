@@ -334,6 +334,8 @@
 </context>
 <context>
     <name>InstallerController</name>
+    <message><source>Enter your full name.</source><translation>请输入全名。</translation></message>
+    <message><source>Enter and confirm a separate root password with at least 8 characters.</source><translation>请输入并确认至少 8 个字符的独立 root 密码。</translation></message>
     <message>
         <location filename="../app/installercontroller.cpp" line="360"/>
         <location filename="../app/installercontroller.cpp" line="771"/>
@@ -3011,6 +3013,19 @@ PipeWire · NetworkManager
 </context>
 <context>
     <name>UserAccountPage</name>
+    <message><source>Enter your full name and matching passwords to continue</source><translation>请输入全名和匹配的密码后继续</translation></message>
+    <message><source>Enter your full name to continue.</source><translation>请输入全名后继续。</translation></message>
+    <message><source>Enter and confirm the separate root password.</source><translation>请输入并确认独立的 root 密码。</translation></message>
+    <message><source>Your sign-in and network names</source><translation>登录和网络名称</translation></message>
+    <message><source>Username: %1 · Computer on the network: %2</source><translation>用户名：%1 · 网络中的计算机名：%2</translation></message>
+    <message><source>Enter your name</source><translation>请输入姓名</translation></message>
+    <message><source>Use names from full name</source><translation>根据全名生成名称</translation></message>
+    <message><source>Customize these names</source><translation>自定义这些名称</translation></message>
+    <message><source>Use the sign-in password for root</source><translation>root 复用登录密码</translation></message>
+    <message><source>Set a separate root password</source><translation>单独设置 root 密码</translation></message>
+    <message><source>Root password</source><translation>root 密码</translation></message>
+    <message><source>Confirm root password</source><translation>确认 root 密码</translation></message>
+    <message><source>Root uses your sign-in password unless you set a separate one.</source><translation>除非单独设置，root 默认使用登录密码。</translation></message>
     <message>
         <location filename="../qml/pages/UserAccountPage.qml" line="56"/>
         <source>User Account</source>

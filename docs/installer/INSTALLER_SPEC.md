@@ -290,12 +290,12 @@ Purpose: create the account used after installation.
 
 Show:
 
-- Your name
-- Username
-- Computer name
-- Password
-- Confirm password
-- Automatic login option
+- Full name, used to suggest the first-name username and matching network computer name
+- Generated username and computer name, with an optional edit control
+- Sign-in password and confirmation
+- Optional separate root password and confirmation; otherwise root uses the sign-in password
+
+The current login manager requires password sign-in; automatic login is unavailable.
 
 Do not show:
 

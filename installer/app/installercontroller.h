@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QVariantList>
 #include <QVariantMap>
+#include <functional>
 
 class QNetworkAccessManager;
 class QNetworkReply;
@@ -130,7 +131,9 @@ public:
     Q_INVOKABLE bool validateAccount(const QString &username, const QString &hostname,
                                      const QString &password, const QString &confirmation);
     Q_INVOKABLE void saveAccount(const QString &fullName, const QString &username, const QString &hostname,
-                                 const QString &password, const QString &confirmation);
+                                 const QString &password, const QString &confirmation,
+                                 bool separateRootPassword = false, const QString &rootPassword = {},
+                                 const QString &rootConfirmation = {});
     Q_INVOKABLE void retryNetwork();
     Q_INVOKABLE void refreshDisks();
     Q_INVOKABLE void runDiagnosticCommand(const QString &command);
@@ -189,6 +192,8 @@ private:
     void writeSelection(const QString &section, const QString &key, const QVariant &value);
     void discardGeneratedPlan();
     void discardAccountPasswordHash();
+    void hashAccountPassword(const QString &password, quint64 revision,
+                             std::function<void(const QString &)> onReady);
     bool hasSystemLocale(const QString &id) const;
     void applyRegionPreset(const QString &alpha2);
     void markLocaleOverride(const QString &key);
@@ -238,6 +243,7 @@ private:
     quint64 m_confirmedPlanRevision = 0;
     bool m_preparationRunning = false;
     QString m_userPasswordHash;
+    QString m_rootPasswordHash;
     QPointer<QProcess> m_accountHashProcess;
     quint64 m_accountHashRevision = 0;
     QPointer<QProcess> m_installationProcess;

@@ -362,6 +362,7 @@ void InstallerController::discardAccountPasswordHash()
     // never supply credentials for a newer account selection.
     ++m_accountHashRevision;
     m_userPasswordHash.clear();
+    m_rootPasswordHash.clear();
 }
 
 QString InstallerController::uiLanguage() const { return section(QStringLiteral("preferences")).value(QStringLiteral("uiLanguage")).toString(); }
@@ -1488,7 +1489,9 @@ bool InstallerController::validateAccount(const QString &username, const QString
 }
 
 void InstallerController::saveAccount(const QString &fullName, const QString &username, const QString &hostname,
-                                      const QString &password, const QString &confirmation)
+                                      const QString &password, const QString &confirmation,
+                                      bool separateRootPassword, const QString &rootPassword,
+                                      const QString &rootConfirmation)
 {
     if (m_installationState == QStringLiteral("running")) {
         setError(tr("Account details cannot change while installation is running."));
@@ -1500,12 +1503,42 @@ void InstallerController::saveAccount(const QString &fullName, const QString &us
         emit accountFailed();
         return;
     }
+    if (fullName.trimmed().isEmpty()) {
+        setError(tr("Enter your full name."));
+        emit accountFailed();
+        return;
+    }
+    if (separateRootPassword && (rootPassword.size() < 8 || rootPassword != rootConfirmation)) {
+        setError(tr("Enter and confirm a separate root password with at least 8 characters."));
+        emit accountFailed();
+        return;
+    }
     writeSelection(QStringLiteral("user"), QStringLiteral("fullName"), fullName.trimmed());
     writeSelection(QStringLiteral("user"), QStringLiteral("username"), username);
     writeSelection(QStringLiteral("user"), QStringLiteral("hostname"), hostname);
+    const quint64 revision = m_accountHashRevision;
+    hashAccountPassword(password, revision,
+                        [this, revision, separateRootPassword, rootPassword](const QString &hash) {
+        m_userPasswordHash = hash;
+        if (!separateRootPassword) {
+            m_rootPasswordHash = hash;
+            setError({});
+            emit accountReady();
+            return;
+        }
+        hashAccountPassword(rootPassword, revision, [this](const QString &rootHash) {
+            m_rootPasswordHash = rootHash;
+            setError({});
+            emit accountReady();
+        });
+    });
+}
+
+void InstallerController::hashAccountPassword(const QString &password, quint64 revision,
+                                               std::function<void(const QString &)> onReady)
+{
     auto *process = new QProcess(this);
     m_accountHashProcess = process;
-    const quint64 revision = m_accountHashRevision;
     connect(process, &QProcess::started, this, [process, password] {
         process->write(password.toUtf8());
         process->write("\n");
@@ -1516,16 +1549,18 @@ void InstallerController::saveAccount(const QString &fullName, const QString &us
             return;
         m_accountHashProcess = nullptr;
         process->deleteLater();
+        discardAccountPasswordHash();
         setError(tr("Could not start the account password helper."));
         emit accountFailed();
     });
-    connect(process, &QProcess::finished, this, [this, process, revision](int exitCode, QProcess::ExitStatus status) {
+    connect(process, &QProcess::finished, this, [this, process, revision, onReady](int exitCode, QProcess::ExitStatus status) {
         if (revision != m_accountHashRevision || process != m_accountHashProcess) {
             process->deleteLater();
             return;
         }
         m_accountHashProcess = nullptr;
         if (status != QProcess::NormalExit || exitCode != 0) {
+            discardAccountPasswordHash();
             if (exitCode == 124 || exitCode == 137)
                 setError(tr("Password hashing timed out. Retry saving the account."));
             else
@@ -1534,16 +1569,15 @@ void InstallerController::saveAccount(const QString &fullName, const QString &us
             emit accountFailed();
             return;
         }
-        m_userPasswordHash = QString::fromUtf8(process->readAllStandardOutput()).trimmed();
+        const QString hash = QString::fromUtf8(process->readAllStandardOutput()).trimmed();
         process->deleteLater();
-        if (!m_userPasswordHash.startsWith(QStringLiteral("$6$"))) {
-            m_userPasswordHash.clear();
+        if (!hash.startsWith(QStringLiteral("$6$"))) {
+            discardAccountPasswordHash();
             setError(tr("The password hashing helper returned an invalid result."));
             emit accountFailed();
             return;
         }
-        setError({});
-        emit accountReady();
+        onReady(hash);
     });
     process->start(QStringLiteral("/usr/bin/timeout"),
                    {QStringLiteral("--signal=TERM"), QStringLiteral("--kill-after=2s"), QStringLiteral("10s"),
@@ -1640,7 +1674,7 @@ void InstallerController::prepareInstallation()
 #ifdef Q_OS_LINUX
     const QString generator = QDir(sourceRoot()).absoluteFilePath(QStringLiteral("backend/generate-config.py"));
     if (QFileInfo::exists(generator)) {
-        if (m_userPasswordHash.isEmpty()) {
+        if (m_userPasswordHash.isEmpty() || m_rootPasswordHash.isEmpty()) {
             setError(tr("Set a valid account password before generating the installation plan."));
             setPreflight(QStringLiteral("failed"), m_errorMessage);
             return;
@@ -1655,7 +1689,8 @@ void InstallerController::prepareInstallation()
         }
         credentials.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
         credentials.write(QJsonDocument(QJsonObject{
-            {QStringLiteral("userPasswordHash"), m_userPasswordHash}
+            {QStringLiteral("userPasswordHash"), m_userPasswordHash},
+            {QStringLiteral("rootPasswordHash"), m_rootPasswordHash}
         }).toJson(QJsonDocument::Compact));
         if (!credentials.commit()) {
             setError(credentials.errorString());

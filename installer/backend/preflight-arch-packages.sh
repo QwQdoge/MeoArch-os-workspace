@@ -37,6 +37,19 @@ pacman_cache="${state_dir}/pacman-preflight-cache"
 ensure_private_directory "${pacman_db}"
 ensure_private_directory "${pacman_cache}"
 
+# The preflight database lives below root-only installer state, which also
+# contains credentials. pacman's DownloadUser (usually alpm) cannot traverse
+# that state tree. Use a private config for this root-run, isolated preflight
+# instead of weakening the state directory's permissions.
+pacman_config="${state_dir}/pacman-preflight.conf"
+if [ -L "${pacman_config}" ]; then
+  echo "Preflight pacman config path is unsafe." >&2
+  exit 2
+fi
+sed -E 's/^[[:space:]]*DownloadUser[[:space:]]*=.*/DownloadUser = root/' \
+  /etc/pacman.conf >"${pacman_config}"
+chmod 600 "${pacman_config}"
+
 # A blank local database makes pacman resolve the full fresh-system dependency
 # transaction instead of treating packages already present in the Live ISO as
 # satisfied. Sync metadata is refreshed on every invocation.
@@ -135,12 +148,14 @@ fi
 
 echo "Refreshing Arch package databases for installation preflight."
 pacman --sync --refresh --noconfirm \
+  --config "${pacman_config}" \
   --dbpath "${pacman_db}" \
   --cachedir "${pacman_cache}" \
   --logfile /dev/null
 
 echo "Resolving required Arch package transaction."
 resolved_transaction="$(pacman --sync --print --print-format '%n %v' --noconfirm \
+  --config "${pacman_config}" \
   --dbpath "${pacman_db}" \
   --cachedir "${pacman_cache}" \
   --logfile /dev/null \

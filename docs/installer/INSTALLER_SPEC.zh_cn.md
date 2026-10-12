@@ -271,12 +271,12 @@ Choose where to install the system
 
 显示：
 
-- Your name
-- Username
-- Computer name
-- Password
-- Confirm password
-- Automatic login option
+- 全名；默认以名字生成用户名和相同的网络计算机名
+- 自动生成的用户名和计算机名，可选择手动修改
+- 登录密码及确认
+- 可选的独立 root 密码及确认；默认复用登录密码
+
+当前登录管理器要求密码登录，暂不提供自动登录。
 
 不要显示：
 

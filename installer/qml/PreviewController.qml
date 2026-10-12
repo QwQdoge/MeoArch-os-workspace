@@ -154,10 +154,15 @@ QtObject {
     }
     function selection(section, key, fallback) { const id = section + "." + key; return typeof values[id] === "undefined" ? fallback : values[id] }
     signal accountReady()
-    function saveAccount(fullName, username, hostname, password, confirmation) {
+    function saveAccount(fullName, username, hostname, password, confirmation,
+                         separateRootPassword, rootPassword, rootConfirmation) {
+        if (!fullName.trim().length) { errorMessage = qsTr("Enter your full name."); return }
         if (!/^[a-z_][a-z0-9_-]{0,31}$/.test(username)) { errorMessage = qsTr("Enter a valid lowercase username."); return }
         if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(hostname)) { errorMessage = qsTr("Enter a valid computer name."); return }
         if (password.length < 8 || password !== confirmation) { errorMessage = qsTr("Password must be 8 characters and match."); return }
+        if (separateRootPassword && (rootPassword.length < 8 || rootPassword !== rootConfirmation)) {
+            errorMessage = qsTr("Root password must be 8 characters and match."); return
+        }
         setSelection("user", "fullName", fullName); setSelection("user", "username", username); setSelection("user", "hostname", hostname)
         errorMessage = ""; accountReady()
     }

@@ -126,6 +126,8 @@ class InstallEngineGuardTests(unittest.TestCase):
         runner = RUNNER.read_text(encoding="utf-8")
         self.assertIn('pacman --sync --refresh', package_preflight)
         self.assertIn('--dbpath "${pacman_db}"', package_preflight)
+        self.assertIn('DownloadUser = root', package_preflight)
+        self.assertEqual(package_preflight.count('--config "${pacman_config}"'), 2)
         self.assertIn('pacman --sync --print', package_preflight)
         self.assertIn('resolved_transaction="$(pacman --sync --print', package_preflight)
         self.assertIn("^plasma-login-manager[[:space:]]", package_preflight)

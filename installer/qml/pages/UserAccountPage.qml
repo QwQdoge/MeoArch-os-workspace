@@ -11,16 +11,21 @@ PageFrame {
     readonly property bool hostnameValid: /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(InstallerSession.hostname)
     readonly property bool passwordValid: InstallerSession.password.length >= 8
     readonly property bool passwordsMatch: InstallerSession.password === InstallerSession.passwordConfirmation
-    readonly property bool accountReadyToSave: page.usernameValid && page.hostnameValid
+    readonly property bool rootPasswordValid: !InstallerSession.separateRootPassword
+                                              || (InstallerSession.rootPassword.length >= 8
+                                                  && InstallerSession.rootPassword === InstallerSession.rootPasswordConfirmation)
+    readonly property bool accountReadyToSave: InstallerSession.fullName.trim().length > 0
+                                             && page.usernameValid && page.hostnameValid
                                              && page.passwordValid && page.passwordsMatch
+                                             && page.rootPasswordValid
     primaryEnabled: page.accountReadyToSave
     primaryAccessibleDescription: page.accountReadyToSave
                                   ? qsTr("Saves the local account and continues to software choices")
-                                  : qsTr("Complete the valid username, computer name, and matching password fields to continue")
+                                  : qsTr("Enter your full name and matching passwords to continue")
 
     function incompleteAccountMessage() {
-        if (!InstallerSession.username.length)
-            return qsTr("Enter a username to continue.")
+        if (!InstallerSession.fullName.trim().length)
+            return qsTr("Enter your full name to continue.")
         if (!page.usernameValid)
             return qsTr("Use 1–32 lowercase letters, numbers, _ or - for the username.")
         if (!page.hostnameValid)
@@ -29,12 +34,16 @@ PageFrame {
             return qsTr("Use a password with at least 8 characters.")
         if (!page.passwordsMatch)
             return qsTr("Enter the same password in both password fields.")
+        if (!page.rootPasswordValid)
+            return qsTr("Enter and confirm the separate root password.")
         return ""
     }
 
     onPrimaryRequested: {
         controller.saveAccount(InstallerSession.fullName, InstallerSession.username, InstallerSession.hostname,
-                               InstallerSession.password, InstallerSession.passwordConfirmation)
+                               InstallerSession.password, InstallerSession.passwordConfirmation,
+                               InstallerSession.separateRootPassword, InstallerSession.rootPassword,
+                               InstallerSession.rootPasswordConfirmation)
     }
 
     Connections {
@@ -43,6 +52,8 @@ PageFrame {
         function onAccountReady() {
             InstallerSession.password = ""
             InstallerSession.passwordConfirmation = ""
+            InstallerSession.rootPassword = ""
+            InstallerSession.rootPasswordConfirmation = ""
             page.nextRequested()
         }
     }
@@ -65,13 +76,37 @@ PageFrame {
 
             MeoTextField {
                 Layout.fillWidth: true
+                Layout.columnSpan: form.columns
                 type: "outlined"
                 size: "l"
                 label: qsTr("Full name")
                 text: InstallerSession.fullName
-                onTextChanged: InstallerSession.fullName = text
+                onTextChanged: {
+                    InstallerSession.fullName = text
+                    InstallerSession.syncIdentity()
+                }
+            }
+            InfoBanner {
+                Layout.fillWidth: true
+                Layout.columnSpan: form.columns
+                title: qsTr("Your sign-in and network names")
+                message: qsTr("Username: %1 · Computer on the network: %2")
+                         .arg(InstallerSession.username || qsTr("Enter your name"))
+                         .arg(InstallerSession.hostname || qsTr("Enter your name"))
+                tone: "info"
+            }
+            MeoButton {
+                Layout.alignment: Qt.AlignLeft
+                Layout.columnSpan: form.columns
+                text: InstallerSession.customIdentity ? qsTr("Use names from full name") : qsTr("Customize these names")
+                type: "text"
+                onClicked: {
+                    InstallerSession.customIdentity = !InstallerSession.customIdentity
+                    InstallerSession.syncIdentity()
+                }
             }
             MeoTextField {
+                visible: InstallerSession.customIdentity
                 Layout.fillWidth: true
                 type: "outlined"
                 size: "l"
@@ -83,8 +118,8 @@ PageFrame {
                 onTextChanged: InstallerSession.username = text
             }
             MeoTextField {
+                visible: InstallerSession.customIdentity
                 Layout.fillWidth: true
-                Layout.columnSpan: form.columns
                 type: "outlined"
                 size: "l"
                 label: qsTr("Computer name")
@@ -117,6 +152,53 @@ PageFrame {
                 errorText: qsTr("Passwords do not match")
                 onTextChanged: InstallerSession.passwordConfirmation = text
             }
+            MeoButton {
+                Layout.alignment: Qt.AlignLeft
+                Layout.columnSpan: form.columns
+                text: InstallerSession.separateRootPassword
+                      ? qsTr("Use the sign-in password for root") : qsTr("Set a separate root password")
+                type: "text"
+                onClicked: {
+                    InstallerSession.separateRootPassword = !InstallerSession.separateRootPassword
+                    if (!InstallerSession.separateRootPassword) {
+                        InstallerSession.rootPassword = ""
+                        InstallerSession.rootPasswordConfirmation = ""
+                    }
+                }
+            }
+            MeoTextField {
+                visible: InstallerSession.separateRootPassword
+                Layout.fillWidth: true
+                type: "outlined"
+                size: "l"
+                label: qsTr("Root password")
+                echoMode: TextInput.Password
+                isPassword: true
+                text: InstallerSession.rootPassword
+                isError: text.length > 0 && text.length < 8
+                errorText: qsTr("Use at least 8 characters")
+                onTextChanged: InstallerSession.rootPassword = text
+            }
+            MeoTextField {
+                visible: InstallerSession.separateRootPassword
+                Layout.fillWidth: true
+                type: "outlined"
+                size: "l"
+                label: qsTr("Confirm root password")
+                echoMode: TextInput.Password
+                isPassword: true
+                text: InstallerSession.rootPasswordConfirmation
+                isError: text.length > 0 && text !== InstallerSession.rootPassword
+                errorText: qsTr("Passwords do not match")
+                onTextChanged: InstallerSession.rootPasswordConfirmation = text
+            }
+        }
+        InfoBanner {
+            visible: !InstallerSession.separateRootPassword
+            width: parent.width
+            title: qsTr("Root password")
+            message: qsTr("Root uses your sign-in password unless you set a separate one.")
+            tone: "info"
         }
         InfoBanner {
             visible: !page.accountReadyToSave
