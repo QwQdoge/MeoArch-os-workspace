@@ -143,6 +143,8 @@ class LiveBootContractTests(unittest.TestCase):
         self.assertIn('file_permissions=()', build)
         self.assertIn('source /root/meoarch-profiledef.sh', build)
         self.assertIn('chown -fhR --', build)
+        self.assertIn("--exclude='./etc/resolv.conf'", build)
+        self.assertIn('ln -s "${resolv_link}" "${airootfs_root}/etc/resolv.conf"', build)
         self.assertIn("pacman-bootstrap-hooks", build)
         self.assertIn("--exclude='./etc/pacman.d/hooks/*.hook'", build)
         self.assertIn("tar -C / -xpf /root/meoarch-airootfs-overlay.tar", build)
