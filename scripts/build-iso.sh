@@ -301,6 +301,11 @@ for filename in "${!file_permissions[@]}"; do
     chmod -f -- "${mode}" "${filename}"
   fi
 done
+if [[ -f /home/live/.ssh/authorized_keys ]]; then
+  chown -hR 1000:1000 /home/live/.ssh
+  chmod 700 /home/live/.ssh
+  chmod 600 /home/live/.ssh/authorized_keys
+fi
 rm -f /root/meoarch-profiledef.sh
 EOF
 chmod 755 "${airootfs_root}/root/customize_airootfs.sh"
