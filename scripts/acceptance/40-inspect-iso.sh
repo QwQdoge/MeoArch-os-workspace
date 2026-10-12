@@ -48,6 +48,7 @@ grep -q '/arch/x86_64/airootfs.sfs' "${evidence_dir}/files.txt"
 grep -q '/boot/grub/grub.cfg' "${evidence_dir}/files.txt"
 grep -q '/boot/grub/themes/meoarch/theme.txt' "${evidence_dir}/files.txt"
 grep -q '/boot/grub/themes/meoarch/brand.png' "${evidence_dir}/files.txt"
+grep -q '/boot/grub/themes/meoarch/splash.png' "${evidence_dir}/files.txt"
 grep -q '/boot/grub/themes/meoarch/meoarch-sans-regular-24.pf2' "${evidence_dir}/files.txt"
 if grep -q '/loader/entries/' "${evidence_dir}/files.txt"; then
   echo "UEFI GRUB ISO unexpectedly contains systemd-boot loader entries." >&2
@@ -60,6 +61,9 @@ xorriso -osirrox on -indev "${iso_path}" \
   -extract /arch/pkglist.x86_64.txt "${evidence_dir}/packages.txt"
 unsquashfs -ll "${extract_dir}/airootfs.sfs" >"${evidence_dir}/airootfs-files.txt"
 echo "Recorded $(wc -l <"${evidence_dir}/airootfs-files.txt") airootfs entries."
+unsquashfs -cat "${extract_dir}/airootfs.sfs" etc/passwd >"${evidence_dir}/passwd.txt"
+grep -q '^live:' "${evidence_dir}/passwd.txt"
+grep -q '^systemd-network:' "${evidence_dir}/passwd.txt"
 
 # libmeoui.so.0 is the ABI SONAME symlink; its implementation file is versioned.
 grep -Eq 'usr/lib/libmeoui\.so\.0( -> libmeoui\.so\.[0-9.]+)?$' "${evidence_dir}/airootfs-files.txt"

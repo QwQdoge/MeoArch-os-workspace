@@ -1,7 +1,7 @@
 # MeoArch boot theme. Keep the layout readable down to 1280x720 and avoid
 # firmware-dependent icon fonts: the boot options remain plain text.
 
-desktop-image: "../../splash.png"
+desktop-image: "splash.png"
 desktop-image-scale-method: "crop"
 desktop-image-h-align: "center"
 desktop-image-v-align: "center"

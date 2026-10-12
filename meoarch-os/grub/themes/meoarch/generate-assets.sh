@@ -31,6 +31,7 @@ magick -size 1920x1080 xc:'#FAF9FC' \
     -fill '#F8E8F2' -draw 'ellipse 1840,930 360,300 0,360' \
     -fill '#E5EAFF' -draw 'ellipse 1550,1020 320,250 0,360' \
     -strip -depth 8 "$splash_png"
+cp "$splash_png" "$script_dir/splash.png"
 
 # Syslinux uses a 4:3 VESA menu. Derive its background from the same source so
 # BIOS and UEFI boot paths keep one visual language.
