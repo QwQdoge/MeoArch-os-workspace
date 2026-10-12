@@ -249,6 +249,12 @@ find "${airootfs_root}" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
 install -d "${airootfs_root}/root"
 install -m 600 "${airootfs_overlay_tar}" \
   "${airootfs_root}/root/meoarch-airootfs-overlay.tar"
+# mkarchiso applies file_permissions before pacstrap and before our deferred
+# overlay is extracted. Keep the source map for the chroot customization step
+# and prevent mkarchiso from resolving paths that do not exist yet.
+install -m 600 "${staged_profile}/profiledef.sh" \
+  "${airootfs_root}/root/meoarch-profiledef.sh"
+printf '\nfile_permissions=()\n' >>"${staged_profile}/profiledef.sh"
 if find "${pacman_hook_staging}" -maxdepth 1 -type f -name '*.hook' -print -quit | grep -q .; then
   install -d "${airootfs_root}/etc/pacman.d/hooks"
   install -m 644 "${pacman_hook_staging}/"*.hook \
@@ -259,6 +265,23 @@ cat >"${airootfs_root}/root/customize_airootfs.sh" <<'EOF'
 set -Eeuo pipefail
 tar -C / -xpf /root/meoarch-airootfs-overlay.tar --no-same-owner
 rm -f /root/meoarch-airootfs-overlay.tar
+source /root/meoarch-profiledef.sh
+for filename in "${!file_permissions[@]}"; do
+  [[ "${filename}" == /* && "${filename}" != *'/../'* ]] || {
+    echo "Invalid file_permissions path: ${filename}" >&2
+    exit 1
+  }
+  [[ -e "${filename}" || -L "${filename}" ]] || continue
+  IFS=: read -r owner group mode <<<"${file_permissions[${filename}]}"
+  if [[ "${filename}" == */ ]]; then
+    chown -fhR -- "${owner}:${group}" "${filename}"
+    chmod -fR -- "${mode}" "${filename}"
+  else
+    chown -fh -- "${owner}:${group}" "${filename}"
+    chmod -f -- "${mode}" "${filename}"
+  fi
+done
+rm -f /root/meoarch-profiledef.sh
 EOF
 chmod 755 "${airootfs_root}/root/customize_airootfs.sh"
 
