@@ -1,191 +1,143 @@
 import QtQuick
 import QtQuick.Layouts
 import MeoUI 1.0
-import Meo.System 1.0 as MeoSystem
 import ".."
 import "../components"
 
 PageFrame {
     id: page
-    primaryLabel: qsTr("Get Started")
+    primaryLabel: qsTr("Continue installation")
     showBackButton: false
+    property bool showTryHint: false
 
     Column {
-        id: welcomeContent
-        anchors.centerIn: parent
-        anchors.verticalCenterOffset: -page.dp(8)
-        width: Math.min(parent.width, page.dp(600))
-        spacing: page.compactHeight ? page.dp(12) : page.dp(18)
+        width: parent.width
+        y: Math.max(0, (parent.height - implicitHeight) / 2)
+        spacing: page.dp(20)
 
-        Image {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: page.dp(168)
-            height: page.dp(76)
-            source: page.asset("icons/Logo.png")
-            fillMode: Image.PreserveAspectFit
-            Accessible.name: qsTr("MeoArch OS")
-        }
-        MeoText {
+        GridLayout {
             width: parent.width
-            text: qsTr("Welcome to MeoArch OS")
-            horizontalAlignment: Text.AlignHCenter
-            color: MeoTheme.contentOnSurface
-            typeRole: "title"
-            typeSize: "big"
-            emphasized: true
-            wrapMode: Text.WordWrap
-        }
-        MeoText {
-            width: parent.width
-            text: qsTr("Install MeoArch in a few clear, guided steps.")
-            horizontalAlignment: Text.AlignHCenter
-            color: MeoTheme.contentOnSurfaceVariant
-            typeRole: "body"
-            typeSize: "big"
-            wrapMode: Text.WordWrap
-        }
+            columns: width < page.dp(760) ? 1 : 2
+            columnSpacing: page.dp(44)
+            rowSpacing: page.dp(24)
 
-        MeoCard {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: Math.min(parent.width, page.dp(520))
-            type: "outlined"
-            Accessible.name: qsTr("Live environment check")
+            Column {
+                Layout.fillWidth: true
+                Layout.preferredWidth: page.dp(420)
+                spacing: page.dp(18)
 
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: page.dp(10)
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    MeoIcon { icon: "fact_check"; size: page.dp(22); color: MeoTheme.primary }
-                    MeoText {
-                        Layout.fillWidth: true
-                        text: qsTr("Live environment check")
-                        typeRole: "title"
-                        typeSize: "small"
-                        emphasized: true
-                    }
-                    MeoBadge { text: qsTr("LIVE") }
+                Image {
+                    width: page.dp(100)
+                    height: page.dp(64)
+                    source: page.asset("icons/Logo.png")
+                    fillMode: Image.PreserveAspectFit
+                    Accessible.name: qsTr("MeoArch OS")
                 }
-
-                Repeater {
-                    model: [
-                        {
-                            "icon": "computer",
-                            "title": qsTr("Environment"),
-                            "value": page.controller && page.controller.runtimeEnvironment === "live"
-                                     ? qsTr("Live ISO · %1").arg(
-                                           page.controller.firmwareMode === "bios"
-                                           ? qsTr("Legacy BIOS") : qsTr("UEFI"))
-                                     : qsTr("Unknown")
-                        },
-                        {
-                            "icon": "wifi",
-                            "title": qsTr("Network"),
-                            "value": page.controller && page.controller.networkState === "online"
-                                     ? qsTr("Ready")
-                                     : page.controller && page.controller.networkState === "repository"
-                                       ? qsTr("Internet connected")
-                                       : page.controller && page.controller.networkState === "checking"
-                                         ? qsTr("Checking…")
-                                         : page.controller && page.controller.networkState === "portal"
-                                           ? qsTr("Sign-in required")
-                                           : page.controller && page.controller.networkState === "no-interface"
-                                             ? qsTr("No active interface")
-                                             : MeoSystem.SystemState.networkConnected
-                                               ? (MeoSystem.SystemState.networkName.length
-                                                  ? MeoSystem.SystemState.networkName
-                                                  : qsTr("Connected"))
-                                               : qsTr("Offline")
-                        },
-                        {
-                            "icon": "memory",
-                            "title": qsTr("Hardware"),
-                            "value": page.controller && page.controller.hardwareDetecting
-                                     ? qsTr("Checking…")
-                                     : page.controller && page.controller.hardwareDetected
-                                       ? qsTr("Detected")
-                                       : qsTr("Compatibility mode")
-                        },
-                        {
-                            "icon": "account_circle",
-                            "title": qsTr("Meo Account"),
-                            "value": qsTr("After installation")
-                        }
-                    ]
-
-                    delegate: RowLayout {
-                        id: liveCheckRow
-                        required property var modelData
-                        Layout.fillWidth: true
-                        spacing: page.dp(10)
-                        MeoIcon { icon: liveCheckRow.modelData.icon; size: page.dp(18); color: MeoTheme.contentOnSurfaceVariant }
-                        MeoText { Layout.fillWidth: true; text: liveCheckRow.modelData.title; typeRole: "body"; typeSize: "small" }
-                        MeoText {
-                            text: liveCheckRow.modelData.value
-                            typeRole: "label"
-                            typeSize: "small"
-                            emphasized: true
-                            color: MeoTheme.contentOnSurfaceVariant
-                        }
-                    }
-                }
-
                 MeoText {
-                    Layout.fillWidth: true
-                    text: qsTr("Live checks are temporary. Meo Account and installed-system health checks run only after installation.")
-                    typeRole: "label"
-                    typeSize: "small"
+                    width: parent.width
+                    text: qsTr("Start using MeoArch OS")
+                    typeRole: "title"
+                    typeSize: "big"
+                    emphasized: true
+                    color: MeoTheme.contentOnSurface
+                    wrapMode: Text.WordWrap
+                }
+                MeoText {
+                    width: parent.width
+                    text: qsTr("Install it on this computer, or explore the Live desktop first. You can return to installation when you are ready.")
+                    typeRole: "body"
+                    typeSize: "big"
                     color: MeoTheme.contentOnSurfaceVariant
                     wrapMode: Text.WordWrap
+                }
+                InfoBanner {
+                    width: parent.width
+                    title: qsTr("Your disk is safe until confirmation")
+                    message: qsTr("Review the storage choice and installation plan before any changes are made.")
+                    tone: "info"
+                }
+            }
+
+            Column {
+                Layout.fillWidth: true
+                Layout.preferredWidth: page.dp(500)
+                spacing: page.dp(14)
+
+                SelectionCard {
+                    width: parent.width
+                    iconText: "download"
+                    title: qsTr("Install MeoArch OS")
+                    value: qsTr("Set up this computer with MeoArch OS.")
+                    selectionIndicator: true
+                    selected: true
+                    onClicked: page.nextRequested()
+                }
+                SelectionCard {
+                    width: parent.width
+                    iconText: "explore"
+                    title: qsTr("Try the Live desktop first")
+                    value: page.desktopLive
+                           ? qsTr("Close the installer and explore without changing your disk.")
+                           : qsTr("Restart and choose the graphical setup entry to reach the Live desktop.")
+                    wrapValue: true
+                    trailingIcon: "chevron_right"
+                    onClicked: page.desktopLive ? page.exitRequested() : page.showTryHint = true
+                }
+                InfoBanner {
+                    visible: page.showTryHint
+                    width: parent.width
+                    title: qsTr("Open the Live desktop")
+                    message: qsTr("Restart, then choose “Install MeoArch OS — graphical setup” in the boot menu. The installer opens on the Live desktop and can be closed while you explore.")
+                    tone: "info"
+                }
+                MeoCard {
+                    width: parent.width
+                    type: "outlined"
+                    Accessible.name: qsTr("Live environment check")
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: page.dp(8)
+                        RowLayout {
+                            Layout.fillWidth: true
+                            MeoIcon { icon: "fact_check"; size: page.dp(20); color: MeoTheme.primary }
+                            MeoText {
+                                Layout.fillWidth: true
+                                text: qsTr("Live environment check")
+                                typeRole: "title"
+                                typeSize: "small"
+                                emphasized: true
+                            }
+                            MeoBadge { text: qsTr("LIVE") }
+                        }
+                        MeoText {
+                            Layout.fillWidth: true
+                            text: qsTr("Firmware: %1 · Network: %2 · Hardware: %3")
+                                  .arg(page.controller && page.controller.firmwareMode === "bios" ? qsTr("Legacy BIOS") : qsTr("UEFI"))
+                                  .arg(page.controller && (page.controller.networkState === "online" || page.controller.networkState === "repository") ? qsTr("Connected") : qsTr("Check connection"))
+                                  .arg(page.controller && page.controller.hardwareDetected ? qsTr("Detected") : qsTr("Checking"))
+                            typeRole: "body"
+                            typeSize: "small"
+                            color: MeoTheme.contentOnSurfaceVariant
+                            wrapMode: Text.WordWrap
+                        }
+                    }
                 }
             }
         }
 
         InfoBanner {
             visible: page.controller && page.controller.hardwareWarning.length > 0
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: Math.min(parent.width, page.dp(520))
+            width: parent.width
             tone: "warning"
             title: qsTr("Graphics compatibility mode")
             message: page.controller ? page.controller.hardwareWarning : ""
         }
-
         InfoBanner {
             visible: page.controller && page.controller.firmwareMode === "bios"
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: Math.min(parent.width, page.dp(520))
+            width: parent.width
             tone: "warning"
             title: qsTr("UEFI boot required")
-            message: qsTr("This installer currently supports UEFI target installations. Restart the VM or computer with UEFI firmware enabled before installing. No disk changes have been made.")
-        }
-
-        MeoMotionSurface {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: Math.min(parent.width, page.dp(430))
-            height: page.dp(52)
-            radius: height / 2
-            color: MeoTheme.secondaryContainer
-            elevation: 0
-
-            Row {
-                anchors.centerIn: parent
-                spacing: page.dp(10)
-                MeoIcon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    icon: "verified_user"
-                    size: page.dp(22)
-                    color: MeoTheme.contentOnSecondaryContainer
-                }
-                MeoText {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: qsTr("Review first. Nothing changes until you confirm.")
-                    typeRole: "label"
-                    typeSize: "medium"
-                    emphasized: true
-                    color: MeoTheme.contentOnSecondaryContainer
-                }
-            }
+            message: qsTr("This installer supports UEFI target installations. Restart with UEFI firmware enabled before installing. No disk changes have been made.")
         }
     }
 }

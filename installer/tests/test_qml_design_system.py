@@ -94,15 +94,13 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertNotIn("qml6", launcher)
         self.assertNotIn("qmlscene", launcher)
         self.assertIn("native MeoArch Installer host is missing", launcher)
-        # The readiness card is a fixed four-row model. A bounded Repeater is
-        # acceptable here; unbounded/dynamic startup content is not.
+        # The first screen keeps installation and Live exploration visible.
         self.assertIn('Accessible.name: qsTr("Live environment check")', welcome)
-        for label in ("Environment", "Network", "Hardware", "Meo Account"):
-            self.assertIn('qsTr("' + label + '")', welcome)
-        self.assertIn('qsTr("Compatibility mode")', welcome)
+        self.assertIn('title: qsTr("Install MeoArch OS")', welcome)
+        self.assertIn('title: qsTr("Try the Live desktop first")', welcome)
+        self.assertIn('qsTr("Your disk is safe until confirmation")', welcome)
         self.assertNotIn("ListView", welcome)
         self.assertNotIn("Loader", welcome)
-        self.assertIn('qsTr("Review first. Nothing changes until you confirm.")', welcome)
         self.assertLess(
             host.index("loadCatalogs(initialUiLanguage);"),
             host.index("InstallerController controller(arguments);"),
@@ -154,10 +152,10 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('QStringLiteral("/sys/firmware/efi")', controller)
         self.assertIn('property string runtimeEnvironment: "live"', preview)
         self.assertIn('property string firmwareMode: "uefi"', preview)
-        self.assertIn('qsTr("Live ISO · %1")', welcome)
+        self.assertIn('qsTr("Firmware: %1 · Network: %2 · Hardware: %3")', welcome)
         self.assertIn('qsTr("Legacy BIOS")', welcome)
         self.assertIn('qsTr("UEFI boot required")', welcome)
-        self.assertIn("Restart the VM or computer with UEFI firmware enabled", welcome)
+        self.assertIn("Restart with UEFI firmware enabled before installing", welcome)
         self.assertIn("BIOS target installation is unavailable until a tested BIOS GRUB layout exists", generator)
 
     def test_finish_actions_match_system_action_capability(self):
@@ -262,7 +260,8 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("controller.installPlan.repository", summary)
         self.assertIn("controller.installPlan.package", summary)
         self.assertIn("controller.installPlan.applications", summary)
-        self.assertIn("Validated Meo package plan", summary)
+        self.assertIn("Software sources checked", summary)
+        self.assertIn('qsTr("Meo packages\\n")', summary)
         # A generic invokable read is not reactive on its own. Both choice
         # pages must bind through the controller revision so a click updates
         # its indicator and the Custom component controls in the same view.
@@ -414,7 +413,8 @@ class InstallerDesignSystemTests(unittest.TestCase):
         user = (QML_ROOT / "pages/UserAccountPage.qml").read_text(encoding="utf-8")
         software = (QML_ROOT / "pages/SoftwarePage.qml").read_text(encoding="utf-8")
         controller = (QML_ROOT.parents[0] / "app/installercontroller.cpp").read_text(encoding="utf-8")
-        self.assertIn("Password sign-in required", user)
+        self.assertIn('label: qsTr("Password")', user)
+        self.assertIn('label: qsTr("Confirm password")', user)
         self.assertNotIn("Automatic login\")", user)
         self.assertIn("Included with every MeoArch installation", software)
         self.assertNotIn('enabled: false', software)

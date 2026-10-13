@@ -2957,6 +2957,14 @@ PipeWire · NetworkManager
         <source>Starts the confirmed installation that erases the selected disk</source>
         <translation>开始已确认的安装，擦除所选磁盘</translation>
     </message>
+    <message>
+        <source>Software sources checked</source>
+        <translation>软件源已检查</translation>
+    </message>
+    <message>
+        <source>%1 · %2 Meo packages · %3 system applications</source>
+        <translation>%1 · %2 个 Meo 软件包 · %3 个系统应用</translation>
+    </message>
 </context>
 <context>
     <name>UpdateChannelPage</name>
@@ -3136,6 +3144,22 @@ PipeWire · NetworkManager
         <source>Lowercase letters, numbers, _ and -</source>
         <translation>小写字母、数字、_ 和 -</translation>
     </message>
+    <message>
+        <source>Create your account</source>
+        <translation>创建账户</translation>
+    </message>
+    <message>
+        <source>Enter your full name and a password. We will make your sign-in name and computer name for you.</source>
+        <translation>输入全名和密码，系统会自动生成登录名和电脑名称。</translation>
+    </message>
+    <message>
+        <source>One password by default</source>
+        <translation>默认使用同一个密码</translation>
+    </message>
+    <message>
+        <source>Your password also works for administrator tasks. Set a separate root password only if you want one.</source>
+        <translation>登录密码也可用于管理员操作。需要时可另外设置 root 密码。</translation>
+    </message>
 </context>
 <context>
     <name>WelcomePage</name>
@@ -3271,6 +3295,70 @@ PipeWire · NetworkManager
     <message>
         <source>Graphics compatibility mode</source>
         <translation>图形兼容模式</translation>
+    </message>
+    <message>
+        <source>Continue installation</source>
+        <translation>继续安装</translation>
+    </message>
+    <message>
+        <source>Start using MeoArch OS</source>
+        <translation>开始使用 MeoArch OS</translation>
+    </message>
+    <message>
+        <source>Install it on this computer, or explore the Live desktop first. You can return to installation when you are ready.</source>
+        <translation>可以将 MeoArch OS 安装到此电脑，也可以先体验 Live 桌面。准备好后随时可以返回安装。</translation>
+    </message>
+    <message>
+        <source>Your disk is safe until confirmation</source>
+        <translation>确认前不会修改磁盘</translation>
+    </message>
+    <message>
+        <source>Review the storage choice and installation plan before any changes are made.</source>
+        <translation>进行任何更改前，请先检查存储选择和安装计划。</translation>
+    </message>
+    <message>
+        <source>Install MeoArch OS</source>
+        <translation>安装 MeoArch OS</translation>
+    </message>
+    <message>
+        <source>Set up this computer with MeoArch OS.</source>
+        <translation>在这台电脑上安装 MeoArch OS。</translation>
+    </message>
+    <message>
+        <source>Try the Live desktop first</source>
+        <translation>先体验 Live 桌面</translation>
+    </message>
+    <message>
+        <source>Close the installer and explore without changing your disk.</source>
+        <translation>关闭安装器，体验系统而不修改磁盘。</translation>
+    </message>
+    <message>
+        <source>Restart and choose the graphical setup entry to reach the Live desktop.</source>
+        <translation>重启并选择图形安装入口，即可进入 Live 桌面。</translation>
+    </message>
+    <message>
+        <source>Open the Live desktop</source>
+        <translation>打开 Live 桌面</translation>
+    </message>
+    <message>
+        <source>Restart, then choose “Install MeoArch OS — graphical setup” in the boot menu. The installer opens on the Live desktop and can be closed while you explore.</source>
+        <translation>重启后在启动菜单选择“Install MeoArch OS — graphical setup”。安装器会在 Live 桌面打开，关闭后即可体验。</translation>
+    </message>
+    <message>
+        <source>Firmware: %1 · Network: %2 · Hardware: %3</source>
+        <translation>固件：%1 · 网络：%2 · 硬件：%3</translation>
+    </message>
+    <message>
+        <source>Check connection</source>
+        <translation>检查连接</translation>
+    </message>
+    <message>
+        <source>Checking</source>
+        <translation>检查中</translation>
+    </message>
+    <message>
+        <source>This installer supports UEFI target installations. Restart with UEFI firmware enabled before installing. No disk changes have been made.</source>
+        <translation>本安装器仅支持安装到 UEFI 系统。请启用 UEFI 后重启；目前未修改磁盘。</translation>
     </message>
 </context>
 </TS>

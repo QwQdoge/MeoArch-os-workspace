@@ -58,27 +58,47 @@ PageFrame {
         }
     }
 
-    Column {
+    GridLayout {
         width: parent.width
-        spacing: page.compactHeight ? page.dp(12) : page.dp(20)
+        y: Math.max(0, (parent.height - implicitHeight) / 2)
+        columns: width < page.dp(760) ? 1 : 2
+        columnSpacing: page.dp(44)
+        rowSpacing: page.dp(20)
 
-        PageHeading {
-            width: parent.width
-            title: qsTr("User Account")
-            subtitle: qsTr("Create the account you will use to sign in to MeoArch.")
+        Column {
+            Layout.fillWidth: true
+            Layout.preferredWidth: page.dp(390)
+            Layout.alignment: Qt.AlignTop
+            spacing: page.dp(20)
+            PageHeading {
+                width: parent.width
+                title: qsTr("Create your account")
+                subtitle: qsTr("Enter your full name and a password. We will make your sign-in name and computer name for you.")
+            }
+            InfoBanner {
+                width: parent.width
+                title: qsTr("One password by default")
+                message: qsTr("Your password also works for administrator tasks. Set a separate root password only if you want one.")
+                tone: "info"
+            }
         }
+
+        Column {
+            Layout.fillWidth: true
+            Layout.preferredWidth: page.dp(600)
+            spacing: page.dp(12)
         GridLayout {
             id: form
             width: parent.width
             columns: width < page.dp(620) ? 1 : 2
-            rowSpacing: page.compactHeight ? page.dp(8) : page.dp(16)
+            rowSpacing: page.dp(10)
             columnSpacing: page.dp(16)
 
             MeoTextField {
                 Layout.fillWidth: true
                 Layout.columnSpan: form.columns
                 type: "outlined"
-                size: "l"
+                size: "m"
                 label: qsTr("Full name")
                 text: InstallerSession.fullName
                 onTextChanged: {
@@ -109,7 +129,7 @@ PageFrame {
                 visible: InstallerSession.customIdentity
                 Layout.fillWidth: true
                 type: "outlined"
-                size: "l"
+                size: "m"
                 label: qsTr("Username")
                 text: InstallerSession.username
                 supportingText: qsTr("Lowercase letters, numbers, _ and -")
@@ -121,7 +141,7 @@ PageFrame {
                 visible: InstallerSession.customIdentity
                 Layout.fillWidth: true
                 type: "outlined"
-                size: "l"
+                size: "m"
                 label: qsTr("Computer name")
                 text: InstallerSession.hostname
                 isError: text.length > 0 && !page.hostnameValid
@@ -131,7 +151,7 @@ PageFrame {
             MeoTextField {
                 Layout.fillWidth: true
                 type: "outlined"
-                size: "l"
+                size: "m"
                 label: qsTr("Password")
                 echoMode: TextInput.Password
                 isPassword: true
@@ -143,7 +163,7 @@ PageFrame {
             MeoTextField {
                 Layout.fillWidth: true
                 type: "outlined"
-                size: "l"
+                size: "m"
                 label: qsTr("Confirm password")
                 echoMode: TextInput.Password
                 isPassword: true
@@ -170,7 +190,7 @@ PageFrame {
                 visible: InstallerSession.separateRootPassword
                 Layout.fillWidth: true
                 type: "outlined"
-                size: "l"
+                size: "m"
                 label: qsTr("Root password")
                 echoMode: TextInput.Password
                 isPassword: true
@@ -183,7 +203,7 @@ PageFrame {
                 visible: InstallerSession.separateRootPassword
                 Layout.fillWidth: true
                 type: "outlined"
-                size: "l"
+                size: "m"
                 label: qsTr("Confirm root password")
                 echoMode: TextInput.Password
                 isPassword: true
@@ -193,25 +213,13 @@ PageFrame {
                 onTextChanged: InstallerSession.rootPasswordConfirmation = text
             }
         }
-        InfoBanner {
-            visible: !InstallerSession.separateRootPassword
-            width: parent.width
-            title: qsTr("Root password")
-            message: qsTr("Root uses your sign-in password unless you set a separate one.")
-            tone: "info"
-        }
-        InfoBanner {
-            visible: !page.accountReadyToSave
-            width: parent.width
-            title: qsTr("Finish account details to continue")
-            message: page.incompleteAccountMessage()
-            tone: "info"
-        }
-        InfoBanner {
-            width: parent.width
-            title: qsTr("Password sign-in required")
-            message: qsTr("Automatic login is not offered because Plasma Login Manager has no tested password-preserving Meo backend yet.")
-            tone: "info"
+            InfoBanner {
+                visible: !page.accountReadyToSave && InstallerSession.fullName.trim().length > 0
+                width: parent.width
+                title: qsTr("Finish account details to continue")
+                message: page.incompleteAccountMessage()
+                tone: "info"
+            }
         }
     }
 }

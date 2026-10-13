@@ -167,7 +167,7 @@ PageFrame {
                 spacing: page.dp(8)
                 MeoText {
                     width: parent.width
-                    text: qsTr("Validated Meo package plan")
+                    text: qsTr("Software sources checked")
                     typeRole: "title"
                     typeSize: "small"
                     emphasized: true
@@ -175,23 +175,10 @@ PageFrame {
                 }
                 MeoText {
                     width: parent.width
-                    text: qsTr("Repositories: %1").arg(page.joined(page.resolvedRepository.repositories, " → ", qsTr("Not prepared")))
-                    typeRole: "body"
-                    typeSize: "medium"
-                    color: MeoTheme.contentOnSurfaceVariant
-                    wrapMode: Text.WordWrap
-                }
-                MeoText {
-                    width: parent.width
-                    text: qsTr("System application packages: %1").arg(page.joined(page.resolvedApplications.nativePackages, ", ", qsTr("None")))
-                    typeRole: "body"
-                    typeSize: "medium"
-                    color: MeoTheme.contentOnSurfaceVariant
-                    wrapMode: Text.WordWrap
-                }
-                MeoText {
-                    width: parent.width
-                    text: qsTr("Meo packages: %1").arg(page.joined(page.resolvedPackage.packages, ", ", qsTr("Not prepared")))
+                    text: qsTr("%1 · %2 Meo packages · %3 system applications")
+                          .arg(page.joined(page.resolvedRepository.repositories, " → ", qsTr("Not prepared")))
+                          .arg(page.resolvedPackage.packages ? page.resolvedPackage.packages.length : 0)
+                          .arg(page.resolvedApplications.nativePackages ? page.resolvedApplications.nativePackages.length : 0)
                     typeRole: "body"
                     typeSize: "medium"
                     color: MeoTheme.contentOnSurfaceVariant
