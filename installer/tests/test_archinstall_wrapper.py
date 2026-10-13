@@ -1,4 +1,5 @@
 import importlib.util
+from importlib.machinery import SourceFileLoader
 import json
 import os
 import tempfile
@@ -8,9 +9,12 @@ from unittest import mock
 
 
 WRAPPER = Path(__file__).parents[2] / "meoarch-os" / "airootfs" / "usr" / "local" / "bin" / "archinstall"
-SPEC = importlib.util.spec_from_file_location("meoarch_archinstall_wrapper", WRAPPER)
+LOADER = SourceFileLoader("meoarch_archinstall_wrapper", str(WRAPPER))
+SPEC = importlib.util.spec_from_loader(LOADER.name, LOADER)
+if SPEC is None:
+    raise RuntimeError(f"Could not create import spec for Archinstall wrapper: {WRAPPER}")
 MODULE = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(MODULE)
+LOADER.exec_module(MODULE)
 
 
 class ArchinstallWrapperTests(unittest.TestCase):
