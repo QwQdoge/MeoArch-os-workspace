@@ -297,6 +297,10 @@ grep -q "bootmodes=('bios.syslinux'" meoarch-os/profiledef.sh
 grep -q "'uefi.grub')" meoarch-os/profiledef.sh
 ! grep -q 'uefi.systemd-boot' meoarch-os/profiledef.sh
 grep -q '^airootfs_image_type="squashfs"$' meoarch-os/profiledef.sh
+grep -q '^Autolock=false$' meoarch-os/airootfs/home/live/.config/kscreenlockerrc
+grep -q '^LockOnResume=false$' meoarch-os/airootfs/home/live/.config/kscreenlockerrc
+grep -Fq '["/home/live/.config"]="1000:1000:700"' meoarch-os/profiledef.sh
+grep -Fq '["/home/live/.config/kscreenlockerrc"]="1000:1000:600"' meoarch-os/profiledef.sh
 
 grub_entry_options() {
   local entry_id="$1"
