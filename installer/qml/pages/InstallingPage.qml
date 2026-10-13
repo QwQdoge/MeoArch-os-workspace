@@ -7,6 +7,13 @@ import "../components"
 PageFrame {
     id: page
     property string logDetails: ""
+    readonly property string latestLogLine: {
+        const text = page.logDetails.trim()
+        if (!text.length)
+            return ""
+        const lines = text.split("\n")
+        return lines.length ? lines[lines.length - 1] : ""
+    }
     readonly property bool failedBeforeDiskWork: controller && controller.installationState === "failed"
         && (controller.installationStage === "preflight"
             || controller.installationStage === "preflighting_arch_packages"
@@ -44,9 +51,11 @@ PageFrame {
     Timer {
         interval: 1000
         repeat: true
-        running: logPopup.visible && page.controller && page.controller.installationState === "running"
+        running: page.controller && (page.controller.installationState === "running" || logPopup.visible)
         onTriggered: page.refreshLogDetails()
     }
+    Component.onCompleted: page.refreshLogDetails()
+
     Column {
         width: parent.width
         spacing: page.compactHeight ? page.dp(12) : page.dp(18)
@@ -82,7 +91,18 @@ PageFrame {
                     MeoText { text: page.stageLabel(page.controller ? page.controller.installationStage : ""); typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface }
                 }
                 MeoText { width: parent.width; text: page.controller && page.controller.installationMessage.length ? page.controller.installationMessage : qsTr("Structured installation events will appear here."); wrapMode: Text.WordWrap; typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant }
-                MeoText { width: parent.width; text: qsTr("Live diagnostic log: %1").arg(page.controller && !page.controller.visualPreview && typeof page.controller.installationLogPath === "function" ? page.controller.installationLogPath() : "/tmp/meoarch-installer/logs/install.log"); typeRole: "body"; typeSize: "small"; color: MeoTheme.outline }
+                MeoText {
+                    width: parent.width
+                    text: page.controller && page.controller.installationState === "running" && page.latestLogLine.length
+                          ? page.latestLogLine
+                          : qsTr("Live diagnostic log: %1").arg(page.controller && !page.controller.visualPreview && typeof page.controller.installationLogPath === "function" ? page.controller.installationLogPath() : "/tmp/meoarch-installer/logs/install.log")
+                    typeRole: "body"
+                    typeSize: "small"
+                    color: MeoTheme.outline
+                    elide: Text.ElideMiddle
+                    maximumLineCount: 1
+                    font.family: page.controller && page.controller.installationState === "running" ? "monospace" : page.roboto
+                }
             }
         }
         Flow {
