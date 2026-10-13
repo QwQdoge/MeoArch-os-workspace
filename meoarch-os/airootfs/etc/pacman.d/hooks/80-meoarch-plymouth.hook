@@ -1,0 +1,22 @@
+# remove from airootfs!
+# The tracked MeoArch airootfs overlay is intentionally deferred until after
+# pacstrap so package-owned files can install cleanly. Plymouth, however, is
+# embedded into the initramfs by mkinitcpio during that same package transaction.
+# Stage only the reviewed MeoArch theme and its configuration immediately before
+# the normal 90-mkinitcpio hook, then let the existing cleanup hook remove this
+# build-only hook from the finished Live filesystem.
+
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = linux
+Target = plymouth
+
+[Action]
+Description = Stage MeoArch Plymouth branding before initramfs generation...
+When = PostTransaction
+Depends = sh
+Depends = tar
+Depends = grep
+Exec = /bin/sh -eu -c "overlay=/root/meoarch-airootfs-overlay.tar; test -f \"$overlay\"; test ! -L /etc/plymouth; test ! -L /usr/share/plymouth; for path in ./etc/plymouth/plymouthd.conf ./usr/share/plymouth/themes/meoarch/meoarch.plymouth ./usr/share/plymouth/themes/meoarch/meoarch.script ./usr/share/plymouth/themes/meoarch/logo.png; do tar -tf \"$overlay\" \"$path\" >/dev/null; done; tar -C / --no-same-owner -xpf \"$overlay\" ./etc/plymouth/plymouthd.conf ./usr/share/plymouth/themes/meoarch/meoarch.plymouth ./usr/share/plymouth/themes/meoarch/meoarch.script ./usr/share/plymouth/themes/meoarch/logo.png; grep -Eq '^[[:space:]]*Theme[[:space:]]*=[[:space:]]*meoarch[[:space:]]*$' /etc/plymouth/plymouthd.conf"

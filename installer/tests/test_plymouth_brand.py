@@ -7,6 +7,7 @@ WORDMARK = ROOT / "assets/icons/text logo.png"
 SOURCE_THEME = ROOT / "themes/plymouth/meoarch"
 ISO_THEME = ROOT / "meoarch-os/airootfs/usr/share/plymouth/themes/meoarch"
 PLYMOUTH_CONFIG = ROOT / "meoarch-os/airootfs/etc/plymouth/plymouthd.conf"
+PLYMOUTH_BUILD_HOOK = ROOT / "meoarch-os/airootfs/etc/pacman.d/hooks/80-meoarch-plymouth.hook"
 
 
 class PlymouthBrandTests(unittest.TestCase):
@@ -27,6 +28,17 @@ class PlymouthBrandTests(unittest.TestCase):
         config = PLYMOUTH_CONFIG.read_text(encoding="utf-8")
         self.assertIn("Theme=meoarch", config)
         self.assertNotIn("Theme=arch", config)
+
+    def test_build_stages_branding_before_mkinitcpio_transaction_hook(self):
+        hook = PLYMOUTH_BUILD_HOOK.read_text(encoding="utf-8")
+        self.assertTrue(PLYMOUTH_BUILD_HOOK.name.startswith("80-"))
+        self.assertIn("# remove from airootfs!", hook)
+        self.assertIn("Target = linux", hook)
+        self.assertIn("Target = plymouth", hook)
+        self.assertIn("meoarch-airootfs-overlay.tar", hook)
+        self.assertIn("./etc/plymouth/plymouthd.conf", hook)
+        self.assertIn("./usr/share/plymouth/themes/meoarch/logo.png", hook)
+        self.assertIn("Theme[[:space:]]*=[[:space:]]*meoarch", hook)
 
 
 if __name__ == "__main__":
