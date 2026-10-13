@@ -114,7 +114,9 @@ PageFrame {
                             text: qsTr("Firmware: %1 · Network: %2 · Hardware: %3")
                                   .arg(page.controller && page.controller.firmwareMode === "bios" ? qsTr("Legacy BIOS") : qsTr("UEFI"))
                                   .arg(page.controller && (page.controller.networkState === "online" || page.controller.networkState === "repository") ? qsTr("Connected") : qsTr("Check connection"))
-                                  .arg(page.controller && page.controller.hardwareDetected ? qsTr("Detected") : qsTr("Checking"))
+                                  .arg(page.controller && page.controller.hardwareDetecting ? qsTr("Checking")
+                                       : page.controller && page.controller.hardwareDetected ? qsTr("Detected")
+                                       : qsTr("Compatibility mode"))
                             typeRole: "body"
                             typeSize: "small"
                             color: MeoTheme.contentOnSurfaceVariant
