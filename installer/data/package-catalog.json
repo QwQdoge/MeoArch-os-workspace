@@ -7,6 +7,31 @@
     "stable": "meo",
     "beta": "meo-beta"
   },
+  "releaseGenerations": {
+    "stable": [
+      "2026.09"
+    ],
+    "beta": [
+      "2026.09",
+      "2026.08"
+    ]
+  },
+  "repositoryReleaseGenerations": {
+    "stable": {
+      "meo": [
+        "2026.09"
+      ]
+    },
+    "beta": {
+      "meo-beta": [
+        "2026.09"
+      ],
+      "meo": [
+        "2026.09",
+        "2026.08"
+      ]
+    }
+  },
   "bootstrapPackages": [
     "meo-keyring",
     "meo-mirrorlist"

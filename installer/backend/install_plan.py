@@ -19,6 +19,7 @@ PROFILES = {"recommended", "minimal", "custom"}
 CHANNELS = {"stable", "beta"}
 INPUT_METHOD_MODES = {"meo-managed", "self-managed"}
 PACKAGE_NAME = re.compile(r"^[A-Za-z0-9@._+:-]{1,128}$")
+RELEASE_GENERATION = re.compile(r"^[0-9]{4}\.[0-9]{2}$")
 INPUT_METHOD_CAPABILITY_ID = re.compile(r"^fcitx5\.[a-z0-9][a-z0-9._-]{0,63}$")
 INSTALLED_SYSTEM_PACKAGES = {"meo-plasma-login-manager"}
 
@@ -34,6 +35,8 @@ class RepositoryPlan:
     repositories: tuple[str, ...]
     bootstrap_packages: tuple[str, ...]
     channel_package: str
+    release_generations: tuple[str, ...]
+    repository_release_generations: dict[str, tuple[str, ...]]
 
 
 @dataclass(frozen=True)
@@ -93,6 +96,47 @@ def load_config(path: str | Path) -> dict[str, Any]:
     return load_json(path)
 
 
+def _validate_release_policy(catalog: dict[str, Any], generation: str) -> None:
+    repository_names = catalog.get("repositoryNames")
+    release_generations = catalog.get("releaseGenerations")
+    repository_policy = catalog.get("repositoryReleaseGenerations")
+    if repository_names != {"stable": "meo", "beta": "meo-beta"}:
+        raise PlanError("package catalog has invalid repository names")
+    if not isinstance(release_generations, dict) or set(release_generations) != CHANNELS:
+        raise PlanError("package catalog has invalid release generation policy")
+    if not isinstance(repository_policy, dict) or set(repository_policy) != CHANNELS:
+        raise PlanError("package catalog has invalid repository generation policy")
+
+    expected_repositories = {
+        "stable": (repository_names["stable"],),
+        "beta": (repository_names["beta"], repository_names["stable"]),
+    }
+    for channel in ("stable", "beta"):
+        generations = release_generations[channel]
+        if (not isinstance(generations, list) or not generations or generations[0] != generation
+                or len(set(generations)) != len(generations)
+                or any(not isinstance(item, str) or not RELEASE_GENERATION.fullmatch(item)
+                       for item in generations)):
+            raise PlanError(f"package catalog has invalid {channel} release generations")
+        policy = repository_policy[channel]
+        if not isinstance(policy, dict) or set(policy) != set(expected_repositories[channel]):
+            raise PlanError(f"package catalog has invalid {channel} repository generation policy")
+        policy_union: set[str] = set()
+        for repository in expected_repositories[channel]:
+            allowed = policy[repository]
+            if (not isinstance(allowed, list) or not allowed or generation not in allowed
+                    or len(set(allowed)) != len(allowed)
+                    or any(not isinstance(item, str) or item not in generations for item in allowed)):
+                raise PlanError(f"package catalog has invalid generation policy for {repository}")
+            policy_union.update(allowed)
+        if policy_union != set(generations):
+            raise PlanError(f"package catalog has unbound {channel} release generations")
+        if channel == "stable" and policy[repository_names["stable"]] != [generation]:
+            raise PlanError("Stable repository generation policy must be strict")
+        if channel == "beta" and policy[repository_names["beta"]] != [generation]:
+            raise PlanError("Beta overlay generation policy must be strict")
+
+
 def catalog_from(path: str | Path) -> dict[str, Any]:
     catalog = load_json(path)
     if catalog.get("schemaVersion") != 1:
@@ -100,8 +144,9 @@ def catalog_from(path: str | Path) -> dict[str, Any]:
     if catalog.get("architecture") != SUPPORTED_ARCHITECTURE:
         raise PlanError("package catalog does not support x86_64")
     generation = catalog.get("generation")
-    if not isinstance(generation, str) or not re.fullmatch(r"[0-9]{4}\.[0-9]{2}", generation):
+    if not isinstance(generation, str) or not RELEASE_GENERATION.fullmatch(generation):
         raise PlanError("package catalog has an invalid release generation")
+    _validate_release_policy(catalog, generation)
     return catalog
 
 
@@ -221,6 +266,12 @@ def _closure(selected: set[str], catalog: dict[str, Any]) -> set[str]:
     return selected
 
 
+def _transaction_packages(selected: set[str], catalog: dict[str, Any]) -> set[str]:
+    """Keep logical meta entries for dependency expansion, not pacman requests."""
+    packages = catalog["packages"]
+    return {name for name in selected if packages[name].get("kind") != "meta"}
+
+
 def build_install_plan(config: dict[str, Any], catalog: dict[str, Any], architecture: str = SUPPORTED_ARCHITECTURE,
                        application_catalog: dict[str, Any] | None = None) -> InstallPlan:
     if architecture != SUPPORTED_ARCHITECTURE:
@@ -251,15 +302,25 @@ def build_install_plan(config: dict[str, Any], catalog: dict[str, Any], architec
     # MeoArch OS installer, however, owns the complete installed-system login
     # experience and therefore installs Meo Login explicitly for every profile.
     selected.update(INSTALLED_SYSTEM_PACKAGES)
-    selected = _closure(selected, catalog)
-    required = _closure({"meo-desktop", *INSTALLED_SYSTEM_PACKAGES}, catalog)
+    selected = _transaction_packages(_closure(selected, catalog), catalog)
+    required = _transaction_packages(_closure({"meo-desktop", *INSTALLED_SYSTEM_PACKAGES}, catalog), catalog)
 
     mirror = str(config.get("mirror", "automatic"))
     if mirror != "automatic":
         raise PlanError("only official automatic mirror selection is currently supported")
-    repos = ("meo",) if channel == "stable" else ("meo-beta", "meo")
+    repository_names = catalog["repositoryNames"]
+    repos = ((repository_names["stable"],) if channel == "stable"
+             else (repository_names["beta"], repository_names["stable"]))
     channel_package = catalog["channelPackages"][channel]
-    repository = RepositoryPlan(channel, mirror, repos, tuple(catalog["bootstrapPackages"]), channel_package)
+    release_generations = tuple(catalog["releaseGenerations"][channel])
+    repository_release_generations = {
+        repository: tuple(catalog["repositoryReleaseGenerations"][channel][repository])
+        for repository in repos
+    }
+    repository = RepositoryPlan(
+        channel, mirror, repos, tuple(catalog["bootstrapPackages"]), channel_package,
+        release_generations, repository_release_generations,
+    )
     package = PackagePlan(profile, tuple(sorted(selected | {"meo-release"})), tuple(sorted(required)))
     applications = (resolve_applications(config, application_catalog, profile)
                     if application_catalog is not None else ApplicationPlan((), (), "arch-official"))
@@ -275,7 +336,12 @@ def plan_as_dict(plan: InstallPlan) -> dict[str, Any]:
         "repository": {"channel": plan.repository.channel, "mirror": plan.repository.mirror,
                        "repositories": list(plan.repository.repositories),
                        "bootstrapPackages": list(plan.repository.bootstrap_packages),
-                       "channelPackage": plan.repository.channel_package},
+                       "channelPackage": plan.repository.channel_package,
+                       "releaseGenerations": list(plan.repository.release_generations),
+                       "repositoryReleaseGenerations": {
+                           repository: list(generations)
+                           for repository, generations in plan.repository.repository_release_generations.items()
+                       }},
         "package": {"profile": plan.package.profile, "packages": list(plan.package.packages),
                     "required": list(plan.package.required)},
         "applications": {"selected": list(plan.applications.selected),
