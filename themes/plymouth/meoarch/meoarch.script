@@ -12,15 +12,14 @@ Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
 # The canonical MeoArch text logo is deliberately high resolution. Scale it
 # for the active framebuffer so it stays centered and never clips on smaller
 # VM/physical displays.
-logo_source = Image("logo.png");
-logo_image = logo_source;
-if (logo_source) {
+logo_image = Image("logo.png");
+if (logo_image) {
     max_logo_width = Math.Min(760, screen_width * 0.62);
-    if (logo_source.GetWidth() > max_logo_width) {
-        logo_scale = max_logo_width / logo_source.GetWidth();
-        logo_image = logo_source.Scale(
+    if (logo_image.GetWidth() > max_logo_width) {
+        logo_scale = max_logo_width / logo_image.GetWidth();
+        logo_image = logo_image.Scale(
             max_logo_width,
-            logo_source.GetHeight() * logo_scale
+            logo_image.GetHeight() * logo_scale
         );
     }
 }

@@ -19,9 +19,9 @@ class PlymouthBrandTests(unittest.TestCase):
         source_script = (SOURCE_THEME / "meoarch.script").read_text(encoding="utf-8")
         iso_script = (ISO_THEME / "meoarch.script").read_text(encoding="utf-8")
         self.assertEqual(source_script, iso_script)
-        self.assertIn('logo_source = Image("logo.png")', source_script)
+        self.assertIn('logo_image = Image("logo.png")', source_script)
         self.assertIn("max_logo_width = Math.Min(760, screen_width * 0.62)", source_script)
-        self.assertIn("logo_source.Scale(", source_script)
+        self.assertIn("logo_image = logo_image.Scale(", source_script)
 
     def test_meoarch_theme_is_selected_for_live_boot(self):
         config = PLYMOUTH_CONFIG.read_text(encoding="utf-8")
