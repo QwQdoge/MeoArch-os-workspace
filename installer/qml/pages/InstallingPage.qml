@@ -37,6 +37,16 @@ PageFrame {
         if (stage === "blocked") return qsTr("Installation blocked")
         return qsTr("Preparing installation")
     }
+    function refreshLogDetails() {
+        if (page.controller && typeof page.controller.installationLogDetails === "function")
+            page.logDetails = page.controller.installationLogDetails()
+    }
+    Timer {
+        interval: 1000
+        repeat: true
+        running: logPopup.visible && page.controller && page.controller.installationState === "running"
+        onTriggered: page.refreshLogDetails()
+    }
     Column {
         width: parent.width
         spacing: page.compactHeight ? page.dp(12) : page.dp(18)
@@ -76,27 +86,29 @@ PageFrame {
             }
         }
         Flow {
-            visible: page.controller && page.controller.installationState === "failed"
+            visible: page.controller && (page.controller.installationState === "running"
+                                         || page.controller.installationState === "failed")
             width: parent.width
             spacing: page.dp(12)
             MeoButton {
                 text: qsTr("View details")
                 onClicked: {
-                    page.logDetails = page.controller.installationLogDetails()
+                    page.refreshLogDetails()
                     logPopup.open()
                 }
             }
             MeoButton {
-                visible: page.desktopLive
+                visible: page.controller && page.controller.installationState === "failed" && page.desktopLive
                 text: qsTr("Return to Live Desktop")
                 onClicked: page.exitRequested()
             }
             MeoButton {
-                visible: page.desktopLive
+                visible: page.controller && page.controller.installationState === "failed" && page.desktopLive
                 text: qsTr("Open Quick Repair")
                 onClicked: page.controller.openLiveRepair()
             }
             MeoButton {
+                visible: page.controller && page.controller.installationState === "failed"
                 text: qsTr("Restart Live Environment")
                 icon.name: "restart_alt"
                 type: "tonal"
@@ -149,6 +161,9 @@ PageFrame {
                     selectByMouse: true
                     wrapMode: TextEdit.Wrap
                     color: MeoTheme.contentOnSurface
+                    font.family: "monospace"
+                    font.pixelSize: page.dp(13)
+                    onTextChanged: cursorPosition = length
                 }
             }
         }
