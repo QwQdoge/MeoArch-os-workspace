@@ -1,5 +1,5 @@
 # MeoArch Plymouth boot splash
-# Minimal black handoff surface: logo only during normal boot, with a soft
+# Minimal black handoff surface: wordmark only during normal boot, with a soft
 # fade near the graphical-session handoff. Error text remains available when
 # boot status reports a failure.
 
@@ -9,7 +9,21 @@ screen_height = Window.GetHeight();
 Window.SetBackgroundTopColor(0.0, 0.0, 0.0);
 Window.SetBackgroundBottomColor(0.0, 0.0, 0.0);
 
-logo_image = Image("logo.png");
+# The canonical MeoArch text logo is deliberately high resolution. Scale it
+# for the active framebuffer so it stays centered and never clips on smaller
+# VM/physical displays.
+logo_source = Image("logo.png");
+logo_image = logo_source;
+if (logo_source) {
+    max_logo_width = Math.Min(760, screen_width * 0.62);
+    if (logo_source.GetWidth() > max_logo_width) {
+        logo_scale = max_logo_width / logo_source.GetWidth();
+        logo_image = logo_source.Scale(
+            max_logo_width,
+            logo_source.GetHeight() * logo_scale
+        );
+    }
+}
 logo_sprite = Sprite();
 logo_glow_image = 0;
 logo_glow_sprite = Sprite();
@@ -19,7 +33,7 @@ is_error_state = 0;
 frame_count = 0;
 
 if (logo_image) {
-    # Use a slightly enlarged copy of the logo as a low-opacity halo. This
+    # Use a slightly enlarged copy of the wordmark as a low-opacity halo. This
     # stays intentionally subtle and avoids a separate animation asset.
     logo_glow_image = logo_image.Scale(
         logo_image.GetWidth() * 1.08,
@@ -65,8 +79,8 @@ fun refresh_callback() {
         }
 
         # systemd boot progress approaches 1.0 shortly before the graphical
-        # target. Fade the logo toward black so Cage inherits a dark frame
-        # instead of a bright hard cut.
+        # target. Fade the logo toward black so the graphical session inherits
+        # a dark frame instead of a bright hard cut.
         if (boot_progress >= 0.90) {
             logo_opacity = Math.Max(0.0, logo_opacity - 0.045);
         }
