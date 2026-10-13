@@ -1,7 +1,5 @@
 import importlib.util
 from importlib.machinery import SourceFileLoader
-import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -21,6 +19,13 @@ class ArchinstallWrapperTests(unittest.TestCase):
     def test_config_argument_supports_split_and_equals_forms(self):
         self.assertEqual(MODULE.config_argument(["--silent", "--config", "/tmp/a.json"]), (2, "/tmp/a.json"))
         self.assertEqual(MODULE.config_argument(["--silent", "--config=/tmp/b.json"]), (1, "/tmp/b.json"))
+
+    def test_dry_run_passes_original_configuration_through(self):
+        argv = ["--silent", "--dry-run", "--config", "/tmp/generated/user_configuration.json", "--creds", "/tmp/creds.json"]
+        with mock.patch.object(MODULE.sys, "argv", ["archinstall", *argv]), \
+             mock.patch.object(MODULE, "passthrough", return_value=23) as passthrough:
+            self.assertEqual(MODULE.main(), 23)
+            passthrough.assert_called_once_with(argv)
 
     def test_enable_locale_uncomments_only_selected_locale(self):
         with tempfile.TemporaryDirectory() as directory:

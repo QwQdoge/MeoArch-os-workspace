@@ -9,6 +9,9 @@ persist locale files, so for the generated Meo installer configuration we let
 Archinstall perform the installation without locale_config and apply the same
 persistent locale/keymap state directly to the mounted target afterwards.
 
+Dry-run validation must see the original generated configuration and must not
+attempt to modify /mnt, so --dry-run invocations are passed through unchanged.
+
 The wrapper is staged at both /usr/local/bin/archinstall and
 /usr/bin/archinstall in the Live image. It therefore invokes the installed
 Archinstall Python module directly rather than chaining to either executable
@@ -124,6 +127,8 @@ def main() -> int:
     argv = sys.argv[1:]
     index, config_name = config_argument(argv)
     if index is None or config_name is None or "--silent" not in argv:
+        return passthrough(argv)
+    if "--dry-run" in argv:
         return passthrough(argv)
 
     config_path = Path(config_name)
