@@ -2,14 +2,17 @@
 """MeoArch compatibility wrapper for Archinstall's transient localectl failure.
 
 Archinstall currently boots the target temporarily and uses
-`systemd-run --machine=archinstall ... localectl set-keymap`.  On some Live
+`systemd-run --machine=archinstall ... localectl set-keymap`. On some Live
 systems that machine transport can refuse the connection after the base system
-has already been installed.  MeoArch does not need a booted target merely to
+has already been installed. MeoArch does not need a booted target merely to
 persist locale files, so for the generated Meo installer configuration we let
 Archinstall perform the installation without locale_config and apply the same
 persistent locale/keymap state directly to the mounted target afterwards.
 
-All other archinstall invocations are passed through unchanged.
+The wrapper is staged at both /usr/local/bin/archinstall and
+/usr/bin/archinstall in the Live image. It therefore invokes the installed
+Archinstall Python module directly rather than chaining to either executable
+path. All non-Meo Archinstall invocations are passed through unchanged.
 """
 
 from __future__ import annotations
@@ -22,9 +25,13 @@ import subprocess
 import sys
 import tempfile
 
-REAL_ARCHINSTALL = Path("/usr/bin/archinstall")
+REAL_PYTHON = Path("/usr/bin/python")
 SAFE_KEYMAP = re.compile(r"[A-Za-z0-9_.+@-]{1,64}\Z")
 SAFE_LOCALE = re.compile(r"[A-Za-z0-9_.+@-]{1,96}\Z")
+
+
+def real_archinstall_command(argv: list[str]) -> list[str]:
+    return [str(REAL_PYTHON), "-m", "archinstall", *argv]
 
 
 def config_argument(argv: list[str]) -> tuple[int | None, str | None]:
@@ -37,7 +44,8 @@ def config_argument(argv: list[str]) -> tuple[int | None, str | None]:
 
 
 def passthrough(argv: list[str]) -> int:
-    os.execv(str(REAL_ARCHINSTALL), [str(REAL_ARCHINSTALL), *argv])
+    command = real_archinstall_command(argv)
+    os.execv(str(REAL_PYTHON), command)
     return 127
 
 
@@ -141,7 +149,7 @@ def main() -> int:
         runtime_argv[index] = str(runtime_path)
 
     try:
-        result = subprocess.run([str(REAL_ARCHINSTALL), *runtime_argv], check=False)
+        result = subprocess.run(real_archinstall_command(runtime_argv), check=False)
         if result.returncode != 0:
             return result.returncode
         target = Path(os.environ.get("MEOARCH_TARGET_ROOT", "/mnt"))

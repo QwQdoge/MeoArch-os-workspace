@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+"""MeoArch compatibility wrapper for Archinstall's transient localectl failure.
+
+Archinstall currently boots the target temporarily and uses
+`systemd-run --machine=archinstall ... localectl set-keymap`. On some Live
+systems that machine transport can refuse the connection after the base system
+has already been installed. MeoArch does not need a booted target merely to
+persist locale files, so for the generated Meo installer configuration we let
+Archinstall perform the installation without locale_config and apply the same
+persistent locale/keymap state directly to the mounted target afterwards.
+
+The wrapper is staged at both /usr/local/bin/archinstall and
+/usr/bin/archinstall in the Live image. It therefore invokes the installed
+Archinstall Python module directly rather than chaining to either executable
+path. All non-Meo Archinstall invocations are passed through unchanged.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import tempfile
+
+REAL_PYTHON = Path("/usr/bin/python")
+SAFE_KEYMAP = re.compile(r"[A-Za-z0-9_.+@-]{1,64}\Z")
+SAFE_LOCALE = re.compile(r"[A-Za-z0-9_.+@-]{1,96}\Z")
+
+
+def real_archinstall_command(argv: list[str]) -> list[str]:
+    return [str(REAL_PYTHON), "-m", "archinstall", *argv]
+
+
+def config_argument(argv: list[str]) -> tuple[int | None, str | None]:
+    for index, arg in enumerate(argv):
+        if arg == "--config" and index + 1 < len(argv):
+            return index + 1, argv[index + 1]
+        if arg.startswith("--config="):
+            return index, arg.split("=", 1)[1]
+    return None, None
+
+
+def passthrough(argv: list[str]) -> int:
+    command = real_archinstall_command(argv)
+    os.execv(str(REAL_PYTHON), command)
+    return 127
+
+
+def write_runtime_config(source: Path, payload: dict) -> Path:
+    descriptor, name = tempfile.mkstemp(prefix=".meoarch-archinstall-", suffix=".json", dir=source.parent)
+    runtime = Path(name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle, indent=2, ensure_ascii=False)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.chmod(runtime, 0o600)
+    except Exception:
+        runtime.unlink(missing_ok=True)
+        raise
+    return runtime
+
+
+def replace_assignment(path: Path, key: str, value: str) -> None:
+    lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+    filtered = [line for line in lines if not line.startswith(f"{key}=")]
+    filtered.append(f"{key}={value}")
+    path.write_text("\n".join(filtered) + "\n", encoding="utf-8")
+
+
+def enable_locale(locale_gen: Path, locale_name: str, encoding: str) -> None:
+    lines = locale_gen.read_text(encoding="utf-8").splitlines()
+    wanted_names = {locale_name}
+    if "." not in locale_name:
+        wanted_names.add(f"{locale_name}.{encoding}")
+
+    found = False
+    output: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        candidate = stripped[1:].strip() if stripped.startswith("#") else stripped
+        fields = candidate.split()
+        if len(fields) >= 2 and fields[0] in wanted_names and fields[1].upper() == encoding.upper():
+            output.append(candidate)
+            found = True
+        else:
+            output.append(line)
+    if not found:
+        raise RuntimeError(f"selected locale is not present in target locale.gen: {locale_name} {encoding}")
+    locale_gen.write_text("\n".join(output) + "\n", encoding="utf-8")
+
+
+def apply_locale(target: Path, locale: dict) -> None:
+    target = target.resolve(strict=True)
+    if target == Path("/") or not (target / "etc").is_dir() or not (target / "usr").is_dir():
+        raise RuntimeError(f"unsafe Archinstall target root: {target}")
+
+    keymap = str(locale.get("kb_layout") or "us")
+    language = str(locale.get("sys_lang") or "en_US.UTF-8")
+    encoding = str(locale.get("sys_enc") or "UTF-8")
+    if not SAFE_KEYMAP.fullmatch(keymap):
+        raise RuntimeError(f"unsafe keyboard layout: {keymap!r}")
+    if not SAFE_LOCALE.fullmatch(language) or not SAFE_LOCALE.fullmatch(encoding):
+        raise RuntimeError("unsafe locale value")
+
+    etc = target / "etc"
+    replace_assignment(etc / "vconsole.conf", "KEYMAP", keymap)
+    replace_assignment(etc / "locale.conf", "LANG", language)
+    enable_locale(etc / "locale.gen", language, encoding)
+
+    result = subprocess.run(
+        ["/usr/bin/arch-chroot", str(target), "/usr/bin/locale-gen"],
+        check=False,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"locale-gen failed with exit status {result.returncode}")
+
+
+def main() -> int:
+    argv = sys.argv[1:]
+    index, config_name = config_argument(argv)
+    if index is None or config_name is None or "--silent" not in argv:
+        return passthrough(argv)
+
+    config_path = Path(config_name)
+    if config_path.name != "user_configuration.json" or config_path.parent.name != "generated":
+        return passthrough(argv)
+
+    try:
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return passthrough(argv)
+    locale = config.get("locale_config")
+    if not isinstance(locale, dict):
+        return passthrough(argv)
+
+    print("[MeoArch] Archinstall compatibility wrapper active; deferring locale setup until the base install completes.", flush=True)
+    runtime_config = dict(config)
+    runtime_config["locale_config"] = None
+    runtime_path = write_runtime_config(config_path, runtime_config)
+    runtime_argv = list(argv)
+    if runtime_argv[index].startswith("--config="):
+        runtime_argv[index] = f"--config={runtime_path}"
+    else:
+        runtime_argv[index] = str(runtime_path)
+
+    try:
+        result = subprocess.run(real_archinstall_command(runtime_argv), check=False)
+        if result.returncode != 0:
+            return result.returncode
+        target = Path(os.environ.get("MEOARCH_TARGET_ROOT", "/mnt"))
+        apply_locale(target, locale)
+        return 0
+    except Exception as error:
+        print(f"MeoArch locale compatibility step failed: {error}", file=sys.stderr, flush=True)
+        return 1
+    finally:
+        runtime_path.unlink(missing_ok=True)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
