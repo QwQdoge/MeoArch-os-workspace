@@ -28,6 +28,10 @@ Environment=XDG_RUNTIME_DIR=/run/meoarch-installer
 Environment=MEO_UI_QML_IMPORT_PATH=/usr/lib/qt6/qml
 Environment=QML2_IMPORT_PATH=/opt/meoarch-installer/qml:/usr/lib/qt6/qml
 Environment=XKB_DEFAULT_LAYOUT=us
+# The install engine invokes `archinstall` by name. Put the MeoArch compatibility
+# wrapper ahead of the packaged /usr/bin binary so locale setup never falls back
+# to Archinstall's fragile systemd machine-transport path.
+Environment=PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin
 EnvironmentFile=-/etc/meoarch/account.env
 RuntimeDirectory=meoarch-installer
 RuntimeDirectoryMode=0700

@@ -130,6 +130,7 @@ def main() -> int:
     if not isinstance(locale, dict):
         return passthrough(argv)
 
+    print("[MeoArch] Archinstall compatibility wrapper active; deferring locale setup until the base install completes.", flush=True)
     runtime_config = dict(config)
     runtime_config["locale_config"] = None
     runtime_path = write_runtime_config(config_path, runtime_config)
