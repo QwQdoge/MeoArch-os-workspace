@@ -167,14 +167,23 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("Restart and Shut Down are disabled in preview mode.", finish)
         self.assertNotIn("safe no-op actions", finish)
 
-    def test_power_dialog_uses_md_motion_and_hold_confirmation(self):
+    def test_power_dialog_uses_md_motion_and_click_confirmation(self):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
         self.assertIn("presentation: MeoMotionPopup.Dialog", frame)
-        self.assertEqual(frame.count("MeoHoldToConfirm {"), 2)
-        self.assertIn('confirmationText: qsTr("Hold to restart")', frame)
-        self.assertIn('confirmationText: qsTr("Hold to shut down")', frame)
-        self.assertIn("holdDuration: 1200", frame)
+        self.assertNotIn("MeoHoldToConfirm {", frame)
+        self.assertIn('text: qsTr("Restart")', frame)
+        self.assertIn('text: qsTr("Shut down")', frame)
+        self.assertIn("function openPowerOptions()", frame)
         self.assertIn("KeyNavigation.down: shutdownAction", frame)
+
+    def test_top_action_popups_center_in_viewport(self):
+        frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")
+        for popup_id in ("diagnosticPopup", "helpPopup", "languagePopup", "powerPopup"):
+            with self.subTest(popup=popup_id):
+                section = frame.split(f"id: {popup_id}", 1)[1].split("contentItem:", 1)[0]
+                self.assertIn("centerInViewport: true", section)
+                self.assertIn("x: (frame.width - width) / 2", section)
+                self.assertIn("y: (frame.height - height) / 2", section)
 
     def test_top_actions_are_compact_borderless_and_help_is_step_local(self):
         frame = (QML_ROOT / "PageFrame.qml").read_text(encoding="utf-8")

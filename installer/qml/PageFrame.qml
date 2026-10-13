@@ -65,6 +65,7 @@ Item {
     signal navigateRequested(int index)
 
     function dp(value) { return Math.round(value * MeoTheme.globalScale) }
+    function openPowerOptions() { powerPopup.openFrom(powerButton) }
     function asset(path) { return String(assetsRoot) + path }
     function firePrimary() { primaryAdvances ? nextRequested() : primaryRequested() }
     readonly property string currentStepHelp: {
@@ -194,13 +195,14 @@ Item {
             size: frame.topActionSize
             type: frame.topActionType
             Accessible.name: qsTr("Power")
-            onClicked: powerPopup.openFrom(powerButton)
+            onClicked: frame.openPowerOptions()
         }
     }
 
     MeoMotionPopup {
         id: diagnosticPopup
         presentation: MeoMotionPopup.Dialog
+        centerInViewport: true
         x: (frame.width - width) / 2
         y: (frame.height - height) / 2
         width: Math.min(frame.dp(760), frame.width - frame.pageMargin * 2)
@@ -351,10 +353,11 @@ Item {
 
     MeoMotionPopup {
         id: helpPopup
-        presentation: MeoMotionPopup.Menu
-        x: Math.max(frame.pageMargin, helpButton.x - width + helpButton.width)
-        y: frame.pageMargin + frame.dp(58)
-        width: frame.dp(360)
+        presentation: MeoMotionPopup.Dialog
+        centerInViewport: true
+        x: (frame.width - width) / 2
+        y: (frame.height - height) / 2
+        width: Math.min(frame.dp(360), frame.width - frame.pageMargin * 2)
         height: Math.min(frame.dp(286), frame.height - frame.pageMargin * 2)
         padding: frame.dp(12)
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
@@ -428,13 +431,14 @@ Item {
 
     MeoMotionPopup {
         id: languagePopup
-        presentation: MeoMotionPopup.Menu
-        x: frame.width - frame.pageMargin - width
-        y: frame.pageMargin + frame.dp(58)
-        width: frame.dp(300)
+        presentation: MeoMotionPopup.Dialog
+        centerInViewport: true
+        x: (frame.width - width) / 2
+        y: (frame.height - height) / 2
+        width: Math.min(frame.dp(300), frame.width - frame.pageMargin * 2)
         height: Math.min(frame.dp(544),
                          frame.dp(16) + frame.dp(48) * (frame.controller ? frame.controller.uiLanguages.length : 0),
-                         frame.height - y - frame.pageMargin)
+                         frame.height - frame.pageMargin * 2)
         padding: frame.dp(8)
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
@@ -484,6 +488,7 @@ Item {
         // This is an independent MeoUI implementation; no Quickshell service
         // or upstream GPL QML is embedded in the installer.
         presentation: MeoMotionPopup.Dialog
+        centerInViewport: true
         x: (frame.width - width) / 2
         y: (frame.height - height) / 2
         width: Math.min(frame.dp(420), frame.width - frame.pageMargin * 2)
@@ -526,7 +531,7 @@ Item {
                     }
                     MeoText {
                         width: parent.width
-                        text: qsTr("Hold an action to avoid ending the live session by accident.")
+                        text: qsTr("Choose an action below. The live session will end immediately.")
                         typeRole: "body"
                         typeSize: "small"
                         color: MeoTheme.contentOnSurfaceVariant
@@ -535,31 +540,27 @@ Item {
                 }
             }
 
-            MeoHoldToConfirm {
+            MeoButton {
                 id: restartAction
                 width: parent.width
-                confirmationText: qsTr("Hold to restart")
-                holdingText: qsTr("Keep holding to restart…")
-                holdDuration: 1200
-                iconName: "restart_alt"
-                tone: "neutral"
+                text: qsTr("Restart")
+                icon.name: "restart_alt"
+                type: "tonal"
                 KeyNavigation.down: shutdownAction
-                onConfirmed: {
+                onClicked: {
                     powerPopup.close()
                     frame.controller.requestRestart()
                 }
             }
-            MeoHoldToConfirm {
+            MeoButton {
                 id: shutdownAction
                 width: parent.width
-                confirmationText: qsTr("Hold to shut down")
-                holdingText: qsTr("Keep holding to shut down…")
-                holdDuration: 1200
-                iconName: "power_settings_new"
-                tone: "error"
+                text: qsTr("Shut down")
+                icon.name: "power_settings_new"
+                type: "tonal"
                 KeyNavigation.up: restartAction
                 KeyNavigation.down: cancelPowerAction
-                onConfirmed: {
+                onClicked: {
                     powerPopup.close()
                     frame.controller.requestShutdown()
                 }

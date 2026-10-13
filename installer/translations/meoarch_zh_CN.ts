@@ -1043,6 +1043,10 @@
 <context>
     <name>InstallingPage</name>
     <message>
+        <source>Restart Live Environment</source>
+        <translation>重启 Live 环境</translation>
+    </message>
+    <message>
         <location filename="../qml/pages/InstallingPage.qml" line="37"/>
         <source>Installing</source>
         <translation>正在安装</translation>
@@ -1847,11 +1851,11 @@
     </message>
     <message>
         <source>Restart</source>
-        <translation type="vanished">重启</translation>
+        <translation>重启</translation>
     </message>
     <message>
         <source>Shut down</source>
-        <translation type="vanished">关机</translation>
+        <translation>关机</translation>
     </message>
     <message>
         <location filename="../qml/PageFrame.qml" line="375"/>
@@ -1860,8 +1864,8 @@
     </message>
     <message>
         <location filename="../qml/PageFrame.qml" line="383"/>
-        <source>Hold an action to avoid ending the live session by accident.</source>
-        <translation>长按操作，避免意外结束 Live 会话。</translation>
+        <source>Choose an action below. The live session will end immediately.</source>
+        <translation>选择下方操作。Live 会话将立即结束。</translation>
     </message>
     <message>
         <location filename="../qml/PageFrame.qml" line="395"/>

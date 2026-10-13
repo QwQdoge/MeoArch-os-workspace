@@ -96,13 +96,11 @@ PageFrame {
                 text: qsTr("Open Quick Repair")
                 onClicked: page.controller.openLiveRepair()
             }
-            MeoHoldToConfirm {
-                width: page.dp(260)
-                confirmationText: qsTr("Hold to restart Live Environment")
-                holdingText: qsTr("Keep holding to restart…")
-                holdDuration: 1200
-                iconName: "restart_alt"
-                onConfirmed: page.controller.requestRestart()
+            MeoButton {
+                text: qsTr("Restart Live Environment")
+                icon.name: "restart_alt"
+                type: "tonal"
+                onClicked: page.openPowerOptions()
             }
         }
         InfoBanner {

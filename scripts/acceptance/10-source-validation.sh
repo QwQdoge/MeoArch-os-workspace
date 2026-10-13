@@ -242,7 +242,7 @@ grep -q 'GRUB_TIMEOUT.*3' installer/backend/apply-target-customizations.sh
 grep -q 'meo-session-actiond' scripts/sync-installer-to-airootfs.sh
 grep -q 'org.meo.SessionAction1.service' installer/backend/verify-target.py
 grep -Fq 'Ctrl+Meta+Delete' "${projects_root}/meo-kde/defaults/kde/kglobalshortcutsrc"
-grep -q 'MeoHoldToConfirm' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/logout/Logout.qml"
+grep -q 'MeoButton' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/logout/Logout.qml"
 ! rg -q 'AI Repair MeoArch OS|✨' meoarch-os/grub meoarch-os/efiboot meoarch-os/syslinux
 grep -q '/usr/local/bin/meoarch-repair-session' installer/bin/meoarch-installer-kiosk
 grep -q '/usr/bin/meoarch-repair --live --kiosk' installer/bin/meoarch-repair-session
