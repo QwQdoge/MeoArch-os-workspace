@@ -63,13 +63,41 @@ MeoMotionPopup {
     onSearchTextChanged: rebuild()
     onOpened: { pendingId = selectedId; search.forceActiveFocus(); rebuild(); list.positionViewAtIndex(Math.max(0, list.currentIndex), ListView.Center) }
 
-    contentItem: Column {
-        spacing: popup.dp(16)
-        MeoText { width: parent.width; text: popup.title + " · " + popup.filteredModel.length; typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
-        MeoTextField { id: search; width: parent.width; type: "outlined"; size: "l"; label: qsTr("Search"); placeholder: qsTr("Type a name or code"); onTextChanged: popup.searchText = text }
+    contentItem: Item {
+        MeoText {
+            id: dialogTitle
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            text: popup.title + " · " + popup.filteredModel.length
+            typeRole: "title"
+            typeSize: "medium"
+            emphasized: true
+            color: MeoTheme.contentOnSurface
+        }
+        MeoTextField {
+            id: search
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: dialogTitle.bottom
+            anchors.topMargin: popup.dp(16)
+            type: "outlined"
+            size: "l"
+            label: qsTr("Search")
+            placeholder: qsTr("Type a name or code")
+            onTextChanged: popup.searchText = text
+        }
         ListView {
             id: list
-            width: parent.width; height: Math.max(0, parent.height - popup.dp(150)); clip: true; model: popup.filteredModel
+            objectName: "selectorOptions"
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: search.bottom
+            anchors.topMargin: popup.dp(16)
+            anchors.bottom: actions.top
+            anchors.bottomMargin: popup.dp(16)
+            clip: true
+            model: popup.filteredModel
             keyNavigationEnabled: true; highlightMoveDuration: MeoTheme.reduceMotion ? 0 : MeoTheme.motionDurationMedium2
             highlightMoveVelocity: -1
             currentIndex: {
@@ -113,7 +141,11 @@ MeoMotionPopup {
             }
         }
         Row {
-            anchors.right: parent.right; spacing: popup.dp(8)
+            id: actions
+            objectName: "selectorActions"
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            spacing: popup.dp(8)
             MeoButton { text: qsTr("Cancel"); type: "text"; onClicked: popup.close() }
             MeoButton { text: qsTr("Apply"); type: "filled"; enabled: popup.pendingId.length > 0 && popup.filteredModel.some(item => String(item[popup.primaryKey]) === popup.pendingId && popup.isSelectable(item)); onClicked: { popup.applied(popup.pendingId); popup.close() } }
         }

@@ -295,6 +295,13 @@ Window {
     }
 
     Connections {
+        target: root.visualPreview ? Installer.PreviewController : null
+        function onUiLanguageChangeRequested(id) {
+            root.installerController.setUiLanguage(id)
+        }
+    }
+
+    Connections {
         target: pageHost.currentItem
         ignoreUnknownSignals: true
         function onNextRequested() {

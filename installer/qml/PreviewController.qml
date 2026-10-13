@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 
 QtObject {
+    signal uiLanguageChangeRequested(string id)
     readonly property bool previewInstalling: Qt.application.arguments.indexOf("--preview-installing") >= 0
     readonly property bool previewFailed: Qt.application.arguments.indexOf("--preview-failed") >= 0
     readonly property bool previewComplete: Qt.application.arguments.indexOf("--preview-complete") >= 0
@@ -112,7 +113,10 @@ QtObject {
         {id:"preview-disk-1",devicePath:"/dev/sdb",name:qsTr("External Storage"),size:"1 TB",sizeBytes:1099511627776,logicalSectorSize:512,available:qsTr("Preview media excluded"),kind:qsTr("Removable · Preview"),eligible:false,unavailableReason:qsTr("This is preview-only removable media."),partitionInstallEligible:false,partitionUnavailableReason:qsTr("Removable media cannot be selected."),serial:"PREVIEW",wwn:"",partitions:[]}
     ]
 
-    function setUiLanguage(id) { uiLanguage = id }
+    function setUiLanguage(id) {
+        uiLanguage = id
+        uiLanguageChangeRequested(id)
+    }
     function setSystemLocale(id) { systemLocale = id }
     function setFormatLocale(id) { formatLocale = id }
     function setFormatCountry(id) { formatCountry = id; formatLocale = systemLocale }

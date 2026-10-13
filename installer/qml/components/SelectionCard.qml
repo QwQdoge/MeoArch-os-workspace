@@ -29,17 +29,6 @@ MeoCard {
                                          : actionable ? Accessible.Button : Accessible.Pane
     Accessible.checked: selectionIndicator && selected
 
-    // MeoCard's visual background owns its hover state, but controls place
-    // background items behind their content item. A root-level handler keeps
-    // the complete card reliably actionable in the installer.
-    TapHandler {
-        enabled: card.enabled && card.actionable
-        onTapped: {
-            card.forceActiveFocus(Qt.MouseFocusReason)
-            card.clicked()
-        }
-    }
-
     MeoIcon {
         id: leadingIcon
         anchors.left: parent.left

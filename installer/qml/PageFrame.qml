@@ -432,7 +432,9 @@ Item {
         x: frame.width - frame.pageMargin - width
         y: frame.pageMargin + frame.dp(58)
         width: frame.dp(300)
-        height: Math.min(frame.dp(544), frame.height - y - frame.pageMargin)
+        height: Math.min(frame.dp(544),
+                         frame.dp(16) + frame.dp(48) * (frame.controller ? frame.controller.uiLanguages.length : 0),
+                         frame.height - y - frame.pageMargin)
         padding: frame.dp(8)
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
