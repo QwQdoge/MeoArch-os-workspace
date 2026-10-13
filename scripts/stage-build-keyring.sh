@@ -75,6 +75,24 @@ gpg_args=(gpg --homedir "${gpg_home}" --batch --no-options --no-auto-key-retriev
 "${gpg_args[@]}" --import <(gpg --homedir "${pacman_keyring_dir}" --no-options --export "${pacman_master_fingerprint}")
 printf '%s:6:\n' "${pacman_master_fingerprint}" | "${gpg_args[@]}" --import-ownertrust
 "${gpg_args[@]}" --import-ownertrust "${arch_keyring_dir}/archlinux-trusted"
+# Pacman's local master key certifies the Arch master keys with non-exportable
+# local signatures. Import only those public certifications from the host ring;
+# an ordinary export/import silently drops them and leaves package signers with
+# unknown trust even though all public keys are present.
+mapfile -t arch_master_fingerprints < <(cut -d: -f1 "${arch_keyring_dir}/archlinux-trusted")
+[ "${#arch_master_fingerprints[@]}" -gt 0 ] || {
+  echo "Arch master key trust list is empty." >&2
+  exit 3
+}
+for fingerprint in "${arch_master_fingerprints[@]}"; do
+  [[ "${fingerprint}" =~ ^[0-9A-F]{40}$ ]] || {
+    echo "Invalid Arch master key fingerprint: ${fingerprint}" >&2
+    exit 3
+  }
+done
+gpg --homedir "${pacman_keyring_dir}" --no-options \
+  --export-options export-local-sigs --export "${arch_master_fingerprints[@]}" | \
+  "${gpg_args[@]}" --import-options import-local-sigs --import
 "${gpg_args[@]}" --import "${bootstrap_dir}/meo.gpg"
 "${gpg_args[@]}" --import-ownertrust "${bootstrap_dir}/meo-trusted"
 
@@ -97,6 +115,13 @@ if "${gpg_args[@]}" --with-colons --list-secret-keys | grep -q '^sec:'; then
   exit 4
 fi
 "${gpg_args[@]}" --check-trustdb >/dev/null
+for fingerprint in "${arch_master_fingerprints[@]}"; do
+  "${gpg_args[@]}" --with-colons --list-keys "${fingerprint}" | \
+    grep -q '^pub:[fu]:' || {
+      echo "Arch master key is not fully trusted: ${fingerprint}" >&2
+      exit 4
+    }
+done
 
 # GnuPG writes a temporary public-ring backup during import.  It is redundant
 # and could predate the revoked-key filtering above, so clean it in the
