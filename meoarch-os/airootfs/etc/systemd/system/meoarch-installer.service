@@ -1,9 +1,9 @@
 [Unit]
 ConditionKernelCommandLine=meoarch.session=cage
-Description=MeoArch graphical installer kiosk
-# This Live-only kiosk owns tty1 in graphical install/repair modes. The tty1
-# getty drop-in is eligible only when the bootloader explicitly selects
-# meoarch.mode=tty, so it cannot race Cage here. Networking is requested in parallel.
+Description=MeoArch Cage installer and repair kiosk
+# This Live-only kiosk owns tty1 in install/repair Cage modes. The tty1 getty
+# drop-in is eligible only when the bootloader explicitly selects meoarch.mode=tty,
+# so it cannot race Cage here. Networking is requested in parallel.
 After=systemd-user-sessions.service systemd-logind.service seatd.service
 Wants=NetworkManager.service seatd.service
 Conflicts=systemd-networkd.service systemd-networkd.socket
@@ -49,4 +49,4 @@ Restart=on-failure
 RestartSec=2
 
 [Install]
-WantedBy=graphical.target
+WantedBy=meoarch-kiosk.target

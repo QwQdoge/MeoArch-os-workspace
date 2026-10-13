@@ -1,0 +1,12 @@
+[Unit]
+Description=MeoArch Live Cage kiosk target
+ConditionPathExists=/run/archiso
+ConditionKernelCommandLine=meoarch.session=cage
+Requires=multi-user.target
+After=multi-user.target
+Wants=meoarch-installer.service
+
+# Cage is a dedicated Live boot path. It deliberately stops at the normal
+# multi-user system foundation and does not pull graphical.target, the display
+# manager, Plasma Login, or a Plasma desktop session before the kiosk starts.
+AllowIsolate=yes
