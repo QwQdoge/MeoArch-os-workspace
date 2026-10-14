@@ -38,35 +38,16 @@ def send_key(socket_path: str, keys: list[str]) -> None:
         "send-key",
         {
             "keys": [{"type": "qcode", "data": key} for key in keys],
-            "hold-time": 50,
+            "hold-time": 100,
         },
     )
 
 
 def send_key_event(socket_path: str, key: str, modifiers: list[str] | None = None) -> None:
-    modifiers = modifiers or []
-    events: list[dict] = []
-    for modifier in modifiers:
-        events.append({
-            "type": "key",
-            "data": {"down": True, "key": {"type": "qcode", "data": modifier}},
-        })
-    events.extend([
-        {
-            "type": "key",
-            "data": {"down": True, "key": {"type": "qcode", "data": key}},
-        },
-        {
-            "type": "key",
-            "data": {"down": False, "key": {"type": "qcode", "data": key}},
-        },
-    ])
-    for modifier in reversed(modifiers):
-        events.append({
-            "type": "key",
-            "data": {"down": False, "key": {"type": "qcode", "data": modifier}},
-        })
-    qmp_execute(socket_path, "input-send-event", {"events": events})
+    # Let QEMU keep the chord held across guest event-loop iterations. A
+    # zero-duration batch can collapse Shift before Wayland commits the text.
+    send_key(socket_path, [*(modifiers or []), key])
+    time.sleep(0.18)
 
 
 def main() -> None:
@@ -141,7 +122,7 @@ def main() -> None:
             modifiers = []
         # Hold modifiers through key delivery; one zero-duration event batch
         # can lose shifted punctuation in the Wayland/virtual keyboard path.
-        send_key(args.socket, [*modifiers, key_name])
+        send_key_event(args.socket, key_name, modifiers)
         # Keep enough spacing for a busy live session to process every key.
         time.sleep(0.08)
 
