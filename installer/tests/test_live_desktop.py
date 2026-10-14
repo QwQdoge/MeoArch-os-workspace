@@ -272,7 +272,8 @@ class LiveDesktopContractTests(unittest.TestCase):
             staged = Path(temporary) / 'staged'
             base.mkdir()
             staged.mkdir()
-            paths = ('airootfs/usr/lib/meoarch/live-installer-authorize',
+            paths = ('airootfs/usr/share/plasma/shells/org.meo.shell/contents/lockscreen/LockScreen.qml',
+                     'airootfs/usr/lib/meoarch/live-installer-authorize',
                      'airootfs/etc/xdg/autostart/meoarch-live.desktop',
                      'airootfs/usr/share/plasma/plasmoids/org.meo.toptasks/metadata.json',
                      'airootfs/usr/share/plasma/plasmoids/org.meo.widgetexplorer/metadata.json',
@@ -288,6 +289,13 @@ class LiveDesktopContractTests(unittest.TestCase):
             result = subprocess.run(command, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertNotIn('UNDECLARED', manifest.read_text())
+            account = staged / 'airootfs/etc/meoarch/account.env'
+            account.parent.mkdir(parents=True, exist_ok=True)
+            account.write_bytes((ROOT / 'installer/data/account.env.example').read_bytes())
+            self.assertEqual(subprocess.run(command, capture_output=True).returncode, 0)
+            account.write_text('PRIVATE_KEY=unreviewed-fixture\n')
+            self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
+            account.write_bytes((ROOT / 'installer/data/account.env.example').read_bytes())
             (staged / 'unreviewed-payload').write_text('unknown')
             result = subprocess.run(command, capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
