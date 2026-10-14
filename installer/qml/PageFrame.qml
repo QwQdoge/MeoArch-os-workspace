@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import MeoUI 1.0
 import "."
 
@@ -328,7 +329,7 @@ Item {
                 }
             }
 
-            Row {
+            RowLayout {
                 width: parent.width
                 spacing: frame.dp(8)
                 MeoButton {
@@ -345,7 +346,7 @@ Item {
                     type: "text"
                     onClicked: frame.controller.clearDiagnosticConsole()
                 }
-                Item { Layout.fillWidth: true; width: 1; height: 1 }
+                Item { Layout.fillWidth: true }
                 MeoButton {
                     text: qsTr("Close")
                     type: "tonal"
