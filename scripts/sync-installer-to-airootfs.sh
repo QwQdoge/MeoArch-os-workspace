@@ -13,9 +13,10 @@ meoui_source="$(realpath -e -- "${meoui_source}")"
 airootfs="${MEOARCH_AIROOTFS:-${repo_root}/meoarch-os/airootfs}"
 installer_src="${repo_root}/installer"
 airootfs="$(realpath -m -- "${airootfs}")"
+outputs_tmp_root="$(realpath -m -- "${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace/tmp")"
 case "${airootfs}" in
-  "${repo_root}"/*) ;;
-  *) echo "Refusing ISO staging outside the workspace: ${airootfs}" >&2; exit 2 ;;
+  "${repo_root}"/*|"${outputs_tmp_root}"/archiso-staging/*/profile/airootfs) ;;
+  *) echo "Refusing ISO staging outside the workspace or managed output profile: ${airootfs}" >&2; exit 2 ;;
 esac
 if [ ! -d "${airootfs}" ] || [ -L "${airootfs}" ]; then
   echo "ISO airootfs must be an existing real directory: ${airootfs}" >&2

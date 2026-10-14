@@ -9,7 +9,7 @@ if [ ! -f "${meoui_source}/CMakeLists.txt" ] && [ -f "${projects_root}/MeoUI/CMa
   meoui_source="${projects_root}/MeoUI"
 fi
 # Persistent releases and validation evidence are centralized by project.
-# Reproducible ArchISO working state still stays under this checkout's build/.
+# ArchISO staging and working state also stay under the project outputs tree.
 default_outputs_root="${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace"
 if [ -n "${MEOARCH_OUTPUT_ROOT:-}" ]; then
   outputs_root="${MEOARCH_OUTPUT_ROOT}/meo-arch-os-workspace"
@@ -17,7 +17,7 @@ else
   outputs_root="${default_outputs_root}"
 fi
 source_profile="${repo_root}/meoarch-os"
-build_root="${repo_root}/build/archiso"
+build_root="${outputs_root}/tmp/archiso-staging"
 out_dir="${outputs_root}/packages/iso"
 clean=0
 acceptance_mode=0
@@ -28,7 +28,7 @@ usage() {
 Usage: scripts/build-iso.sh [--clean] [--acceptance] [--output DIRECTORY]
 
 Build the MeoArch ISO using a staged ArchISO profile. --clean removes only
-reproducible work files under build/archiso; it never deletes existing ISOs.
+reproducible ArchISO staging files under outputs; it never deletes existing ISOs.
 
 --acceptance is required before an acceptance SSH key may be injected. Such
 builds use the isolated packages/iso/acceptance/ output namespace.
@@ -80,8 +80,8 @@ command -v flock >/dev/null 2>&1 || {
   echo "Missing required tool: flock" >&2
   exit 127
 }
-mkdir -p "${repo_root}/build"
-iso_lock_path="${repo_root}/build/.meoarch-iso-build.lock"
+mkdir -p "${outputs_root}/tmp"
+iso_lock_path="${outputs_root}/tmp/.meoarch-iso-build.lock"
 exec {iso_lock_fd}>"${iso_lock_path}"
 if ! flock -n "${iso_lock_fd}"; then
   echo "Another MeoArch ISO build owns ${iso_lock_path}; refusing concurrent staging/work mutation." >&2
@@ -120,7 +120,7 @@ if git status --porcelain --untracked-files=all -- "${repo_root}/installer/boots
 fi
 
 case "${build_root}" in
-  "${repo_root}/build/"*) ;;
+  "${outputs_root}/tmp/"*) ;;
   *) echo "Refusing unsafe build root: ${build_root}" >&2; exit 4 ;;
 esac
 
