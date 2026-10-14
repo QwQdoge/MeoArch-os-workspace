@@ -99,8 +99,7 @@ bool isPlaceholderAudioSink(const QString &name)
 
 RepairController::RepairController(QObject *parent)
     : QObject(parent),
-      m_supabaseUrl(qEnvironmentVariable("MEOARCH_ACCOUNT_SUPABASE_URL").trimmed()),
-      m_publishableKey(qEnvironmentVariable("MEOARCH_ACCOUNT_SUPABASE_PUBLISHABLE_KEY").trimmed())
+      m_accountApiUrl(qEnvironmentVariable("MEOARCH_ACCOUNT_API_URL").trimmed())
 {
     loadAccountEnvironmentFile();
     const QString requestedScope = qEnvironmentVariable("MEOARCH_REPAIR_SCOPE").trimmed().toLower();
@@ -243,7 +242,7 @@ RepairController::~RepairController()
 
 void RepairController::loadAccountEnvironmentFile()
 {
-    if (!m_supabaseUrl.isEmpty() && !m_publishableKey.isEmpty())
+    if (!m_accountApiUrl.isEmpty())
         return;
     QFile file(QStringLiteral("/etc/meoarch/account.env"));
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -261,19 +260,15 @@ void RepairController::loadAccountEnvironmentFile()
             && ((value.startsWith(QLatin1Char('"')) && value.endsWith(QLatin1Char('"')))
                 || (value.startsWith(QLatin1Char('\'')) && value.endsWith(QLatin1Char('\'')))))
             value = value.mid(1, value.size() - 2);
-        if (key == QStringLiteral("MEOARCH_ACCOUNT_SUPABASE_URL") && m_supabaseUrl.isEmpty())
-            m_supabaseUrl = value;
-        else if (key == QStringLiteral("MEOARCH_ACCOUNT_SUPABASE_PUBLISHABLE_KEY")
-                 && m_publishableKey.isEmpty())
-            m_publishableKey = value;
+        if (key == QStringLiteral("MEOARCH_ACCOUNT_API_URL") && m_accountApiUrl.isEmpty())
+            m_accountApiUrl = value;
     }
 }
 
 bool RepairController::accountConfigured() const
 {
-    const QUrl url(m_supabaseUrl);
-    return url.isValid() && url.scheme() == QStringLiteral("https") && !url.host().isEmpty()
-        && !m_publishableKey.isEmpty();
+    const QUrl url(m_accountApiUrl);
+    return url.isValid() && url.scheme() == QStringLiteral("https") && !url.host().isEmpty();
 }
 
 
@@ -509,8 +504,8 @@ void RepairController::refreshEnvironmentState()
 
 QUrl RepairController::authUrl(const QString &path) const
 {
-    QUrl url(m_supabaseUrl);
-    url.setPath(QStringLiteral("/auth/v1/") + path);
+    QUrl url(m_accountApiUrl);
+    url.setPath(QStringLiteral("/v1/auth/") + path);
     url.setQuery(QString());
     url.setFragment(QString());
     return url;
@@ -518,8 +513,8 @@ QUrl RepairController::authUrl(const QString &path) const
 
 QUrl RepairController::functionUrl() const
 {
-    QUrl url(m_supabaseUrl);
-    url.setPath(QStringLiteral("/functions/v1/ai-provider-broker"));
+    QUrl url(m_accountApiUrl);
+    url.setPath(QStringLiteral("/v1/ai/provider-broker"));
     url.setQuery(QString());
     url.setFragment(QString());
     return url;
@@ -534,7 +529,6 @@ void RepairController::postJson(const QUrl &url, const QJsonObject &payload,
     }
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
-    request.setRawHeader("apikey", m_publishableKey.toUtf8());
     request.setRawHeader("Accept", "application/json");
     request.setRawHeader("Cache-Control", "no-store");
     request.setTransferTimeout(45000);

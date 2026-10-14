@@ -343,14 +343,18 @@ printf '%s\n' '{"event":"stage","id":"complete","progress":100,"message":"Instal
         InstallerController controller({QStringLiteral("--production")});
         QVERIFY(controller.diagnosticConsoleAvailable());
         controller.runDiagnosticCommand(QStringLiteral(
-            "id -u; awk '/^(CapBnd|CapInh|CapAmb|NoNewPrivs):/ {print}' /proc/self/status"));
-        QTRY_VERIFY_WITH_TIMEOUT(!controller.diagnosticConsoleRunning(), 10000);
+            "id -u; test -t 0 && echo tty; cd /tmp; export MEO_TEST=123; printf '%s\\n' \"$MEO_TEST\"; pwd; "
+            "awk '/^(CapBnd|CapInh|CapAmb|NoNewPrivs):/ {print}' /proc/self/status"));
+        QTRY_VERIFY_WITH_TIMEOUT(controller.diagnosticConsoleOutput().contains(QStringLiteral("tty")), 10000);
         const QString output = controller.diagnosticConsoleOutput();
         QVERIFY2(output.contains(QLatin1Char('\n') + expectedUid + QLatin1Char('\n')), qPrintable(output));
         QVERIFY2(output.contains(QStringLiteral("CapBnd:\t0000000000000000")), qPrintable(output));
         QVERIFY2(output.contains(QStringLiteral("CapInh:\t0000000000000000")), qPrintable(output));
         QVERIFY2(output.contains(QStringLiteral("CapAmb:\t0000000000000000")), qPrintable(output));
         QVERIFY2(output.contains(QStringLiteral("NoNewPrivs:\t1")), qPrintable(output));
+        QVERIFY(controller.diagnosticConsoleRunning());
+        controller.writeDiagnosticInput(QStringLiteral("echo $MEO_TEST\n"));
+        QTRY_VERIFY_WITH_TIMEOUT(controller.diagnosticConsoleOutput().count(QStringLiteral("123")) >= 2, 5000);
 #else
         QSKIP("Diagnostic privilege boundary is a Linux runtime contract");
 #endif

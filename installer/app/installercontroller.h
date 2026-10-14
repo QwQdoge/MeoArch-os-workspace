@@ -11,6 +11,7 @@
 
 class QNetworkAccessManager;
 class QNetworkReply;
+class TerminalSession;
 
 class InstallerController final : public QObject
 {
@@ -107,8 +108,8 @@ public:
     bool realInstallEnabled() const { return m_realInstallEnabled; }
     bool systemActionsEnabled() const { return m_systemActionsEnabled; }
     bool diagnosticConsoleAvailable() const { return m_diagnosticConsoleAvailable; }
-    bool diagnosticConsoleRunning() const { return !m_diagnosticProcess.isNull(); }
-    QString diagnosticConsoleOutput() const { return m_diagnosticConsoleOutput; }
+    bool diagnosticConsoleRunning() const;
+    QString diagnosticConsoleOutput() const;
     QString runtimeEnvironment() const { return QStringLiteral("live"); }
     QString firmwareMode() const { return m_firmwareMode; }
     bool productionMode() const { return m_productionMode; }
@@ -138,6 +139,9 @@ public:
     Q_INVOKABLE void refreshDisks();
     Q_INVOKABLE void runDiagnosticCommand(const QString &command);
     Q_INVOKABLE void clearDiagnosticConsole();
+    Q_INVOKABLE void writeDiagnosticInput(const QString &text);
+    Q_INVOKABLE void interruptDiagnosticConsole();
+    Q_INVOKABLE void resizeDiagnosticConsole(int columns, int rows);
     Q_INVOKABLE void prepareInstallation();
     Q_INVOKABLE void confirmSummary();
     Q_INVOKABLE void startInstallation();
@@ -220,6 +224,7 @@ private:
     bool m_diagnosticConsoleAvailable = false;
     QString m_diagnosticConsoleOutput;
     QPointer<QProcess> m_diagnosticProcess;
+    TerminalSession *m_terminalSession = nullptr;
     QString m_hardwareSummary;
     QString m_hardwareWarning;
     bool m_nvidiaFallback = false;

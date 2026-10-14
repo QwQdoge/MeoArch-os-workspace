@@ -205,10 +205,15 @@ Item {
         centerInViewport: true
         x: (frame.width - width) / 2
         y: (frame.height - height) / 2
-        width: Math.min(frame.dp(760), frame.width - frame.pageMargin * 2)
-        height: Math.min(frame.dp(620), frame.height - frame.pageMargin * 2)
-        padding: frame.dp(20)
+        width: Math.min(frame.dp(1080), frame.width - frame.pageMargin * 2)
+        height: Math.min(frame.dp(720), frame.height - frame.pageMargin * 2)
+        padding: frame.dp(16)
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        onOpened: {
+            if (frame.controller)
+                frame.controller.runDiagnosticCommand("")
+            diagnosticOutput.forceActiveFocus()
+        }
 
         contentItem: Column {
             id: diagnosticContent
@@ -229,7 +234,7 @@ Item {
                     spacing: frame.dp(2)
                     MeoText {
                         width: parent.width
-                        text: qsTr("Live diagnostic console")
+                        text: qsTr("Terminal")
                         typeRole: "title"
                         typeSize: "small"
                         emphasized: true
@@ -237,7 +242,7 @@ Item {
                     }
                     MeoText {
                         width: parent.width
-                        text: qsTr("Commands run inside this Cage session as the unprivileged live user. Use it for network and hardware checks.")
+                        text: qsTr("Live session · unprivileged user")
                         typeRole: "body"
                         typeSize: "small"
                         color: MeoTheme.contentOnSurfaceVariant
@@ -254,7 +259,7 @@ Item {
                     text: qsTr("Run network checks")
                     icon.name: "network_check"
                     type: "tonal"
-                    enabled: frame.controller && !frame.controller.diagnosticConsoleRunning
+                    enabled: frame.controller && frame.controller.diagnosticConsoleRunning
                     onClicked: frame.controller.runDiagnosticCommand(
                         "printf '=== NetworkManager ===\\n'; " +
                         "nmcli device status 2>&1; " +
@@ -278,7 +283,7 @@ Item {
 
             MeoMotionSurface {
                 width: parent.width
-                height: Math.max(frame.dp(180), diagnosticPopup.height - frame.dp(285))
+                height: Math.max(frame.dp(300), diagnosticPopup.height - frame.dp(180))
                 radius: MeoTheme.shapeLarge
                 color: MeoTheme.surfaceContainerLowest
                 elevation: 0
@@ -289,7 +294,7 @@ Item {
                     anchors.margins: frame.dp(12)
                     readOnly: true
                     selectByMouse: true
-                    wrapMode: TextEdit.WrapAnywhere
+                    wrapMode: TextEdit.NoWrap
                     text: frame.controller ? frame.controller.diagnosticConsoleOutput : ""
                     color: MeoTheme.contentOnSurface
                     selectionColor: MeoTheme.primaryContainer
@@ -297,51 +302,50 @@ Item {
                     font.family: "monospace"
                     font.pixelSize: frame.dp(13)
                     background: null
-                    onTextChanged: cursorPosition = length
+                    focus: true
+                    Keys.onPressed: function(event) {
+                        if (!frame.controller)
+                            return
+                        if (event.key === Qt.Key_C && (event.modifiers & Qt.ControlModifier)) {
+                            frame.controller.interruptDiagnosticConsole()
+                            event.accepted = true
+                        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                            frame.controller.writeDiagnosticInput("\n")
+                            event.accepted = true
+                        } else if (event.key === Qt.Key_Backspace) {
+                            frame.controller.writeDiagnosticInput("\u007f")
+                            event.accepted = true
+                        } else if (event.text.length && !(event.modifiers & Qt.ControlModifier)) {
+                            frame.controller.writeDiagnosticInput(event.text)
+                            event.accepted = true
+                        }
+                    }
+                    onTextChanged: {
+                        cursorPosition = length
+                        if (frame.controller && length > 0)
+                            cursorPosition = length
+                    }
                 }
             }
 
             Row {
                 width: parent.width
                 spacing: frame.dp(8)
-
-                MeoTextField {
-                    id: diagnosticCommand
-                    width: parent.width - runDiagnosticButton.width - frame.dp(8)
-                    label: qsTr("Command")
-                    placeholderText: qsTr("Example: ip route")
-                    enabled: frame.controller && !frame.controller.diagnosticConsoleRunning
-                    onAccepted: {
-                        if (text.trim().length > 0 && frame.controller) {
-                            frame.controller.runDiagnosticCommand(text)
-                            text = ""
-                        }
-                    }
-                }
                 MeoButton {
-                    id: runDiagnosticButton
-                    text: frame.controller && frame.controller.diagnosticConsoleRunning
-                          ? qsTr("Running…") : qsTr("Run")
-                    type: "filled"
-                    loading: frame.controller && frame.controller.diagnosticConsoleRunning
-                    enabled: frame.controller && !frame.controller.diagnosticConsoleRunning
-                             && diagnosticCommand.text.trim().length > 0
+                    text: qsTr("Copy all")
+                    icon.name: "copy"
+                    type: "text"
                     onClicked: {
-                        frame.controller.runDiagnosticCommand(diagnosticCommand.text)
-                        diagnosticCommand.text = ""
+                        diagnosticOutput.selectAll()
+                        diagnosticOutput.copy()
                     }
                 }
-            }
-
-            Row {
-                anchors.right: parent.right
-                spacing: frame.dp(8)
                 MeoButton {
                     text: qsTr("Clear")
                     type: "text"
-                    enabled: frame.controller && !frame.controller.diagnosticConsoleRunning
                     onClicked: frame.controller.clearDiagnosticConsole()
                 }
+                Item { Layout.fillWidth: true; width: 1; height: 1 }
                 MeoButton {
                     text: qsTr("Close")
                     type: "tonal"

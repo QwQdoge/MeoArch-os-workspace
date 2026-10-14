@@ -1,4 +1,5 @@
 #include "installercontroller.h"
+#include "terminalsession.h"
 
 #include <QCoreApplication>
 #include <QCalendar>
@@ -206,6 +207,8 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
       m_realInstallEnabled(m_productionMode && arguments.contains(QStringLiteral("--enable-real-install"))),
       m_systemActionsEnabled(m_productionMode && arguments.contains(QStringLiteral("--enable-system-actions")))
 {
+    m_terminalSession = new TerminalSession(this);
+    connect(m_terminalSession, &TerminalSession::changed, this, &InstallerController::diagnosticConsoleChanged);
     const QLocale systemLocale = QLocale::system();
     // The installer exposes only its reviewed English and Simplified Chinese
     // catalogs. Start with the language of the Live session whenever it has a
@@ -224,7 +227,6 @@ InstallerController::InstallerController(const QStringList &arguments, QObject *
     // the unprivileged Live user with no_new_privs and an empty capability
     // bounding set; the root-owned installer process never exposes a root shell.
     m_diagnosticConsoleAvailable = QFileInfo(QStringLiteral("/usr/bin/setpriv")).isExecutable()
-                                   && QFileInfo(QStringLiteral("/usr/bin/timeout")).isExecutable()
                                    && QFileInfo(QStringLiteral("/usr/bin/env")).isExecutable()
                                    && QFileInfo(QStringLiteral("/usr/bin/bash")).isExecutable();
 
@@ -455,7 +457,7 @@ void InstallerController::retranslateUserFacingState()
     if (m_networkState == QStringLiteral("checking"))
         m_networkDetail = tr("Checking Internet access and required package sources…");
     else if (m_networkState == QStringLiteral("online"))
-        m_networkDetail = tr("Internet access and the MeoArch package source are ready.");
+        m_networkDetail = tr("Internet access and the repository endpoint are reachable. Selected packages are verified when preparing the installation plan.");
     else if (m_networkState == QStringLiteral("repository"))
         m_networkDetail = tr("Internet access is working, but the MeoArch package source could not be verified. Try again later or check the repository configuration.");
     else if (m_networkState == QStringLiteral("portal"))
@@ -922,7 +924,7 @@ void InstallerController::detectNetwork()
             const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
             if (reply->error() == QNetworkReply::NoError && status >= 200 && status < 300) {
                 m_networkState = QStringLiteral("online");
-                m_networkDetail = tr("Internet access and the MeoArch package source are ready.");
+                m_networkDetail = tr("Internet access and the repository endpoint are reachable. Selected packages are verified when preparing the installation plan.");
             } else {
                 // The independent Arch probe already succeeded. A failure here
                 // is a repository/CDN problem, not proof that the user's
@@ -987,96 +989,49 @@ void InstallerController::retryNetwork()
 
 void InstallerController::runDiagnosticCommand(const QString &command)
 {
-    const QString normalized = command.trimmed();
     if (!m_diagnosticConsoleAvailable) {
         setError(tr("The embedded diagnostic console is not available in this Live image."));
         return;
     }
-    if (normalized.isEmpty() || m_diagnosticProcess)
-        return;
-    if (normalized.size() > 2048) {
-        setError(tr("Diagnostic commands are limited to 2048 characters."));
+    if (!m_terminalSession->running() && !m_terminalSession->start()) {
+        setError(tr("The embedded diagnostic console could not start a Live-user shell."));
         return;
     }
-
-    m_diagnosticConsoleOutput += QStringLiteral("$ ") + normalized + QLatin1Char('\n');
-    if (m_diagnosticConsoleOutput.size() > 65536)
-        m_diagnosticConsoleOutput = m_diagnosticConsoleOutput.right(65536);
-    emit diagnosticConsoleChanged();
-
-    auto *process = new QProcess(this);
-    m_diagnosticProcess = process;
-    process->setProcessChannelMode(QProcess::MergedChannels);
-
-    const QStringList arguments{
-        QStringLiteral("--reuid=live"),
-        QStringLiteral("--regid=live"),
-        QStringLiteral("--clear-groups"),
-        QStringLiteral("--no-new-privs"),
-        QStringLiteral("--bounding-set=-all"),
-        QStringLiteral("--inh-caps=-all"),
-        QStringLiteral("--ambient-caps=-all"),
-        QStringLiteral("/usr/bin/timeout"),
-        QStringLiteral("--signal=TERM"),
-        QStringLiteral("60s"),
-        QStringLiteral("/usr/bin/env"),
-        QStringLiteral("-i"),
-        QStringLiteral("HOME=/home/live"),
-        QStringLiteral("USER=live"),
-        QStringLiteral("LOGNAME=live"),
-        QStringLiteral("PATH=/usr/local/sbin:/usr/local/bin:/usr/bin"),
-        QStringLiteral("/usr/bin/bash"),
-        QStringLiteral("--noprofile"),
-        QStringLiteral("--norc"),
-        QStringLiteral("-lc"),
-        normalized
-    };
-
-    connect(process, &QProcess::readyReadStandardOutput, this, [this, process] {
-        if (process != m_diagnosticProcess)
-            return;
-        m_diagnosticConsoleOutput += QString::fromUtf8(process->readAllStandardOutput());
-        if (m_diagnosticConsoleOutput.size() > 65536)
-            m_diagnosticConsoleOutput = m_diagnosticConsoleOutput.right(65536);
-        emit diagnosticConsoleChanged();
-    });
-    connect(process, &QProcess::errorOccurred, this, [this, process](QProcess::ProcessError error) {
-        if (process != m_diagnosticProcess || error != QProcess::FailedToStart)
-            return;
-        m_diagnosticConsoleOutput += tr("Could not start the diagnostic command.\n");
-        m_diagnosticProcess = nullptr;
-        emit diagnosticConsoleChanged();
-        process->deleteLater();
-    });
-    connect(process, &QProcess::finished, this, [this, process](int exitCode, QProcess::ExitStatus status) {
-        if (process != m_diagnosticProcess) {
-            process->deleteLater();
-            return;
-        }
-        const QByteArray remaining = process->readAllStandardOutput();
-        if (!remaining.isEmpty())
-            m_diagnosticConsoleOutput += QString::fromUtf8(remaining);
-        if (status == QProcess::NormalExit)
-            m_diagnosticConsoleOutput += tr("[exit %1]\n").arg(exitCode);
-        else
-            m_diagnosticConsoleOutput += tr("[command crashed]\n");
-        if (m_diagnosticConsoleOutput.size() > 65536)
-            m_diagnosticConsoleOutput = m_diagnosticConsoleOutput.right(65536);
-        m_diagnosticProcess = nullptr;
-        emit diagnosticConsoleChanged();
-        process->deleteLater();
-    });
-
-    process->start(QStringLiteral("/usr/bin/setpriv"), arguments);
-    emit diagnosticConsoleChanged();
+    if (!command.isEmpty())
+        m_terminalSession->write(command + QLatin1Char('\n'));
 }
 
 void InstallerController::clearDiagnosticConsole()
 {
-    if (m_diagnosticProcess)
-        return;
-    m_diagnosticConsoleOutput.clear();
-    emit diagnosticConsoleChanged();
+    m_terminalSession->clear();
+}
+
+bool InstallerController::diagnosticConsoleRunning() const
+{
+    return m_terminalSession && m_terminalSession->running();
+}
+
+QString InstallerController::diagnosticConsoleOutput() const
+{
+    return m_terminalSession ? m_terminalSession->output() : QString();
+}
+
+void InstallerController::writeDiagnosticInput(const QString &text)
+{
+    if (m_terminalSession)
+        m_terminalSession->write(text);
+}
+
+void InstallerController::interruptDiagnosticConsole()
+{
+    if (m_terminalSession)
+        m_terminalSession->sendInterrupt();
+}
+
+void InstallerController::resizeDiagnosticConsole(int columns, int rows)
+{
+    if (m_terminalSession)
+        m_terminalSession->resize(columns, rows);
 }
 
 

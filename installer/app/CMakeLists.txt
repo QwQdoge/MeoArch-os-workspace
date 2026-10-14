@@ -2,6 +2,8 @@ qt_add_executable(meoarch-installer-app
     main.cpp
     installercontroller.cpp
     installercontroller.h
+    terminalsession.cpp
+    terminalsession.h
 )
 
 find_program(MEOARCH_LRELEASE_EXECUTABLE NAMES lrelease lrelease-qt6 HINTS /usr/lib/qt6/bin)
@@ -29,6 +31,9 @@ endif()
 target_link_libraries(meoarch-installer-app PRIVATE
     Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::QuickControls2 Qt6::Network KF6::I18n KF6::I18nQml
 )
+if(UNIX AND NOT APPLE)
+    target_link_libraries(meoarch-installer-app PRIVATE util)
+endif()
 target_compile_definitions(meoarch-installer-app PRIVATE
     MEOARCH_QML_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../qml"
     MEOUI_QML_BUILD_IMPORT_PATH="${CMAKE_BINARY_DIR}/meoui"

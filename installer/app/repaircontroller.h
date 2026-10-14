@@ -259,8 +259,7 @@ private:
     bool dispatchPrivilegedServiceAction(const QString &kind, const QString &actionId);
 
     QNetworkAccessManager m_network;
-    QString m_supabaseUrl;
-    QString m_publishableKey;
+    QString m_accountApiUrl;
     QString m_accessToken;
     QString m_refreshToken;
     QString m_accountEmail;
