@@ -38,7 +38,7 @@ def send_key(socket_path: str, keys: list[str]) -> None:
         "send-key",
         {
             "keys": [{"type": "qcode", "data": key} for key in keys],
-            "hold-time": 10,
+            "hold-time": 50,
         },
     )
 
@@ -139,7 +139,9 @@ def main() -> None:
         else:
             key_name = special.get(character, character)
             modifiers = []
-        send_key_event(args.socket, key_name, modifiers)
+        # Hold modifiers through key delivery; one zero-duration event batch
+        # can lose shifted punctuation in the Wayland/virtual keyboard path.
+        send_key(args.socket, [*modifiers, key_name])
         # Keep enough spacing for a busy live session to process every key.
         time.sleep(0.08)
 
