@@ -15,7 +15,8 @@ bootmodes=('bios.syslinux'
            'uefi.grub')
 pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
-airootfs_image_tool_options=('-comp' 'xz' '-Xbcj' 'x86' '-b' '1M' '-Xdict-size' '1M' '-processors' '1' '-mem' '1G')
+# Zstd keeps Live decompression and bounded single-core builds responsive.
+airootfs_image_tool_options=('-comp' 'zstd' '-Xcompression-level' '10' '-b' '1M' '-processors' '1' '-mem' '1G')
 bootstrap_tarball_compression=('zstd' '-c' '-T1' '--long' '-19')
 declare -A file_permissions=(
   ["/etc/shadow"]="0:0:400"
