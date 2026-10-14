@@ -155,4 +155,12 @@ mapfile -t installer_qml_files < <(find "${repo_root}/installer/qml" -type f -na
   -I "${repo_root}/installer/qml" \
   "${installer_qml_files[@]}" "${repo_root}/repair/qml/Main.qml"
 
+# qmllint alone can miss attached-object failures in dynamically loaded pages.
+qmltest_bin="$(qtpaths6 --query QT_INSTALL_BINS)/qmltestrunner"
+QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
+  LD_LIBRARY_PATH="${runtime}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
+  "${qmltest_bin}" -import "${runtime}/lib/qt6/qml" \
+  -input "${repo_root}/installer/tests/qml/tst_page_loading.qml" \
+  -o "${evidence_dir}/installer-page-loading.txt,txt"
+
 echo "PASS: component build and shared runtime" | tee "${evidence_dir}/status.txt"
