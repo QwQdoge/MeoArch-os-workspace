@@ -248,6 +248,34 @@ class TargetValidationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Icons-Only Task Manager"):
                 self.verify_fixture(root)
 
+    def test_session_isolation_ignores_explanatory_comments_but_rejects_global_writes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            launcher = root / "usr/bin/startmeo-wayland"
+            launcher.write_text(launcher.read_text() + "\n# Do not install in /etc/xdg or ~/.config/kdeglobals.\n")
+            self.verify_fixture(root)
+            launcher.write_text(launcher.read_text() + "cp seed /etc/xdg/kdeglobals\n")
+            with self.assertRaisesRegex(ValueError, "normal Plasma configuration"):
+                self.verify_fixture(root)
+
+    def test_enabled_service_follows_the_installed_units_wanted_target(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            unit_name = "power-profiles-daemon.service"
+            (root / "usr/lib/systemd/system" / unit_name).write_text("[Install]\nWantedBy=graphical.target\n")
+            old = root / "etc/systemd/system/multi-user.target.wants" / unit_name
+            destination = old.readlink()
+            old.unlink()
+            current = root / "etc/systemd/system/graphical.target.wants" / unit_name
+            current.parent.mkdir(parents=True)
+            current.symlink_to(destination)
+            self.verify_fixture(root)
+            current.unlink()
+            with self.assertRaisesRegex(ValueError, "target service is not enabled"):
+                self.verify_fixture(root)
+
     def test_target_rejects_unbounded_zram_profile(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

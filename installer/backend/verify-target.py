@@ -151,7 +151,9 @@ def verify_meo_session(root: Path) -> None:
     for marker in required_launcher_contract:
         if marker not in launcher:
             raise ValueError(f"Meo Desktop session launcher is missing isolation contract: {marker}")
-    if "/etc/xdg" in launcher or "~/.config/kdeglobals" in launcher:
+    launcher_statements = "\n".join(line for line in launcher.splitlines()
+                                     if not line.lstrip().startswith("#"))
+    if "/etc/xdg" in launcher_statements or "~/.config/kdeglobals" in launcher_statements:
         raise ValueError("Meo Desktop session launcher writes into the normal Plasma configuration")
 
 
@@ -191,8 +193,21 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
     if not any(path.is_file() and path.stat().st_size for path in (root / "boot/EFI").glob("*/grubx64.efi")):
         raise ValueError("installed UEFI GRUB executable is missing")
     for service in REQUIRED_ENABLED_SERVICES:
-        path = target_path(root, f"etc/systemd/system/{service}")
-        if not path.is_file() or not path.stat().st_size:
+        candidates = [service]
+        if "/" in service:
+            unit_name = service.rsplit("/", 1)[-1]
+            unit = target_path(root, f"usr/lib/systemd/system/{unit_name}")
+            unit_config = configparser.ConfigParser(interpolation=None, strict=False)
+            try:
+                unit_config.read_string(unit.read_text())
+                targets = unit_config.get("Install", "WantedBy", fallback="").split()
+                if targets:
+                    candidates = [f"{target}.wants/{unit_name}" for target in targets
+                                  if re.fullmatch(r"[A-Za-z0-9_.@-]+\.target", target)]
+            except configparser.Error:
+                pass
+        paths = [target_path(root, f"etc/systemd/system/{candidate}") for candidate in candidates]
+        if not any(path.is_file() and path.stat().st_size for path in paths):
             raise ValueError(f"target service is not enabled: {service}")
     display_manager = target_path(root, "etc/systemd/system/display-manager.service")
     expected_display_manager = target_path(root, "usr/lib/systemd/system/plasmalogin.service")
