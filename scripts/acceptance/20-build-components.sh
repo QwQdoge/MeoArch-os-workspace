@@ -156,7 +156,14 @@ mapfile -t installer_qml_files < <(find "${repo_root}/installer/qml" -type f -na
   "${installer_qml_files[@]}" "${repo_root}/repair/qml/Main.qml"
 
 # qmllint alone can miss attached-object failures in dynamically loaded pages.
-qmltest_bin="$(qtpaths6 --query QT_INSTALL_BINS)/qmltestrunner"
+qmltest_bin="$(command -v qmltestrunner6 || true)"
+if [ -z "${qmltest_bin}" ] && [ -x /usr/lib/qt6/bin/qmltestrunner ]; then
+  qmltest_bin=/usr/lib/qt6/bin/qmltestrunner
+fi
+[ -n "${qmltest_bin}" ] || {
+  echo "Qt 6 qmltestrunner was not found." >&2
+  exit 2
+}
 QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
   LD_LIBRARY_PATH="${runtime}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
   "${qmltest_bin}" -import "${runtime}/lib/qt6/qml" \
