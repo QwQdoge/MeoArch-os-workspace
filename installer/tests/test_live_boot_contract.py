@@ -60,6 +60,9 @@ class LiveBootContractTests(unittest.TestCase):
         directory = GRUB_THEME.parent
         minimum_height = sum(png_size(directory / f"select_{part}.png")[1]
                              for part in ("n", "c", "s"))
+        padding = int(re.search(r"item_padding\s*=\s*(\d+)", theme)[1])
+        self.assertLessEqual(minimum_height + 2 * padding, row_height,
+                             "Selection borders and padding must fit the menu row")
         self.assertLessEqual(minimum_height, row_height,
                              "GRUB nine-slice selection must not overlap neighbouring rows")
 

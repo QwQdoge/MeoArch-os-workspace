@@ -50,7 +50,7 @@ message-bg-color: "#211A2B"
     item_font = "MeoArch Sans Regular 24"
     selected_item_font = "MeoArch Sans Bold 24"
     item_height = 34
-    item_padding = 14
+    item_padding = 4
     item_spacing = 4
     item_icon_space = 0
     icon_width = 0
