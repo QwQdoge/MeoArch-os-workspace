@@ -32,6 +32,7 @@ class LiveSessionTests(unittest.TestCase):
             env = session.safe_environment({'WAYLAND_DISPLAY': 'wayland-1'}, state)
             self.assertEqual(env['XDG_CONFIG_HOME'], str(config))
             self.assertEqual(env['QT_STYLE_OVERRIDE'], 'Breeze')
+            self.assertEqual(env['PLASMA_DEFAULT_SHELL'], 'org.kde.plasma.desktop')
             self.assertEqual(env['WAYLAND_DISPLAY'], 'wayland-1')
             self.assertFalse(custom.exists())
             self.assertIn('LookAndFeelPackage=org.kde.breeze.desktop', (config / 'kdeglobals').read_text())

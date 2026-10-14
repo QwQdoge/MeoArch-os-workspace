@@ -229,7 +229,11 @@ def verify(root: Path, expected_system_owner: tuple[int, int] = (0, 0)) -> None:
     ).read_text()
     if "DockImplementation=native" not in dock_profile:
         raise ValueError("Meo session defaults do not select the native Plasma Dock")
-    if 'bottomPanel.addWidget("org.kde.plasma.icontasks")' not in dock_layout:
+    # Variable names are not a desktop contract; require an actual Panel and
+    # its task-manager applet together instead of the old bottomPanel spelling.
+    panel_names = re.findall(r"\bvar\s+(\w+)\s*=\s*new\s+Panel\b", dock_layout)
+    if not any(re.search(rf'\b{re.escape(name)}\.addWidget\(\s*[\'"]org\.kde\.plasma\.icontasks[\'"]\s*\)', dock_layout)
+               for name in panel_names):
         raise ValueError("target desktop is missing the native Plasma Icons-Only Task Manager")
     if "org.meo.dock" in dock_layout:
         raise ValueError("target desktop layout still references the retired standalone Dock")

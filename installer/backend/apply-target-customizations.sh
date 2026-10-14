@@ -432,6 +432,16 @@ if [ "${automatic_login}" = "true" ]; then
   echo "Automatic login is not supported by the Meo Plasma Login Manager backend yet." >&2
   exit 7
 fi
+# The login model matches the session basename (FileNameRole), not its full path.
+# This installer-owned override also repairs the older package default.
+login_config_dir="${target_root}/etc/plasmalogin.conf.d"
+login_session_config="${login_config_dir}/30-meoarch-session.conf"
+[ ! -L "$login_config_dir" ] && [ ! -L "$login_session_config" ] || {
+  echo "Refusing symlinked target login configuration." >&2; exit 7;
+}
+install -d "$login_config_dir"
+printf '[Greeter]\nPreselectedSession=meo.desktop\n' >"$login_session_config"
+chmod 644 "$login_session_config"
 systemctl --root="${target_root}" enable plasmalogin.service
 
 # Guest services are generated only from the detected hypervisor PCI plan.

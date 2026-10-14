@@ -39,24 +39,26 @@ magick "$splash_png" \
     -resize '640x480^' -gravity center -extent 640x480 \
     -strip -depth 8 "$syslinux_splash_png"
 
-magick -size 96x96 xc:none \
+# GRUB's nine-slice box cannot shrink below its corner/edge images. 32px
+# slices forced a 96px selection over 34px menu rows, obscuring neighbours.
+magick -size 24x24 xc:none \
     -fill 'rgba(103,80,164,0.96)' \
     -stroke 'rgba(255,255,255,0.46)' -strokewidth 2 \
-    -draw 'roundrectangle 1,1 94,94 18,18' \
+    -draw 'roundrectangle 1,1 22,22 7,7' \
     -depth 8 "PNG32:$asset_tmp/select.png"
 
 slice_box() {
     local source="$1"
     local stem="$2"
-    magick "$source" -crop 32x32+0+0 +repage -depth 8 "PNG32:$script_dir/${stem}_nw.png"
-    magick "$source" -crop 32x32+32+0 +repage -depth 8 "PNG32:$script_dir/${stem}_n.png"
-    magick "$source" -crop 32x32+64+0 +repage -depth 8 "PNG32:$script_dir/${stem}_ne.png"
-    magick "$source" -crop 32x32+0+32 +repage -depth 8 "PNG32:$script_dir/${stem}_w.png"
-    magick "$source" -crop 32x32+32+32 +repage -depth 8 "PNG32:$script_dir/${stem}_c.png"
-    magick "$source" -crop 32x32+64+32 +repage -depth 8 "PNG32:$script_dir/${stem}_e.png"
-    magick "$source" -crop 32x32+0+64 +repage -depth 8 "PNG32:$script_dir/${stem}_sw.png"
-    magick "$source" -crop 32x32+32+64 +repage -depth 8 "PNG32:$script_dir/${stem}_s.png"
-    magick "$source" -crop 32x32+64+64 +repage -depth 8 "PNG32:$script_dir/${stem}_se.png"
+    magick "$source" -crop 8x8+0+0 +repage -depth 8 "PNG32:$script_dir/${stem}_nw.png"
+    magick "$source" -crop 8x8+8+0 +repage -depth 8 "PNG32:$script_dir/${stem}_n.png"
+    magick "$source" -crop 8x8+16+0 +repage -depth 8 "PNG32:$script_dir/${stem}_ne.png"
+    magick "$source" -crop 8x8+0+8 +repage -depth 8 "PNG32:$script_dir/${stem}_w.png"
+    magick "$source" -crop 8x8+8+8 +repage -depth 8 "PNG32:$script_dir/${stem}_c.png"
+    magick "$source" -crop 8x8+16+8 +repage -depth 8 "PNG32:$script_dir/${stem}_e.png"
+    magick "$source" -crop 8x8+0+16 +repage -depth 8 "PNG32:$script_dir/${stem}_sw.png"
+    magick "$source" -crop 8x8+8+16 +repage -depth 8 "PNG32:$script_dir/${stem}_s.png"
+    magick "$source" -crop 8x8+16+16 +repage -depth 8 "PNG32:$script_dir/${stem}_se.png"
 }
 
 slice_box "$asset_tmp/select.png" select

@@ -15,8 +15,8 @@ bootmodes=('bios.syslinux'
            'uefi.grub')
 pacman_conf="pacman.conf"
 airootfs_image_type="squashfs"
-airootfs_image_tool_options=('-comp' 'xz' '-Xbcj' 'x86' '-b' '1M' '-Xdict-size' '1M')
-bootstrap_tarball_compression=('zstd' '-c' '-T0' '--auto-threads=logical' '--long' '-19')
+airootfs_image_tool_options=('-comp' 'xz' '-Xbcj' 'x86' '-b' '1M' '-Xdict-size' '1M' '-processors' '1' '-mem' '1G')
+bootstrap_tarball_compression=('zstd' '-c' '-T1' '--long' '-19')
 declare -A file_permissions=(
   ["/etc/shadow"]="0:0:400"
   ["/etc/pacman.d/gnupg/"]="0:0:700"

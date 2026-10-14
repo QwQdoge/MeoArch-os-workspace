@@ -1,5 +1,6 @@
 from pathlib import Path
 import struct
+import re
 import unittest
 
 
@@ -53,6 +54,15 @@ def grub_kernel_options(title_prefix: str) -> str:
 
 
 class LiveBootContractTests(unittest.TestCase):
+    def test_selection_box_fits_a_menu_row(self):
+        theme = GRUB_THEME.read_text(encoding="utf-8")
+        row_height = int(re.search(r"item_height\s*=\s*(\d+)", theme)[1])
+        directory = GRUB_THEME.parent
+        minimum_height = sum(png_size(directory / f"select_{part}.png")[1]
+                             for part in ("n", "c", "s"))
+        self.assertLessEqual(minimum_height, row_height,
+                             "GRUB nine-slice selection must not overlap neighbouring rows")
+
     def test_uefi_live_media_uses_themed_grub(self):
         profile = PROFILE.read_text(encoding="utf-8")
         self.assertIn("'bios.syslinux'", profile)

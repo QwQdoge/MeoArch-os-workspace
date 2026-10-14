@@ -51,6 +51,16 @@ elif [ -f "${evidence_dir}/disk-path.txt" ]; then
 else
   disk_path="${vm_dir}/meoarch-test.qcow2"
 fi
+# Keep acceptance usable alongside the user's desktop. Explicit overrides are
+# validated before creating firmware/socket state or launching QEMU.
+vm_cpus="${MEOARCH_VM_CPUS:-2}"
+vm_memory="${MEOARCH_VM_MEMORY_MIB:-4096}"
+[[ "$vm_cpus" =~ ^[1-9][0-9]{0,1}$ ]] && ((vm_cpus <= 16)) || {
+  echo "MEOARCH_VM_CPUS must be an integer between 1 and 16." >&2; exit 2;
+}
+[[ "$vm_memory" =~ ^[1-9][0-9]{2,4}$ ]] && ((vm_memory >= 1024 && vm_memory <= 32768)) || {
+  echo "MEOARCH_VM_MEMORY_MIB must be an integer between 1024 and 32768." >&2; exit 2;
+}
 display_mode="${MEOARCH_QEMU_DISPLAY:-gtk}"
 qemu_gl="${MEOARCH_QEMU_GL:-on}"
 vm_width="${MEOARCH_VM_WIDTH:-1920}"
@@ -122,8 +132,8 @@ fi
 
 cat >"${evidence_dir}/vm-config.txt" <<EOF
 firmware=UEFI OVMF
-cpus=4
-memory=8192 MiB
+cpus=${vm_cpus}
+memory=${vm_memory} MiB
 disk=${disk_path}
 iso=${iso_path}
 network=user/NAT hostfwd tcp 127.0.0.1:2222 to guest 22
@@ -137,8 +147,8 @@ EOF
 exec qemu-system-x86_64 \
   "${accel_args[@]}" \
   -machine q35 \
-  -smp 4 \
-  -m 8192 \
+  -smp "${vm_cpus}" \
+  -m "${vm_memory}" \
   -drive "if=pflash,format=raw,readonly=on,file=${ovmf_code}" \
   -drive "if=pflash,format=raw,file=${ovmf_vars}" \
   -drive "file=${disk_path},if=none,id=install_disk,format=qcow2,cache=writeback" \

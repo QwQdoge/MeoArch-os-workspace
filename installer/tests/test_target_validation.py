@@ -237,6 +237,17 @@ class TargetValidationTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "native Plasma Dock"):
                 self.verify_fixture(root)
 
+    def test_target_accepts_current_shelf_variable_and_rejects_missing_task_manager(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.populate(root)
+            layout = root / "usr/share/plasma/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
+            layout.write_text('var shelf = new Panel\nshelf.addWidget("org.kde.plasma.icontasks")\n')
+            self.verify_fixture(root)
+            layout.write_text('var shelf = new Panel\nshelf.addWidget("org.meo.topbar")\n')
+            with self.assertRaisesRegex(ValueError, "Icons-Only Task Manager"):
+                self.verify_fixture(root)
+
     def test_target_rejects_unbounded_zram_profile(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

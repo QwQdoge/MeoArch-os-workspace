@@ -5,9 +5,11 @@ Archinstall currently boots the target temporarily and uses
 `systemd-run --machine=archinstall ... localectl set-keymap`. On some Live
 systems that machine transport can refuse the connection after the base system
 has already been installed. MeoArch does not need a booted target merely to
-persist locale files, so for the generated Meo installer configuration we let
-Archinstall perform the installation without locale_config and apply the same
-persistent locale/keymap state directly to the mounted target afterwards.
+persist locale files. For generated Meo plans we validate the original keymap,
+retain locale generation, and defer only keyboard activation by passing an
+empty kb_layout (Archinstall's supported no-change value). A null locale_config
+is not sufficient: Archinstall 4.5 restores the default 'us' layout for it.
+The original persistent locale/keymap is applied to the target afterwards.
 
 Dry-run validation must see the original generated configuration and must not
 attempt to modify /mnt, so --dry-run invocations are passed through unchanged.
@@ -143,9 +145,24 @@ def main() -> int:
     if not isinstance(locale, dict):
         return passthrough(argv)
 
-    print("[MeoArch] Archinstall compatibility wrapper active; deferring locale setup until the base install completes.", flush=True)
+    keymap = str(locale.get("kb_layout") or "us")
+    if not SAFE_KEYMAP.fullmatch(keymap):
+        print("MeoArch locale compatibility step failed: unsafe keyboard layout", file=sys.stderr)
+        return 1
+    try:
+        available = subprocess.run(
+            ["/usr/bin/localectl", "--no-pager", "list-keymaps"],
+            check=True, capture_output=True, text=True, timeout=10,
+        )
+        if keymap not in available.stdout.splitlines():
+            raise RuntimeError(f"selected keyboard layout is unavailable: {keymap}")
+    except (OSError, subprocess.SubprocessError, RuntimeError) as error:
+        print(f"MeoArch locale compatibility step failed: {error}", file=sys.stderr)
+        return 1
+
+    print("[MeoArch] Archinstall compatibility wrapper active; deferring keyboard activation until the base install completes.", flush=True)
     runtime_config = dict(config)
-    runtime_config["locale_config"] = None
+    runtime_config["locale_config"] = dict(locale, kb_layout="")
     runtime_path = write_runtime_config(config_path, runtime_config)
     runtime_argv = list(argv)
     if runtime_argv[index].startswith("--config="):
@@ -154,7 +171,12 @@ def main() -> int:
         runtime_argv[index] = str(runtime_path)
 
     try:
-        result = subprocess.run(real_archinstall_command(runtime_argv), check=False)
+        # The outer controller protects credentials with umask 077. Do not
+        # inherit that into filesystem provisioning: Archinstall creates /etc
+        # before pacstrap, and pacman preserves that existing directory mode.
+        # A 0700 /etc blocks the alpm downloader's DNS and ordinary logins.
+        # Inputs/runtime JSON remain explicitly 0600 in the private state tree.
+        result = subprocess.run(real_archinstall_command(runtime_argv), check=False, umask=0o022)
         if result.returncode != 0:
             return result.returncode
         target = Path(os.environ.get("MEOARCH_TARGET_ROOT", "/mnt"))

@@ -255,6 +255,8 @@ install -d \
   "${desktop_dst}/wallpaper"
 cp -a "${meo_kde_src}/themes/look-and-feel/org.meo.desktop" \
   "${desktop_dst}/themes/look-and-feel/org.meo.desktop"
+install -d "${desktop_dst}/themes/shells"
+cp -a "${meo_kde_src}/themes/shells/org.meo.shell" "${desktop_dst}/themes/shells/"
 cp -a "${meo_kde_src}/themes/desktoptheme/." \
   "${desktop_dst}/themes/desktoptheme/"
 cp -a "${meo_kde_src}/themes/color-schemes/." \
@@ -286,6 +288,10 @@ install -d "${airootfs}/usr/share/plasma/look-and-feel" \
   "${airootfs}/usr/share/wallpapers/MeoArch"
 cp -a "${desktop_dst}/themes/look-and-feel/org.meo.desktop" \
   "${airootfs}/usr/share/plasma/look-and-feel/"
+install -d "${airootfs}/usr/share/plasma/shells"
+cp -a "${desktop_dst}/themes/shells/org.meo.shell" "${airootfs}/usr/share/plasma/shells/"
+install -Dm644 "${meo_kde_src}/themes/look-and-feel/org.meo.desktop/contents/lockscreen/config.xml" \
+  "${airootfs}/usr/share/plasma/shells/org.meo.shell/contents/lockscreen/config.xml"
 cp -a "${desktop_dst}/themes/desktoptheme/." "${airootfs}/usr/share/plasma/desktoptheme/"
 cp -a "${desktop_dst}/themes/color-schemes/." "${airootfs}/usr/share/color-schemes/"
 cp -a "${desktop_dst}/themes/icons/." "${airootfs}/usr/share/icons/"
