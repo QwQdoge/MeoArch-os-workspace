@@ -77,7 +77,7 @@ class InstallEngineGuardTests(unittest.TestCase):
         self.assertIn("/usr/lib/systemd/system/plasmalogin.service", source)
         self.assertIn("pacman -Qo", source)
         self.assertIn("is owned by meo-plasma-login-manager", source)
-        self.assertIn("pacman -Q plasma-login-manager", source)
+        self.assertIn("pacman -Qq", source)
         self.assertIn("pacman -Qkk meo-plasma-login-manager", source)
         self.assertIn("0 altered files", source)
 

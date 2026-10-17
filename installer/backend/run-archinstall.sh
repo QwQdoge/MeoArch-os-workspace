@@ -555,7 +555,13 @@ if printf '%s\n' "${meo_packages[@]}" | grep -qx 'meo-plasma-login-manager'; the
         ;;
     esac
   done
-  if arch-chroot "${target_root}" pacman -Q plasma-login-manager >/dev/null 2>&1; then
+  # A named pacman query also matches virtual providers. The Meo fork provides
+  # plasma-login-manager, so compare the actual installed names instead.
+  installed_package_names="$(arch-chroot "${target_root}" pacman -Qq)" || {
+    echo "Could not enumerate installed packages to verify login manager isolation." | tee -a "${log_file}" >&2
+    exit 12
+  }
+  if grep -Fxq 'plasma-login-manager' <<<"${installed_package_names}"; then
     echo "The upstream plasma-login-manager package is installed alongside the Meo fork." | tee -a "${log_file}" >&2
     exit 12
   fi
