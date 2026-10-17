@@ -186,6 +186,29 @@ if grep -Eq 'Shared library: \[(libPlasma\.so\.7|libkrdb\.so)\]' \
   exit 1
 fi
 
+# The desktop bridge is built on the host but loaded against the ISO's Plasma.
+# A successful host build cannot prove that its required SONAMEs exist there.
+unsquashfs -cat "${extract_dir}/airootfs.sfs" \
+  usr/lib/qt6/qml/Meo/System/libmeosystemplugin.so \
+  >"${extract_dir}/desktop-libmeosystemplugin.so"
+LC_ALL=C readelf -d "${extract_dir}/desktop-libmeosystemplugin.so" \
+  >"${evidence_dir}/desktop-meosystem-plugin-readelf.txt"
+python3 - "${evidence_dir}" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+evidence = Path(sys.argv[1])
+dependencies = re.findall(r'Shared library: \[([^\]]+)\]',
+                          (evidence / 'desktop-meosystem-plugin-readelf.txt').read_text())
+listing = (evidence / 'airootfs-files.txt').read_text()
+missing = [name for name in dependencies if not re.search(
+    r'\ssquashfs-root/usr/lib/' + re.escape(name) + r'(?:\s+->\s+[^\n]+)?$',
+    listing, re.MULTILINE)]
+if missing:
+    raise SystemExit('Desktop Meo.System dependencies missing from ISO: ' + ', '.join(missing))
+PY
+
 for path in \
   manifest.json \
   system-prompt.md \
