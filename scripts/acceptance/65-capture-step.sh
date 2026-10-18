@@ -6,8 +6,7 @@ usage() {
 Usage: scripts/acceptance/65-capture-step.sh STEP_LABEL [QMP_SOCKET]
 
 Capture an installer checkpoint. The retained PNG is stored beneath
-validation/<UTC-run-id>/screenshots/; the intermediate PPM is disposable and
-stored beneath tmp/<UTC-run-id>/.
+validation/<UTC-run-id>/screenshots/ using QEMU native PNG encoding.
 EOF
 }
 
@@ -49,14 +48,12 @@ safe_label="${safe_label%-}"
 [ -n "${safe_label}" ] || { echo "Step label contains no safe filename characters." >&2; exit 2; }
 
 screenshot_dir="${run_dir}/screenshots/installer"
-capture_dir="${tmp_dir}/capture"
-mkdir -p "${screenshot_dir}" "${capture_dir}"
+mkdir -p "${screenshot_dir}"
 sequence="$(find "${screenshot_dir}" -maxdepth 1 -type f -name '*.png' | wc -l)"
 sequence="$(printf '%02d' "$((sequence + 1))")"
-ppm_path="${capture_dir}/${sequence}-${safe_label}.ppm"
 png_path="${screenshot_dir}/${sequence}-${safe_label}.png"
 
-python3 - "${qmp_socket}" "${ppm_path}" <<'PY'
+python3 - "${qmp_socket}" "${png_path}" <<'PY'
 import json
 import socket
 import sys
@@ -76,7 +73,7 @@ with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
             raise SystemExit(response["error"])
     stream.write(json.dumps({
         "execute": "screendump",
-        "arguments": {"filename": screenshot_path},
+        "arguments": {"filename": screenshot_path, "format": "png"},
     }).encode() + b"\n")
     while True:
         response = json.loads(stream.readline())
@@ -86,6 +83,4 @@ with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
             raise SystemExit(response["error"])
 PY
 
-magick "${ppm_path}" "${png_path}"
-rm "${ppm_path}"
 printf '%s\n' "${png_path}"

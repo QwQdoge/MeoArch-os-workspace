@@ -128,6 +128,10 @@ class GenerateConfigTests(unittest.TestCase):
         for package in MODULE.MEO_DESKTOP_PACKAGES:
             self.assertIn(package, config["packages"])
 
+    def test_installed_desktop_includes_wallet_login_integration(self):
+        config = MODULE.build_user_configuration(self.selections)
+        self.assertIn("kwallet-pam", config["packages"])
+
     def test_archinstall_does_not_request_meo_repository_packages_before_repo_setup(self):
         # Meo packages are installed only after the target's signed Meo
         # repository is configured by run-archinstall.sh. Asking Archinstall

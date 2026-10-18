@@ -32,6 +32,7 @@ MEO_DESKTOP_PACKAGES = [
     "bluedevil",
     "plymouth",
     "qtkeychain-qt6",
+    "kwallet-pam",
     "lynis",
     "polkit-kde-agent",
     "system76-scheduler",

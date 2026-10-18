@@ -176,6 +176,7 @@ xorg-xinit
 plasma-desktop
 plasma-workspace
 plasma-login-manager
+kwallet-pam
 kwin
 konsole
 dolphin

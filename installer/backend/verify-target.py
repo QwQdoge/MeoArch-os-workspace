@@ -26,6 +26,7 @@ REQUIRED_FILES = (
     "usr/share/applications/org.meo.welcome.desktop",
     "usr/lib/systemd/system/plasmalogin.service", "usr/share/wayland-sessions/plasma.desktop",
     "usr/share/pixmaps/meoarch-logo.svg", "usr/share/meo-release/package-catalog.json",
+    "usr/lib/systemd/user/plasma-kwallet-pam.service",
     "usr/lib/systemd/user/meo-dynamic-colors.path",
     "usr/lib/systemd/user/meo-dynamic-colors.service", "usr/lib/systemd/user/pipewire.service",
     "usr/share/fcitx5/themes/MeoInputMethod-Light/theme.conf",
