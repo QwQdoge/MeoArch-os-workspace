@@ -20,13 +20,7 @@ loader.exec_module(module)
 
 class LiveAuthorizationTests(unittest.TestCase):
     def setUp(self):
-        self.facts = 'User=1000
-Active=yes
-Remote=no
-Type=wayland
-Class=user
-Desktop=KDE
-'
+        self.facts = 'User=1000\nActive=yes\nRemote=no\nType=wayland\nClass=user\nDesktop=KDE\n'
         self.user = mock.patch.object(module.pwd, 'getpwnam', return_value=SimpleNamespace(pw_uid=1000))
         self.peer = mock.patch.object(module, 'verify_kwin_endpoint')
         self.peer.start()
