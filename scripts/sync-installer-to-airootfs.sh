@@ -309,7 +309,7 @@ install -Dm755 "${installer_src}/bin/meoarch-live-session" \
   "${airootfs}/usr/lib/meoarch/live-session"
 install -Dm644 "${installer_src}/data/wayland-sessions/meoarch-live.desktop" \
   "${airootfs}/usr/share/wayland-sessions/meoarch-live.desktop"
-install -Dm755 "${installer_src}/bin/meoarch-ai-open-installer" \\
+install -Dm755 "${installer_src}/bin/meoarch-ai-open-installer" \
   "${airootfs}/usr/local/bin/meoarch-ai-open-installer"
 install -Dm755 "${installer_src}/bin/meoarch-installer-live" \
   "${airootfs}/usr/local/bin/meoarch-installer-live"
