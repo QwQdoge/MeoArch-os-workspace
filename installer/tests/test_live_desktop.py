@@ -20,7 +20,13 @@ loader.exec_module(module)
 
 class LiveAuthorizationTests(unittest.TestCase):
     def setUp(self):
-        self.facts = 'User=1000\nActive=yes\nRemote=no\nType=wayland\nClass=user\nDesktop=KDE\n'
+        self.facts = 'User=1000
+Active=yes
+Remote=no
+Type=wayland
+Class=user
+Desktop=KDE
+'
         self.user = mock.patch.object(module.pwd, 'getpwnam', return_value=SimpleNamespace(pw_uid=1000))
         self.peer = mock.patch.object(module, 'verify_kwin_endpoint')
         self.peer.start()
@@ -245,6 +251,10 @@ class LiveDesktopContractTests(unittest.TestCase):
         self.assertNotIn('network-online.target', launcher)
         self.assertIn('meoarch.mode=ai', launcher)
         self.assertIn('/usr/bin/meo-ai --live-recovery', launcher)
+        handoff = self.read('installer/bin/meoarch-ai-open-installer')
+        self.assertIn('/usr/lib/meoarch/live-installer-authorize', handoff)
+        self.assertIn('meoarch.mode=ai', handoff)
+        self.assertNotIn('eval ', handoff)
         self.assertIn('/usr/bin/meoarch-repair --live', launcher)
         autostart = self.read('installer/data/autostart/meoarch-live.desktop')
         self.assertIn('OnlyShowIn=KDE;', autostart)
@@ -296,7 +306,8 @@ class LiveDesktopContractTests(unittest.TestCase):
             account.parent.mkdir(parents=True, exist_ok=True)
             account.write_bytes((ROOT / 'installer/data/account.env.example').read_bytes())
             self.assertEqual(subprocess.run(command, capture_output=True).returncode, 0)
-            account.write_text('PRIVATE_KEY=unreviewed-fixture\n')
+            account.write_text('PRIVATE_KEY=unreviewed-fixture
+')
             self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
             account.write_bytes((ROOT / 'installer/data/account.env.example').read_bytes())
             (staged / 'unreviewed-payload').write_text('unknown')
