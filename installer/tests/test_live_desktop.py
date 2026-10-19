@@ -309,8 +309,7 @@ class LiveDesktopContractTests(unittest.TestCase):
             account.parent.mkdir(parents=True, exist_ok=True)
             account.write_bytes((ROOT / 'installer/data/account.env.example').read_bytes())
             self.assertEqual(subprocess.run(command, capture_output=True).returncode, 0)
-            account.write_text('PRIVATE_KEY=unreviewed-fixture
-')
+            account.write_text('PRIVATE_KEY=unreviewed-fixture\n')
             self.assertNotEqual(subprocess.run(command, capture_output=True).returncode, 0)
             account.write_bytes((ROOT / 'installer/data/account.env.example').read_bytes())
             (staged / 'unreviewed-payload').write_text('unknown')
