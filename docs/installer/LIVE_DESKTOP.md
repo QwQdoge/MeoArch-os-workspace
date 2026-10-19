@@ -4,7 +4,9 @@ The default boot is Plasma Wayland, not an Installer-owned compositor:
 
 `GRUB/Syslinux -> graphical.target -> plasmalogin -> live PAM/logind session -> Plasma/MeoKDE -> Live autostart -> Installer`
 
-`meoarch.mode=install|repair|tty` selects the purpose. The independent
+`meoarch.mode=install|ai|repair|tty` selects the purpose. The default
+`ai` entry starts native Meo AI after the language/Wi-Fi setup overlay; `repair`
+is retained for the existing Cage Quick Repair fallback. The independent
 `meoarch.session=plasma|cage` selector chooses the compositor. Missing session
 selection defaults to Plasma. BIOS, UEFI and GRUB loopback menus expose both
 Cage Install/Repair fallbacks; terminal-only remains a separate entry.
@@ -40,7 +42,11 @@ it becomes inactive; manual Installer launch remains available from the applicat
 allows session shutdown to stop the application, not the reverse.
 
 Install mode opens the existing Installer with its explicit desktop fullscreen
-property. Repair mode opens the existing unprivileged Quick Repair with
+property. AI mode opens `meo-ai --live-recovery` as Live user, with no elevated installer
+capability. Its setup overlay handles language selection and NetworkManager
+Wi-Fi setup. Chat can propose a plan but only Installer and Quick Repair own
+writes and confirmations. If Meo AI is missing, Quick Repair opens instead.
+Repair mode opens the existing unprivileged Quick Repair with
 `--live`, without Cage, installation capabilities or a second Polkit agent.
 Konsole and Repair remain desktop applications independent of Installer life.
 The embedded unprivileged diagnostic console remains useful in Cage fallback.
