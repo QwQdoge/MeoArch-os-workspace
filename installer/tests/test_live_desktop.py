@@ -55,6 +55,15 @@ Desktop=KDE
         self.assertEqual(run.call_args.kwargs['env'], module.BASE_ENV)
         self.assertEqual(run.call_args.kwargs['timeout'], 5)
 
+    def test_live_ai_boot_can_launch_same_verified_production_installer(self):
+        with mock.patch.object(module.subprocess, 'run',
+                               return_value=SimpleNamespace(stdout=self.facts)), \
+             mock.patch.object(Path, 'lstat', side_effect=self.endpoint_metadata()):
+            self.assertEqual(
+                self.context(cmdline='meoarch.mode=ai meoarch.session=plasma'),
+                Path('/run/user/1000/wayland-0')
+            )
+
     def test_rejects_other_users_media_modes_and_option_injection(self):
         for options in ({'caller_uid': 1001}, {'live_media': False},
                         {'cmdline': 'meoarch.mode=repair'}, {'cmdline': 'meoarch.mode=tty'},
