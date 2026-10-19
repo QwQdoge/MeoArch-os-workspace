@@ -14,6 +14,7 @@ for argument in "${kernel_arguments[@]}"; do
     meoarch.session=cage|meoarch.mode=tty) exit 0 ;;
     meoarch.mode=install) boot_mode=install ;;
     meoarch.mode=repair) boot_mode=repair ;;
+    meoarch.mode=ai) boot_mode=ai ;;
   esac
 done
 [ -d /run/archiso ] || exit 126
@@ -50,6 +51,15 @@ if [ "${1:-}" = --autostart ]; then
   exec /usr/bin/systemctl --user start --no-block meoarch-live-app.service
 fi
 
+if [ "${boot_mode}" = ai ]; then
+  # Normal Meo AI runs as the unprivileged Live user. No installer capability
+  # is passed into chat; destructive actions retain their typed owner gates.
+  if [ -x /usr/bin/meo-ai ]; then
+    exec /usr/bin/meo-ai --live-recovery
+  fi
+  echo "Meo AI is unavailable; opening Quick Repair instead." >&2
+  exec /usr/bin/meoarch-repair --live
+fi
 if [ "${boot_mode}" = repair ]; then
   exec /usr/bin/meoarch-repair --live
 fi
