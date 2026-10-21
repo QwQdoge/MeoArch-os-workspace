@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Fixed, interactive entrypoint for a user who chose Install from Meo AI.
+# AI never receives a root executor or an open-ended shell API.
+[ "$#" -eq 0 ] || exit 2
+[ "$(id -un)" = live ] || exit 126
+[ -d /run/archiso ] || exit 126
+[ "${XDG_SESSION_TYPE:-}" = wayland ] || exit 126
+case ":${XDG_CURRENT_DESKTOP:-}:" in *:KDE:*) ;; *) exit 126 ;; esac
+read -r -a boot_args < /proc/cmdline
+mode=""
+session=""
+for arg in "${boot_args[@]}"; do
+    case "${arg}" in
+        meoarch.mode=ai) mode=ai ;;
+        meoarch.session=plasma) session=plasma ;;
+    esac
+done
+[ "${mode}" = ai ] && [ "${session}" = plasma ] || exit 126
+session_id="${XDG_SESSION_ID:-}"
+if [ -z "${session_id}" ]; then
+    session_id="$(/usr/bin/loginctl show-user live --property=Display --value)"
+fi
+[ -n "${session_id}" ] || exit 126
+# The root helper independently validates the active local logind session,
+# KWin Wayland socket and boot mode. This is NOT a generic pkexec interface.
+exec /usr/bin/pkexec /usr/lib/meoarch/live-installer-authorize "${session_id}" "${WAYLAND_DISPLAY:?}"

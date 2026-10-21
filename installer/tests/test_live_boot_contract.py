@@ -178,8 +178,8 @@ class LiveBootContractTests(unittest.TestCase):
             expected,
         )
         self.assertEqual(
-            grub_kernel_options('Diagnostics and repair - no installation'),
-            expected.replace("meoarch.mode=install", "meoarch.mode=repair"),
+            grub_kernel_options('Meo AI - install or repair'),
+            expected.replace("meoarch.mode=install", "meoarch.mode=ai"),
         )
 
     def test_tty_mode_has_tty1_without_starting_cage(self):
@@ -223,7 +223,7 @@ class LiveBootContractTests(unittest.TestCase):
         loopback = GRUB_LOOPBACK.read_text(encoding="utf-8")
         common = "quiet splash loglevel=3 rd.udev.log_level=3 vt.global_cursor_default=0 plymouth.enable=1"
         self.assertIn(f"meoarch.mode=install meoarch.session=plasma {common}", loopback)
-        self.assertIn(f"meoarch.mode=repair meoarch.session=plasma {common}", loopback)
+        self.assertIn(f"meoarch.mode=ai meoarch.session=plasma {common}", loopback)
         # The speech-reader path intentionally stays unsilenced.
         speech_line = next(
             line for line in loopback.splitlines()

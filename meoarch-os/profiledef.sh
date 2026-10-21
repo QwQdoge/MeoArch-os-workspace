@@ -26,6 +26,7 @@ declare -A file_permissions=(
   ["/home/live/.config"]="1000:1000:700"
   ["/home/live/.config/kscreenlockerrc"]="1000:1000:600"
   ["/usr/local/bin/meoarch-installer-live"]="0:0:755"
+  ["/usr/local/bin/meoarch-ai-open-installer"]="0:0:755"
   ["/usr/lib/meoarch/live-session"]="0:0:755"
   ["/usr/lib/meoarch/live-installer-authorize"]="0:0:755"
   ["/root"]="0:0:750"

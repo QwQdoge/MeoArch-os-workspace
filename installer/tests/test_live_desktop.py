@@ -49,6 +49,15 @@ class LiveAuthorizationTests(unittest.TestCase):
         self.assertEqual(run.call_args.kwargs['env'], module.BASE_ENV)
         self.assertEqual(run.call_args.kwargs['timeout'], 5)
 
+    def test_live_ai_boot_can_launch_same_verified_production_installer(self):
+        with mock.patch.object(module.subprocess, 'run',
+                               return_value=SimpleNamespace(stdout=self.facts)), \
+             mock.patch.object(Path, 'lstat', side_effect=self.endpoint_metadata()):
+            self.assertEqual(
+                self.context(cmdline='meoarch.mode=ai meoarch.session=plasma'),
+                Path('/run/user/1000/wayland-0')
+            )
+
     def test_rejects_other_users_media_modes_and_option_injection(self):
         for options in ({'caller_uid': 1001}, {'live_media': False},
                         {'cmdline': 'meoarch.mode=repair'}, {'cmdline': 'meoarch.mode=tty'},
@@ -243,6 +252,13 @@ class LiveDesktopContractTests(unittest.TestCase):
         self.assertNotIn('WAYLAND_DISPLAY:?}/${', launcher)
         self.assertIn('attempt<60', launcher)
         self.assertNotIn('network-online.target', launcher)
+        self.assertIn('meoarch.mode=ai', launcher)
+        self.assertIn('/usr/bin/meo-ai --live-recovery', launcher)
+        handoff = self.read('installer/bin/meoarch-ai-open-installer')
+        self.assertIn('/usr/lib/meoarch/live-installer-authorize', handoff)
+        self.assertIn('meoarch.mode=ai', handoff)
+        self.assertNotIn('eval ', handoff)
+        self.assertIn('/usr/bin/meoarch-repair --live', launcher)
         autostart = self.read('installer/data/autostart/meoarch-live.desktop')
         self.assertIn('OnlyShowIn=KDE;', autostart)
         self.assertIn('--autostart', autostart)

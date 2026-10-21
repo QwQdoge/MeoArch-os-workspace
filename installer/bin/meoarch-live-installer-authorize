@@ -26,7 +26,7 @@ def session_context(session_id, display, caller_uid, cmdline, live_media=True):
     if not live_media or caller_uid != pwd.getpwnam('live').pw_uid:
         raise ValueError('Only the Live media user may launch this controller')
     options = dict(token.split('=', 1) for token in cmdline.split() if '=' in token)
-    if options.get('meoarch.mode', 'install') != 'install' or options.get('meoarch.session', 'plasma') != 'plasma':
+    if options.get('meoarch.mode', 'install') not in {'install', 'ai'} or options.get('meoarch.session', 'plasma') != 'plasma':
         raise ValueError('Production desktop installation is disabled in this boot mode')
     if not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}', session_id):
         raise ValueError('Invalid login session')
