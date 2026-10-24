@@ -187,7 +187,7 @@ PageFrame {
             }
         }
         MeoButton {
-            visible: MeoSystem.SystemState.wirelessAvailable && MeoSystem.SystemState.wirelessEnabled && MeoSystem.SystemState.wifiNetworks.length === 0
+            visible: MeoSystem.SystemState.wirelessAvailable && MeoSystem.SystemState.wirelessEnabled && Array.from(MeoSystem.SystemState.wifiNetworks).length === 0
             text: MeoSystem.SystemState.wifiScanning ? qsTr("Scanning…") : qsTr("Scan for networks")
             type: "tonal"
             loading: MeoSystem.SystemState.wifiScanning
