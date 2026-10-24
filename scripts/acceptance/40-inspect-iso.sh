@@ -95,9 +95,11 @@ for path in \
   usr/lib/systemd/user/plasma-polkit-agent.service; do
   grep -q "${path}$" "${evidence_dir}/airootfs-files.txt"
 done
-grep -q 'opt/meo-desktop/themes/look-and-feel/org.meo.desktop/metadata.json' \
-  "${evidence_dir}/airootfs-files.txt"
-for package in plasma-desktop plasma-workspace plasma-login-manager kwin konsole plasma-nm plasma-pa alsa-utils cage networkmanager qtkeychain-qt6 lynis noto-fonts pipewire-audio pipewire-pulse wireplumber polkit-qt6; do
+if grep -q 'opt/meo-desktop/' "${evidence_dir}/airootfs-files.txt"; then
+  echo "Live image carries a legacy /opt/meo-desktop payload; the target desktop comes from packages." >&2
+  exit 1
+fi
+for package in plasma-desktop plasma-workspace meo-plasma-login-manager meo-desktop meoui-qml kwin konsole plasma-nm plasma-pa alsa-utils cage networkmanager qtkeychain-qt6 lynis noto-fonts pipewire-audio pipewire-pulse wireplumber polkit-qt6; do
   grep -q "^${package} " "${evidence_dir}/packages.txt"
 done
 # Default Live desktop and optional Cage must both be present.
@@ -117,6 +119,9 @@ for live_path in \
   usr/share/polkit-1/actions/org.meo.installer-live.policy \
   usr/share/polkit-1/rules.d/49-meoarch-live-installer.rules \
   usr/share/plasma/look-and-feel/org.meo.desktop/metadata.json \
+  usr/share/wayland-sessions/meo.desktop \
+  usr/bin/startmeo-wayland \
+  usr/share/meo-desktop/session-defaults/kdeglobals \
   opt/meoarch-installer/live-qml/Meo/System/libmeosystemplugin.so; do
   grep -q "${live_path}" "${evidence_dir}/airootfs-files.txt"
 done
@@ -158,6 +163,19 @@ for executable in \
   grep -Eq "^-rwx[^[:space:]]*[[:space:]].*${executable}$" \
     "${evidence_dir}/airootfs-files.txt"
 done
+# The Live desktop must not carry global KDE/Meo defaults that the isolated
+# Meo session (and therefore the installed system) does not have.
+for forbidden in etc/xdg/kdeglobals etc/xdg/kwinrc etc/xdg/plasmarc \
+  etc/xdg/meo-shellrc etc/environment.d/90-meo-applications.conf; do
+  if grep -q " ${forbidden}$" "${evidence_dir}/airootfs-files.txt"; then
+    echo "Live image carries a global desktop default the Meo session must own: ${forbidden}" >&2
+    exit 1
+  fi
+done
+if grep -q "^plasma-login-manager " "${evidence_dir}/packages.txt"; then
+  echo "The upstream plasma-login-manager is installed beside the Meo fork." >&2
+  exit 1
+fi
 if grep -q 'opt/meo-ui/' "${evidence_dir}/airootfs-files.txt"; then
   echo "Obsolete /opt/meo-ui exists in ISO." >&2
   exit 1

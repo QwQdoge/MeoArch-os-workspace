@@ -33,7 +33,7 @@ repair_knowledge_dst="${airootfs}/usr/share/meoarch-repair"
 repair_policy_dst="${airootfs}/usr/share/polkit-1/actions/org.meo.repair.policy"
 repair_live_policy_dst="${airootfs}/usr/share/polkit-1/actions/org.meo.repair-live.policy"
 repair_live_rule_dst="${airootfs}/usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules"
-desktop_dst="${airootfs}/opt/meo-desktop"
+legacy_desktop_payload_dst="${airootfs}/opt/meo-desktop"
 build_root="$(realpath -m -- "${MEOARCH_BUILD_ROOT:-${repo_root}/build}")"
 outputs_tmp_root="$(realpath -m -- "${MEO_OUTPUT_ROOT:-${projects_root}/outputs}/meo-arch-os-workspace/tmp")"
 case "${build_root}" in
@@ -41,11 +41,6 @@ case "${build_root}" in
   *) echo "Refusing unsafe ISO build root: ${build_root}" >&2; exit 2 ;;
 esac
 runtime_root="${build_root}/installer-runtime-root/usr"
-meoui_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoUI"
-meokde_qml_dst="${airootfs}/usr/lib/qt6/qml/MeoKDE"
-meosystem_qml_dst="${airootfs}/usr/lib/qt6/qml/Meo/System"
-meokde_fonts_dst="${airootfs}/usr/share/fonts/meo"
-meosystem_build="${build_root}/meo-system"
 meosystem_live_build="${build_root}/meo-system-live"
 meokde_native_build="${build_root}/meo-kde-native"
 cmake_refresh_args=()
@@ -55,11 +50,10 @@ fi
 legacy_meoui_dst="${airootfs}/opt/meo-ui"
 
 for destructive_target in \
-  "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" \
-  "${meosystem_qml_dst}" "${meokde_fonts_dst}" "${installer_dst}" \
+  "${legacy_meoui_dst}" "${installer_dst}" \
   "${repair_dst}" "${repair_knowledge_dst}" "${repair_policy_dst}" \
   "${repair_live_policy_dst}" \
-  "${repair_live_rule_dst}" "${desktop_dst}"; do
+  "${repair_live_rule_dst}" "${legacy_desktop_payload_dst}"; do
   if [ -L "${destructive_target}" ]; then
     echo "Refusing recursive replacement of symlink: ${destructive_target}" >&2
     exit 2
@@ -90,6 +84,15 @@ if [ ! -f "${runtime_root}/lib/libmeoui.so.0" ] \
   exit 1
 fi
 
+# The desktop's MeoUI comes from the signed `meoui-qml` package, but the
+# Installer and Quick Repair built above link the sibling checkout. Pin them to
+# the same MeoUI commit when a release manifest names the Live content.
+if [ -n "${MEOARCH_RELEASE_MANIFEST:-}" ]; then
+  python3 "${repo_root}/scripts/check-meoui-pin.py" "${meoui_source}" "${MEOARCH_RELEASE_MANIFEST}"
+else
+  echo "WARNING: MEOARCH_RELEASE_MANIFEST is not set; the Installer's MeoUI is not checked against the packaged meoui-qml." >&2
+fi
+
 # The ISO must never consume an unvalidated sibling checkout. This gate uses
 # the freshly built MeoUI runtime above and records evidence in MeoKDE's own
 # global output subtree, preserving project ownership.
@@ -98,42 +101,23 @@ MEOUI_IMPORT_ROOT="${runtime_root}/lib/qt6/qml" \
 MEOUI_SOURCE_DIR="${meoui_source}" \
   "${meo_kde_src}/scripts/validate.sh"
 
-cmake "${cmake_refresh_args[@]}" -S "${meo_kde_src}/native/system" -B "${meosystem_build}" \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build "${meosystem_build}" --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
 cmake "${cmake_refresh_args[@]}" -S "${repo_root}/installer/live-system" -B "${meosystem_live_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEO_KDE_SOURCE_DIR="${meo_kde_src}"
 cmake --build "${meosystem_live_build}" --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
 cmake "${cmake_refresh_args[@]}" -S "${meo_kde_src}/native" -B "${meokde_native_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEOUI_SOURCE_DIR="${meoui_source}" \
   -DMEO_BUILD_STANDALONE_DOCK=OFF
-cmake --build "${meokde_native_build}" --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
+cmake --build "${meokde_native_build}" --target meo-polkit-agent \
+  --parallel "${MEO_BUILD_PARALLEL_LEVEL:-1}"
 
-rm -rf "${legacy_meoui_dst}" "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}"
-install -d "${meoui_qml_dst}" "${meokde_qml_dst}" "${meosystem_qml_dst}" "${meokde_fonts_dst}" \
-  "${airootfs}/usr/lib" "${airootfs}/usr/bin" \
-  "${airootfs}/usr/share/meo-desktop/defaults" \
-  "${airootfs}/usr/share/meo-desktop/input-method/ibus" \
-  "${airootfs}/usr/share/fcitx5/themes" \
-  "${airootfs}/usr/lib/systemd/user/default.target.wants" \
-  "${airootfs}/etc/environment.d" "${airootfs}/etc/xdg/fcitx5/conf"
-# build-iso.sh applies this source overlay after pacstrap. Keep the freshly
-# validated MeoUI runtime with its matching MeoKDE consumers: the signed
-# repository package may predate APIs used by the current Live shell.
-cp -a "${runtime_root}/lib/libmeoui.so"* "${airootfs}/usr/lib/"
-cp -a "${runtime_root}/lib/qt6/qml/MeoUI/." "${meoui_qml_dst}/"
-cp -a "${meo_kde_src}/qml/MeoKDE/." "${meokde_qml_dst}/"
-# Plasma widgets need the complete Meo.System desktop API. The Installer's
-# smaller SystemState adapter is staged in its private import tree below.
-cp -a "${meosystem_build}/qml/Meo/System/." "${meosystem_qml_dst}/"
-install -Dm755 "${meosystem_build}/meo-session-actiond" \
-  "${airootfs}/usr/bin/meo-session-actiond"
-install -Dm755 "${meosystem_build}/meo-weather-refresh" \
-  "${airootfs}/usr/bin/meo-weather-refresh"
-install -Dm644 "${meo_kde_src}/native/system/org.meo.SessionAction1.service" \
-  "${airootfs}/usr/share/dbus-1/services/org.meo.SessionAction1.service"
-cp -a "${meo_kde_src}/assets/fonts/"*.ttf "${meokde_fonts_dst}/"
-
+# The desktop runtime (MeoUI, MeoKDE, Meo.System, themes, plasmoids, session
+# defaults, window decoration/style, helper tools and their user units) is owned
+# by the signed `meoui-qml`, `meo-icons` and `meo-desktop` packages listed in
+# packages.x86_64. This overlay is applied after pacstrap and would shadow them,
+# so it must not stage any of those files: Live and the installed system run
+# the same package versions.
+rm -rf "${legacy_meoui_dst}"
+install -d "${airootfs}/usr/lib" "${airootfs}/usr/bin"
 rm -rf "${repair_dst}" "${repair_knowledge_dst}"
 cp -a "${runtime_root}/lib/meoarch-repair" "${repair_dst}"
 cp -a "${runtime_root}/share/meoarch-repair" "${repair_knowledge_dst}"
@@ -168,51 +152,14 @@ fi
 [ -f "${repair_icon}" ] || { echo "Repair icon is missing from installer runtime." >&2; exit 1; }
 install -Dm644 "${repair_icon}" \
   "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
-install -Dm644 "${meo_kde_src}/defaults/fonts/50-meo-fonts.conf" \
-  "${airootfs}/etc/fonts/conf.avail/50-meo-fonts.conf"
+# `meo-desktop` ships the fontconfig snippet under conf.avail only; Live enables
+# it the way the installer does. User units are package-owned too, but are not
+# enabled globally by the package, so the Live medium enables them here (ISO-only).
 install -d "${airootfs}/etc/fonts/conf.d"
 ln -sfn ../conf.avail/50-meo-fonts.conf \
   "${airootfs}/etc/fonts/conf.d/50-meo-fonts.conf"
-install -Dm755 "${meokde_native_build}/dynamic-color/meo-dynamic-colors" \
-  "${airootfs}/usr/bin/meo-dynamic-colors"
-install -Dm755 "${meo_kde_src}/tools/input-method/meo-input-method.sh" \
-  "${airootfs}/usr/bin/meo-input-method"
-install -Dm755 "${meo_kde_src}/tools/theme/apply-meo-mode.sh" \
-  "${airootfs}/usr/bin/meo-theme-mode"
-install -Dm755 "${meo_kde_src}/tools/theme/apply-meo-desktop.sh" \
-  "${airootfs}/usr/bin/meo-desktop-apply"
-install -Dm755 "${meo_kde_src}/tools/shell/apply-meo-panel-layout.sh" \
-  "${airootfs}/usr/bin/meo-desktop-layout"
-install -Dm644 "${meo_kde_src}/defaults/kwin/kwinrc" \
-  "${airootfs}/usr/share/meo-desktop/defaults/kwinrc"
-install -Dm644 "${meo_kde_src}/defaults/environment/90-meo-applications.conf" \
-  "${airootfs}/etc/environment.d/90-meo-applications.conf"
-install -Dm644 "${meo_kde_src}/defaults/kde/kglobalshortcutsrc" \
-  "${airootfs}/etc/xdg/kglobalshortcutsrc"
-install -Dm644 "${meo_kde_src}/defaults/input-method/fcitx5/conf/classicui.conf" \
-  "${airootfs}/etc/xdg/fcitx5/conf/classicui.conf"
-install -d "${airootfs}/etc/fonts/conf.d"
-rm -rf "${airootfs}/usr/share/fcitx5/themes/MeoInputMethod-Light" \
-  "${airootfs}/usr/share/fcitx5/themes/MeoInputMethod-Dark"
-cp -a "${meo_kde_src}/themes/input-method/fcitx5/MeoInputMethod-Light" \
-  "${meo_kde_src}/themes/input-method/fcitx5/MeoInputMethod-Dark" \
-  "${airootfs}/usr/share/fcitx5/themes/"
-install -Dm644 "${meo_kde_src}/themes/input-method/ibus/gtk.css.in" \
-  "${airootfs}/usr/share/meo-desktop/input-method/ibus/gtk.css.in"
-install -Dm644 "${meo_kde_src}/themes/input-method/ibus/index.theme" \
-  "${airootfs}/usr/share/meo-desktop/input-method/ibus/index.theme"
-install -Dm644 "${meo_kde_src}/defaults/systemd/meo-dynamic-colors.path" \
-  "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.path"
-install -Dm644 "${meo_kde_src}/defaults/systemd/meo-dynamic-colors.service" \
-  "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.service"
-sed -i 's|%h/.local/bin/|/usr/bin/|g' \
-  "${airootfs}/usr/lib/systemd/user/meo-dynamic-colors.service"
 ln -sfn ../meo-dynamic-colors.path \
   "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path"
-install -Dm644 "${meo_kde_src}/defaults/systemd/meo-weather-refresh.service" \
-  "${airootfs}/usr/lib/systemd/user/meo-weather-refresh.service"
-install -Dm644 "${meo_kde_src}/defaults/systemd/meo-weather-refresh.timer" \
-  "${airootfs}/usr/lib/systemd/user/meo-weather-refresh.timer"
 ln -sfn ../meo-weather-refresh.timer \
   "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer"
 
@@ -242,69 +189,14 @@ cp -a "${repo_root}/assets" "${installer_dst}/assets"
 find "${installer_dst}/backend" -type f \( -name "*.sh" -o -name "*.py" \) -exec chmod 755 {} +
 find "${installer_dst}/data" -type f -exec chmod 644 {} +
 
-rm -rf "${desktop_dst}"
-install -d \
-  "${desktop_dst}/themes/look-and-feel" \
-  "${desktop_dst}/themes/desktoptheme" \
-  "${desktop_dst}/themes/color-schemes" \
-  "${desktop_dst}/themes/icons" \
-  "${desktop_dst}/icons" \
-  "${desktop_dst}/plasmoids" \
-  "${desktop_dst}/branding" \
-  "${desktop_dst}/defaults" \
-  "${desktop_dst}/wallpaper"
-cp -a "${meo_kde_src}/themes/look-and-feel/org.meo.desktop" \
-  "${desktop_dst}/themes/look-and-feel/org.meo.desktop"
-install -d "${desktop_dst}/themes/shells"
-cp -a "${meo_kde_src}/themes/shells/org.meo.shell" "${desktop_dst}/themes/shells/"
-cp -a "${meo_kde_src}/themes/desktoptheme/." \
-  "${desktop_dst}/themes/desktoptheme/"
-cp -a "${meo_kde_src}/themes/color-schemes/." \
-  "${desktop_dst}/themes/color-schemes/"
-cp -a "${meo_kde_src}/themes/icons/." \
-  "${desktop_dst}/themes/icons/"
-cp -a "${meo_kde_src}/icons/." "${desktop_dst}/icons/"
-# Same maintained applet set as MeoKDE's source deployment. No local UI fork.
-for plasmoid in org.meo.topbar org.meo.toptasks org.meo.timecenter org.meo.time \
-  org.meo.notifications org.meo.time-notifications org.meo.widgetexplorer \
-  org.meo.widget.clock org.meo.widget.media org.meo.widget.performance; do
-  if [ -d "${meo_kde_src}/plasmoids/${plasmoid}" ]; then
-    cp -a "${meo_kde_src}/plasmoids/${plasmoid}" \
-      "${desktop_dst}/plasmoids/${plasmoid}"
-  fi
-done
-cp -a "${meo_kde_src}/defaults/." "${desktop_dst}/defaults/"
-install -Dm644 "${repo_root}/assets/icons/Logo.svg" \
-  "${desktop_dst}/branding/Logo.svg"
-install -Dm644 "${repo_root}/assets/wallpapers/installer_background.png" \
-  "${desktop_dst}/wallpaper/installer_background.png"
+# The installed system gets its desktop from pacman, never from a payload on the
+# Live medium, so no /opt/meo-desktop tree is staged (and a stale one from an
+# older staging run is removed).
+rm -rf "${legacy_desktop_payload_dst}"
 
-# Retain the target payload, and activate the same versioned MeoKDE inputs in
-# the Live filesystem. Do not run the target customization script against the
-# Live root: it owns target accounts, bootloader and installation side effects.
-install -d "${airootfs}/usr/share/plasma/look-and-feel" \
-  "${airootfs}/usr/share/plasma/desktoptheme" "${airootfs}/usr/share/plasma/plasmoids" \
-  "${airootfs}/usr/share/color-schemes" "${airootfs}/etc/xdg" \
-  "${airootfs}/usr/share/wallpapers/MeoArch"
-cp -a "${desktop_dst}/themes/look-and-feel/org.meo.desktop" \
-  "${airootfs}/usr/share/plasma/look-and-feel/"
-install -d "${airootfs}/usr/share/plasma/shells"
-cp -a "${desktop_dst}/themes/shells/org.meo.shell" "${airootfs}/usr/share/plasma/shells/"
-install -Dm644 "${meo_kde_src}/themes/look-and-feel/org.meo.desktop/contents/lockscreen/config.xml" \
-  "${airootfs}/usr/share/plasma/shells/org.meo.shell/contents/lockscreen/config.xml"
-cp -a "${desktop_dst}/themes/desktoptheme/." "${airootfs}/usr/share/plasma/desktoptheme/"
-cp -a "${desktop_dst}/themes/color-schemes/." "${airootfs}/usr/share/color-schemes/"
-cp -a "${desktop_dst}/themes/icons/." "${airootfs}/usr/share/icons/"
-cp -a "${desktop_dst}/plasmoids/." "${airootfs}/usr/share/plasma/plasmoids/"
-for default_file in kde/kdeglobals kde/kglobalshortcutsrc kwin/kwinrc \
-  plasma/plasmarc plasma/plasma-welcomerc plasma/meo-shellrc; do
-  install -Dm644 "${meo_kde_src}/defaults/${default_file}" \
-    "${airootfs}/etc/xdg/$(basename "${default_file}")"
-done
-install -Dm644 "${desktop_dst}/wallpaper/installer_background.png" \
-  "${airootfs}/usr/share/wallpapers/MeoArch/installer_background.png"
-install -Dm644 "${desktop_dst}/branding/Logo.svg" \
-  "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg"
+# The Live desktop itself (look-and-feel, shell, plasmoids, themes, wallpaper,
+# branding, session defaults) comes from the `meo-desktop` package. The Live
+# session entry below only wraps `startmeo-wayland`.
 install -Dm755 "${installer_src}/bin/meoarch-live-session" \
   "${airootfs}/usr/lib/meoarch/live-session"
 install -Dm644 "${installer_src}/data/wayland-sessions/meoarch-live.desktop" \
@@ -329,9 +221,6 @@ install -Dm644 "${installer_src}/data/org.meo.installer-live.policy" \
   "${airootfs}/usr/share/polkit-1/actions/org.meo.installer-live.policy"
 install -Dm644 "${installer_src}/data/org.meo.installer-live.rules" \
   "${airootfs}/usr/share/polkit-1/rules.d/49-meoarch-live-installer.rules"
-install -Dm644 "${meo_kde_src}/defaults/system/os-release" \
-  "${airootfs}/etc/os-release"
-
 plymouth_theme_dst="${airootfs}/usr/share/plymouth/themes/meoarch"
 rm -rf "${plymouth_theme_dst}"
 install -d "${plymouth_theme_dst}" "${airootfs}/etc/plymouth" "${airootfs}/usr/lib/meoarch" "${airootfs}/usr/bin"
@@ -362,16 +251,6 @@ for dropin in systemd-udev-settle.service.d NetworkManager.service.d plasmalogin
   install -Dm644 "${installer_src}/data/systemd/dropins/${dropin}/10-meo-boot-status.conf" \
     "${airootfs}/usr/lib/systemd/system/${dropin}/10-meo-boot-status.conf"
 done
-install -Dm755 "${meokde_native_build}/bin/org.kde.kdecoration3/org.meo.decoration.so" \
-  "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3/org.meo.decoration.so"
-install -Dm755 "${meokde_native_build}/decoration/kcm_meodecoration.so" \
-  "${airootfs}/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm/kcm_meodecoration.so"
-install -Dm755 "${meokde_native_build}/qt-plugins/styles/meostyle.so" \
-  "${airootfs}/usr/lib/qt6/plugins/styles/meostyle.so"
-# The old clipping effect is intentionally retired. KWin's maintained shape
-# corners effect and the native decoration now own the window geometry.
-rm -f "${airootfs}/usr/lib/qt6/plugins/kwin/effects/plugins/org.meo.windowcorners.so"
-
 native_binary="${MEOARCH_INSTALLER_NATIVE_BINARY:-${runtime_root}/bin/meoarch-installer-app}"
 [ -x "${native_binary}" ] || {
   echo "Required native installer host is missing: ${native_binary}" >&2

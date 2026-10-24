@@ -37,29 +37,8 @@ classify() {
     airootfs/usr/bin/meoarch-repair|airootfs/usr/lib/meoarch-repair/*|airootfs/usr/share/meoarch-repair/*|airootfs/usr/share/polkit-1/actions/org.meo.repair*.policy|airootfs/usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules|airootfs/usr/share/applications/org.meo.repair.desktop|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg|airootfs/usr/lib/meo-polkit-agent|airootfs/usr/lib/systemd/user/default.target.wants/meo-agent-service.service)
       printf '%s\t%s\t%s' 'Quick Repair' 'this workspace shared repair source' 'system and Live categorized repair application'
       ;;
-    airootfs/usr/lib/libmeoui.so*|airootfs/usr/lib/qt6/qml/MeoUI/*)
-      printf '%s\t%s\t%s' 'MeoUI' 'compiled sibling MeoUI runtime' 'shared QML controls and runtime library'
-      ;;
-    airootfs/usr/lib/qt6/qml/MeoKDE/*|airootfs/usr/share/fonts/meo/*|airootfs/etc/fonts/*)
-      printf '%s\t%s\t%s' 'MeoKDE' 'compiled or copied sibling MeoKDE runtime' 'shared KDE QML and font integration'
-      ;;
-    airootfs/usr/lib/qt6/qml/Meo/System/*|airootfs/usr/bin/meo-session-actiond|airootfs/usr/bin/meo-weather-refresh|airootfs/usr/share/dbus-1/services/org.meo.SessionAction1.service)
-      printf '%s\t%s\t%s' 'Meo.System' 'full desktop plugin compiled from validated sibling MeoKDE source' 'shared desktop, NetworkManager and system-state backend'
-      ;;
-    airootfs/opt/meo-desktop/*|airootfs/usr/share/plasma/look-and-feel/org.meo.desktop/*|airootfs/usr/share/plasma/shells/org.meo.shell/*|airootfs/usr/share/plasma/desktoptheme/*|airootfs/usr/share/plasma/plasmoids/org.meo.shelf/*|airootfs/usr/share/plasma/plasmoids/org.meo.topbar/*|airootfs/usr/share/plasma/plasmoids/org.meo.timecenter/*|airootfs/usr/share/plasma/plasmoids/org.meo.toptasks/*|airootfs/usr/share/plasma/plasmoids/org.meo.time/*|airootfs/usr/share/plasma/plasmoids/org.meo.notifications/*|airootfs/usr/share/plasma/plasmoids/org.meo.time-notifications/*|airootfs/usr/share/plasma/plasmoids/org.meo.widget*/*|airootfs/usr/share/color-schemes/*|airootfs/usr/share/icons/MeoSymbols*/*)
-      printf '%s\t%s\t%s' 'MeoKDE desktop' 'declared sibling MeoKDE desktop assets' 'live desktop theme, status surfaces, or retired Shelf cleanup'
-      ;;
-    airootfs/usr/bin/meo-dynamic-colors|airootfs/usr/bin/meo-input-method|airootfs/usr/bin/meo-theme-mode|airootfs/usr/bin/meo-desktop-apply|airootfs/usr/bin/meo-desktop-layout|airootfs/usr/share/meo-desktop/*|airootfs/usr/share/fcitx5/themes/MeoInputMethod-*/*|airootfs/etc/xdg/fcitx5/*|airootfs/etc/environment.d/90-meo-applications.conf|airootfs/usr/lib/systemd/user/meo-dynamic-colors.*|airootfs/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path|airootfs/usr/lib/systemd/user/meo-weather-refresh.*|airootfs/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer)
-      printf '%s\t%s\t%s' 'MeoKDE integration' 'declared sibling MeoKDE scripts and defaults' 'dynamic palette, application style, and input-method integration'
-      ;;
-    airootfs/usr/share/wallpapers/MeoArch/*|airootfs/usr/share/pixmaps/meoarch-logo.svg|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg)
-      printf '%s\t%s\t%s' 'MeoArch branding' 'workspace assets' 'live session wallpaper and application branding'
-      ;;
-    airootfs/etc/os-release|airootfs/etc/xdg/kdeglobals|airootfs/etc/xdg/kwinrc|airootfs/etc/xdg/plasmarc|airootfs/etc/xdg/plasma-welcomerc|airootfs/etc/xdg/meo-shellrc|airootfs/etc/xdg/kglobalshortcutsrc)
-      printf '%s\t%s\t%s' 'MeoKDE defaults' 'declared sibling MeoKDE defaults' 'installed desktop defaults and branding'
-      ;;
-    airootfs/usr/lib/qt6/plugins/org.kde.kdecoration3/org.meo.decoration.so|airootfs/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm/kcm_meodecoration.so|airootfs/usr/lib/qt6/plugins/styles/meostyle.so|airootfs/usr/lib/qt6/plugins/kwin/effects/plugins/org.meo.windowcorners.so)
-      printf '%s\t%s\t%s' 'MeoKDE native' 'compiled sibling MeoKDE native targets' 'window decoration, KCM, style, and retired-plugin cleanup'
+    airootfs/etc/fonts/conf.d/50-meo-fonts.conf|airootfs/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path|airootfs/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer)
+      printf '%s\t%s\t%s' 'Live enablement' 'ISO-only symlinks into meo-desktop package files' 'font alias and user-unit enablement for the Live medium'
       ;;
     airootfs/home/live/.ssh/authorized_keys)
       printf '%s\t%s\t%s' 'Acceptance harness' 'MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY' 'ephemeral VM-only SSH access for post-install evidence collection'

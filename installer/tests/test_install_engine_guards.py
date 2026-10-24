@@ -133,8 +133,10 @@ class InstallEngineGuardTests(unittest.TestCase):
         self.assertIn("^plasma-login-manager[[:space:]]", package_preflight)
         self.assertIn("would install the upstream plasma-login-manager", package_preflight)
         self.assertIn('"mkinitcpio"', package_preflight)
-        self.assertIn('plasma_flavor = plasma_settings.get("plasma_flavor", "plasma-meta")', package_preflight)
-        self.assertIn('packages.append(plasma_flavor)', package_preflight)
+        # The desktop is no longer an Archinstall profile; the Plasma runtime that
+        # meo-desktop requires is still resolved here, before any disk change.
+        self.assertIn('packages.extend(["plasma-desktop", "plasma-workspace"])', package_preflight)
+        self.assertNotIn("plasma_flavor", package_preflight)
         self.assertIn("GfxDriver", package_preflight)
         self.assertIn("gfx_packages()", package_preflight)
         self.assertIn("SysInfo.is_vm()", package_preflight)

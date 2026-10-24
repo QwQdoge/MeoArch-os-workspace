@@ -2,8 +2,7 @@
 set -euo pipefail
 
 target_root="${1:-${MEOARCH_TARGET_ROOT:-/mnt}}"
-desktop_source="${2:-/opt/meo-desktop}"
-generated_dir="${3:-${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}/generated}"
+generated_dir="${2:-${MEOARCH_INSTALLER_STATE_DIR:-/tmp/meoarch-installer}/generated}"
 runtime_source="${MEOARCH_RUNTIME_SOURCE:-/usr}"
 customizations_file="${generated_dir}/target-customizations.json"
 
@@ -39,7 +38,6 @@ if [ "${target_root}" = "/" ]; then
   echo "Refusing unsafe resolved target root: ${target_root}" >&2
   exit 2
 fi
-target_desktop_payload="${target_root}/opt/meo-desktop"
 for target_directory in etc usr boot; do
   if [ -L "${target_root}/${target_directory}" ] || [ ! -d "${target_root}/${target_directory}" ]; then
     echo "Installed target has an unsafe ${target_directory} directory at ${target_root}." >&2
@@ -50,213 +48,27 @@ if [ ! -f "${customizations_file}" ] || [ -L "${customizations_file}" ]; then
   echo "Generated target customizations are missing or unsafe." >&2
   exit 6
 fi
-if [ "${MEOARCH_PACKAGE_MANAGED:-1}" != "1" ]; then
-if [ ! -f "${desktop_source}/themes/look-and-feel/org.meo.desktop/metadata.json" ]; then
-  echo "Meo Desktop payload is missing from ${desktop_source}." >&2
-  exit 4
-fi
-for destructive_target in \
-  "${target_root}/usr/lib/qt6/qml/MeoUI" \
-  "${target_root}/usr/lib/qt6/qml/MeoKDE" \
-  "${target_root}/usr/lib/qt6/qml/Meo/System" \
-  "${target_root}/usr/lib/meoarch-repair" \
-  "${target_root}/usr/share/meoarch-repair" \
-  "${target_root}/usr/share/polkit-1/actions/org.meo.repair.policy" \
-  "${target_root}/usr/share/plasma/look-and-feel/org.meo.desktop" \
-  "${target_root}/usr/share/plasma/desktoptheme/MeoLight" \
-  "${target_root}/usr/share/plasma/desktoptheme/MeoDark" \
-  "${target_desktop_payload}"; do
-  if [ -L "${destructive_target}" ]; then
-    echo "Refusing recursive replacement of symlink: ${destructive_target}" >&2
-    exit 2
-  fi
-done
-if [ ! -e "${runtime_source}/lib/libmeoui.so.0" ] \
-  || [ ! -f "${runtime_source}/lib/qt6/qml/MeoUI/libmeoui_moduleplugin.so" ] \
-  || [ ! -f "${runtime_source}/lib/qt6/qml/Meo/System/libmeosystemplugin.so" ] \
-  || [ ! -d "${runtime_source}/lib/qt6/qml/MeoKDE" ] \
-  || [ ! -x "${runtime_source}/bin/meo-dynamic-colors" ] \
-  || [ ! -x "${runtime_source}/bin/meo-weather-refresh" ] \
-  || [ ! -x "${runtime_source}/bin/meo-input-method" ]; then
-  echo "MeoUI, MeoKDE, or Meo.System runtime is missing from ${runtime_source}." >&2
-  exit 5
-fi
-if [ ! -x "${runtime_source}/bin/meoarch-repair" ] \
-  || [ ! -f "${runtime_source}/lib/meoarch-repair/qml/Main.qml" ] \
-  || [ ! -f "${runtime_source}/share/meoarch-repair/knowledge/manifest.json" ] \
-  || [ ! -f "${runtime_source}/share/polkit-1/actions/org.meo.repair.policy" ] \
-  || [ ! -f "${runtime_source}/share/applications/org.meo.repair.desktop" ]; then
-  echo "MeoArch Quick Repair runtime is missing from ${runtime_source}." >&2
-  exit 5
-fi
-
-install -d "${target_root}/opt"
-rm -rf "${target_desktop_payload}"
-cp -a "${desktop_source}" "${target_desktop_payload}"
-
-install -d \
-  "${target_root}/usr/lib" \
-  "${target_root}/usr/lib/qt6/qml/MeoUI" \
-  "${target_root}/usr/lib/qt6/qml/MeoKDE" \
-  "${target_root}/usr/lib/qt6/qml/Meo/System" \
-  "${target_root}/usr/lib/qt6/plugins/org.kde.kdecoration3" \
-  "${target_root}/usr/lib/qt6/plugins/org.kde.kdecoration3.kcm" \
-  "${target_root}/usr/lib/qt6/plugins/styles" \
-  "${target_root}/usr/lib/systemd/user/default.target.wants" \
-  "${target_root}/usr/bin" \
-  "${target_root}/usr/share/fonts/meo" \
-  "${target_root}/usr/share/fcitx5/themes" \
-  "${target_root}/usr/share/meo-desktop/defaults" \
-  "${target_root}/usr/share/meo-desktop/input-method/ibus" \
-  "${target_root}/usr/share/color-schemes" \
-  "${target_root}/usr/share/icons" \
-  "${target_root}/usr/share/icons/hicolor/scalable/apps" \
-  "${target_root}/usr/share/polkit-1/actions" \
-  "${target_root}/usr/share/plasma/look-and-feel" \
-  "${target_root}/usr/share/plasma/plasmoids" \
-  "${target_root}/usr/share/pixmaps" \
-  "${target_root}/usr/share/wallpapers/MeoArch" \
-  "${target_root}/etc/environment.d" \
-  "${target_root}/etc/fonts/conf.avail" \
-  "${target_root}/etc/fonts/conf.d" \
-  "${target_root}/etc/xdg/fcitx5/conf"
-
-cp -a "${runtime_source}/lib/libmeoui.so"* "${target_root}/usr/lib/"
-rm -rf "${target_root}/usr/lib/qt6/qml/MeoUI"
-cp -a "${runtime_source}/lib/qt6/qml/MeoUI" \
-  "${target_root}/usr/lib/qt6/qml/MeoUI"
-rm -rf "${target_root}/usr/lib/qt6/qml/MeoKDE" "${target_root}/usr/lib/qt6/qml/Meo/System"
-cp -a "${runtime_source}/lib/qt6/qml/MeoKDE" \
-  "${target_root}/usr/lib/qt6/qml/MeoKDE"
-cp -a "${runtime_source}/lib/qt6/qml/Meo/System" \
-  "${target_root}/usr/lib/qt6/qml/Meo/System"
-rm -rf "${target_root}/usr/lib/meoarch-repair"
-cp -a "${runtime_source}/lib/meoarch-repair" \
-  "${target_root}/usr/lib/meoarch-repair"
-rm -rf "${target_root}/usr/share/meoarch-repair"
-cp -a "${runtime_source}/share/meoarch-repair" \
-  "${target_root}/usr/share/meoarch-repair"
-install_file 755 "${runtime_source}/bin/meoarch-repair" \
-  "${target_root}/usr/bin/meoarch-repair"
-install_file 644 "${runtime_source}/share/applications/org.meo.repair.desktop" \
-  "${target_root}/usr/share/applications/org.meo.repair.desktop"
-install_file 644 "${runtime_source}/share/polkit-1/actions/org.meo.repair.policy" \
-  "${target_root}/usr/share/polkit-1/actions/org.meo.repair.policy"
-install_file 644 "${runtime_source}/share/icons/hicolor/scalable/apps/meoarch-ai.svg" \
-  "${target_root}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
-if [ -d "${runtime_source}/share/fonts/meo" ]; then
-  cp -a "${runtime_source}/share/fonts/meo/." "${target_root}/usr/share/fonts/meo/"
-fi
-for plugin in \
-  "org.kde.kdecoration3/org.meo.decoration.so" \
-  "org.kde.kdecoration3.kcm/kcm_meodecoration.so" \
-  "styles/meostyle.so"; do
-  if [ -f "${runtime_source}/lib/qt6/plugins/${plugin}" ]; then
-    install_file 755 "${runtime_source}/lib/qt6/plugins/${plugin}" \
-      "${target_root}/usr/lib/qt6/plugins/${plugin}"
-  fi
-done
-for helper in meo-dynamic-colors meo-weather-refresh meo-input-method meo-theme-mode meo-desktop-apply meo-desktop-layout; do
-  install_file 755 "${runtime_source}/bin/${helper}" "${target_root}/usr/bin/${helper}"
-done
-install_file 644 "${desktop_source}/defaults/kwin/kwinrc" \
-  "${target_root}/usr/share/meo-desktop/defaults/kwinrc"
-install_file 644 "${desktop_source}/defaults/environment/90-meo-applications.conf" \
-  "${target_root}/etc/environment.d/90-meo-applications.conf"
-install_file 644 "${desktop_source}/defaults/input-method/fcitx5/conf/classicui.conf" \
-  "${target_root}/etc/xdg/fcitx5/conf/classicui.conf"
-rm -rf "${target_root}/usr/share/fcitx5/themes/MeoInputMethod-Light" \
-  "${target_root}/usr/share/fcitx5/themes/MeoInputMethod-Dark"
-cp -a "${runtime_source}/share/fcitx5/themes/MeoInputMethod-Light" \
-  "${runtime_source}/share/fcitx5/themes/MeoInputMethod-Dark" \
-  "${target_root}/usr/share/fcitx5/themes/"
-cp -a "${runtime_source}/share/meo-desktop/input-method/ibus/." \
-  "${target_root}/usr/share/meo-desktop/input-method/ibus/"
-install_file 644 "${desktop_source}/defaults/systemd/meo-dynamic-colors.path" \
-  "${target_root}/usr/lib/systemd/user/meo-dynamic-colors.path"
-install_file 644 "${runtime_source}/lib/systemd/user/meo-dynamic-colors.service" \
-  "${target_root}/usr/lib/systemd/user/meo-dynamic-colors.service"
-ln -sfn ../meo-dynamic-colors.path \
-  "${target_root}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path"
-install_file 644 "${runtime_source}/lib/systemd/user/meo-weather-refresh.service" \
-  "${target_root}/usr/lib/systemd/user/meo-weather-refresh.service"
-install_file 644 "${runtime_source}/lib/systemd/user/meo-weather-refresh.timer" \
-  "${target_root}/usr/lib/systemd/user/meo-weather-refresh.timer"
-ln -sfn ../meo-weather-refresh.timer \
-  "${target_root}/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer"
-install_file 644 "${desktop_source}/defaults/fonts/50-meo-fonts.conf" \
-  "${target_root}/etc/fonts/conf.avail/50-meo-fonts.conf"
-ln -sfn ../conf.avail/50-meo-fonts.conf \
-  "${target_root}/etc/fonts/conf.d/50-meo-fonts.conf"
-
-rm -rf "${target_root}/usr/share/plasma/look-and-feel/org.meo.desktop"
-cp -a "${desktop_source}/themes/look-and-feel/org.meo.desktop" \
-  "${target_root}/usr/share/plasma/look-and-feel/org.meo.desktop"
-if [ -d "${desktop_source}/themes/desktoptheme" ]; then
-  rm -rf "${target_root}/usr/share/plasma/desktoptheme/MeoLight" \
-    "${target_root}/usr/share/plasma/desktoptheme/MeoDark"
-  cp -a "${desktop_source}/themes/desktoptheme/." \
-    "${target_root}/usr/share/plasma/desktoptheme/"
-fi
-if [ -d "${desktop_source}/themes/color-schemes" ]; then
-  cp -a "${desktop_source}/themes/color-schemes/." \
-    "${target_root}/usr/share/color-schemes/"
-fi
-if [ -d "${desktop_source}/themes/icons" ]; then
-  cp -a "${desktop_source}/themes/icons/." "${target_root}/usr/share/icons/"
-fi
-
-if [ -d "${desktop_source}/plasmoids" ]; then
-  # Shelf is the current bottom launcher entry and is shipped by meo-desktop.
-  # Only remove retired applets that no current layout references.
-  for retired_plasmoid in org.meo.toptasks org.meo.launcher org.meo.quicksettings; do
-    rm -rf "${target_root}/usr/share/plasma/plasmoids/${retired_plasmoid}"
-  done
-  for plasmoid in org.meo.topbar org.meo.timecenter; do
-    if [ -d "${desktop_source}/plasmoids/${plasmoid}" ]; then
-      rm -rf "${target_root}/usr/share/plasma/plasmoids/${plasmoid}"
-      cp -a "${desktop_source}/plasmoids/${plasmoid}" "${target_root}/usr/share/plasma/plasmoids/${plasmoid}"
-    fi
-  done
-fi
-install_file 644 "${desktop_source}/wallpaper/installer_background.png" \
-  "${target_root}/usr/share/wallpapers/MeoArch/installer_background.png"
-install_file 644 "${desktop_source}/branding/Logo.svg" \
-  "${target_root}/usr/share/pixmaps/meoarch-logo.svg"
-install_file 644 "${desktop_source}/branding/Logo.svg" \
-  "${target_root}/usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg"
-rm -f "${target_root}/etc/os-release"
-install_file 644 "${desktop_source}/defaults/system/os-release" \
-  "${target_root}/etc/os-release"
-install_file 644 "${desktop_source}/defaults/kde/kdeglobals" \
-  "${target_root}/etc/xdg/kdeglobals"
-install_file 644 "${desktop_source}/defaults/kde/kglobalshortcutsrc" \
-  "${target_root}/etc/xdg/kglobalshortcutsrc"
-install_file 644 "${desktop_source}/defaults/kwin/kwinrc" \
-  "${target_root}/etc/xdg/kwinrc"
-install_file 644 "${desktop_source}/defaults/plasma/plasmarc" \
-  "${target_root}/etc/xdg/plasmarc"
-install_file 644 "${desktop_source}/defaults/plasma/plasma-welcomerc" \
-  "${target_root}/etc/xdg/plasma-welcomerc"
-fi
+# Every Meo component (MeoUI, MeoKDE, Meo.System, the Meo session and its
+# defaults, themes, applets, Quick Repair, login manager) is installed and owned
+# by pacman from the signed Meo repository before this script runs. This script
+# only applies target-local state (branding template, boot theme, accounts,
+# services, swap); it never copies desktop files from the Live medium.
 
 # Apply the signed package's branding template without dereferencing Arch's
 # /etc/os-release symlink (which may otherwise point outside this host view).
-if [ "${MEOARCH_PACKAGE_MANAGED:-1}" = "1" ]; then
-  os_release_template="${target_root}/usr/share/meo-desktop/os-release"
-  [ -s "$os_release_template" ] && [ ! -L "$os_release_template" ] || {
-    echo "Packaged target os-release template is missing." >&2; exit 13;
-  }
-  os_release_stage="$(mktemp "${target_root}/etc/.meo-os-release.XXXXXX")"
-  install -m644 "$os_release_template" "$os_release_stage"
-  # `mv -T` is a GNU-only flag.  os-release is required to be a non-directory
-  # destination, so ordinary same-filesystem rename atomically replaces a
-  # symlink instead of writing through it on both GNU and BSD userlands.
-  [ ! -d "${target_root}/etc/os-release" ] || {
-    echo "Target os-release must not be a directory." >&2; exit 13;
-  }
-  mv -f "$os_release_stage" "${target_root}/etc/os-release"
-fi
+os_release_template="${target_root}/usr/share/meo-desktop/os-release"
+[ -s "$os_release_template" ] && [ ! -L "$os_release_template" ] || {
+  echo "Packaged target os-release template is missing." >&2; exit 13;
+}
+os_release_stage="$(mktemp "${target_root}/etc/.meo-os-release.XXXXXX")"
+install -m644 "$os_release_template" "$os_release_stage"
+# `mv -T` is a GNU-only flag.  os-release is required to be a non-directory
+# destination, so ordinary same-filesystem rename atomically replaces a
+# symlink instead of writing through it on both GNU and BSD userlands.
+[ ! -d "${target_root}/etc/os-release" ] || {
+  echo "Target os-release must not be a directory." >&2; exit 13;
+}
+mv -f "$os_release_stage" "${target_root}/etc/os-release"
 
 # The package provides the executable; this target-owned entry starts the
 # independent first-login flow for every user.  meo-welcome itself stores the
@@ -329,14 +141,8 @@ if [ -f "${runtime_source}/lib/meoarch/meo-boot-status" ]; then
   ln -sfn /usr/lib/meoarch/meo-boot-status "${target_root}/usr/bin/meo-boot-status"
 fi
 
-for session_action_file in \
-  "${runtime_source}/bin/meo-session-actiond" \
-  "${runtime_source}/share/dbus-1/services/org.meo.SessionAction1.service"; do
-  [ -s "${session_action_file}" ] || { echo "Required Meo session action runtime is missing: ${session_action_file}" >&2; exit 13; }
-done
-install_file 755 "${runtime_source}/bin/meo-session-actiond" "${target_root}/usr/bin/meo-session-actiond"
-install_file 644 "${runtime_source}/share/dbus-1/services/org.meo.SessionAction1.service" \
-  "${target_root}/usr/share/dbus-1/services/org.meo.SessionAction1.service"
+# meo-session-actiond and its D-Bus service are owned by the meo-desktop
+# package; verify-target.py requires them in the installed target.
 
 for unit_file in meo-boot-status-failure@.service meo-boot-early.service meo-boot-storage.service meo-boot-services.service; do
   if [ -f "${runtime_source}/lib/systemd/system/${unit_file}" ]; then

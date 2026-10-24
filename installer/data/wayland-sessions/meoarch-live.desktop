@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=MeoArch Live Desktop
-Comment=Meo Plasma with stock Plasma recovery
+Comment=Meo Desktop with stock Plasma recovery
 Exec=/usr/lib/meoarch/live-session
-TryExec=/usr/bin/startplasma-wayland
-DesktopNames=KDE
+TryExec=/usr/bin/startmeo-wayland
+DesktopNames=KDE;Meo

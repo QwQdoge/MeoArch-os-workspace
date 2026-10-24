@@ -590,7 +590,7 @@ for package in "${application_packages[@]}"; do
 done
 progress "applying_meo" 89 "Applying target settings"
 "${installer_root}/backend/apply-target-customizations.sh" \
-  "${target_root}" "/opt/meo-desktop" "${generated_dir}" 2>&1 | tee -a "${log_file}"
+  "${target_root}" "${generated_dir}" 2>&1 | tee -a "${log_file}"
 progress "final_validation" 94 "Validating the installed target"
 arch-chroot "${target_root}" systemd-tmpfiles --create --remove 2>&1 | tee -a "${log_file}"
 python3 "${installer_root}/backend/verify-target.py" "${target_root}" 2>&1 | tee -a "${log_file}"

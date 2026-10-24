@@ -121,10 +121,9 @@ class GenerateConfigTests(unittest.TestCase):
         self.assertIn("nvidia-open", config["packages"])
         self.assertIsNone(config["profile_config"]["gfx_driver"])
         self.assertIsNone(config["profile_config"]["greeter"])
-        self.assertEqual(
-            config["profile_config"]["profile"]["custom_settings"]["KDE Plasma"]["plasma_flavor"],
-            "plasma-desktop",
-        )
+        # No Archinstall desktop profile: the Meo packages bring the desktop.
+        self.assertEqual(config["profile_config"]["profile"], {"main": "Minimal", "details": []})
+        self.assertNotIn("KDE Plasma", json.dumps(config["profile_config"]))
         for package in MODULE.MEO_DESKTOP_PACKAGES:
             self.assertIn(package, config["packages"])
 

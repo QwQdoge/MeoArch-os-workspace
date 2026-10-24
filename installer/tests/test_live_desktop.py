@@ -288,13 +288,11 @@ class LiveDesktopContractTests(unittest.TestCase):
             staged = Path(temporary) / 'staged'
             base.mkdir()
             staged.mkdir()
-            paths = ('airootfs/usr/share/plasma/shells/org.meo.shell/contents/lockscreen/LockScreen.qml',
-                     'airootfs/usr/lib/meoarch/live-installer-authorize',
+            paths = ('airootfs/usr/lib/meoarch/live-installer-authorize',
                      'airootfs/etc/xdg/autostart/meoarch-live.desktop',
-                     'airootfs/usr/share/plasma/plasmoids/org.meo.toptasks/metadata.json',
-                     'airootfs/usr/share/plasma/plasmoids/org.meo.widgetexplorer/metadata.json',
-                     'airootfs/etc/xdg/meo-shellrc',
-                     'airootfs/usr/lib/systemd/user/default.target.wants/meo-agent-service.service')
+                     'airootfs/usr/lib/systemd/user/default.target.wants/meo-agent-service.service',
+                     'airootfs/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path',
+                     'airootfs/etc/fonts/conf.d/50-meo-fonts.conf')
             for relative in paths:
                 item = staged / relative
                 item.parent.mkdir(parents=True, exist_ok=True)
@@ -316,13 +314,32 @@ class LiveDesktopContractTests(unittest.TestCase):
             result = subprocess.run(command, capture_output=True, text=True)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn('UNDECLARED', manifest.read_text())
+            (staged / 'unreviewed-payload').unlink()
+            # The desktop runtime belongs to the signed packages; staging any
+            # of it would shadow the package after pacstrap.
+            for package_owned in ('airootfs/usr/share/plasma/shells/org.meo.shell/contents/lockscreen/LockScreen.qml',
+                                  'airootfs/usr/share/plasma/plasmoids/org.meo.toptasks/metadata.json',
+                                  'airootfs/usr/lib/qt6/qml/MeoUI/qmldir',
+                                  'airootfs/usr/lib/libmeoui.so.0',
+                                  'airootfs/etc/xdg/kdeglobals',
+                                  'airootfs/etc/xdg/meo-shellrc',
+                                  'airootfs/etc/environment.d/90-meo-applications.conf',
+                                  'airootfs/opt/meo-desktop/themes/look-and-feel/org.meo.desktop/metadata.json'):
+                with self.subTest(package_owned=package_owned):
+                    item = staged / package_owned
+                    item.parent.mkdir(parents=True, exist_ok=True)
+                    item.write_text('source-backed test input')
+                    result = subprocess.run(command, capture_output=True, text=True)
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn('UNDECLARED', manifest.read_text())
+                    item.unlink()
 
     def test_desktop_and_installer_use_their_existing_system_plugins(self):
         sync = self.read('scripts/sync-installer-to-airootfs.sh')
-        self.assertIn('cp -a "${meosystem_build}/qml/Meo/System/." "${meosystem_qml_dst}/"', sync)
+        # The desktop's full Meo.System comes from the meo-desktop package; only
+        # the installer's private adapter is built and staged here.
+        self.assertNotIn('"${meosystem_qml_dst}"', sync)
         self.assertIn('"${installer_dst}/live-qml/Meo/System/"', sync)
-        self.assertIn('org.meo.toptasks', sync)
-        self.assertIn('org.meo.widgetexplorer', sync)
         self.assertIn('desktop-ready', self.read('installer/bin/meo-boot-status'))
 
 

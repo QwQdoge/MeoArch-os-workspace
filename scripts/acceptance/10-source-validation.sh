@@ -145,7 +145,6 @@ grep -q 'Try the Live desktop first' installer/qml/pages/WelcomePage.qml
 ! rg -q 'org\.meo\.Accounts1|requestAuthentication\(|access_token|refresh_token|client_secret' installer/qml installer/app
 ! rg -q 'readonly property var wifiNetworks' installer/qml/pages/NetworkPage.qml
 ! rg -q 'preview-disk' installer/app/installercontroller.cpp
-grep -q 'for plasmoid in org.meo.topbar org.meo.toptasks org.meo.timecenter' scripts/sync-installer-to-airootfs.sh
 # Plasma's native task manager is the sole floating Dock. Meo owns its theme
 # geometry and dynamic colour, not a second task/window model.
 grep -q 'shelf.addWidget("org.kde.plasma.icontasks")' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
@@ -155,15 +154,15 @@ grep -q 'meo-dynamic-colors.path' scripts/sync-installer-to-airootfs.sh
 grep -q 'meo-weather-refresh' scripts/sync-installer-to-airootfs.sh
 grep -q 'preflight-meo-repository.sh.*0:0:755' meoarch-os/profiledef.sh
 grep -q 'configure-meo-repository.sh.*0:0:755' meoarch-os/profiledef.sh
-grep -q '90-meo-applications.conf' installer/backend/apply-target-customizations.sh
-grep -q 'Target dynamic color, application, or input-method integration is missing' scripts/verify-target-install.sh
+grep -q 'etc/environment.d/90-meo-applications.conf' installer/backend/verify-target.py
+! grep -q 'desktop_source\|/opt/meo-desktop\|MEOARCH_PACKAGE_MANAGED' installer/backend/apply-target-customizations.sh installer/backend/run-archinstall.sh
+grep -q 'verify-target.py' scripts/verify-target-install.sh
 grep -q 'git archive --format=tar HEAD meoarch-os' scripts/build-iso.sh
 grep -q -- '--acceptance' scripts/build-iso.sh
 grep -q 'Refusing acceptance SSH instrumentation without --acceptance' scripts/build-iso.sh
 grep -q 'Acceptance ISO output must be isolated under' scripts/build-iso.sh
 grep -q 'realpath -m -- "${out_dir}"' scripts/build-iso.sh
 grep -q 'packages/iso/acceptance/' scripts/acceptance/30-build-iso.sh
-grep -q 'declared sibling MeoKDE desktop assets' scripts/verify-staging-provenance.sh
 grep -q '^ExecStart=/usr/local/bin/choose-mirror$' meoarch-os/airootfs/etc/systemd/system/choose-mirror.service
 grep -q '^ExecStart=/usr/local/bin/livecd-sound -u$' meoarch-os/airootfs/etc/systemd/system/livecd-alsa-unmuter.service
 grep -q '^ExecStart=/usr/local/bin/livecd-sound -p$' meoarch-os/airootfs/etc/systemd/system/livecd-talk.service
@@ -188,6 +187,16 @@ grep -q '^polkit-qt6$' meoarch-os/packages.x86_64
 for package_name in curl gnupg openssl; do
   grep -q "^${package_name}$" meoarch-os/packages.x86_64
 done
+# The Live desktop is the installed Meo session on the same packages: no
+# upstream login manager, no global KDE/Meo defaults in the profile, and no
+# desktop runtime staged from a sibling checkout.
+! grep -q '^plasma-login-manager$' meoarch-os/packages.x86_64
+for global_default in kdeglobals kwinrc plasmarc plasma-welcomerc kglobalshortcutsrc meo-shellrc; do
+  ! test -e "meoarch-os/airootfs/etc/xdg/${global_default}"
+done
+! test -e meoarch-os/airootfs/etc/environment.d/90-meo-applications.conf
+grep -q '^Exec=/usr/lib/meoarch/live-session$' installer/data/wayland-sessions/meoarch-live.desktop
+grep -q "^MEO_COMMAND = '/usr/bin/startmeo-wayland'$" installer/bin/meoarch-live-session
 grep -q '^konsole$' meoarch-os/packages.x86_64
 for package_name in alsa-utils pipewire-audio pipewire-pulse wireplumber; do
   grep -q "^${package_name}$" meoarch-os/packages.x86_64
@@ -239,7 +248,6 @@ grep -q 'logo_image = Image("logo.png")' themes/plymouth/meoarch/meoarch.script
 cmp -s themes/plymouth/meoarch/meoarch.script meoarch-os/airootfs/usr/share/plymouth/themes/meoarch/meoarch.script
 ! rg -q 'STAGE:' themes/plymouth/meoarch installer/bin/meo-boot-status
 grep -q 'GRUB_TIMEOUT.*3' installer/backend/apply-target-customizations.sh
-grep -q 'meo-session-actiond' scripts/sync-installer-to-airootfs.sh
 grep -q 'org.meo.SessionAction1.service' installer/backend/verify-target.py
 grep -Fq 'Ctrl+Meta+Delete' "${projects_root}/meo-kde/defaults/kde/kglobalshortcutsrc"
 grep -q 'MeoButton' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/logout/Logout.qml"
@@ -282,7 +290,7 @@ grep -q '^PLYMOUTH_COMMAND_TIMEOUT_SECONDS = 1$' installer/bin/meo-boot-status
 for milestone in early storage services; do
   grep -q '^TimeoutStartSec=5s$' "installer/data/systemd/meo-boot-${milestone}.service"
 done
-for package_name in plasma-login-manager plasma-desktop plasma-workspace kwin konsole plasma-nm plasma-pa cage seatd; do
+for package_name in meo-plasma-login-manager meo-desktop meoui-qml plasma-desktop plasma-workspace kwin konsole plasma-nm plasma-pa cage seatd; do
   grep -q "^${package_name}$" meoarch-os/packages.x86_64
 done
 grep -q '^ConditionKernelCommandLine=meoarch.session=cage$' meoarch-os/airootfs/etc/systemd/system/meoarch-installer.service
@@ -297,10 +305,10 @@ grep -q "bootmodes=('bios.syslinux'" meoarch-os/profiledef.sh
 grep -q "'uefi.grub')" meoarch-os/profiledef.sh
 ! grep -q 'uefi.systemd-boot' meoarch-os/profiledef.sh
 grep -q '^airootfs_image_type="squashfs"$' meoarch-os/profiledef.sh
-grep -q '^Autolock=false$' meoarch-os/airootfs/home/live/.config/kscreenlockerrc
-grep -q '^LockOnResume=false$' meoarch-os/airootfs/home/live/.config/kscreenlockerrc
+grep -q '^Autolock=false$' meoarch-os/airootfs/home/live/.config/meo-desktop/kscreenlockerrc
+grep -q '^LockOnResume=false$' meoarch-os/airootfs/home/live/.config/meo-desktop/kscreenlockerrc
 grep -Fq '["/home/live/.config"]="1000:1000:700"' meoarch-os/profiledef.sh
-grep -Fq '["/home/live/.config/kscreenlockerrc"]="1000:1000:600"' meoarch-os/profiledef.sh
+grep -Fq '["/home/live/.config/meo-desktop/kscreenlockerrc"]="1000:1000:600"' meoarch-os/profiledef.sh
 
 grub_entry_options() {
   local entry_id="$1"

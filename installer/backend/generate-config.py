@@ -678,13 +678,11 @@ def build_user_configuration(selections, hardware_plan=None, application_package
             # instead of inheriting future desktop-profile defaults.
             "gfx_driver": None,
             "greeter": None,
-            "profile": {
-                "details": ["KDE Plasma"],
-                "main": "Desktop",
-                "custom_settings": {
-                    "KDE Plasma": {"plasma_flavor": "plasma-desktop"},
-                },
-            },
+            # Archinstall installs no desktop. The Meo Desktop session and the
+            # Plasma runtime it needs arrive in the signed Meo package
+            # transaction (meo-desktop's dependency closure), so the installed
+            # system is not "a KDE Plasma profile plus a Meo layer".
+            "profile": {"main": "Minimal", "details": []},
         },
         "script": "guided",
         "silent": True,

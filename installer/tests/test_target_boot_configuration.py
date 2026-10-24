@@ -76,9 +76,8 @@ class TargetBootTests(unittest.TestCase):
             )
             for command in commands.iterdir():
                 command.chmod(0o755)
-            result = subprocess.run(["bash", BACKEND / "apply-target-customizations.sh", target, "/unused-source", generated],
-                                    env=dict(os.environ, PATH=f"{commands}:{os.environ['PATH']}", MEOARCH_PACKAGE_MANAGED="1",
-                                             MEOARCH_RUNTIME_SOURCE=str(runtime), MEOARCH_GRUB_THEME_SOURCE=str(boot_theme),
+            result = subprocess.run(["bash", BACKEND / "apply-target-customizations.sh", target, generated],
+                                    env=dict(os.environ, PATH=f"{commands}:{os.environ['PATH']}", MEOARCH_RUNTIME_SOURCE=str(runtime), MEOARCH_GRUB_THEME_SOURCE=str(boot_theme),
                                              TEST_FAILURE=str(failure), TEST_CALLS=str(root / "calls")),
                                     capture_output=True, text=True)
             self.assertEqual(outside.read_text(), "HOST MUST REMAIN UNCHANGED\n")
@@ -139,7 +138,7 @@ class TargetBootTests(unittest.TestCase):
             (target / "usr").mkdir()
             (target / "boot").mkdir()
             result = subprocess.run(
-                ["bash", BACKEND / "apply-target-customizations.sh", target, "/unused-source", generated],
+                ["bash", BACKEND / "apply-target-customizations.sh", target, generated],
                 capture_output=True, text=True,
             )
             self.assertEqual(result.returncode, 3, result.stderr)

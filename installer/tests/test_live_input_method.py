@@ -32,15 +32,18 @@ class LiveInputMethodContractTests(unittest.TestCase):
             with self.subTest(engine=engine):
                 self.assertNotIn(engine, packages)
 
-    def test_live_sync_reuses_meokde_owned_wayland_defaults(self):
+    def test_live_sync_leaves_wayland_and_input_method_defaults_to_the_session(self):
+        # The Meo session seeds these from the meo-desktop package into its
+        # private config home (startmeo-wayland); the Live medium must not
+        # shadow them with global /etc/xdg or environment.d copies.
         source = SYNC.read_text(encoding="utf-8")
-        self.assertIn("for default_file in kde/kdeglobals kde/kglobalshortcutsrc kwin/kwinrc", source)
-        self.assertIn('"${airootfs}/etc/xdg/$(basename "${default_file}")"', source)
-
-        self.assertIn('defaults/environment/90-meo-applications.conf', source)
-        self.assertIn('defaults/input-method/fcitx5/conf/classicui.conf', source)
-        self.assertIn('themes/input-method/fcitx5/MeoInputMethod-Light', source)
-        self.assertIn('themes/input-method/fcitx5/MeoInputMethod-Dark', source)
+        self.assertNotIn("/etc/xdg/$(basename", source)
+        self.assertNotIn("90-meo-applications.conf", source)
+        self.assertNotIn("classicui.conf", source)
+        self.assertNotIn("MeoInputMethod-Light", source)
+        profile = ROOT / "meoarch-os" / "airootfs"
+        self.assertFalse((profile / "etc/xdg/fcitx5/conf/classicui.conf").exists())
+        self.assertFalse((profile / "etc/environment.d/90-meo-applications.conf").exists())
 
     def test_live_profile_does_not_add_a_second_fcitx_launcher(self):
         source = SYNC.read_text(encoding="utf-8")

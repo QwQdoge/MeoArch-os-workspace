@@ -1,5 +1,10 @@
 #!/usr/bin/python3 -I
-"""Live-only Plasma supervisor. Recovery uses stock Plasma, never a new shell UI."""
+"""Live-only session supervisor.
+
+The normal path runs the same `startmeo-wayland` session as an installed system
+(private Meo config home seeded from the `meo-desktop` package). Recovery uses
+stock Plasma, never a new shell UI.
+"""
 import json
 import os
 from pathlib import Path
@@ -11,6 +16,8 @@ import time
 
 WINDOW = 60
 LIMIT = 2
+MEO_COMMAND = '/usr/bin/startmeo-wayland'
+SAFE_COMMAND = '/usr/bin/startplasma-wayland'
 
 
 def record_exit(previous, now, duration):
@@ -56,7 +63,7 @@ def main():
             failures = []
     except (OSError, ValueError):
         failures = []
-    environment = dict(os.environ, PLASMA_DEFAULT_SHELL='org.meo.shell')
+    environment = dict(os.environ)
     forced = 'meoarch.live-safe=1' in Path('/proc/cmdline').read_text().split()
     stopping = False
     child = None
@@ -77,12 +84,14 @@ def main():
         try:
             # startplasma delegates KWin/shell to the user manager. Import the safe
             # profile there too, so those services get the same configuration.
+            # The normal path needs no import: startmeo-wayland exports the Meo
+            # session environment itself before startplasma imports it.
             for name in ('XDG_CONFIG_HOME', 'QT_STYLE_OVERRIDE', 'MEOARCH_LIVE_SAFE', 'PLASMA_DEFAULT_SHELL'):
-                if name in launch_environment:
+                if safe and name in launch_environment:
                     subprocess.run(['/usr/bin/systemctl', '--user', 'set-environment',
                                     f'{name}={launch_environment[name]}'], check=True)
-            print('MeoArch Live: starting ' + ('stock Plasma safe mode' if safe else 'Meo Plasma'), flush=True)
-            child = subprocess.Popen(['/usr/bin/startplasma-wayland'], env=launch_environment)
+            print('MeoArch Live: starting ' + ('stock Plasma safe mode' if safe else 'Meo Desktop'), flush=True)
+            child = subprocess.Popen([SAFE_COMMAND if safe else MEO_COMMAND], env=launch_environment)
             child.wait()
         except (OSError, subprocess.SubprocessError) as error:
             print(f'Live Plasma start failed: {error}', file=sys.stderr, flush=True)

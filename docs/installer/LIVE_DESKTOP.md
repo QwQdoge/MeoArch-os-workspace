@@ -2,7 +2,7 @@
 
 The default boot is Plasma Wayland, not an Installer-owned compositor:
 
-`GRUB/Syslinux -> graphical.target -> plasmalogin -> live PAM/logind session -> Plasma/MeoKDE -> Live autostart -> Installer`
+`GRUB/Syslinux -> graphical.target -> plasmalogin -> live PAM/logind session -> live-session -> startmeo-wayland (Meo Desktop on Plasma) -> Live autostart -> Installer`
 
 `meoarch.mode=install|ai|repair|tty` selects the purpose. The default
 `ai` entry starts native Meo AI after the language/Wi-Fi setup overlay; `repair`
@@ -15,8 +15,9 @@ Cage Install/Repair fallbacks; terminal-only remains a separate entry.
 
 `meoarch-os/` is the source profile. Its Live-only `/etc/plasmalogin.conf` uses
 Meo Plasma Login's actual `[Autologin]` User/Session/Relogin keys (`live`,
-`meoarch-live.desktop`, `true`). The system package `plasma-login-manager` supplies
-plasmalogin and the Arch PAM autologin stack. No SDDM configuration is guessed.
+`meoarch-live.desktop`, `true`). The `meo-plasma-login-manager` package (which provides and
+replaces the upstream `plasma-login-manager`) supplies plasmalogin and the PAM autologin
+stack, exactly as on an installed system. No SDDM configuration is guessed.
 No password is unlocked in shadow, and production SSH stays disabled.
 
 Only the selected compositor may start: plasmalogin rejects Cage/TTY kernel
@@ -24,11 +25,27 @@ modes, while `meoarch-installer.service` requires `meoarch.session=cage`.
 The Live user home is writable by UID/GID 1000. Login and graphical startup
 never depend on an Internet connection.
 
-Staging installs the existing MeoKDE Look-and-Feel, layout, applets, defaults,
-Polkit agent and full global Meo.System module. The Installer retains the
-smaller existing SystemState adapter at `/opt/meoarch-installer/live-qml`.
-Generic UI remains in MeoUI; Plasma/KWin remain the desktop authorities.
-The target desktop payload remains separate under `/opt/meo-desktop`.
+The Live desktop is the same Meo Desktop session as an installed system and runs
+the same signed packages: `meoui-qml`, `meo-icons` and `meo-desktop` (listed in
+`packages.x86_64`) provide MeoUI, MeoKDE, the full Meo.System module, the Look-and-Feel,
+shell, applets, themes, window decoration/style, helper tools and the session defaults.
+`scripts/sync-installer-to-airootfs.sh` stages none of these files, and
+`scripts/verify-staging-provenance.sh` rejects them as undeclared, because the
+overlay is extracted after pacstrap and would shadow the packages. The profile
+carries no global `/etc/xdg` KDE/Meo defaults or `environment.d` overrides either:
+`startmeo-wayland` seeds them into `~/.config/meo-desktop` from the package, and the
+only Live-specific override is `~/.config/meo-desktop/kscreenlockerrc` (no auto-lock).
+What the workspace still stages is ISO-owned: the Installer (with its smaller
+SystemState adapter at `/opt/meoarch-installer/live-qml`), Quick Repair and its
+`meo-polkit-agent` for the Cage session, the Live session wrapper/autostart, boot
+status and Plymouth. Generic UI remains in MeoUI; Plasma/KWin remain the desktop
+authorities. No `/opt/meo-desktop` payload is staged: the installed system gets its desktop from pacman only.
+
+The Installer and Quick Repair are compiled from the sibling MeoUI checkout but load
+`libmeoui` from the packaged `meoui-qml`. Set `MEOARCH_RELEASE_MANIFEST` to the
+meo-repo release manifest the ISO is built against and the sync step fails unless the
+checkout is exactly that manifest's pinned `meoui-qml` commit
+(`scripts/check-meoui-pin.py`); without it a warning is printed.
 
 ## Application lifetime
 
@@ -64,7 +81,7 @@ bounded, selectable plain-text log viewer, unprivileged Quick Repair, desktop
 return and hold-to-confirm restart. Controller and backend use the same private
 state directory. Another disk installation still requires a clean Live reboot.
 
-The Live session wrapper retries one short Plasma failure. Two exits within
+The Live session wrapper starts `startmeo-wayland` and retries one short failure. Two exits within
 60 seconds switch to a separate Breeze config profile with stock Plasma layout,
 Breeze decoration/style, and disabled Meo window effects. Network, Konsole,
 Quick Repair and Installer entries remain the existing applications. If stock

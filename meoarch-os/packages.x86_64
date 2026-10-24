@@ -171,11 +171,15 @@ mesa
 # 如果用 startx 手动启动图形界面，才保留
 xorg-xinit
 
-# Plasma Wayland is the default Live desktop. The existing MeoKDE runtime is
-# staged from its owning repository; Cage/seatd above remain opt-in fallback.
+# The default Live desktop is the same Meo Desktop session as the installed
+# system (`startmeo-wayland`, from meo-desktop below) on Plasma Wayland. Its
+# runtime comes only from the signed meo-* packages; sync-installer-to-airootfs.sh
+# stages no desktop files. The Meo login manager (which provides and replaces the
+# upstream plasma-login-manager) is used here as on the installed system.
+# Cage/seatd above remain opt-in fallback.
 plasma-desktop
 plasma-workspace
-plasma-login-manager
+meo-plasma-login-manager
 kwallet-pam
 kwin
 konsole
