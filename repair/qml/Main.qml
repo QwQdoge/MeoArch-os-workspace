@@ -792,7 +792,7 @@ Window {
             }
             if (!postCheckPassed && root.audioPostCheckAttempts < 5
                     && (SystemState.operationBusy
-                        || SystemState.operationError.length === 0)) {
+                        || String(SystemState.operationError).length === 0)) {
                 root.audioRepairMessage = qsTr("正在等待声音设备确认更改（%1/5）……")
                         .arg(root.audioPostCheckAttempts)
                 audioPostCheck.restart()
@@ -801,7 +801,7 @@ Window {
             if (root.pendingAudioAction === "output") {
                 root.audioRepairMessage = postCheckPassed
                         ? qsTr("默认输出已切换并通过状态复查。请播放声音确认实际听感。")
-                        : SystemState.operationError.length > 0
+                        : String(SystemState.operationError).length > 0
                           ? qsTr("无法切换输出：%1。没有继续更改其他设置。")
                                 .arg(SystemState.operationError)
                           : qsTr("输出切换复查未通过；没有继续更改其他设置。")
@@ -2172,7 +2172,7 @@ Window {
                                 MeoText {
                                     Layout.fillWidth: true
                                     text: SystemState.networkConnected
-                                          ? (SystemState.networkName.length > 0
+                                          ? (String(SystemState.networkName).length > 0
                                              ? qsTr("已连接：") + SystemState.networkName + " · " + SystemState.networkStatus
                                              : qsTr("已有活动网络连接 · ") + SystemState.networkStatus)
                                           : qsTr("可以直接在这里连接 Wi‑Fi；以太网会自动显示为活动连接。")
@@ -2211,7 +2211,7 @@ Window {
 
                         MeoBanner {
                             Layout.fillWidth: true
-                            visible: SystemState.operationError.length > 0
+                            visible: String(SystemState.operationError).length > 0
                             title: qsTr("网络操作失败")
                             text: SystemState.operationError
                             icon: "error"
@@ -2448,7 +2448,7 @@ Window {
                         }
                         MeoText {
                             Layout.fillWidth: true
-                            visible: SystemState.operationError.length > 0
+                            visible: String(SystemState.operationError).length > 0
                             text: SystemState.operationError
                             wrapMode: Text.WordWrap
                             typeRole: "body"; typeSize: "small"
