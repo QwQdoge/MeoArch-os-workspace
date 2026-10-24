@@ -291,8 +291,7 @@ class LiveDesktopContractTests(unittest.TestCase):
             paths = ('airootfs/usr/lib/meoarch/live-installer-authorize',
                      'airootfs/etc/xdg/autostart/meoarch-live.desktop',
                      'airootfs/usr/lib/systemd/user/default.target.wants/meo-agent-service.service',
-                     'airootfs/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path',
-                     'airootfs/etc/fonts/conf.d/50-meo-fonts.conf')
+                     'airootfs/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer')
             for relative in paths:
                 item = staged / relative
                 item.parent.mkdir(parents=True, exist_ok=True)
@@ -324,6 +323,8 @@ class LiveDesktopContractTests(unittest.TestCase):
                                   'airootfs/etc/xdg/kdeglobals',
                                   'airootfs/etc/xdg/meo-shellrc',
                                   'airootfs/etc/environment.d/90-meo-applications.conf',
+                                  'airootfs/etc/fonts/conf.d/50-meo-fonts.conf',
+                                  'airootfs/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path',
                                   'airootfs/opt/meo-desktop/themes/look-and-feel/org.meo.desktop/metadata.json'):
                 with self.subTest(package_owned=package_owned):
                     item = staged / package_owned

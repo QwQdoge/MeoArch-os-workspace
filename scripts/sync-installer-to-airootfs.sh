@@ -160,14 +160,10 @@ fi
 [ -f "${repair_icon}" ] || { echo "Repair icon is missing from installer runtime." >&2; exit 1; }
 install -Dm644 "${repair_icon}" \
   "${airootfs}/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg"
-# `meo-desktop` ships the fontconfig snippet under conf.avail only; Live enables
-# it the way the installer does. User units are package-owned too, but are not
-# enabled globally by the package, so the Live medium enables them here (ISO-only).
-install -d "${airootfs}/etc/fonts/conf.d"
-ln -sfn ../conf.avail/50-meo-fonts.conf \
-  "${airootfs}/etc/fonts/conf.d/50-meo-fonts.conf"
-ln -sfn ../meo-dynamic-colors.path \
-  "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path"
+# Fontconfig aliases and the wallpaper-driven color units are enabled by the
+# meo-desktop package itself (conf.d link; session-conditioned units wanted by
+# graphical-session.target). The weather refresher is package-owned but not
+# enabled by the package, so the Live medium enables it here (ISO-only).
 ln -sfn ../meo-weather-refresh.timer \
   "${airootfs}/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer"
 

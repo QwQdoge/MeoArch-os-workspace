@@ -150,7 +150,7 @@ grep -q 'Try the Live desktop first' installer/qml/pages/WelcomePage.qml
 grep -q 'shelf.addWidget("org.kde.plasma.icontasks")' "${projects_root}/meo-kde/themes/look-and-feel/org.meo.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
 grep -q 'DockImplementation=native' "${projects_root}/meo-kde/defaults/plasma/meo-shellrc"
 ! rg -q 'data/autostart/org.meo.dock.desktop' "${projects_root}/meo-kde/packaging/arch/PKGBUILD"
-grep -q 'meo-dynamic-colors.path' scripts/sync-installer-to-airootfs.sh
+! grep -q 'meo-dynamic-colors' scripts/sync-installer-to-airootfs.sh
 grep -q 'meo-weather-refresh' scripts/sync-installer-to-airootfs.sh
 grep -q 'preflight-meo-repository.sh.*0:0:755' meoarch-os/profiledef.sh
 grep -q 'configure-meo-repository.sh.*0:0:755' meoarch-os/profiledef.sh

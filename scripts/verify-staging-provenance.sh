@@ -37,8 +37,8 @@ classify() {
     airootfs/usr/bin/meoarch-repair|airootfs/usr/lib/meoarch-repair/*|airootfs/usr/share/meoarch-repair/*|airootfs/usr/share/polkit-1/actions/org.meo.repair*.policy|airootfs/usr/share/polkit-1/rules.d/49-meoarch-live-repair.rules|airootfs/usr/share/applications/org.meo.repair.desktop|airootfs/usr/share/icons/hicolor/scalable/apps/meoarch-ai.svg|airootfs/usr/lib/meo-polkit-agent|airootfs/usr/lib/systemd/user/default.target.wants/meo-agent-service.service)
       printf '%s\t%s\t%s' 'Quick Repair' 'this workspace shared repair source' 'system and Live categorized repair application'
       ;;
-    airootfs/etc/fonts/conf.d/50-meo-fonts.conf|airootfs/usr/lib/systemd/user/default.target.wants/meo-dynamic-colors.path|airootfs/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer)
-      printf '%s\t%s\t%s' 'Live enablement' 'ISO-only symlinks into meo-desktop package files' 'font alias and user-unit enablement for the Live medium'
+    airootfs/usr/lib/systemd/user/default.target.wants/meo-weather-refresh.timer)
+      printf '%s\t%s\t%s' 'Live enablement' 'ISO-only symlink into a meo-desktop package file' 'weather refresher enablement for the Live medium'
       ;;
     airootfs/home/live/.ssh/authorized_keys)
       printf '%s\t%s\t%s' 'Acceptance harness' 'MEOARCH_ACCEPTANCE_SSH_PUBLIC_KEY' 'ephemeral VM-only SSH access for post-install evidence collection'
