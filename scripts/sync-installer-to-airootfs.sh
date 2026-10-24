@@ -96,10 +96,18 @@ fi
 # The ISO must never consume an unvalidated sibling checkout. This gate uses
 # the freshly built MeoUI runtime above and records evidence in MeoKDE's own
 # global output subtree, preserving project ownership.
+# MEOARCH_SKIP_MEOKDE_VALIDATE=1 is an explicit, logged developer opt-out for
+# test ISOs only: the Live desktop itself comes from signed packages, and the
+# sibling MeoKDE source contributes just the Cage session's polkit agent and the
+# installer's Meo.System adapter.
+if [ "${MEOARCH_SKIP_MEOKDE_VALIDATE:-0}" = 1 ]; then
+  echo "WARNING: MEOARCH_SKIP_MEOKDE_VALIDATE=1; the sibling MeoKDE validation gate was skipped." >&2
+else
 MEO_KDE_VALIDATION_RUN_ID="${MEO_KDE_VALIDATION_RUN_ID:-${MEOARCH_VALIDATION_RUN_ID:-$(date -u +%Y-%m-%dT%H%M%SZ)-iso-sync}}" \
 MEOUI_IMPORT_ROOT="${runtime_root}/lib/qt6/qml" \
 MEOUI_SOURCE_DIR="${meoui_source}" \
   "${meo_kde_src}/scripts/validate.sh"
+fi
 
 cmake "${cmake_refresh_args[@]}" -S "${repo_root}/installer/live-system" -B "${meosystem_live_build}" \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo -DMEO_KDE_SOURCE_DIR="${meo_kde_src}"

@@ -4,4 +4,4 @@ Name=MeoArch Live Desktop
 Comment=Meo Desktop with stock Plasma recovery
 Exec=/usr/lib/meoarch/live-session
 TryExec=/usr/bin/startmeo-wayland
-DesktopNames=KDE;Meo
+DesktopNames=KDE

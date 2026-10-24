@@ -37,7 +37,13 @@ class LiveUsesTheMeoSessionTests(unittest.TestCase):
         desktop = entry["Desktop Entry"]
         self.assertEqual(desktop["Exec"], "/usr/lib/meoarch/live-session")
         self.assertEqual(desktop["TryExec"], "/usr/bin/startmeo-wayland")
-        self.assertEqual(desktop["DesktopNames"], "KDE;Meo")
+        # Meo Login Manager passes DesktopNames to logind verbatim (no ';' -> ':'
+        # conversion), and live-installer-authorize splits the logind Desktop
+        # property on ':'. "KDE;Meo" therefore reads as one unknown name and the
+        # Live installer launch is rejected; keep a single name.
+        self.assertEqual(desktop["DesktopNames"], "KDE")
+        authorize = (ROOT / "installer/bin/meoarch-live-session").parent / "meoarch-live-installer-authorize"
+        self.assertIn("facts.get('Desktop', '').split(':')", authorize.read_text())
 
     def test_normal_path_runs_startmeo_and_safe_path_stays_stock_plasma(self):
         session = _load(ROOT / "installer/bin/meoarch-live-session", "live_session_unified")
@@ -64,6 +70,20 @@ class LiveUsesTheMeoSessionTests(unittest.TestCase):
         # The Meo fork provides and replaces the upstream package; listing both
         # would make pacstrap fail on the conflict.
         self.assertNotIn("plasma-login-manager", packages)
+
+    def test_tracked_profile_holds_no_package_owned_desktop_snapshot(self):
+        # The overlay is extracted after pacstrap, so any committed copy of a
+        # package-owned file silently replaces the signed package in the Live
+        # image (an old layout without the Shelf shipped this way).
+        tracked = subprocess.run(["git", "-C", str(ROOT), "ls-files", "meoarch-os/airootfs"],
+                                 capture_output=True, text=True, check=True).stdout.splitlines()
+        owned = ("usr/share/plasma/", "usr/share/color-schemes/", "usr/share/fcitx5/",
+                 "usr/share/meo-desktop/", "usr/share/pixmaps/", "usr/share/wallpapers/",
+                 "usr/share/dbus-1/", "etc/fonts/", "etc/xdg/kdeglobals", "etc/xdg/kwinrc",
+                 "usr/share/icons/Meo", "usr/share/icons/hicolor/scalable/apps/meoarch-logo.svg")
+        offenders = [path for path in tracked
+                     if any(path.removeprefix("meoarch-os/airootfs/").startswith(prefix) for prefix in owned)]
+        self.assertEqual(offenders, [])
 
     def test_profile_carries_no_global_kde_or_meo_defaults(self):
         for relative in ("etc/xdg/kdeglobals", "etc/xdg/kwinrc", "etc/xdg/plasmarc",
