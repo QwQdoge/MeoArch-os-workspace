@@ -130,8 +130,8 @@ fi
 LC_ALL=C readelf -d "${library}" | tee "${evidence_dir}/libmeoui-readelf.txt"
 LC_ALL=C readelf -d "${plugin}" | tee "${evidence_dir}/plugin-readelf.txt"
 LC_ALL=C readelf -d "${live_system_plugin}" | tee "${evidence_dir}/live-system-plugin-readelf.txt"
-LC_ALL=C readelf -d "${library}" | grep -q 'Library soname: \[libmeoui.so.0\]'
-LC_ALL=C readelf -d "${plugin}" | grep -q 'Shared library: \[libmeoui.so.0\]'
+grep -Fq "Library soname: [libmeoui.so.0]" "${evidence_dir}/libmeoui-readelf.txt"
+grep -Fq "Shared library: [libmeoui.so.0]" "${evidence_dir}/plugin-readelf.txt"
 if grep -Eq 'Shared library: \[(libPlasma\.so\.7|libkrdb\.so)\]' \
   "${evidence_dir}/live-system-plugin-readelf.txt"; then
   echo "Live Meo.System must not depend on Plasma Workspace libraries." >&2
