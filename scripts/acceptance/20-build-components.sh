@@ -164,10 +164,13 @@ fi
   echo "Qt 6 qmltestrunner was not found." >&2
   exit 2
 }
-QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
+if ! QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
   LD_LIBRARY_PATH="${runtime}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
   "${qmltest_bin}" -import "${runtime}/lib/qt6/qml" \
   -input "${repo_root}/installer/tests/qml/tst_page_loading.qml" \
-  -o "${evidence_dir}/installer-page-loading.txt,txt"
+  -o "${evidence_dir}/installer-page-loading.txt,txt"; then
+  cat "${evidence_dir}/installer-page-loading.txt" >&2 || true
+  exit 1
+fi
 
 echo "PASS: component build and shared runtime" | tee "${evidence_dir}/status.txt"
