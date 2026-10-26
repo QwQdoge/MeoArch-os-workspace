@@ -14,6 +14,8 @@ foundation and user control.
 
 ## Install Meo Desktop on an existing Arch system
 
+This path installs the **whole** MeoArch software set from the signed Meo repository with pacman. To install a single piece of software instead, use yay (AUR), for example `yay -Syu meo-settings`, `yay -Syu omnistore-bin` or `yay -Syu meo-desktop`.
+
 The public MeoArch workspace is the bootstrap entry point; the software itself
 comes from the signed Meo pacman repository:
 
