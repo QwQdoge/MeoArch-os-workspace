@@ -91,7 +91,7 @@ PageFrame {
             visible: MeoSystem.SystemState.networkConnected
             width: parent.width
             iconText: "lan"
-            title: MeoSystem.SystemState.networkName.length ? MeoSystem.SystemState.networkName : qsTr("Active connection")
+            title: String(MeoSystem.SystemState.networkName).length ? MeoSystem.SystemState.networkName : qsTr("Active connection")
             value: MeoSystem.SystemState.networkStatus
             actionable: false
             trailingIcon: ""
@@ -148,7 +148,7 @@ PageFrame {
                      : qsTr("No Wi-Fi adapter was detected. Connect Ethernet or attach a supported Wi-Fi adapter.")
         }
         InfoBanner {
-            visible: MeoSystem.SystemState.wirelessAvailable && MeoSystem.SystemState.operationError.length > 0
+            visible: MeoSystem.SystemState.wirelessAvailable && String(MeoSystem.SystemState.operationError).length > 0
             width: parent.width
             tone: "error"
             title: qsTr("Network operation failed")
@@ -187,7 +187,7 @@ PageFrame {
             }
         }
         MeoButton {
-            visible: MeoSystem.SystemState.wirelessAvailable && MeoSystem.SystemState.wirelessEnabled && MeoSystem.SystemState.wifiNetworks.length === 0
+            visible: MeoSystem.SystemState.wirelessAvailable && MeoSystem.SystemState.wirelessEnabled && Array.from(MeoSystem.SystemState.wifiNetworks).length === 0
             text: MeoSystem.SystemState.wifiScanning ? qsTr("Scanning…") : qsTr("Scan for networks")
             type: "tonal"
             loading: MeoSystem.SystemState.wifiScanning

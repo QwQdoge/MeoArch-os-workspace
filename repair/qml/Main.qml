@@ -783,7 +783,7 @@ Window {
                         : qsTr("音频状态复查未通过；没有继续更改其他设置。")
             } else if (root.pendingAudioAction === "output") {
                 let active = false
-                for (let index = 0; index < SystemState.audioOutputDevices.length; ++index) {
+                for (let index = 0; index < Array.from(SystemState.audioOutputDevices).length; ++index) {
                     const item = SystemState.audioOutputDevices[index]
                     if (item.id === root.pendingAudioDeviceId && item.active)
                         active = true
@@ -792,7 +792,7 @@ Window {
             }
             if (!postCheckPassed && root.audioPostCheckAttempts < 5
                     && (SystemState.operationBusy
-                        || SystemState.operationError.length === 0)) {
+                        || String(SystemState.operationError).length === 0)) {
                 root.audioRepairMessage = qsTr("正在等待声音设备确认更改（%1/5）……")
                         .arg(root.audioPostCheckAttempts)
                 audioPostCheck.restart()
@@ -801,7 +801,7 @@ Window {
             if (root.pendingAudioAction === "output") {
                 root.audioRepairMessage = postCheckPassed
                         ? qsTr("默认输出已切换并通过状态复查。请播放声音确认实际听感。")
-                        : SystemState.operationError.length > 0
+                        : String(SystemState.operationError).length > 0
                           ? qsTr("无法切换输出：%1。没有继续更改其他设置。")
                                 .arg(SystemState.operationError)
                           : qsTr("输出切换复查未通过；没有继续更改其他设置。")
@@ -908,10 +908,10 @@ Window {
                         && !root.repairController.audioServiceRepairAvailable
                         && !SystemState.audioMuted && SystemState.volumePercent > 0) {
                     if (!SystemState.audioAvailable
-                            || SystemState.audioOutputDevices.length === 0) {
+                            || Array.from(SystemState.audioOutputDevices).length === 0) {
                         root.wizardResultMessage = qsTr("声音服务正在运行，但没有检测到可用的真实输出设备。请检查耳机、HDMI、USB 或蓝牙连接。")
                         root.wizardStage = "handoff"
-                    } else if (SystemState.audioOutputDevices.length === 1) {
+                    } else if (Array.from(SystemState.audioOutputDevices).length === 1) {
                         root.wizardResultMessage = qsTr("没有发现可安全自动更改的状态。现在播放测试声音进行实际确认。")
                         root.wizardStage = "verify"
                         Qt.callLater(function() { root.repairController.playAudioTestTone() })
@@ -1367,7 +1367,7 @@ Window {
                                       ? qsTr("声音服务没有正常运行。现在修复吗？")
                                       : SystemState.audioMuted || SystemState.volumePercent === 0
                                         ? qsTr("声音被静音或音量为零。现在恢复吗？")
-                                        : SystemState.audioOutputDevices.length > 1
+                                        : Array.from(SystemState.audioOutputDevices).length > 1
                                           ? qsTr("你想从哪个设备听到声音？")
                                           : qsTr("检查完成。你现在能听到声音吗？")
                                 horizontalAlignment: Text.AlignHCenter
@@ -1408,7 +1408,7 @@ Window {
                             Repeater {
                                 model: !root.repairController.audioServiceRepairAvailable
                                        && !SystemState.audioMuted && SystemState.volumePercent > 0
-                                       && SystemState.audioOutputDevices.length > 1
+                                       && Array.from(SystemState.audioOutputDevices).length > 1
                                        ? SystemState.audioOutputDevices : []
                                 delegate: MeoButton {
                                     id: wizardAudioOutput
@@ -1424,7 +1424,7 @@ Window {
                                 Layout.fillWidth: true
                                 visible: !root.repairController.audioServiceRepairAvailable
                                          && !SystemState.audioMuted && SystemState.volumePercent > 0
-                                         && SystemState.audioOutputDevices.length <= 1
+                                         && Array.from(SystemState.audioOutputDevices).length <= 1
                                 Item { Layout.fillWidth: true }
                                 MeoButton {
                                     text: qsTr("否")
@@ -1805,7 +1805,7 @@ Window {
                                 type: "outlined"
                                 onClicked: {
                                     if (root.selectedCategory === "audio"
-                                            && SystemState.audioOutputDevices.length > 1) {
+                                            && Array.from(SystemState.audioOutputDevices).length > 1) {
                                         root.wizardResultMessage = qsTr("这个输出仍然没有声音。请选择另一个扬声器、耳机或 HDMI 输出继续测试。")
                                         root.wizardStage = "repair"
                                     } else {
@@ -2172,7 +2172,7 @@ Window {
                                 MeoText {
                                     Layout.fillWidth: true
                                     text: SystemState.networkConnected
-                                          ? (SystemState.networkName.length > 0
+                                          ? (String(SystemState.networkName).length > 0
                                              ? qsTr("已连接：") + SystemState.networkName + " · " + SystemState.networkStatus
                                              : qsTr("已有活动网络连接 · ") + SystemState.networkStatus)
                                           : qsTr("可以直接在这里连接 Wi‑Fi；以太网会自动显示为活动连接。")
@@ -2211,7 +2211,7 @@ Window {
 
                         MeoBanner {
                             Layout.fillWidth: true
-                            visible: SystemState.operationError.length > 0
+                            visible: String(SystemState.operationError).length > 0
                             title: qsTr("网络操作失败")
                             text: SystemState.operationError
                             icon: "error"
@@ -2292,7 +2292,7 @@ Window {
                         MeoButton {
                             visible: SystemState.wirelessAvailable
                                      && SystemState.wirelessEnabled
-                                     && SystemState.wifiNetworks.length === 0
+                                     && Array.from(SystemState.wifiNetworks).length === 0
                             text: SystemState.wifiScanning ? qsTr("正在扫描……") : qsTr("扫描网络")
                             type: "tonal"
                             loading: SystemState.wifiScanning
@@ -2448,7 +2448,7 @@ Window {
                         }
                         MeoText {
                             Layout.fillWidth: true
-                            visible: SystemState.operationError.length > 0
+                            visible: String(SystemState.operationError).length > 0
                             text: SystemState.operationError
                             wrapMode: Text.WordWrap
                             typeRole: "body"; typeSize: "small"

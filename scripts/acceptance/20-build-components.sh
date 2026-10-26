@@ -130,8 +130,8 @@ fi
 LC_ALL=C readelf -d "${library}" | tee "${evidence_dir}/libmeoui-readelf.txt"
 LC_ALL=C readelf -d "${plugin}" | tee "${evidence_dir}/plugin-readelf.txt"
 LC_ALL=C readelf -d "${live_system_plugin}" | tee "${evidence_dir}/live-system-plugin-readelf.txt"
-LC_ALL=C readelf -d "${library}" | grep -q 'Library soname: \[libmeoui.so.0\]'
-LC_ALL=C readelf -d "${plugin}" | grep -q 'Shared library: \[libmeoui.so.0\]'
+grep -Fq "Library soname: [libmeoui.so.0]" "${evidence_dir}/libmeoui-readelf.txt"
+grep -Fq "Shared library: [libmeoui.so.0]" "${evidence_dir}/plugin-readelf.txt"
 if grep -Eq 'Shared library: \[(libPlasma\.so\.7|libkrdb\.so)\]' \
   "${evidence_dir}/live-system-plugin-readelf.txt"; then
   echo "Live Meo.System must not depend on Plasma Workspace libraries." >&2
@@ -164,10 +164,14 @@ fi
   echo "Qt 6 qmltestrunner was not found." >&2
   exit 2
 }
-QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
+if ! QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
   LD_LIBRARY_PATH="${runtime}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
-  "${qmltest_bin}" -import "${runtime}/lib/qt6/qml" \
+  "${qmltest_bin}" -import "${build_root}/meo-system/qml" \
+  -import "${runtime}/lib/qt6/qml" \
   -input "${repo_root}/installer/tests/qml/tst_page_loading.qml" \
-  -o "${evidence_dir}/installer-page-loading.txt,txt"
+  -o "${evidence_dir}/installer-page-loading.txt,txt"; then
+  cat "${evidence_dir}/installer-page-loading.txt" >&2 || true
+  exit 1
+fi
 
 echo "PASS: component build and shared runtime" | tee "${evidence_dir}/status.txt"

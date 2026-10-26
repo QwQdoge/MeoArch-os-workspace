@@ -40,7 +40,7 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --needed --noconfirm \
             base-devel cmake ninja git extra-cmake-modules python bubblewrap \
-            qt6-base qt6-declarative qt6-tools qt6-shadertools \
+            qt6-base qt6-declarative qt6-tools qt6-shadertools vulkan-headers \
             kconfig kcoreaddons kguiaddons ki18n kirigami \
             networkmanager-qt bluez-qt solid pulseaudio-qt \
             libplasma plasma-workspace qtkeychain-qt6 polkit-qt6
