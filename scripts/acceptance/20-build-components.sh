@@ -166,7 +166,8 @@ fi
 }
 if ! QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
   LD_LIBRARY_PATH="${runtime}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
-  "${qmltest_bin}" -import "${runtime}/lib/qt6/qml" \
+  "${qmltest_bin}" -import "${build_root}/meo-system/qml" \
+  -import "${runtime}/lib/qt6/qml" \
   -input "${repo_root}/installer/tests/qml/tst_page_loading.qml" \
   -o "${evidence_dir}/installer-page-loading.txt,txt"; then
   cat "${evidence_dir}/installer-page-loading.txt" >&2 || true
