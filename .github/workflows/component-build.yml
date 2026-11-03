@@ -47,17 +47,17 @@ jobs:
           mkdir -p "$HOME"
 
       - name: Check out workspace
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Check out MeoUI
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: QwQdoge/MeoUI
           ref: main
           path: deps/meo-ui
 
       - name: Check out MeoKDE
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: QwQdoge/meo-kde
           ref: main
