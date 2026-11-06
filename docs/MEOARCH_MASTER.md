@@ -72,15 +72,21 @@
 
 ### 2.2 本机（Windows 11 + WSL2 发行版 `Arch`，用户 `mingyue`）
 
-所有克隆都在 WSL 里，Windows 上没有仓库副本：
+克隆按"需要哪个环境"分两处放（WSL 只放需要 Arch 的，Windows 只放不挑环境的网站/云端和 Windows 专用项目）。`gh repo list QwQdoge` 是云端真相，两处都要和云端同步：
+
+| 位置 | 仓库 |
+|---|---|
+| WSL `~/projects/<仓库名>`（`/home/mingyue/projects/…`；Windows 访问 `//wsl$/Arch/home/mingyue/projects/…`） | meo-ai、meo-kde、MeoUI、MeoSettings、OmniStore、meo-login-manager、meo-repo、MeoArch-os-workspace、kde-plasma6-widgets（都需要 Arch/Qt/KDE 工具链） |
+| Windows `C:/Users/Mingyue/projects/<仓库名>` | meo-api、meo-ai-landing、meoarch-site、MeoArch-os-webside、downloader、mrbeazleyisamazing、MeoArch-account、vrcx-c（网站/云端/Flutter/Python，不需要 Arch） |
 
 | 项 | 路径 |
 |---|---|
-| 全部仓库克隆 | `~/projects/<仓库名>`（即 `/home/mingyue/projects/…`；Windows 访问 `\\wsl$\Arch\home\mingyue\projects\…`） |
-| 额外的 meo-repo 克隆 | `~/mr`、`~/meo-repo-test`（测试/发布实验用，勿当作主克隆；`~/mr` 常有未提交的 manifest/PKGBUILD 改动） |
-| 构建缓存（非 git） | `~/meo-ai-build`、`~/meo-web-build` |
-| 工具 | `~/flutter`（stable）、`~/google-cloud-sdk`、`~/.cargo`、`~/.npm` |
-| 跨仓库根变量（文档里常见） | `$MEO_UI_ROOT`（MeoUI 路径）、`$MEO_KDE_ROOT`、`$MEO_DOCS_ROOT`（项目记录）、`$MEO_OUTPUT_ROOT`（构建/验证产物）；未设置时用相邻目录，注意目录名是 `MeoUI`、`meo-kde`（不是 `meo-ui`） |
+| 工具（WSL） | `~/flutter`（stable）、`~/.cargo`、`~/.npm` |
+| 工具（Windows） | Node.js LTS（winget）、`C:/src/flutter`（stable，已加入用户 PATH）、Google Cloud SDK |
+| 共享规则文件 | `C:/Users/Mingyue/projects/agent.md` 与两处 `projects/AGENTS.md` 副本、`~/.claude/CLAUDE.md` |
+| 跨仓库根变量（文档里常见） | `$MEO_UI_ROOT`（MeoUI 路径）、`$MEO_KDE_ROOT`、`$MEO_DOCS_ROOT`（项目记录）、`$MEO_OUTPUT_ROOT`（构建/验证产物）、`$MEO_WORKSPACE_ROOT`（MeoArch-os-workspace，给 meoarch-site 生成文档用）；未设置时用相邻目录，注意目录名是 `MeoUI`、`meo-kde`（不是 `meo-ui`） |
+
+虚拟机只保留 WSL `Arch` 这一个（工作环境）；VirtualBox 的 MeoArch 测试虚拟机已删除。
 
 WSL 发行版平时是停止状态；从 Windows 调用即自动启动：`wsl.exe -d Arch -- bash -lc '…'`。
 
