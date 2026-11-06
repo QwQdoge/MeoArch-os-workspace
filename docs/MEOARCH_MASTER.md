@@ -5,7 +5,6 @@
 > 全部 Markdown 文档的完整链接清单见 [MEOARCH_DOC_INDEX.md](MEOARCH_DOC_INDEX.md)（由脚本生成，不手改）。
 
 - 本文件位置：<https://github.com/QwQdoge/MeoArch-os-workspace/blob/main/docs/MEOARCH_MASTER.md>
-- 本地位置（WSL）：`~/projects/MeoArch-os-workspace/docs/MEOARCH_MASTER.md`；Windows 资源管理器访问：`\\wsl$\Arch\home\mingyue\projects\MeoArch-os-workspace\docs\MEOARCH_MASTER.md`
 - 命令行读取（任何环境，已登录 `gh`）：`gh api repos/QwQdoge/MeoArch-os-workspace/contents/docs/MEOARCH_MASTER.md -H 'Accept: application/vnd.github.raw'`
 - 本文件只做**导航与汇总**，不是权威合同。出现冲突时按 [docs/README.md](README.md) 的权威顺序（产品身份 → 跨仓库合同 → 所属仓库合同 → 当前里程碑 → …）；仓库边界以 [repository-architecture.md](repository-architecture.md) 为准。
 - 本文件不含任何密钥、令牌、连接串。永远不要把它们写进文档、日志或提交。
@@ -70,23 +69,18 @@
 
 不属于 MeoArch 产品线、本文件**不管**：[vrcx-c](https://github.com/QwQdoge/vrcx-c)（VRC Memories，自带主文档 README）、[obsidian-notes](https://github.com/QwQdoge/obsidian-notes)、[cent-journal-cent](https://github.com/QwQdoge/cent-journal-cent)、[flutter](https://github.com/QwQdoge/flutter)（上游 fork）。旧仓库 `QwQdoge/MeoArch_os-workspace` 已废弃，禁止用于新工作。
 
-### 2.2 本机（Windows 11 + WSL2 发行版 `Arch`，用户 `mingyue`）
+### 2.2 本机环境（概览）
 
-克隆按"需要哪个环境"分两处放（WSL 只放需要 Arch 的，Windows 只放不挑环境的网站/云端和 Windows 专用项目）。`gh repo list QwQdoge` 是云端真相，两处都要和云端同步：
+克隆按"需要哪个环境"分两处放：需要 Arch/Qt/KDE 工具链的放在 WSL 的 Arch 里，网站/云端/Flutter/Python 项目放在 Windows 里。`gh repo list QwQdoge` 是云端真相，两处都要和云端同步。
 
-| 位置 | 仓库 |
+| 环境 | 仓库 |
 |---|---|
-| WSL `~/projects/<仓库名>`（`/home/mingyue/projects/…`；Windows 访问 `//wsl$/Arch/home/mingyue/projects/…`） | meo-ai、meo-kde、MeoUI、MeoSettings、OmniStore、meo-login-manager、meo-repo、MeoArch-os-workspace、kde-plasma6-widgets（都需要 Arch/Qt/KDE 工具链） |
-| Windows `C:/Users/Mingyue/projects/<仓库名>` | meo-api、meo-ai-landing、meoarch-site、MeoArch-os-webside、downloader、mrbeazleyisamazing、MeoArch-account、vrcx-c（网站/云端/Flutter/Python，不需要 Arch） |
+| WSL（Arch）的 `projects` 目录 | meo-ai、meo-kde、MeoUI、MeoSettings、OmniStore、meo-login-manager、meo-repo、MeoArch-os-workspace、kde-plasma6-widgets |
+| Windows 的 `projects` 目录 | meo-api、meo-ai-landing、meoarch-site、MeoArch-os-webside、downloader、mrbeazleyisamazing、MeoArch-account、vrcx-c |
 
-| 项 | 路径 |
-|---|---|
-| 工具（WSL） | `~/flutter`（stable）、`~/.cargo`、`~/.npm` |
-| 工具（Windows） | Node.js LTS（winget）、`C:/src/flutter`（stable，已加入用户 PATH）、Google Cloud SDK |
-| 共享规则文件 | `C:/Users/Mingyue/projects/agent.md` 与两处 `projects/AGENTS.md` 副本、`~/.claude/CLAUDE.md` |
-| 跨仓库根变量（文档里常见） | `$MEO_UI_ROOT`（MeoUI 路径）、`$MEO_KDE_ROOT`、`$MEO_DOCS_ROOT`（项目记录）、`$MEO_OUTPUT_ROOT`（构建/验证产物）、`$MEO_WORKSPACE_ROOT`（MeoArch-os-workspace，给 meoarch-site 生成文档用）；未设置时用相邻目录，注意目录名是 `MeoUI`、`meo-kde`（不是 `meo-ui`） |
+**用户名、绝对路径、邮箱、虚拟机和机器布局等个人/本机信息只写在本机文件（`~/.claude/CLAUDE.md`、`projects/agent.md`），不进仓库、不上网站。** 虚拟机只保留 WSL Arch 一个。
 
-虚拟机只保留 WSL `Arch` 这一个（工作环境）；VirtualBox 的 MeoArch 测试虚拟机已删除。
+跨仓库根变量（文档里常见）：`$MEO_UI_ROOT`（MeoUI）、`$MEO_KDE_ROOT`、`$MEO_DOCS_ROOT`（项目记录）、`$MEO_OUTPUT_ROOT`（构建/验证产物）、`$MEO_WORKSPACE_ROOT`（MeoArch-os-workspace）；未设置时用相邻目录，注意目录名是 `MeoUI`、`meo-kde`（不是 `meo-ui`）。
 
 WSL 发行版平时是停止状态；从 Windows 调用即自动启动：`wsl.exe -d Arch -- bash -lc '…'`。
 
@@ -135,7 +129,7 @@ WSL 发行版平时是停止状态；从 Windows 调用即自动启动：`wsl.ex
 7. 证据等级不可混用：`Specified → Implemented → Build-tested → Session-tested → VM-tested → Hardware-tested → Release-ready`。编译通过 ≠ 真实 Plasma 会话可用；预览 ≠ 线上。
 8. 范围控制：不因看到长期合同就实现新功能；无关 bug/想法记录下来另做。
 9. 不要未经授权发布、改 DNS、改托管配置、签名、改仓库数据库、上传产物。
-10. 提交身份已配置为 `Mingyue <chen237292962@gmail.com>`；Claude 提交需带 `Co-Authored-By` 署名行。
+10. 提交身份使用 GitHub noreply 邮箱（不要把个人邮箱写进提交或文档）；Claude 提交需带 `Co-Authored-By` 署名行。
 
 ---
 
