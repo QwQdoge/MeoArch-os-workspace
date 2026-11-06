@@ -113,3 +113,11 @@ Keep code/operations contracts in `docs/` or the owning component docs. Project 
 If required root variables are unset, do not invent machine-specific paths. Preserve unrelated dirty work and avoid `git reset`, `git clean`, or broad deletion.
 
 - Terminal command risk labels are explanatory metadata, not an authorization boundary. Tool discovery must reuse the canonical capability registry and must not introduce a second unrestricted host runner.
+
+## MeoArch documentation map
+
+- Docs site: https://meoarch.org/docs/ (MeoUI specification: app shell, settings pattern, page types, dynamic color, API lifecycle, localization). Agent entry points: https://meoarch.org/llms.txt and https://meoarch.org/docs/meoui/for-agents.md. The canonical source is the MeoUI repository `docs/`; if they disagree, the repository wins.
+- Packaging and releases: https://github.com/QwQdoge/meo-repo - read its `AGENTS.md`, `docs/MEOARCH_IMPLEMENTATION_RUNBOOK.md`, `manifests/{beta,stable}/` and the "MeoArch repository release" workflow (https://github.com/QwQdoge/meo-repo/actions/workflows/release.yml).
+- Release approval: the `sign-and-publish` job waits on the protected `release` Environment. Open the run in https://github.com/QwQdoge/meo-repo/actions, then "Review deployments" -> `release` -> "Approve and deploy". The owner approves; agents hand over the run URLs.
+- Before tagging a component for release: its source archive must extract cleanly (no tracked build output such as `target/`, no absolute symlinks) and its CI must be green; tag the newest green commit.
+- Other repositories: MeoUI (design system), meo-kde (Plasma shell), meo-ai (Meo AI), meo-api (cloud API), MeoArch-account (account app), MeoSettings, MeoArch-os-workspace (ISO/installer/repair), OmniStore, meo-login-manager, meo-repo (packages), meoarch-site (meoarch.org).
