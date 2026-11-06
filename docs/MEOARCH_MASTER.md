@@ -9,6 +9,13 @@
 - 本文件只做**导航与汇总**，不是权威合同。出现冲突时按 [docs/README.md](README.md) 的权威顺序（产品身份 → 跨仓库合同 → 所属仓库合同 → 当前里程碑 → …）；仓库边界以 [repository-architecture.md](repository-architecture.md) 为准。
 - 本文件不含任何密钥、令牌、连接串。永远不要把它们写进文档、日志或提交。
 
+## 文档分工
+
+- **主文档（本文件）：怎么用。** 各个产品和接口怎么使用，以及去哪里找。
+- **各项目自己的文档（`README.md`、`AGENTS.md`、`docs/`）：怎么做这个项目。** 构建、测试、贡献和内部约定。
+- **账号 API 怎么用**：<https://meoarch.org/docs/guide/account-api.html>（Markdown 版 <https://meoarch.org/docs/guide/account-api.md>）。基础地址 `https://api.meoarch.org/v1`，授权用 Meo Account OAuth 2.1（授权码 + S256 PKCE），令牌 scope 为 `meo:read` / `meo:write`。接口的实现和维护细节见 meo-api 仓库的 `docs/api-reference.md`。
+- 使用要求（系统、Meo AI、各应用）：<https://meoarch.org/docs/guide/requirements.html>。
+
 ---
 
 ## 1. 一张图看懂 MeoArch
