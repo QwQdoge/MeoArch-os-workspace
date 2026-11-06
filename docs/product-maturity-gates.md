@@ -1,3 +1,5 @@
+> 📚 [MeoArch 主文档 / Master Doc](https://github.com/QwQdoge/MeoArch-os-workspace/blob/main/docs/MEOARCH_MASTER.md)：全部仓库地图、操作手册、Cloudflare 清单、全部文档链接。<!-- meoarch-master -->
+
 # MeoArch product maturity gates
 
 This document is a cross-repository release checklist. It does **not** expand the current milestone by itself and it does not replace `CURRENT_MILESTONE.md` or `production-readiness-matrix.md`. Its purpose is to stop source-complete components from being mistaken for a mature product before the user path, recovery path, security boundary, and release evidence are complete.

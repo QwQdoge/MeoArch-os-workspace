@@ -1,4 +1,8 @@
+> 📚 [MeoArch 主文档 / Master Doc](https://github.com/QwQdoge/MeoArch-os-workspace/blob/main/docs/MEOARCH_MASTER.md)：全部仓库地图、操作手册、Cloudflare 清单、全部文档链接。<!-- meoarch-master -->
+
 # MeoArch documentation map
+
+> **跨全部仓库的导航请先读 [MEOARCH_MASTER.md](MEOARCH_MASTER.md)**（仓库地图、操作手册、Cloudflare 清单），全部 md 链接见 [MEOARCH_DOC_INDEX.md](MEOARCH_DOC_INDEX.md)。本页继续负责单仓库内文档的权威顺序。
 
 This directory contains product contracts, implementation notes, release evidence, and validation guidance. They do not all have the same authority.
 

@@ -1,3 +1,5 @@
+> 📚 [MeoArch 主文档 / Master Doc](https://github.com/QwQdoge/MeoArch-os-workspace/blob/main/docs/MEOARCH_MASTER.md)：全部仓库地图、操作手册、Cloudflare 清单、全部文档链接。<!-- meoarch-master -->
+
 > 默认 Live 会话已改为 Plasma Wayland。以下说明仅适用于显式选择的 `meoarch.session=cage` fallback；主启动与权限契约见 [LIVE_DESKTOP.md](LIVE_DESKTOP.md)。
 
 # Cage 安装器运行时

@@ -1,3 +1,5 @@
+> 📚 [MeoArch 主文档 / Master Doc](https://github.com/QwQdoge/MeoArch-os-workspace/blob/main/docs/MEOARCH_MASTER.md)：全部仓库地图、操作手册、Cloudflare 清单、全部文档链接。<!-- meoarch-master -->
+
 # Meo System Transaction Service
 
 `org.meo.SystemTransaction1` is the narrow system-bus boundary for Meo-owned system configuration transactions that require a trusted system authority.
