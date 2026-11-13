@@ -107,6 +107,7 @@ public:
     QString errorMessage() const { return m_errorMessage; }
     bool realInstallEnabled() const { return m_realInstallEnabled; }
     bool systemActionsEnabled() const { return m_systemActionsEnabled; }
+    bool liveAssistAvailable() const;
     bool diagnosticConsoleAvailable() const { return m_diagnosticConsoleAvailable; }
     bool diagnosticConsoleRunning() const;
     QString diagnosticConsoleOutput() const;
@@ -148,6 +149,10 @@ public:
     Q_INVOKABLE QString installationLogPath() const;
     Q_INVOKABLE QString installationLogDetails() const;
     Q_INVOKABLE void openLiveRepair();
+    // Opens Meo AI (live recovery mode) as the unprivileged Live user.
+    Q_INVOKABLE void openLiveAi();
+    Q_INVOKABLE void openLiveQuickRepair();
+    Q_PROPERTY(bool liveAssistAvailable READ liveAssistAvailable CONSTANT)
     Q_INVOKABLE void requestRestart();
     Q_INVOKABLE void requestShutdown();
 
@@ -243,6 +248,7 @@ private:
     bool m_productionMode = false;
     bool m_realInstallEnabled = false;
     bool m_systemActionsEnabled = false;
+    bool startLiveUserApp(const QString &program, const QStringList &arguments);
     bool m_summaryConfirmed = false;
     quint64 m_planRevision = 0;
     quint64 m_confirmedPlanRevision = 0;

@@ -362,8 +362,8 @@ Item {
         centerInViewport: true
         x: (frame.width - width) / 2
         y: (frame.height - height) / 2
-        width: Math.min(frame.dp(360), frame.width - frame.pageMargin * 2)
-        height: Math.min(frame.dp(286), frame.height - frame.pageMargin * 2)
+        width: Math.min(frame.dp(400), frame.width - frame.pageMargin * 2)
+        height: Math.min(frame.dp(360), frame.height - frame.pageMargin * 2)
         padding: frame.dp(12)
         closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
 
@@ -399,6 +399,42 @@ Item {
                     wrapMode: Text.WordWrap
                 }
                 MeoDivider { width: parent.width }
+                MeoText {
+                    width: parent.width
+                    visible: frame.controller && frame.controller.liveAssistAvailable
+                    text: qsTr("Need more help?")
+                    typeRole: "label"
+                    typeSize: "large"
+                    emphasized: true
+                    color: MeoTheme.contentOnSurface
+                }
+                MeoText {
+                    width: parent.width
+                    visible: frame.controller && frame.controller.liveAssistAvailable
+                    text: qsTr("Ask Meo AI about this step, or let it check a problem and propose a fix. The AI only suggests: this installer and Quick Repair make every change after you confirm.")
+                    typeRole: "body"
+                    typeSize: "small"
+                    color: MeoTheme.contentOnSurfaceVariant
+                    wrapMode: Text.WordWrap
+                }
+                Flow {
+                    width: parent.width
+                    spacing: frame.dp(8)
+                    visible: frame.controller && frame.controller.liveAssistAvailable
+                    MeoButton {
+                        text: qsTr("Ask Meo AI")
+                        icon.name: "auto_awesome"
+                        type: "tonal"
+                        onClicked: { helpPopup.close(); frame.controller.openLiveAi() }
+                    }
+                    MeoButton {
+                        text: qsTr("Quick Repair")
+                        icon.name: "build"
+                        type: "outlined"
+                        onClicked: { helpPopup.close(); frame.controller.openLiveQuickRepair() }
+                    }
+                }
+                MeoDivider { width: parent.width; visible: frame.controller && frame.controller.liveAssistAvailable }
                 MeoText {
                     width: parent.width
                     text: qsTr("More reference")

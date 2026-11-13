@@ -585,7 +585,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("readonly property bool compactChrome", frame)
         self.assertIn("visible: !frame.compactChrome", frame)
         self.assertIn("visible: frame.showFooterPageIndicator", frame)
-        self.assertIn("height: Math.min(frame.dp(286), frame.height - frame.pageMargin * 2)", frame)
+        self.assertIn("height: Math.min(frame.dp(360), frame.height - frame.pageMargin * 2)", frame)
         self.assertIn("function dp(value)", selector)
         self.assertIn("Overlay.overlay.width - dp(48)", selector)
         self.assertIn("highlightMoveDuration: MeoTheme.reduceMotion ? 0", selector)

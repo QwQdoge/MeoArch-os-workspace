@@ -1955,6 +1955,61 @@ QString InstallerController::installationLogDetails() const
     return QString::fromUtf8(log.read(limit));
 }
 
+bool InstallerController::liveAssistAvailable() const
+{
+    const QString endpoint = qEnvironmentVariable("WAYLAND_DISPLAY");
+    return m_systemActionsEnabled && QDir(QStringLiteral("/run/archiso")).exists()
+        && QRegularExpression(QStringLiteral("^/run/user/[0-9]+/wayland-[0-9]{1,4}$")).match(endpoint).hasMatch();
+}
+
+// Starts one fixed application as the unprivileged Live user on the Live
+// compositor. Callers pass only compile-time program/arguments; never a
+// caller-supplied command line.
+bool InstallerController::startLiveUserApp(const QString &program, const QStringList &arguments)
+{
+    if (!liveAssistAvailable())
+        return false;
+    const QString endpoint = qEnvironmentVariable("WAYLAND_DISPLAY");
+    const QString runtime = QFileInfo(endpoint).absolutePath();
+    QStringList command{QStringLiteral("-u"), QStringLiteral("live"), QStringLiteral("--"),
+         QStringLiteral("/usr/bin/env"), QStringLiteral("-i"),
+         QStringLiteral("HOME=/home/live"), QStringLiteral("USER=live"), QStringLiteral("LOGNAME=live"),
+         QStringLiteral("PATH=/usr/bin:/usr/local/bin"), QStringLiteral("LANG=C.UTF-8"),
+         QStringLiteral("XDG_RUNTIME_DIR=") + runtime,
+         QStringLiteral("DBUS_SESSION_BUS_ADDRESS=unix:path=") + runtime + QStringLiteral("/bus"),
+         QStringLiteral("WAYLAND_DISPLAY=") + QFileInfo(endpoint).fileName(),
+         QStringLiteral("XDG_SESSION_TYPE=wayland"), QStringLiteral("XDG_CURRENT_DESKTOP=KDE"),
+         program};
+    command.append(arguments);
+    return QProcess::startDetached(QStringLiteral("/usr/bin/runuser"), command);
+}
+
+void InstallerController::openLiveAi()
+{
+    // Chat can propose a plan, but only this Installer and Quick Repair own
+    // writes and confirmations, so the AI gets no installer capability here.
+    if (m_installationState == QStringLiteral("running")) {
+        setError(tr("Meo AI is available again when installation stops."));
+        return;
+    }
+    if (!QFileInfo::exists(QStringLiteral("/usr/bin/meo-ai"))) {
+        setError(tr("Meo AI is not installed on this Live medium."));
+        return;
+    }
+    if (!startLiveUserApp(QStringLiteral("/usr/bin/meo-ai"), {QStringLiteral("--live-recovery")}))
+        setError(tr("Could not open Meo AI. Return to the Live desktop to launch it."));
+}
+
+void InstallerController::openLiveQuickRepair()
+{
+    if (m_installationState == QStringLiteral("running")) {
+        setError(tr("Quick Repair is available again when installation stops."));
+        return;
+    }
+    if (!startLiveUserApp(QStringLiteral("/usr/bin/meoarch-repair"), {QStringLiteral("--live")}))
+        setError(tr("Could not open Quick Repair. Return to the Live desktop to launch it."));
+}
+
 void InstallerController::openLiveRepair()
 {
     // Fixed application and identity; never a privileged desktop shell or

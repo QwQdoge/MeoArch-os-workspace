@@ -50,6 +50,7 @@ QtObject {
     property string errorMessage: ""
     property bool realInstallEnabled: false
     property bool systemActionsEnabled: false
+    property bool liveAssistAvailable: false
     // Keep the preview controller contract aligned with InstallerController.
     // Pages that read selection() need an observable dependency so their
     // checked/selected visuals update in the same view after a click.
@@ -175,6 +176,8 @@ QtObject {
     function startInstallation() { installationState = "complete"; installationProgress = 100; installationStage = "complete"; installationMessage = qsTr("Visual preview complete.") }
     function installationLogPath() { return "/tmp/meoarch-installer/logs/install.log" }
     function installationLogDetails() { return qsTr("Visual preview only — no installation log is written.") }
+    function openLiveAi() { errorMessage = qsTr("Meo AI launch is disabled in preview mode.") }
+    function openLiveQuickRepair() { errorMessage = qsTr("Quick Repair launch is disabled in preview mode.") }
     function openLiveRepair() { errorMessage = qsTr("Quick Repair launch is disabled in preview mode.") }
     function requestRestart() { errorMessage = qsTr("Restart is disabled in preview mode.") }
     function requestShutdown() { errorMessage = qsTr("Shut down is disabled in preview mode.") }
