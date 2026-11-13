@@ -16,13 +16,37 @@ PageFrame {
         width: Math.min(parent.width, page.dp(680))
         spacing: page.compactHeight ? page.dp(12) : page.dp(20)
 
-        MeoShape {
+        Item {
             anchors.horizontalCenter: parent.horizontalCenter
             width: page.compactHeight ? page.dp(72) : page.dp(96)
             height: width
-            radius: width / 2
-            color: MeoTheme.primaryContainer
-            MeoIcon { anchors.centerIn: parent; icon: page.completed ? "check" : "info"; size: page.dp(48); color: MeoTheme.contentOnPrimaryContainer }
+
+            // Decorative celebration ring; only while the install succeeded.
+            MeoShape {
+                id: ring
+                anchors.fill: parent
+                radius: width / 2
+                color: MeoTheme.primaryContainer
+                opacity: 0
+                visible: page.completed && !MeoTheme.reduceMotion
+                ParallelAnimation {
+                    running: ring.visible
+                    loops: Animation.Infinite
+                    NumberAnimation { target: ring; property: "scale"; from: 1; to: 1.9; duration: 2400; easing.type: Easing.OutCubic }
+                    SequentialAnimation {
+                        NumberAnimation { target: ring; property: "opacity"; from: 0.55; to: 0; duration: 2400; easing.type: Easing.OutQuad }
+                    }
+                }
+            }
+            MeoShape {
+                id: badge
+                anchors.fill: parent
+                radius: width / 2
+                color: MeoTheme.primaryContainer
+                MeoIcon { anchors.centerIn: parent; icon: page.completed ? "check" : "info"; size: page.dp(48); color: MeoTheme.contentOnPrimaryContainer }
+            }
+            EntranceAnimation { id: badgePop; item: badge; fromScale: 0.4 }
+            Component.onCompleted: badgePop.play()
         }
         MeoText {
             width: parent.width

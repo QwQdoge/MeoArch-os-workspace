@@ -76,7 +76,37 @@ PageFrame {
                 elide: Text.ElideRight
             }
         }
-        MeoProgressBar { width: parent.width; height: page.dp(8); value: page.controller ? page.controller.installationProgress / 100 : 0; isThick: true; vibrant: true }
+        Item {
+            id: progressBox
+            width: parent.width
+            height: page.dp(8)
+            readonly property real progressValue: page.controller ? page.controller.installationProgress / 100 : 0
+            MeoProgressBar { anchors.fill: parent; value: progressBox.progressValue; isThick: true; vibrant: true }
+            // Decorative shimmer over the filled part only; the real progress
+            // value above is unchanged and still advances at verified stages.
+            Item {
+                id: sweepClip
+                height: parent.height
+                width: parent.width * progressBox.progressValue
+                clip: true
+                visible: !MeoTheme.reduceMotion && page.controller && page.controller.installationState === "running"
+                MeoShape {
+                    id: sweep
+                    width: page.dp(96)
+                    height: parent.height
+                    radius: height / 2
+                    color: MeoTheme.surface
+                    opacity: 0.4
+                    NumberAnimation on x {
+                        from: -sweep.width
+                        to: sweepClip.width
+                        duration: 1800
+                        loops: Animation.Infinite
+                        running: sweepClip.visible
+                    }
+                }
+            }
+        }
         MeoCard {
             width: parent.width
             implicitHeight: page.compactHeight ? page.dp(138) : page.dp(158)

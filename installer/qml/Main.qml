@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import MeoUI 1.0
 import "." as Installer
+import "components" as Components
 
 Window {
     id: root
@@ -135,6 +136,11 @@ Window {
         radius: 0
         color: MeoTheme.surface
         opacity: 0.14
+    }
+
+    Components.AmbientOrbs {
+        anchors.fill: parent
+        visible: !root.visualPreview && !root.startupPending
     }
 
     MeoPageHost {

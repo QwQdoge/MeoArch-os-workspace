@@ -10,6 +10,17 @@ PageFrame {
     showBackButton: false
     property bool showTryHint: false
 
+    EntranceAnimation { id: introLeft; item: leftColumn; delay: 0 }
+    EntranceAnimation { id: introInstall; item: installCard; delay: 120 }
+    EntranceAnimation { id: introLive; item: liveCard; delay: 220 }
+    EntranceAnimation { id: introCheck; item: checkCard; delay: 320 }
+    Component.onCompleted: {
+        introLeft.play()
+        introInstall.play()
+        introLive.play()
+        introCheck.play()
+    }
+
     Column {
         width: parent.width
         y: Math.max(0, (parent.height - implicitHeight) / 2)
@@ -22,16 +33,27 @@ PageFrame {
             rowSpacing: page.dp(24)
 
             Column {
+                id: leftColumn
                 Layout.fillWidth: true
                 Layout.preferredWidth: page.dp(420)
                 spacing: page.dp(18)
 
                 Image {
+                    id: welcomeLogo
                     width: page.dp(100)
                     height: page.dp(64)
                     source: page.asset("icons/Logo.png")
                     fillMode: Image.PreserveAspectFit
                     Accessible.name: qsTr("MeoArch OS")
+
+                    // Decorative idle "breathing"; carries no meaning.
+                    SequentialAnimation on scale {
+                        running: !MeoTheme.reduceMotion && page.visible
+                        loops: Animation.Infinite
+                        NumberAnimation { to: 1.06; duration: 2200; easing.type: Easing.InOutSine }
+                        NumberAnimation { to: 1.0; duration: 2200; easing.type: Easing.InOutSine }
+                        onRunningChanged: if (!running) welcomeLogo.scale = 1
+                    }
                 }
                 MeoText {
                     width: parent.width
@@ -64,6 +86,7 @@ PageFrame {
                 spacing: page.dp(14)
 
                 SelectionCard {
+                    id: installCard
                     width: parent.width
                     iconText: "download"
                     title: qsTr("Install MeoArch OS")
@@ -73,6 +96,7 @@ PageFrame {
                     onClicked: page.nextRequested()
                 }
                 SelectionCard {
+                    id: liveCard
                     width: parent.width
                     iconText: "explore"
                     title: qsTr("Try the Live desktop first")
@@ -91,6 +115,7 @@ PageFrame {
                     tone: "info"
                 }
                 MeoCard {
+                    id: checkCard
                     width: parent.width
                     type: "outlined"
                     Accessible.name: qsTr("Live environment check")
