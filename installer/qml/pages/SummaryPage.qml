@@ -168,7 +168,7 @@ PageFrame {
                 }
                 MeoText {
                     width: parent.width; wrapMode: Text.WordWrap
-                    text: qsTr("Nothing is changed until you apply this. Disk and account choices are never set by the assistant.")
+                    text: qsTr("Nothing is changed until you apply this. A suggested disk is only selected; you still confirm erasing it, and you enter your own account and password.")
                     typeRole: "body"; typeSize: "small"; color: MeoTheme.outline
                 }
                 Row {

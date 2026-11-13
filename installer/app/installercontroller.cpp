@@ -2056,6 +2056,21 @@ void InstallerController::refreshAiProposal()
     const QString filesystem = disk.value(QStringLiteral("filesystem")).toString();
     if (filesystem == QStringLiteral("btrfs") || filesystem == QStringLiteral("ext4"))
         add(QStringLiteral("disk"), QStringLiteral("filesystem"), filesystem, tr("Filesystem"), filesystem);
+    // Preselection only: must match a real, eligible disk. The erase is still
+    // confirmed by the person on the final screen.
+    const QString targetDisk = disk.value(QStringLiteral("target")).toString();
+    if (!targetDisk.isEmpty()) {
+        for (const QVariant &entry : std::as_const(m_disks)) {
+            const QVariantMap known = entry.toMap();
+            if (known.value(QStringLiteral("id")).toString() == targetDisk
+                && known.value(QStringLiteral("eligible")).toBool()) {
+                const QString label = known.value(QStringLiteral("model")).toString();
+                add(QStringLiteral("disk"), QStringLiteral("target"), targetDisk, tr("Target disk"),
+                    label.isEmpty() ? targetDisk : label + QStringLiteral(" (") + targetDisk + QLatin1Char(')'));
+                break;
+            }
+        }
+    }
     const QString swap = disk.value(QStringLiteral("swap")).toString();
     if (swap == QStringLiteral("zram") || swap == QStringLiteral("file") || swap == QStringLiteral("none"))
         add(QStringLiteral("disk"), QStringLiteral("swap"), swap, tr("Swap"), swap);
@@ -2094,8 +2109,12 @@ void InstallerController::applyAiProposal()
         if (sectionIt.key() == QStringLiteral("locale"))
             continue;
         const QVariantMap values = sectionIt.value().toMap();
-        for (auto it = values.cbegin(); it != values.cend(); ++it)
-            writeSelection(sectionIt.key(), it.key(), it.value());
+        for (auto it = values.cbegin(); it != values.cend(); ++it) {
+            if (sectionIt.key() == QStringLiteral("disk") && it.key() == QStringLiteral("target"))
+                setSelectedDisk(it.value().toString());   // re-checks eligibility
+            else
+                writeSelection(sectionIt.key(), it.key(), it.value());
+        }
     }
     dismissAiProposal();
 }

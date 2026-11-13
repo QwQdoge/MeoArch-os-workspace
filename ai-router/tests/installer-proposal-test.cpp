@@ -49,8 +49,8 @@ int main(int argc, char **argv)
         || selections.value(QStringLiteral("software")).toObject().value(QStringLiteral("applications")).toArray().size() != 2)
         return fail(3, "proposal was not normalized into sections");
 
-    // Fields that would touch disks or accounts are unknown to the schema.
-    const QStringList forbidden{QStringLiteral("targetDisk"), QStringLiteral("password"),
+    // Fields that would touch accounts or erase authority are unknown to the schema.
+    const QStringList forbidden{QStringLiteral("rootPassword"), QStringLiteral("password"),
                                 QStringLiteral("username"), QStringLiteral("mode")};
     for (const QString &key : forbidden) {
         request.input = {{key, QStringLiteral("x")}};
@@ -72,6 +72,14 @@ int main(int argc, char **argv)
         if (result.ok)
             return fail(5, "an injection-shaped value was accepted");
     }
+    request.input = {{QStringLiteral("targetDisk"), QStringLiteral("/dev/sda; rm -rf /")}};
+    if (router.invoke(request).ok)
+        return fail(11, "a path-shaped disk value was accepted");
+    request.input = {{QStringLiteral("targetDisk"), QStringLiteral("nvme-Samsung_SSD_980_S64DNX0R123456A")}};
+    result = router.invoke(request);
+    if (!result.ok || result.data.value(QStringLiteral("selections")).toObject()
+            .value(QStringLiteral("disk")).toObject().value(QStringLiteral("target")).toString().isEmpty())
+        return fail(12, "a stable disk id preselection was rejected");
     request.input = {{QStringLiteral("filesystem"), QStringLiteral("xfs")}};
     if (router.invoke(request).ok)
         return fail(6, "an unsupported filesystem was accepted");

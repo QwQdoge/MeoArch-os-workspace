@@ -45,7 +45,7 @@ The Router returns `capability_unavailable` rather than silently replacing those
 
 ## Installer capabilities
 
-`installer.proposal.submit` lets the assistant suggest locale, time zone, keyboard layout, software profile/channel/applications, filesystem (btrfs/ext4), swap mode, separate home and firewall. It writes a 0600 file in the Live user's runtime directory and applies **nothing**. Disk targets, erase mode, accounts and passwords are not in the schema and are rejected by the executor.
+`installer.proposal.submit` lets the assistant suggest locale, time zone, keyboard layout, software profile/channel/applications, filesystem (btrfs/ext4), swap mode, separate home and firewall. It writes a 0600 file in the Live user's runtime directory and applies **nothing**. `targetDisk` (a stable disk id) is only a preselection: the installer matches it against detected eligible disks and the person still confirms the erase. Erase mode, accounts and passwords are not in the schema and are rejected.
 
 The root installer treats that file as untrusted: it must be a regular, non-symlink file owned by `live`, under 16 KiB, with schema version 1; every field is re-validated, application ids must exist in the installer's own catalog, and the Summary page shows the changes with Apply / Dismiss. Only Apply writes the selections, through the same setters the UI uses, and the install plan is still generated and validated by `install_plan.py` as usual.
 

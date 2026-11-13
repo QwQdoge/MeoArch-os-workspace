@@ -104,6 +104,12 @@ QJsonObject InstallerProposalExecutor::normalizeProposal(const QJsonObject &inpu
                 ids.append(id);
             }
             software.insert(key, ids);
+        } else if (key == QStringLiteral("targetDisk")) {
+            // Stable disk id as reported by the installer (by-id style). It is
+            // only a preselection; the installer checks it against real disks.
+            if (!matches(QStringLiteral("[A-Za-z0-9._:@+\\-]{1,128}"), value.toString()))
+                return fail(QStringLiteral("targetDisk must be a stable disk id"));
+            disk.insert(QStringLiteral("target"), value.toString());
         } else if (key == QStringLiteral("filesystem")) {
             if (value.toString() != QStringLiteral("btrfs") && value.toString() != QStringLiteral("ext4"))
                 return fail(QStringLiteral("filesystem must be btrfs or ext4"));
@@ -122,8 +128,8 @@ QJsonObject InstallerProposalExecutor::normalizeProposal(const QJsonObject &inpu
                 return fail(QStringLiteral("firewall must be boolean"));
             privacy.insert(key, value.toBool());
         } else {
-            // Disk targets, erase mode, accounts and passwords are never
-            // accepted from a proposal.
+            // Erase mode, accounts and passwords are never accepted from a
+            // proposal.
             return fail(QStringLiteral("field is not proposable: ") + key);
         }
     }

@@ -1053,6 +1053,7 @@
     <message><source>Firewall</source><translation>防火墙</translation></message>
     <message><source>On</source><translation>开</translation></message>
     <message><source>Off</source><translation>关</translation></message>
+    <message><source>Target disk</source><translation>目标磁盘</translation></message>
 </context>
 <context>
     <name>InstallingPage</name>
@@ -2985,7 +2986,7 @@ PipeWire · NetworkManager
     </message>
     <message><source>Meo AI suggestion</source><translation>Meo AI 建议</translation></message>
     <message><source>Meo AI suggests these changes</source><translation>Meo AI 建议以下更改</translation></message>
-    <message><source>Nothing is changed until you apply this. Disk and account choices are never set by the assistant.</source><translation>在你点击应用之前不会更改任何内容。磁盘和账户选项永远不会由助手设置。</translation></message>
+    <message><source>Nothing is changed until you apply this. A suggested disk is only selected; you still confirm erasing it, and you enter your own account and password.</source><translation>在你点击应用之前不会更改任何内容。建议的磁盘只会被选中，擦除仍需你确认；账户和密码由你自己填写。</translation></message>
     <message><source>Apply suggestion</source><translation>应用建议</translation></message>
     <message><source>Dismiss</source><translation>忽略</translation></message>
 </context>

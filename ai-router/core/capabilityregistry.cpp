@@ -85,8 +85,10 @@ QJsonObject boolProp()
     return {{QStringLiteral("type"), QStringLiteral("boolean")}};
 }
 
-// Disk targets, erase mode, accounts and passwords are deliberately absent:
-// the person chooses those in the installer, never a model.
+// Accounts and passwords are deliberately absent, and so is erase/format
+// authority. `targetDisk` is only a stable-id *preselection*: the installer
+// validates it against the detected eligible disks and the person still
+// confirms the erase on the final screen.
 QJsonObject installerProposalSchema()
 {
     return {
@@ -100,6 +102,7 @@ QJsonObject installerProposalSchema()
              {QStringLiteral("profile"), stringProp(16, {QStringLiteral("recommended"), QStringLiteral("minimal")})},
              {QStringLiteral("channel"), stringProp(16, {QStringLiteral("stable"), QStringLiteral("beta")})},
              {QStringLiteral("applications"), stringProp(1024)},
+             {QStringLiteral("targetDisk"), stringProp(128)},
              {QStringLiteral("filesystem"), stringProp(16, {QStringLiteral("btrfs"), QStringLiteral("ext4")})},
              {QStringLiteral("swap"), stringProp(16, {QStringLiteral("zram"), QStringLiteral("file"), QStringLiteral("none")})},
              {QStringLiteral("separateHome"), boolProp()},
@@ -220,7 +223,7 @@ CapabilityRegistry::CapabilityRegistry()
                                QStringLiteral("Open the native appearance settings page.")),
         terminalWorkspaceCapability(),
         installerCapability(QStringLiteral("installer.proposal.submit"),
-                            QStringLiteral("Propose installer choices (locale, software, filesystem, swap). Nothing is applied until the person accepts the proposal in the installer; disks and accounts cannot be proposed."),
+                            QStringLiteral("Propose installer choices (locale, software, filesystem, swap). Nothing is applied until the person accepts the proposal in the installer. A target disk is only preselected (the person still confirms erasing it); accounts and passwords cannot be proposed."),
                             QStringLiteral("propose"), installerProposalSchema()),
         installerCapability(QStringLiteral("installer.log.read"),
                             QStringLiteral("Read the last lines of the installer log to help diagnose a failed installation."),
