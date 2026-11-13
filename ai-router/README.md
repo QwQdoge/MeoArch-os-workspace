@@ -124,3 +124,9 @@ The inspection CLI remains capability-oriented; model terminal permission should
 ## Terminal contribution
 
 See [terminal integration](docs/system-ai-router.md) for canonical catalog search, informational risk classification, and incremental bounded output capture.
+
+> Note: Meo AI reaches the Router through D-Bus `org.meo.AIRouter1`, which is
+> served by meo-kde (`native/airouter`). The Live installer capabilities that
+> Meo AI actually calls (`org.meo.installer.*`) are implemented there; the
+> installer-side contract (proposal file, validation, Apply) is unchanged. The
+> `installer.*` capabilities in this library are kept for the CLI and tests.
