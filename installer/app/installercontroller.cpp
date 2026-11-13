@@ -28,6 +28,9 @@
 #include <QTimeZone>
 #include <QTimer>
 #include <algorithm>
+#ifdef Q_OS_UNIX
+#include <pwd.h>
+#endif
 
 namespace {
 QString installerStateDirectory()
@@ -1953,6 +1956,159 @@ QString InstallerController::installationLogDetails() const
     if (log.size() > limit)
         log.seek(log.size() - limit);
     return QString::fromUtf8(log.read(limit));
+}
+
+// ---- AI proposal (installer MCP) -------------------------------------------
+
+namespace {
+QString aiProposalPath()
+{
+    // The proposal lives in the Live user's runtime directory, next to the
+    // Wayland socket the installer already trusts for Live-user launches.
+    const QString endpoint = qEnvironmentVariable("WAYLAND_DISPLAY");
+    if (!QRegularExpression(QStringLiteral("^/run/user/[0-9]+/wayland-[0-9]{1,4}$")).match(endpoint).hasMatch())
+        return {};
+    return QFileInfo(endpoint).absolutePath() + QStringLiteral("/meo-installer/ai-proposal.json");
+}
+
+bool fullMatch(const QString &pattern, const QString &value)
+{
+    return QRegularExpression(QStringLiteral("^(?:%1)$").arg(pattern)).match(value).hasMatch();
+}
+}
+
+void InstallerController::refreshAiProposal()
+{
+    auto clear = [this] {
+        if (!m_aiProposal.isEmpty()) {
+            m_aiProposal.clear();
+            emit aiProposalChanged();
+        }
+    };
+    const QString path = aiProposalPath();
+    if (path.isEmpty() || m_installationState == QStringLiteral("running"))
+        return clear();
+
+    const QFileInfo info(path);
+    uint liveUid = static_cast<uint>(-1);
+#ifdef Q_OS_UNIX
+    if (const passwd *entry = getpwnam("live"))
+        liveUid = entry->pw_uid;
+#endif
+    // A root process must not trust a file another user could have swapped in.
+    if (!info.exists() || info.isSymLink() || !info.isFile() || info.size() > 16 * 1024
+        || info.ownerId() != liveUid)
+        return clear();
+
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return clear();
+    const QJsonObject root = QJsonDocument::fromJson(file.readAll()).object();
+    if (root.value(QStringLiteral("schemaVersion")).toInt() != 1)
+        return clear();
+
+    QSet<QString> knownApps;
+    for (const QVariant &entry : std::as_const(m_softwareCatalog))
+        knownApps.insert(entry.toMap().value(QStringLiteral("id")).toString());
+
+    QVariantMap accepted;   // section -> map
+    QVariantList rows;      // [{label, value}] for display
+    const QJsonObject selections = root.value(QStringLiteral("selections")).toObject();
+    auto add = [&](const QString &sectionName, const QString &key, const QVariant &value, const QString &label,
+                   const QString &shown) {
+        QVariantMap data = accepted.value(sectionName).toMap();
+        data.insert(key, value);
+        accepted.insert(sectionName, data);
+        rows.append(QVariantMap{{QStringLiteral("label"), label}, {QStringLiteral("value"), shown}});
+    };
+
+    const QJsonObject locale = selections.value(QStringLiteral("locale")).toObject();
+    if (fullMatch(QStringLiteral("[a-z]{2,3}_[A-Z]{2}\\.UTF-8"), locale.value(QStringLiteral("systemLocale")).toString()))
+        add(QStringLiteral("locale"), QStringLiteral("systemLocale"), locale.value(QStringLiteral("systemLocale")).toString(),
+            tr("System language"), locale.value(QStringLiteral("systemLocale")).toString());
+    if (fullMatch(QStringLiteral("[A-Za-z0-9_+\\-]+(?:/[A-Za-z0-9_+\\-]+){0,2}"), locale.value(QStringLiteral("timezone")).toString()))
+        add(QStringLiteral("locale"), QStringLiteral("timezone"), locale.value(QStringLiteral("timezone")).toString(),
+            tr("Time zone"), locale.value(QStringLiteral("timezone")).toString());
+    if (fullMatch(QStringLiteral("[a-z0-9_\\-]{1,32}"), locale.value(QStringLiteral("keyboardLayout")).toString()))
+        add(QStringLiteral("locale"), QStringLiteral("keyboardLayout"), locale.value(QStringLiteral("keyboardLayout")).toString(),
+            tr("Keyboard layout"), locale.value(QStringLiteral("keyboardLayout")).toString());
+
+    const QJsonObject software = selections.value(QStringLiteral("software")).toObject();
+    const QString profile = software.value(QStringLiteral("profile")).toString();
+    if (profile == QStringLiteral("recommended") || profile == QStringLiteral("minimal"))
+        add(QStringLiteral("software"), QStringLiteral("profile"), profile, tr("Software profile"), profile);
+    const QString channel = software.value(QStringLiteral("channel")).toString();
+    if (channel == QStringLiteral("stable") || channel == QStringLiteral("beta"))
+        add(QStringLiteral("software"), QStringLiteral("channel"), channel, tr("Update channel"), channel);
+    QVariantList apps;
+    for (const QJsonValue &value : software.value(QStringLiteral("applications")).toArray()) {
+        if (knownApps.contains(value.toString()))
+            apps.append(value.toString());
+    }
+    if (!apps.isEmpty()) {
+        QStringList names;
+        for (const QVariant &id : std::as_const(apps))
+            names << id.toString();
+        add(QStringLiteral("software"), QStringLiteral("applications"), apps, tr("Applications"), names.join(QStringLiteral(", ")));
+    }
+
+    const QJsonObject disk = selections.value(QStringLiteral("disk")).toObject();
+    const QString filesystem = disk.value(QStringLiteral("filesystem")).toString();
+    if (filesystem == QStringLiteral("btrfs") || filesystem == QStringLiteral("ext4"))
+        add(QStringLiteral("disk"), QStringLiteral("filesystem"), filesystem, tr("Filesystem"), filesystem);
+    const QString swap = disk.value(QStringLiteral("swap")).toString();
+    if (swap == QStringLiteral("zram") || swap == QStringLiteral("file") || swap == QStringLiteral("none"))
+        add(QStringLiteral("disk"), QStringLiteral("swap"), swap, tr("Swap"), swap);
+    if (disk.value(QStringLiteral("separateHome")).isBool())
+        add(QStringLiteral("disk"), QStringLiteral("separateHome"), disk.value(QStringLiteral("separateHome")).toBool(),
+            tr("Separate home"), disk.value(QStringLiteral("separateHome")).toBool() ? tr("Yes") : tr("No"));
+    const QJsonObject privacy = selections.value(QStringLiteral("privacy")).toObject();
+    if (privacy.value(QStringLiteral("firewall")).isBool())
+        add(QStringLiteral("privacy"), QStringLiteral("firewall"), privacy.value(QStringLiteral("firewall")).toBool(),
+            tr("Firewall"), privacy.value(QStringLiteral("firewall")).toBool() ? tr("On") : tr("Off"));
+
+    if (rows.isEmpty())
+        return clear();
+    m_aiProposal = QVariantMap{
+        {QStringLiteral("rationale"), root.value(QStringLiteral("rationale")).toString().left(500)},
+        {QStringLiteral("changes"), rows},
+        {QStringLiteral("selections"), accepted},
+    };
+    emit aiProposalChanged();
+}
+
+void InstallerController::applyAiProposal()
+{
+    if (m_aiProposal.isEmpty() || m_installationState == QStringLiteral("running"))
+        return;
+    const QVariantMap accepted = m_aiProposal.value(QStringLiteral("selections")).toMap();
+    const QVariantMap locale = accepted.value(QStringLiteral("locale")).toMap();
+    // Use the public setters so derived values (language, encoding) stay consistent.
+    if (locale.contains(QStringLiteral("systemLocale")))
+        setSystemLocale(locale.value(QStringLiteral("systemLocale")).toString());
+    if (locale.contains(QStringLiteral("timezone")))
+        setTimeZone(locale.value(QStringLiteral("timezone")).toString());
+    if (locale.contains(QStringLiteral("keyboardLayout")))
+        setKeyboardLayout(locale.value(QStringLiteral("keyboardLayout")).toString());
+    for (auto sectionIt = accepted.cbegin(); sectionIt != accepted.cend(); ++sectionIt) {
+        if (sectionIt.key() == QStringLiteral("locale"))
+            continue;
+        const QVariantMap values = sectionIt.value().toMap();
+        for (auto it = values.cbegin(); it != values.cend(); ++it)
+            writeSelection(sectionIt.key(), it.key(), it.value());
+    }
+    dismissAiProposal();
+}
+
+void InstallerController::dismissAiProposal()
+{
+    const QString path = aiProposalPath();
+    if (!path.isEmpty())
+        QFile::remove(path);
+    if (!m_aiProposal.isEmpty()) {
+        m_aiProposal.clear();
+        emit aiProposalChanged();
+    }
 }
 
 bool InstallerController::liveAssistAvailable() const

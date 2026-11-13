@@ -51,6 +51,10 @@ QtObject {
     property bool realInstallEnabled: false
     property bool systemActionsEnabled: false
     property bool liveAssistAvailable: false
+    property var aiProposal: ({})
+    function refreshAiProposal() {}
+    function applyAiProposal() {}
+    function dismissAiProposal() {}
     // Keep the preview controller contract aligned with InstallerController.
     // Pages that read selection() need an observable dependency so their
     // checked/selected visuals update in the same view after a click.

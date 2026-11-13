@@ -17,6 +17,8 @@ add_library(meo-ai-router-core STATIC
     core/systemairouter.h
     core/settingsdeeplinkexecutor.cpp
     core/settingsdeeplinkexecutor.h
+    core/installerproposalexecutor.cpp
+    core/installerproposalexecutor.h
     core/terminalworkspaceexecutor.cpp
     core/terminalworkspaceexecutor.h
     core/terminalpolicy.cpp
@@ -46,7 +48,11 @@ target_link_libraries(meo-ai-router-contract-test PRIVATE meo-ai-router-core Qt6
 qt_add_executable(meo-ai-router-policy-test tests/terminal-policy-test.cpp)
 target_link_libraries(meo-ai-router-policy-test PRIVATE meo-ai-router-core Qt6::Core)
 
+qt_add_executable(meo-ai-router-installer-test tests/installer-proposal-test.cpp)
+target_link_libraries(meo-ai-router-installer-test PRIVATE meo-ai-router-core Qt6::Core)
+
 enable_testing()
+add_test(NAME meo-ai-router-installer-test COMMAND meo-ai-router-installer-test)
 add_test(NAME meo-ai-router-policy-test COMMAND meo-ai-router-policy-test)
 add_test(NAME meo-ai-router-contract COMMAND meo-ai-router-contract-test)
 

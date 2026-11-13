@@ -2,6 +2,7 @@
 
 #include "policyengine.h"
 #include "settingsdeeplinkexecutor.h"
+#include "installerproposalexecutor.h"
 #include "terminalworkspaceexecutor.h"
 
 #include <QCryptographicHash>
@@ -31,6 +32,7 @@ SystemAiRouter::SystemAiRouter(bool installDefaultExecutors)
     if (installDefaultExecutors) {
         registerExecutor(std::make_unique<SettingsDeepLinkExecutor>());
         registerExecutor(std::make_unique<TerminalWorkspaceExecutor>());
+        registerExecutor(std::make_unique<InstallerProposalExecutor>());
     }
 }
 

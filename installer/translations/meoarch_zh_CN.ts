@@ -1039,6 +1039,20 @@
         <source>This storage device uses an unsupported logical sector size.</source>
         <translation>此存储设备使用了不受支持的逻辑扇区大小。</translation>
     </message>
+    <message><source>System language</source><translation>系统语言</translation></message>
+    <message><source>Time zone</source><translation>时区</translation></message>
+    <message><source>Keyboard layout</source><translation>键盘布局</translation></message>
+    <message><source>Software profile</source><translation>软件方案</translation></message>
+    <message><source>Update channel</source><translation>更新通道</translation></message>
+    <message><source>Applications</source><translation>应用</translation></message>
+    <message><source>Filesystem</source><translation>文件系统</translation></message>
+    <message><source>Swap</source><translation>交换空间</translation></message>
+    <message><source>Separate home</source><translation>独立 home 分区</translation></message>
+    <message><source>Yes</source><translation>是</translation></message>
+    <message><source>No</source><translation>否</translation></message>
+    <message><source>Firewall</source><translation>防火墙</translation></message>
+    <message><source>On</source><translation>开</translation></message>
+    <message><source>Off</source><translation>关</translation></message>
 </context>
 <context>
     <name>InstallingPage</name>
@@ -2969,6 +2983,11 @@ PipeWire · NetworkManager
         <source>%1 · %2 Meo packages · %3 system applications</source>
         <translation>%1 · %2 个 Meo 软件包 · %3 个系统应用</translation>
     </message>
+    <message><source>Meo AI suggestion</source><translation>Meo AI 建议</translation></message>
+    <message><source>Meo AI suggests these changes</source><translation>Meo AI 建议以下更改</translation></message>
+    <message><source>Nothing is changed until you apply this. Disk and account choices are never set by the assistant.</source><translation>在你点击应用之前不会更改任何内容。磁盘和账户选项永远不会由助手设置。</translation></message>
+    <message><source>Apply suggestion</source><translation>应用建议</translation></message>
+    <message><source>Dismiss</source><translation>忽略</translation></message>
 </context>
 <context>
     <name>UpdateChannelPage</name>

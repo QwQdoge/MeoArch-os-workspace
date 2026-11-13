@@ -17,6 +17,14 @@ PageFrame {
                                   ? qsTr("Opens a final confirmation before installation can begin")
                                   : qsTr("Validates the installation plan without writing the selected disk")
     property bool riskAccepted: false
+    // Meo AI may drop a proposal while the person reads this page.
+    Timer {
+        interval: 2500
+        repeat: true
+        running: page.visible && page.controller && page.controller.installationState !== "running"
+        triggeredOnStart: true
+        onTriggered: page.controller.refreshAiProposal()
+    }
     readonly property var resolvedRepository: controller && controller.installPlan.repository
                                               ? controller.installPlan.repository : ({})
     readonly property var resolvedPackage: controller && controller.installPlan.package
@@ -130,6 +138,44 @@ PageFrame {
                 size: "s"
                 Accessible.description: qsTr("Show installation details without secrets")
                 onClicked: detailsSheet.openFrom(this)
+            }
+        }
+        MeoCard {
+            id: aiProposalCard
+            readonly property var proposal: page.controller && page.controller.aiProposal ? page.controller.aiProposal : ({})
+            visible: !!proposal.changes && proposal.changes.length > 0
+            width: parent.width
+            type: "outlined"
+            Accessible.name: qsTr("Meo AI suggestion")
+            Column {
+                width: parent.width
+                spacing: page.dp(8)
+                MeoText { width: parent.width; text: qsTr("Meo AI suggests these changes"); typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface }
+                MeoText {
+                    visible: !!aiProposalCard.proposal.rationale
+                    width: parent.width; wrapMode: Text.WordWrap
+                    text: aiProposalCard.proposal.rationale || ""
+                    typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant
+                }
+                Repeater {
+                    model: aiProposalCard.proposal.changes || []
+                    delegate: MeoText {
+                        required property var modelData
+                        width: parent.width; wrapMode: Text.WordWrap
+                        text: modelData.label + ": " + modelData.value
+                        typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurface
+                    }
+                }
+                MeoText {
+                    width: parent.width; wrapMode: Text.WordWrap
+                    text: qsTr("Nothing is changed until you apply this. Disk and account choices are never set by the assistant.")
+                    typeRole: "body"; typeSize: "small"; color: MeoTheme.outline
+                }
+                Row {
+                    spacing: page.dp(12)
+                    MeoButton { text: qsTr("Apply suggestion"); type: "filled"; onClicked: page.controller.applyAiProposal() }
+                    MeoButton { text: qsTr("Dismiss"); type: "text"; onClicked: page.controller.dismissAiProposal() }
+                }
             }
         }
         InfoBanner {

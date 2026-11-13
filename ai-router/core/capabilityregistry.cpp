@@ -71,6 +71,75 @@ QJsonObject terminalWorkspaceSchema()
     };
 }
 
+QJsonObject stringProp(int maxLength, const QJsonArray &allowed = {})
+{
+    QJsonObject prop{{QStringLiteral("type"), QStringLiteral("string")},
+                     {QStringLiteral("maxLength"), maxLength}};
+    if (!allowed.isEmpty())
+        prop.insert(QStringLiteral("enum"), allowed);
+    return prop;
+}
+
+QJsonObject boolProp()
+{
+    return {{QStringLiteral("type"), QStringLiteral("boolean")}};
+}
+
+// Disk targets, erase mode, accounts and passwords are deliberately absent:
+// the person chooses those in the installer, never a model.
+QJsonObject installerProposalSchema()
+{
+    return {
+        {QStringLiteral("type"), QStringLiteral("object")},
+        {QStringLiteral("additionalProperties"), false},
+        {QStringLiteral("properties"), QJsonObject{
+             {QStringLiteral("rationale"), stringProp(500)},
+             {QStringLiteral("systemLocale"), stringProp(32)},
+             {QStringLiteral("timezone"), stringProp(64)},
+             {QStringLiteral("keyboardLayout"), stringProp(32)},
+             {QStringLiteral("profile"), stringProp(16, {QStringLiteral("recommended"), QStringLiteral("minimal")})},
+             {QStringLiteral("channel"), stringProp(16, {QStringLiteral("stable"), QStringLiteral("beta")})},
+             {QStringLiteral("applications"), stringProp(1024)},
+             {QStringLiteral("filesystem"), stringProp(16, {QStringLiteral("btrfs"), QStringLiteral("ext4")})},
+             {QStringLiteral("swap"), stringProp(16, {QStringLiteral("zram"), QStringLiteral("file"), QStringLiteral("none")})},
+             {QStringLiteral("separateHome"), boolProp()},
+             {QStringLiteral("firewall"), boolProp()},
+         }},
+    };
+}
+
+QJsonObject installerLogSchema()
+{
+    return {
+        {QStringLiteral("type"), QStringLiteral("object")},
+        {QStringLiteral("additionalProperties"), false},
+        {QStringLiteral("properties"), QJsonObject{
+             {QStringLiteral("lines"), QJsonObject{
+                  {QStringLiteral("type"), QStringLiteral("integer")},
+                  {QStringLiteral("minimum"), 1},
+                  {QStringLiteral("maximum"), 200},
+              }},
+         }},
+    };
+}
+
+Capability installerCapability(const QString &id, const QString &description,
+                               const QString &effect, const QJsonObject &schema)
+{
+    Capability capability;
+    capability.id = id;
+    capability.owner = QStringLiteral("org.meo.installer");
+    capability.description = description;
+    capability.effect = effect;
+    capability.privilege = QStringLiteral("user");
+    capability.confirmation = QStringLiteral("never");
+    capability.executorId = QStringLiteral("installer.proposal");
+    capability.inputSchema = schema;
+    capability.executable = true;
+    capability.mcpExposed = true;
+    return capability;
+}
+
 Capability settingsOpenCapability(const QString &id,
                                   const QString &route,
                                   const QString &description)
@@ -150,6 +219,12 @@ CapabilityRegistry::CapabilityRegistry()
                                QStringLiteral("appearance"),
                                QStringLiteral("Open the native appearance settings page.")),
         terminalWorkspaceCapability(),
+        installerCapability(QStringLiteral("installer.proposal.submit"),
+                            QStringLiteral("Propose installer choices (locale, software, filesystem, swap). Nothing is applied until the person accepts the proposal in the installer; disks and accounts cannot be proposed."),
+                            QStringLiteral("propose"), installerProposalSchema()),
+        installerCapability(QStringLiteral("installer.log.read"),
+                            QStringLiteral("Read the last lines of the installer log to help diagnose a failed installation."),
+                            QStringLiteral("read"), installerLogSchema()),
         unavailableCapability(QStringLiteral("network.status.read"),
                               QStringLiteral("meo-system-service"),
                               QStringLiteral("Read a structured network summary."),
@@ -190,7 +265,7 @@ CapabilityRegistry::CapabilityRegistry()
 
 QString CapabilityRegistry::policyVersion()
 {
-    return QStringLiteral("org.meo.ai-router-policy/2026.10.08.4");
+    return QStringLiteral("org.meo.ai-router-policy/2026.11.13.1");
 }
 
 const Capability *CapabilityRegistry::find(const QString &id) const
@@ -220,7 +295,7 @@ bool CapabilityRegistry::validateDescriptor(const Capability &capability, QStrin
     static const QRegularExpression idPattern(
         QStringLiteral("^[a-z][a-z0-9]*(?:[._-][A-Za-z0-9]+)*$"));
     static const QSet<QString> effects{
-        QStringLiteral("read"), QStringLiteral("open"), QStringLiteral("session"),
+        QStringLiteral("read"), QStringLiteral("open"), QStringLiteral("propose"), QStringLiteral("session"),
         QStringLiteral("persistent"), QStringLiteral("destructive")};
     static const QSet<QString> privileges{
         QStringLiteral("user"), QStringLiteral("system")};

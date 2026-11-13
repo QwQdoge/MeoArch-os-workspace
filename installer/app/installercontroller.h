@@ -153,6 +153,15 @@ public:
     Q_INVOKABLE void openLiveAi();
     Q_INVOKABLE void openLiveQuickRepair();
     Q_PROPERTY(bool liveAssistAvailable READ liveAssistAvailable CONSTANT)
+
+    // A change set proposed by Meo AI through the installer MCP capability.
+    // It is untrusted input: re-validated here, shown to the person, and only
+    // applied when they accept it. Disks and accounts can never be proposed.
+    Q_PROPERTY(QVariantMap aiProposal READ aiProposal NOTIFY aiProposalChanged)
+    QVariantMap aiProposal() const { return m_aiProposal; }
+    Q_INVOKABLE void refreshAiProposal();
+    Q_INVOKABLE void applyAiProposal();
+    Q_INVOKABLE void dismissAiProposal();
     Q_INVOKABLE void requestRestart();
     Q_INVOKABLE void requestShutdown();
 
@@ -175,6 +184,7 @@ signals:
     void errorMessageChanged();
     void diagnosticConsoleChanged();
     void localizedContentChanged();
+    void aiProposalChanged();
 
 private:
     void buildUiLanguages();
@@ -218,6 +228,7 @@ private:
     QVariantList m_disks;
     bool m_diskDetecting = false;
     QVariantMap m_selections;
+    QVariantMap m_aiProposal;
     QString m_firmwareMode = QStringLiteral("unknown");
     QString m_networkState = QStringLiteral("offline");
     QString m_networkDetail;
