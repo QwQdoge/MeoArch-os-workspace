@@ -57,8 +57,9 @@ PageFrame {
                     .arg(page.selectedRootPath).arg(page.selectedEfiPath).arg(page.selectedDiskDisplay)
         }
         if (page.diskMode === "guided") {
-            return qsTr("Erase all data on %1 · create EFI, root, and home partitions")
-                    .arg(page.selectedDiskDisplay)
+            const rootGiB = Math.round(Number(controller.selection("disk", "rootSizeGiB", 32)))
+            return qsTr("Erase all data on %1 · create EFI, a %2 GiB system partition, and home with the rest")
+                    .arg(page.selectedDiskDisplay).arg(rootGiB)
         }
         return qsTr("Erase all data on %1 · create EFI and root partitions")
                 .arg(page.selectedDiskDisplay)

@@ -268,6 +268,128 @@
         <source>Storage unavailable</source>
         <translation>此存储设备不可用于安装</translation>
     </message>
+    <message>
+        <source>%1 TiB</source>
+        <translation>%1 TiB</translation>
+    </message>
+    <message>
+        <source>%1 GiB</source>
+        <translation>%1 GiB</translation>
+    </message>
+    <message>
+        <source>%1 MiB</source>
+        <translation>%1 MiB</translation>
+    </message>
+    <message>
+        <source>MeoArch (formatted)</source>
+        <translation>MeoArch（将格式化）</translation>
+    </message>
+    <message>
+        <source>EFI (kept)</source>
+        <translation>EFI（保留）</translation>
+    </message>
+    <message>
+        <source>%1 (untouched)</source>
+        <translation>%1（不改动）</translation>
+    </message>
+    <message>
+        <source>EFI</source>
+        <translation>EFI</translation>
+    </message>
+    <message>
+        <source>System</source>
+        <translation>系统</translation>
+    </message>
+    <message>
+        <source>Home</source>
+        <translation>主目录</translation>
+    </message>
+    <message>
+        <source>System and home</source>
+        <translation>系统与主目录</translation>
+    </message>
+    <message>
+        <source>Pick a disk, then choose how to use it. Nothing is changed until you confirm on the Summary page.</source>
+        <translation>先选择磁盘，再选择使用方式。在“摘要”页确认之前不会做任何更改。</translation>
+    </message>
+    <message>
+        <source>1. Disk</source>
+        <translation>1. 磁盘</translation>
+    </message>
+    <message>
+        <source>Choose this disk. Nothing is erased until the final confirmation.</source>
+        <translation>选择此磁盘。最终确认前不会抹除任何内容。</translation>
+    </message>
+    <message>
+        <source>Erasing this disk is not possible: %1</source>
+        <translation>无法抹除此磁盘：%1</translation>
+    </message>
+    <message>
+        <source>2. How to use this disk</source>
+        <translation>2. 如何使用此磁盘</translation>
+    </message>
+    <message>
+        <source>Recommended. Deletes all data, then creates EFI and one system partition</source>
+        <translation>推荐。删除全部数据，然后创建 EFI 和一个系统分区</translation>
+    </message>
+    <message>
+        <source>Deletes all data. Your files live on their own partition, sized below</source>
+        <translation>删除全部数据。你的文件放在单独的分区中，大小可在下方调整</translation>
+    </message>
+    <message>
+        <source>Keeps other partitions, for example another system. Formats only the partition you pick</source>
+        <translation>保留其他分区（例如另一个系统），只格式化你选择的分区</translation>
+    </message>
+    <message>
+        <source>Needs an EFI System Partition and a root partition of at least 8 GiB on this disk</source>
+        <translation>需要此磁盘上有 EFI 系统分区和至少 8 GiB 的根分区</translation>
+    </message>
+    <message>
+        <source>System %1 · Home %2</source>
+        <translation>系统 %1 · 主目录 %2</translation>
+    </message>
+    <message>
+        <source>System partition size in GiB</source>
+        <translation>系统分区大小（GiB）</translation>
+    </message>
+    <message>
+        <source>The system partition holds MeoArch and installed apps; 32 GiB or more is comfortable. Home gets the rest and keeps at least 4 GiB.</source>
+        <translation>系统分区存放 MeoArch 和已安装的应用，32 GiB 以上比较宽裕。其余空间分给主目录，至少保留 4 GiB。</translation>
+    </message>
+    <message>
+        <source>3. After installation</source>
+        <translation>3. 安装后</translation>
+    </message>
+    <message>
+        <source>Swap: %1</source>
+        <translation>交换：%1</translation>
+    </message>
+    <message>
+        <source>All data on %1 (%2) will be deleted. Existing partitions are not preserved in this mode.</source>
+        <translation>%1（%2）上的全部数据都会被删除。此模式不保留现有分区。</translation>
+    </message>
+    <message>
+        <source>Snapshots let Meo roll back a failed update</source>
+        <translation>快照可让 Meo 回滚失败的更新</translation>
+    </message>
+    <message>
+        <source>Simple and widely compatible; no snapshots</source>
+        <translation>简单、兼容性好；不支持快照</translation>
+    </message>
+    <message>
+        <source>Disk encryption and manual partitioning</source>
+        <translation>磁盘加密与手动分区</translation>
+    </message>
+    <message>
+        <source>Both stay unavailable until creation, resizing, encryption, recovery, and rollback have one tested transaction path. Use only the safe choices on this page.</source>
+        <translation>在创建、调整大小、加密、恢复和回滚拥有经过测试的统一事务流程之前，这两项暂不可用。请只使用本页提供的安全选项。</translation>
+    </message>
+    <message numerus="yes">
+        <source>Currently %n partition(s): %1</source>
+        <translation>
+            <numerusform>当前有 %n 个分区：%1</numerusform>
+        </translation>
+    </message>
 </context>
 <context>
     <name>FinishPage</name>
@@ -2989,6 +3111,10 @@ PipeWire · NetworkManager
     <message><source>Nothing is changed until you apply this. A suggested disk is only selected; you still confirm erasing it, and you enter your own account and password.</source><translation>在你点击应用之前不会更改任何内容。建议的磁盘只会被选中，擦除仍需你确认；账户和密码由你自己填写。</translation></message>
     <message><source>Apply suggestion</source><translation>应用建议</translation></message>
     <message><source>Dismiss</source><translation>忽略</translation></message>
+    <message>
+        <source>Erase all data on %1 · create EFI, a %2 GiB system partition, and home with the rest</source>
+        <translation>抹除 %1 上的全部数据 · 创建 EFI、%2 GiB 系统分区，其余空间作为主目录</translation>
+    </message>
 </context>
 <context>
     <name>UpdateChannelPage</name>
