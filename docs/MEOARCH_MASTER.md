@@ -15,6 +15,10 @@
 - **各项目自己的文档（`README.md`、`AGENTS.md`、`docs/`）：怎么做这个项目。** 构建、测试、贡献和内部约定。
 - **账号 API 怎么用**：<https://meoarch.org/docs/guide/account-api.html>（Markdown 版 <https://meoarch.org/docs/guide/account-api.md>）。基础地址 `https://api.meoarch.org/v1`，授权用 Meo Account OAuth 2.1（授权码 + S256 PKCE），令牌 scope 为 `meo:read` / `meo:write`。接口的实现和维护细节见 meo-api 仓库的 `docs/api-reference.md`。
 - 使用要求（系统、Meo AI、各应用）：<https://meoarch.org/docs/guide/requirements.html>。
+- **主站文档是“怎么用”的完整入口**：<https://meoarch.org/docs/>（给 AI 代理：<https://meoarch.org/llms.txt>）。
+  - 项目总览与安装：[总览](https://meoarch.org/docs/guide/projects.html)、[安装指南](https://meoarch.org/docs/guide/install.html)
+  - 各项目：[MeoArch 镜像与安装器](https://meoarch.org/docs/guide/meoarch-iso.html)、[Meo Desktop](https://meoarch.org/docs/guide/meo-desktop.html)、[Meo Settings](https://meoarch.org/docs/guide/meo-settings.html)、[OmniStore](https://meoarch.org/docs/guide/omnistore.html)、[Meo AI](https://meoarch.org/docs/guide/meo-ai.html)、[Meo Login](https://meoarch.org/docs/guide/meo-login.html)、[Meo 软件源](https://meoarch.org/docs/guide/meo-repo.html)、[Meo Account](https://meoarch.org/docs/guide/meo-account.html)
+  - 开发者：[Meo Account API](https://meoarch.org/docs/guide/account-api.html)、[Meo API 参考](https://meoarch.org/docs/guide/api-reference.html)、[原生应用接入](https://meoarch.org/docs/guide/account-native-apps.html)、[MeoUI 规范](https://meoarch.org/docs/meoui/index.html)
 
 ---
 
