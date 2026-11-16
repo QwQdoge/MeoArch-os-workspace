@@ -1,0 +1,2 @@
+module Meo.System
+singleton SystemState 1.0 SystemState.qml

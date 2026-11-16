@@ -1017,7 +1017,8 @@ Window {
         anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top
         anchors.leftMargin: root.dp(28); anchors.rightMargin: root.dp(20)
         anchors.topMargin: root.dp(18)
-        height: root.dp(56)
+        // Follow the content so the two-line title never runs into statusStrip.
+        height: Math.max(root.dp(56), implicitHeight)
         spacing: root.dp(12)
 
         MeoAiMark { Layout.preferredWidth: root.dp(42); Layout.preferredHeight: root.dp(42) }
@@ -1037,13 +1038,13 @@ Window {
         }
         MeoIconButton {
             visible: root.advancedMode && root.repairController.diagnosticTtyAvailable
-            icon.name: "terminal"; type: "outlined"; size: "l"
+            icon.name: "terminal"; type: "outlined"; size: "m"
             Accessible.name: qsTr("打开 Live TTY 3 诊断终端")
             onClicked: root.repairController.openDiagnosticTty()
         }
         MeoIconButton {
             id: languageButton
-            icon.name: "language"; type: "outlined"; size: "l"
+            icon.name: "language"; type: "outlined"; size: "m"
             Accessible.name: qsTr("选择应用语言")
             onClicked: languageMenu.openFrom(languageButton)
         }
@@ -2018,7 +2019,7 @@ Window {
                                 id: healthCard
                                 required property var modelData
                                 Layout.fillWidth: true
-                                Layout.minimumHeight: root.dp(116)
+                                Layout.minimumHeight: root.dp(96)
                                 type: healthCard.modelData.state === "warning" ? "outlined" : "filled"
                                 padding: root.dp(16)
 
