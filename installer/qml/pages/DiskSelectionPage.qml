@@ -320,10 +320,10 @@ PageFrame {
         }
         GridLayout {
             visible: page.activeDiskId.length > 0
-            width: parent.width; columns: page.width >= page.dp(760) ? 3 : 1
+            width: parent.width; columns: 1
             rowSpacing: page.dp(8); columnSpacing: page.dp(8)
             SelectionCard {
-                Layout.fillWidth: true; implicitHeight: page.dp(84); iconText: "delete_sweep"
+                Layout.fillWidth: true; iconText: "delete_sweep"
                 title: qsTr("Erase entire disk"); value: qsTr("Recommended. Deletes all data, then creates EFI and one system partition")
                 wrapValue: true
                 selected: page.diskMode === "erase"; selectionIndicator: true; enabled: page.eraseAvailable
@@ -331,7 +331,7 @@ PageFrame {
                 onClicked: page.selectErase(false)
             }
             SelectionCard {
-                Layout.fillWidth: true; implicitHeight: page.dp(84); iconText: "account_tree"
+                Layout.fillWidth: true; iconText: "account_tree"
                 title: qsTr("Erase disk with separate home"); value: qsTr("Deletes all data. Your files live on their own partition, sized below")
                 wrapValue: true
                 selected: page.diskMode === "guided"; selectionIndicator: true; enabled: page.separateHomeAvailable
@@ -339,7 +339,7 @@ PageFrame {
                 onClicked: page.selectErase(true)
             }
             SelectionCard {
-                Layout.fillWidth: true; implicitHeight: page.dp(84); iconText: "splitscreen"
+                Layout.fillWidth: true; iconText: "splitscreen"
                 title: qsTr("Use one existing partition"); value: page.partitionModeAvailable
                        ? qsTr("Keeps other partitions, for example another system. Formats only the partition you pick")
                        : qsTr("Needs an EFI System Partition and a root partition of at least 8 GiB on this disk")
