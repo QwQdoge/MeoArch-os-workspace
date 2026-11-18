@@ -8,8 +8,8 @@ Please do not disclose a suspected vulnerability in a public issue, discussion,
 or pull request.
 
 Use GitHub's private vulnerability reporting / Security Advisory flow for this
-repository when it is available. If private reporting is not enabled, contact
-the repository maintainer privately before publishing technical details.
+repository when it is available. If private reporting is not enabled, email
+[info@meoarch.org](mailto:info@meoarch.org) before publishing technical details.
 
 When reporting, include:
 
