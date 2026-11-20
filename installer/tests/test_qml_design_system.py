@@ -280,7 +280,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("++selectionRevision", preview)
         self.assertIn("readonly property var selectionRevision", software)
         self.assertIn("readonly property var selectedComponents", software)
-        self.assertEqual(software.count("controlled: true"), 5)
+        self.assertEqual(software.count("controlled: true"), 3)
         self.assertIn("readonly property var selectionRevision", channel)
 
     def test_toggle_rows_do_not_overlap_the_switch_pointer_target(self):
@@ -304,11 +304,15 @@ class InstallerDesignSystemTests(unittest.TestCase):
     def test_software_page_exposes_system_recommended_and_opt_in_third_party_tiers(self):
         software = (QML_ROOT / "pages/SoftwarePage.qml").read_text(encoding="utf-8")
         self.assertIn('applicationsForTier("system")', software)
-        self.assertIn('applicationsForTier("recommended")', software)
-        self.assertIn('applicationsForTier("third-party")', software)
-        self.assertIn("Always opt-in", software)
-        self.assertIn("Arch official · package:", software)
-        self.assertIn("Flatpak and AUR are not installer sources", software)
+        # Optional and third-party apps are installed from OmniStore after the
+        # first sign-in, not offered as installer checkboxes.
+        self.assertNotIn('applicationsForTier("recommended")', software)
+        self.assertNotIn('applicationsForTier("third-party")', software)
+        self.assertIn('application.tier === "recommended" || application.tier === "third-party"', software)
+        self.assertIn("from OmniStore after you sign in", software)
+        generator = (QML_ROOT.parent / "backend/generate-config.py").read_text(encoding="utf-8")
+        for essential in ('"firefox"', '"noto-fonts-cjk"', '"noto-fonts-emoji"', '"ntfs-3g"', '"xdg-desktop-portal-kde"'):
+            self.assertIn(essential, generator)
 
     def test_disk_page_keeps_partition_planning_inside_the_cage_client(self):
         disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
@@ -531,10 +535,10 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('networkState !== "no-interface"', network)
         self.assertIn("primaryEnabled: page.hasActiveNetwork", network)
         self.assertIn("without blocking the rest of the setup wizard", network)
-        self.assertIn("You can continue setup", network)
+        self.assertIn("You can keep going", network)
         self.assertIn("function onNetworkChanged()", network)
         self.assertIn("connectivityRetry.restart()", network)
-        self.assertIn('networkState === "no-interface" ? "error"', network)
+        self.assertIn('state === "no-interface" ? "error"', network)
         self.assertIn("preflight-arch-packages.sh", preflight)
         self.assertIn("pacman --sync --refresh", package_preflight)
         self.assertIn("pacman --sync --print", package_preflight)

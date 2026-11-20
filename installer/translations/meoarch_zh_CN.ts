@@ -2166,9 +2166,8 @@
 <context>
     <name>NetworkPage</name>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="33"/>
         <source>Network</source>
-        <translation>网络</translation>
+        <translation type="vanished">网络</translation>
     </message>
     <message>
         <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="15"/>
@@ -2180,27 +2179,25 @@
         <translation type="vanished">需要网络连接</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="42"/>
         <source>Internet connection required</source>
-        <translation>需要互联网连接</translation>
+        <translation type="vanished">需要互联网连接</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="40"/>
         <source>MeoArch package source unavailable</source>
-        <translation>MeoArch 软件源不可用</translation>
+        <translation type="vanished">MeoArch 软件源不可用</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="145"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="124"/>
         <source>Wi-Fi is not available</source>
         <translation>Wi-Fi 不可用</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="147"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="126"/>
         <source>This device is connected through Ethernet. Wi-Fi is not required.</source>
         <translation>此设备已通过有线网络连接，不需要 Wi-Fi。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="148"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="127"/>
         <source>No Wi-Fi adapter was detected. Connect Ethernet or attach a supported Wi-Fi adapter.</source>
         <translation>未检测到 Wi-Fi 适配器。请连接有线网络或接入受支持的 Wi-Fi 适配器。</translation>
     </message>
@@ -2209,32 +2206,32 @@
         <translation type="vanished">已检测到网络连接</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="105"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="84"/>
         <source>Wi-Fi</source>
         <translation>无线网络</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="233"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="241"/>
         <source>Connect</source>
         <translation>连接</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="232"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="240"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="229"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="237"/>
         <source>Wi-Fi password</source>
         <translation>无线网络密码</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="65"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="181"/>
         <source>Remember this network after installation</source>
         <translation>安装后记住此网络</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="76"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="192"/>
         <source>This network will not be copied</source>
         <translation>此网络不会被复制</translation>
     </message>
@@ -2264,32 +2261,29 @@
         <translation type="vanished">请先连接互联网，再继续安装</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="38"/>
         <source>Internet connection detected</source>
-        <translation>已连接互联网</translation>
+        <translation type="vanished">已连接互联网</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="39"/>
         <source>Checking Internet connection</source>
-        <translation>正在检查互联网连接</translation>
+        <translation type="vanished">正在检查互联网连接</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="41"/>
         <source>Network sign-in may be required</source>
-        <translation>此网络可能需要登录</translation>
+        <translation type="vanished">此网络可能需要登录</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="43"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="46"/>
         <source>Network status is unavailable.</source>
         <translation>无法获取网络状态。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="83"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="58"/>
         <source>Checking connection…</source>
         <translation>正在检查连接…</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="83"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="58"/>
         <source>Check connection again</source>
         <translation>再次检查连接</translation>
     </message>
@@ -2298,58 +2292,58 @@
         <translation type="vanished">检查官方 MeoArch 软件源，不会发送账户、设备或硬件信息</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="94"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="73"/>
         <source>Active connection</source>
         <translation>当前连接</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="119"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="98"/>
         <source>Wi-Fi enabled</source>
         <translation>已启用 Wi-Fi</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="126"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="105"/>
         <source>Scan for Wi-Fi networks</source>
         <translation>扫描 Wi-Fi 网络</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="137"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="116"/>
         <source>Scanning for Wi-Fi networks…</source>
         <translation>正在扫描 Wi-Fi 网络…</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="137"/>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="175"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="116"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="154"/>
         <source>Connecting…</source>
         <translation>正在连接…</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="154"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="133"/>
         <source>Network operation failed</source>
         <translation>网络操作失败</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="174"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="153"/>
         <source>Connected</source>
         <translation>已连接</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="176"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="155"/>
         <source>Saved · %1</source>
         <translation>已保存 · %1</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="191"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="170"/>
         <source>Scanning…</source>
         <translation>正在扫描…</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="191"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="170"/>
         <source>Scan for networks</source>
         <translation>扫描网络</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="228"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="236"/>
         <source>Connect to %1</source>
         <translation>连接到 %1</translation>
     </message>
@@ -2388,34 +2382,79 @@
         <translation>请先连接网络接口，再继续安装。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="87"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="33"/>
+        <source>Connect to the Internet</source>
+        <translation>连接到互联网</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="34"/>
+        <source>MeoArch downloads the latest packages while it installs. Connect with Wi-Fi or a cable.</source>
+        <translation>MeoArch 会在安装时下载最新的软件包。请通过 Wi-Fi 或网线连接。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="40"/>
+        <source>Connected to the Internet</source>
+        <translation>已连接到互联网</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="41"/>
+        <source>Checking the connection…</source>
+        <translation>正在检查连接…</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="42"/>
+        <source>Connected, but the MeoArch package source is not reachable</source>
+        <translation>已联网，但无法访问 MeoArch 软件源</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="43"/>
+        <source>This network needs you to sign in</source>
+        <translation>此网络需要先登录</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="44"/>
+        <source>Not connected</source>
+        <translation>未连接</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="45"/>
+        <source>Internet access not confirmed</source>
+        <translation>尚未确认可以访问互联网</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="47"/>
+        <source>Choose a Wi-Fi network below or plug in a cable.</source>
+        <translation>请在下方选择 Wi-Fi 网络，或插上网线。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="49"/>
+        <source>You can keep going; downloads are tried again before installation starts.</source>
+        <translation>你可以继续设置；开始安装前会再次尝试下载。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="63"/>
         <source>Rechecks Internet and package-source reachability without blocking the rest of the setup wizard</source>
         <translation>重新检查互联网和软件源可达性，但不会因此阻止继续完成其他设置。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="34"/>
         <source>MeoArch needs Internet access for package downloads. You can continue setup while connectivity is being verified.</source>
-        <translation>MeoArch 安装时需要互联网下载软件包。连接状态验证期间，你仍可继续完成其他设置。</translation>
+        <translation type="vanished">MeoArch 安装时需要互联网下载软件包。连接状态验证期间，你仍可继续完成其他设置。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="52"/>
         <source>Internet access is not verified</source>
-        <translation>尚未验证互联网连接</translation>
+        <translation type="vanished">尚未验证互联网连接</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="53"/>
         <source>You can continue setup. MeoArch will retry Internet and package downloads before installation starts.</source>
-        <translation>你可以继续设置。正式安装开始前，MeoArch 会再次检查互联网和软件下载。</translation>
+        <translation type="vanished">你可以继续设置。正式安装开始前，MeoArch 会再次检查互联网和软件下载。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="59"/>
         <source>No active network interface</source>
-        <translation>没有活动的网络接口</translation>
+        <translation type="vanished">没有活动的网络接口</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/NetworkPage.qml" line="60"/>
         <source>Connect Wi-Fi or Ethernet to continue from this page.</source>
-        <translation>请连接 Wi-Fi 或以太网后再离开此页面。</translation>
+        <translation type="vanished">请连接 Wi-Fi 或以太网后再离开此页面。</translation>
     </message>
 </context>
 <context>
@@ -4455,119 +4494,210 @@
 <context>
     <name>SoftwarePage</name>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="70"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="88"/>
         <source>Choose what to install</source>
         <translation>选择要安装的内容</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="71"/>
         <source>All selections resolve through the signed MeoArch package repository.</source>
-        <translation>所有选择均通过已签名的 MeoArch 软件源解析。</translation>
+        <translation type="vanished">所有选择均通过已签名的 MeoArch 软件源解析。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="80"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="89"/>
+        <source>Pick a starting point. Everything comes from signed MeoArch and Arch repositories, and more apps can be added later.</source>
+        <translation>选择一个起点。所有内容都来自已签名的 MeoArch 和 Arch 软件源，之后还可以添加更多应用。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="99"/>
         <source>Recommended</source>
         <translation>推荐</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="89"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="100"/>
+        <source>The full Meo experience: desktop, Meo Settings, OmniStore, Meo AI and everyday apps.</source>
+        <translation>完整的 Meo 体验：桌面、Meo 设置、OmniStore、Meo AI 和常用工具。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="109"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="193"/>
         <source>Minimal</source>
         <translation>最小化</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="98"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="110"/>
+        <source>Just the Meo desktop and the essentials below. No app store; good for a lean system.</source>
+        <translation>只有 Meo 桌面和下方的必备组件，不含应用商店，适合精简系统。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="119"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="193"/>
         <source>Custom</source>
         <translation>自定义</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="115"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="120"/>
+        <source>Start from Minimal and choose which Meo apps to add.</source>
+        <translation>从最小安装开始，自行选择要添加的 Meo 应用。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="136"/>
+        <source>Meo apps</source>
+        <translation>Meo 应用</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="149"/>
+        <source>Included with every MeoArch installation: Meo Desktop, MeoUI runtime, Meo Icons, signed Meo repository integration and release compatibility metadata.</source>
+        <translation>每次安装 MeoArch 都包含：Meo 桌面、MeoUI 运行时、Meo 图标、已签名的 Meo 软件源集成和版本兼容性元数据。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="164"/>
+        <source>Always included</source>
+        <translation>始终包含</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="168"/>
+        <source>Firefox browser</source>
+        <translation>Firefox 浏览器</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="169"/>
+        <source>Files and terminal</source>
+        <translation>文件管理器和终端</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="170"/>
+        <source>Chinese, Japanese, Korean and emoji fonts</source>
+        <translation>中日韩文字和 emoji 字体</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="171"/>
+        <source>Input methods for your language</source>
+        <translation>适合你语言的输入法</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="172"/>
+        <source>Windows, USB and SD card drives</source>
+        <translation>Windows 分区、U 盘和 SD 卡</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="173"/>
+        <source>File previews</source>
+        <translation>文件缩略图预览</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="174"/>
+        <source>Performance tuning and gaming mode</source>
+        <translation>性能调优和游戏模式</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="188"/>
+        <source>Everyday tools</source>
+        <translation>常用工具</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="192"/>
+        <source>Included with Recommended.</source>
+        <translation>推荐安装已包含。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="193"/>
+        <source>Not included with %1. Tick the ones you want.</source>
+        <translation>%1 不包含这些工具，请勾选需要的。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="219"/>
+        <source>More apps after installation</source>
+        <translation>安装完成后再添加更多应用</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="219"/>
+        <source>No app store selected</source>
+        <translation>未选择应用商店</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="221"/>
+        <source>Install office, media and creative apps from OmniStore after you sign in, so they arrive up to date and keep updating. Featured: %1.</source>
+        <translation>登录后在 OmniStore 中安装办公、影音和创作类应用，这样拿到的是最新版本并会持续更新。推荐：%1。</translation>
+    </message>
+    <message>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="222"/>
+        <source>Without OmniStore you add apps later with pacman. Choose Recommended, or add OmniStore under Custom, for one-click installs.</source>
+        <translation>没有 OmniStore 时，之后需要用 pacman 安装应用。选择“推荐”，或在“自定义”中添加 OmniStore，即可一键安装。</translation>
+    </message>
+    <message>
         <source>Core</source>
-        <translation>核心</translation>
+        <translation type="vanished">核心</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="117"/>
         <source>Applications</source>
-        <translation>应用程序</translation>
+        <translation type="vanished">应用程序</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="130"/>
         <source>System</source>
-        <translation>系统</translation>
+        <translation type="vanished">系统</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="116"/>
         <source>Included with every MeoArch installation: Meo Desktop, MeoUI runtime, and Meo Icons.</source>
-        <translation>每个 MeoArch 安装均包含：Meo Desktop、MeoUI 运行时和 Meo 图标。</translation>
+        <translation type="vanished">每个 MeoArch 安装均包含：Meo Desktop、MeoUI 运行时和 Meo 图标。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="131"/>
         <source>Included with every MeoArch installation: signed Meo repository integration and release compatibility metadata.</source>
-        <translation>每个 MeoArch 安装均包含：已签名 Meo 软件源集成及发布兼容性元数据。</translation>
+        <translation type="vanished">每个 MeoArch 安装均包含：已签名 Meo 软件源集成及发布兼容性元数据。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="63"/>
         <source>Arch official · package: %1</source>
-        <translation>Arch 官方 · 软件包：%1</translation>
+        <translation type="vanished">Arch 官方 · 软件包：%1</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="81"/>
         <source>Meo Desktop, MeoUI, icons, Settings, OmniStore, and required integration.</source>
-        <translation>Meo Desktop、MeoUI、图标、设置、OmniStore 以及必需集成。</translation>
+        <translation type="vanished">Meo Desktop、MeoUI、图标、设置、OmniStore 以及必需集成。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="90"/>
         <source>Meo Desktop core, MeoUI, icons, and required system integration.</source>
-        <translation>Meo Desktop 核心、MeoUI、图标和必需系统集成。</translation>
+        <translation type="vanished">Meo Desktop 核心、MeoUI、图标和必需系统集成。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="99"/>
         <source>Choose the official components to install. Required desktop components stay enabled.</source>
-        <translation>选择要安装的官方组件。必需的桌面组件会保持启用。</translation>
+        <translation type="vanished">选择要安装的官方组件。必需的桌面组件会保持启用。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="119"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="138"/>
         <source>Meo Settings</source>
         <translation>Meo 设置</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="125"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="144"/>
         <source>OmniStore</source>
         <translation>OmniStore</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="143"/>
         <source>Preinstalled system applications</source>
-        <translation>预装系统应用</translation>
+        <translation type="vanished">预装系统应用</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="144"/>
         <source>The Recommended profile includes these desktop essentials. Minimal and Custom can add them individually.</source>
-        <translation>“推荐”方案包含这些桌面必需应用。“最小”和“自定义”方案可单独添加它们。</translation>
+        <translation type="vanished">“推荐”方案包含这些桌面必需应用。“最小”和“自定义”方案可单独添加它们。</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="153"/>
+        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="204"/>
         <source> · Included</source>
         <translation> · 已包含</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="173"/>
         <source>Recommended applications</source>
-        <translation>推荐应用</translation>
+        <translation type="vanished">推荐应用</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="196"/>
         <source>More official applications</source>
-        <translation>更多官方应用</translation>
+        <translation type="vanished">更多官方应用</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="197"/>
         <source>Always opt-in</source>
-        <translation>始终需手动选择</translation>
+        <translation type="vanished">始终需手动选择</translation>
     </message>
     <message>
-        <location filename="../../../../../../Users/29mingyue.chen/Projects/meoarch-os/installer/qml/pages/SoftwarePage.qml" line="197"/>
         <source>These applications are never selected automatically. During installation they come from the signed Arch official repositories; Flatpak and AUR are not installer sources.</source>
-        <translation>这些应用不会自动选择。安装时它们来自已签名的 Arch 官方仓库；安装程序不使用 Flatpak 或 AUR 作为来源。</translation>
+        <translation type="vanished">这些应用不会自动选择。安装时它们来自已签名的 Arch 官方仓库；安装程序不使用 Flatpak 或 AUR 作为来源。</translation>
     </message>
 </context>
 <context>

@@ -40,6 +40,20 @@ MEO_DESKTOP_PACKAGES = [
     "dbus-broker-units",
     "power-profiles-daemon",
     "gamemode",
+    # Everyday essentials every installed system gets, whatever the software
+    # profile: all from the Arch official repositories, so Archinstall can
+    # install them before the Meo repository is configured.
+    "firefox",                    # a working browser on first boot
+    "noto-fonts",                 # Latin/Greek/Cyrillic coverage
+    "noto-fonts-cjk",             # Chinese, Japanese and Korean text
+    "noto-fonts-emoji",           # colour emoji
+    "xdg-desktop-portal-kde",     # file dialogs and screen sharing for Flatpak apps
+    "xdg-user-dirs",              # Documents/Downloads/Pictures folders
+    "ntfs-3g",                    # read and write Windows drives
+    "exfatprogs",                 # exFAT USB drives and SD cards
+    "dosfstools",                 # FAT USB drives
+    "ffmpegthumbs",               # video thumbnails in Dolphin
+    "kdegraphics-thumbnailers",   # PDF and image thumbnails in Dolphin
 ]
 
 

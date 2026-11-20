@@ -30,65 +30,44 @@ PageFrame {
 
         PageHeading {
             width: parent.width
-            title: qsTr("Network")
-            subtitle: qsTr("MeoArch needs Internet access for package downloads. You can continue setup while connectivity is being verified.")
+            title: qsTr("Connect to the Internet")
+            subtitle: qsTr("MeoArch downloads the latest packages while it installs. Connect with Wi-Fi or a cable.")
         }
+        // One status line for the whole page; the recheck action lives with it.
         InfoBanner {
             width: parent.width
-            title: page.controller && page.controller.networkState === "online" ? qsTr("Internet connection detected")
-                   : page.controller && page.controller.networkState === "checking" ? qsTr("Checking Internet connection")
-                   : page.controller && page.controller.networkState === "repository" ? qsTr("MeoArch package source unavailable")
-                   : page.controller && page.controller.networkState === "portal" ? qsTr("Network sign-in may be required")
-                   : qsTr("Internet connection required")
-            message: page.controller ? page.controller.networkDetail : qsTr("Network status is unavailable.")
-            tone: page.controller && page.controller.networkState === "online" ? "success"
-                  : page.controller && page.controller.networkState === "no-interface" ? "error"
-                  : page.controller && page.controller.networkState === "checking" ? "info" : "warning"
-        }
-        InfoBanner {
-            visible: page.controller && page.controller.networkState === "offline"
-            width: parent.width
-            tone: "warning"
-            title: qsTr("Internet access is not verified")
-            message: qsTr("You can continue setup. MeoArch will retry Internet and package downloads before installation starts.")
-        }
-        InfoBanner {
-            visible: page.controller && page.controller.networkState === "no-interface"
-            width: parent.width
-            tone: "error"
-            title: qsTr("No active network interface")
-            message: qsTr("Connect Wi-Fi or Ethernet to continue from this page.")
-        }
-        ToggleRow {
-            width: parent.width
-            visible: page.controller && page.controller.networkHandoffState === "ready"
-            title: qsTr("Remember this network after installation")
-            subtitle: page.controller ? page.controller.networkHandoffMessage : ""
-            checked: page.controller ? page.controller.networkHandoffEnabled : false
-            onToggled: checked => page.controller.setNetworkHandoffEnabled(checked)
-        }
-        InfoBanner {
-            width: parent.width
-            visible: page.controller
-                     && (page.controller.networkState === "online"
-                         || page.controller.networkState === "repository")
-                     && page.controller.networkHandoffState !== "ready"
-            title: qsTr("This network will not be copied")
-            message: page.controller ? page.controller.networkHandoffMessage : ""
+            readonly property string state: page.controller ? page.controller.networkState : "unknown"
+            title: state === "online" ? qsTr("Connected to the Internet")
+                   : state === "checking" ? qsTr("Checking the connection…")
+                   : state === "repository" ? qsTr("Connected, but the MeoArch package source is not reachable")
+                   : state === "portal" ? qsTr("This network needs you to sign in")
+                   : state === "no-interface" ? qsTr("Not connected")
+                   : qsTr("Internet access not confirmed")
+            message: (page.controller ? page.controller.networkDetail : qsTr("Network status is unavailable."))
+                     + (state === "no-interface" ? " " + qsTr("Choose a Wi-Fi network below or plug in a cable.")
+                        : state === "offline" || state === "repository"
+                          ? " " + qsTr("You can keep going; downloads are tried again before installation starts.")
+                          : "")
+            tone: state === "online" ? "success"
+                  : state === "no-interface" ? "error"
+                  : state === "checking" ? "info" : "warning"
         }
         MeoButton {
-            width: implicitWidth
             visible: page.controller && page.controller.networkState !== "online"
             text: page.controller && page.controller.networkState === "checking"
                   ? qsTr("Checking connection…") : qsTr("Check connection again")
             type: "tonal"
+            icon.name: "refresh"
             loading: page.controller && page.controller.networkState === "checking"
             enabled: page.controller && page.controller.networkState !== "checking"
             Accessible.description: qsTr("Rechecks Internet and package-source reachability without blocking the rest of the setup wizard")
             onClicked: page.controller.retryNetwork()
         }
+        // Wired or other non-Wi-Fi connection; a connected Wi-Fi network is
+        // already marked in the list below.
         SelectionCard {
             visible: MeoSystem.SystemState.networkConnected
+                     && !Array.from(MeoSystem.SystemState.wifiNetworks || []).some(network => network.connected)
             width: parent.width
             iconText: "lan"
             title: String(MeoSystem.SystemState.networkName).length ? MeoSystem.SystemState.networkName : qsTr("Active connection")
@@ -139,7 +118,7 @@ PageFrame {
             }
         }
         InfoBanner {
-            visible: !MeoSystem.SystemState.wirelessAvailable
+            visible: !MeoSystem.SystemState.wirelessAvailable && !MeoSystem.SystemState.networkConnected
             width: parent.width
             tone: "info"
             title: qsTr("Wi-Fi is not available")
@@ -194,6 +173,27 @@ PageFrame {
             enabled: !MeoSystem.SystemState.wifiScanning
             onClicked: MeoSystem.SystemState.requestWifiScan()
         }
+
+        // Optional: carry this connection into the installed system.
+        ToggleRow {
+            width: parent.width
+            visible: page.controller && page.controller.networkHandoffState === "ready"
+            title: qsTr("Remember this network after installation")
+            subtitle: page.controller ? page.controller.networkHandoffMessage : ""
+            checked: page.controller ? page.controller.networkHandoffEnabled : false
+            onToggled: checked => page.controller.setNetworkHandoffEnabled(checked)
+        }
+        MeoText {
+            width: parent.width
+            visible: page.controller
+                     && (page.controller.networkState === "online"
+                         || page.controller.networkState === "repository")
+                     && page.controller.networkHandoffState !== "ready"
+            text: qsTr("This network will not be copied") + " · "
+                  + (page.controller ? page.controller.networkHandoffMessage : "")
+            typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant
+            wrapMode: Text.WordWrap
+        }
     }
 
     Timer {
@@ -223,14 +223,22 @@ PageFrame {
         width: Math.min(page.dp(500), Overlay.overlay ? Overlay.overlay.width - page.dp(48) : page.dp(500))
         padding: page.dp(28)
         closePolicy: Popup.CloseOnEscape
+        onOpened: wifiPassword.forceActiveFocus()
+        function submit() {
+            if (!wifiPassword.text.length)
+                return
+            MeoSystem.SystemState.connectWifi(passwordDialog.ssid, wifiPassword.text)
+            wifiPassword.clear()
+            passwordDialog.close()
+        }
         contentItem: Column {
             spacing: page.dp(16)
             MeoText { width: parent.width; text: qsTr("Connect to %1").arg(passwordDialog.ssid); typeRole: "title"; typeSize: "medium"; emphasized: true; color: MeoTheme.contentOnSurface }
-            MeoTextField { id: wifiPassword; width: parent.width; type: "outlined"; size: "l"; label: qsTr("Wi-Fi password"); echoMode: TextInput.Password; isPassword: true }
+            MeoTextField { id: wifiPassword; width: parent.width; type: "outlined"; size: "l"; label: qsTr("Wi-Fi password"); echoMode: TextInput.Password; isPassword: true; onAccepted: passwordDialog.submit() }
             Row {
                 anchors.right: parent.right; spacing: page.dp(8)
                 MeoButton { text: qsTr("Cancel"); type: "text"; onClicked: { wifiPassword.clear(); passwordDialog.close() } }
-                MeoButton { text: qsTr("Connect"); type: "filled"; enabled: wifiPassword.text.length > 0; onClicked: { MeoSystem.SystemState.connectWifi(passwordDialog.ssid, wifiPassword.text); wifiPassword.clear(); passwordDialog.close() } }
+                MeoButton { text: qsTr("Connect"); type: "filled"; enabled: wifiPassword.text.length > 0; onClicked: passwordDialog.submit() }
             }
         }
     }
