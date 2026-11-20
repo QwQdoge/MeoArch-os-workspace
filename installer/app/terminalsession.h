@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QSocketNotifier>
 #include <QString>
+#include <QStringDecoder>
 
 class TerminalSession final : public QObject
 {
@@ -31,6 +32,17 @@ private slots:
 
 private:
     void appendOutput(const QByteArray &bytes);
+    void appendDisplayText(const QString &text);
+    void trimToLastLine();
+
+    // The view is a plain text area, not a terminal emulator. Escape
+    // sequences are removed and backspace/carriage return are applied so the
+    // log stays readable. State is kept across reads because a sequence or a
+    // multi-byte UTF-8 character can be split between two chunks.
+    enum class EscapeState { None, Escape, Csi, Osc, OscEscape };
+    EscapeState m_escape = EscapeState::None;
+    bool m_pendingCarriageReturn = false;
+    QStringDecoder m_decoder{QStringDecoder::Utf8};
     int m_fd = -1;
     qint64 m_pid = -1;
     QSocketNotifier *m_notifier = nullptr;

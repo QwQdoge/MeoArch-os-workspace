@@ -558,7 +558,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn('"--no-new-privs"', terminal)
         self.assertIn('"--bounding-set=-all"', terminal)
         self.assertIn('::forkpty', terminal)
-        self.assertIn('"TERM=xterm-256color"', terminal)
+        self.assertIn('"TERM=dumb"', terminal)  # plain-text view, not a terminal emulator
         self.assertNotIn('QStringLiteral("konsole")', controller)
         self.assertNotIn('QStringLiteral("xterm")', controller)
         self.assertNotIn("openDebugTerminal", header)

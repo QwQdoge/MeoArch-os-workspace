@@ -78,8 +78,43 @@ PageFrame {
     }
     readonly property real homeSizeBytes: Math.max(0, diskSizeBytes - 515 * 1048576 - rootSizeGiB * 1073741824)
 
-    primaryEnabled: controller && !controller.diskDetecting
-                    && (existingPartitionReady || (diskMode !== "partition" && erasePlanReady))
+    readonly property bool planReady: existingPartitionReady || (diskMode !== "partition" && erasePlanReady)
+    primaryEnabled: controller && !controller.diskDetecting && planReady
+    // Say what is still missing instead of showing a silently disabled button.
+    primaryLabel: !controller || controller.diskDetecting ? qsTr("Scanning disks…")
+                  : planReady ? qsTr("Continue")
+                  : activeDiskId.length === 0 ? qsTr("Choose a disk to continue")
+                  : diskMode === "partition" ? qsTr("Choose a partition to continue")
+                  : qsTr("Choose how to use the disk")
+    primaryAccessibleDescription: planReady ? qsTr("Continue to the account step. Nothing is erased until you confirm on the Summary page")
+                                            : qsTr("Complete the disk choices on this page to continue")
+
+    // With exactly one disk that can be erased and nothing chosen yet, choose
+    // it for the user. This is only a selection; the destructive confirmation
+    // stays on the Summary page and the backend revalidates the disk.
+    function autoSelectSingleDisk() {
+        if (!controller || controller.diskDetecting || String(controller.selectedDisk || "").length > 0
+                || focusedDiskId.length > 0)
+            return
+        const detected = controller.disks || []
+        let candidate = null
+        for (let index = 0; index < detected.length; ++index) {
+            if (detected[index].eligible !== true)
+                continue
+            if (candidate)
+                return
+            candidate = detected[index]
+        }
+        if (candidate)
+            selectDisk(candidate)
+    }
+    Component.onCompleted: autoSelectSingleDisk()
+    Connections {
+        target: page.controller
+        ignoreUnknownSignals: true
+        function onDisksChanged() { page.autoSelectSingleDisk() }
+        function onDiskDetectionChanged() { page.autoSelectSingleDisk() }
+    }
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes) || 0)
@@ -472,11 +507,23 @@ PageFrame {
                         }
                     }
                 }
-                MeoText {
+                RowLayout {
                     width: parent.width
-                    text: (page.controller ? page.controller.selection("disk", "filesystem", "btrfs").toUpperCase() : "BTRFS")
-                          + " · " + qsTr("Swap: %1").arg(page.controller ? page.controller.selection("disk", "swap", "zram") : "zram")
-                    typeRole: "label"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant
+                    spacing: page.dp(8)
+                    MeoText {
+                        Layout.fillWidth: true
+                        text: (page.controller ? page.controller.selection("disk", "filesystem", "btrfs").toUpperCase() : "BTRFS")
+                              + " · " + qsTr("Swap: %1").arg(page.controller ? page.controller.selection("disk", "swap", "zram") : "zram")
+                        typeRole: "label"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant
+                        wrapMode: Text.WordWrap
+                    }
+                    MeoButton {
+                        text: qsTr("Change")
+                        type: "text"
+                        icon.name: "tune"
+                        Accessible.name: qsTr("Change filesystem and swap")
+                        onClicked: advanced.openFrom(this)
+                    }
                 }
             }
         }
@@ -497,7 +544,6 @@ PageFrame {
             width: parent.width; tone: "warning"; title: qsTr("Below recommended capacity")
             message: qsTr("This disk is smaller than the recommended 16 GiB. You can continue, but installation may leave little free space.")
         }
-        MeoButton { text: qsTr("Advanced options"); type: "text"; icon.name: "tune"; onClicked: advanced.openFrom(this) }
     }
 
     MeoMotionPopup {

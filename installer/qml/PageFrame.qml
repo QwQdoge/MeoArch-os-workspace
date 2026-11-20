@@ -209,20 +209,72 @@ Item {
         width: Math.min(frame.dp(1080), frame.width - frame.pageMargin * 2)
         height: Math.min(frame.dp(720), frame.height - frame.pageMargin * 2)
         padding: frame.dp(16)
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        onOpened: {
+        // A stray click beside the console must not close it mid-command.
+        closePolicy: Popup.CloseOnEscape
+        readonly property bool shellRunning: frame.controller && frame.controller.diagnosticConsoleRunning
+        property var history: []
+        property int historyIndex: -1
+
+        function startShell() {
             if (frame.controller)
                 frame.controller.runDiagnosticCommand("")
-            diagnosticOutput.forceActiveFocus()
+            syncSize()
+        }
+        function syncSize() {
+            if (!frame.controller || typeof frame.controller.resizeDiagnosticConsole !== "function")
+                return
+            const columns = Math.floor((diagnosticOutput.width - frame.dp(8)) / Math.max(1, consoleMetrics.averageCharacterWidth))
+            const rows = Math.floor(diagnosticOutput.height / Math.max(1, consoleMetrics.height))
+            if (columns > 10 && rows > 3)
+                frame.controller.resizeDiagnosticConsole(columns, rows)
+        }
+        function runQuick(command) {
+            if (!shellRunning)
+                startShell()
+            frame.controller.runDiagnosticCommand(command)
+            commandField.forceActiveFocus()
+        }
+        function submit() {
+            const command = commandField.text
+            if (command.trim().length) {
+                const list = history.slice(-49)
+                if (list[list.length - 1] !== command)
+                    list.push(command)
+                history = list
+            }
+            historyIndex = -1
+            commandField.text = ""
+            if (!shellRunning)
+                startShell()
+            frame.controller.writeDiagnosticInput(command + "\n")
+        }
+        function recall(step) {
+            if (!history.length)
+                return
+            let index = historyIndex < 0 ? history.length : historyIndex
+            index = Math.max(0, Math.min(history.length, index + step))
+            historyIndex = index >= history.length ? -1 : index
+            commandField.text = historyIndex < 0 ? "" : history[historyIndex]
+            commandField.cursorPosition = commandField.text.length
         }
 
-        contentItem: Column {
+        onOpened: {
+            startShell()
+            commandField.forceActiveFocus()
+        }
+
+        FontMetrics {
+            id: consoleMetrics
+            font.family: "monospace"
+            font.pixelSize: frame.dp(13)
+        }
+
+        contentItem: ColumnLayout {
             id: diagnosticContent
-            width: parent.width
             spacing: frame.dp(12)
 
-            Row {
-                width: parent.width
+            RowLayout {
+                Layout.fillWidth: true
                 spacing: frame.dp(12)
 
                 MeoIcon {
@@ -230,11 +282,11 @@ Item {
                     size: frame.dp(28)
                     color: MeoTheme.contentOnSurface
                 }
-                Column {
-                    width: parent.width - frame.dp(40)
+                ColumnLayout {
+                    Layout.fillWidth: true
                     spacing: frame.dp(2)
                     MeoText {
-                        width: parent.width
+                        Layout.fillWidth: true
                         text: qsTr("Terminal")
                         typeRole: "title"
                         typeSize: "small"
@@ -242,26 +294,38 @@ Item {
                         color: MeoTheme.contentOnSurface
                     }
                     MeoText {
-                        width: parent.width
-                        text: qsTr("Live session · unprivileged user")
+                        Layout.fillWidth: true
+                        text: diagnosticPopup.shellRunning
+                              ? qsTr("Live session · unprivileged user. Commands here cannot change the disks.")
+                              : qsTr("The shell has ended. Start a new one to run more commands.")
                         typeRole: "body"
                         typeSize: "small"
-                        color: MeoTheme.contentOnSurfaceVariant
+                        color: diagnosticPopup.shellRunning ? MeoTheme.contentOnSurfaceVariant : MeoTheme.error
                         wrapMode: Text.WordWrap
+                    }
+                }
+                MeoButton {
+                    visible: !diagnosticPopup.shellRunning
+                    text: qsTr("Start new shell")
+                    icon.name: "restart_alt"
+                    type: "tonal"
+                    onClicked: {
+                        diagnosticPopup.startShell()
+                        commandField.forceActiveFocus()
                     }
                 }
             }
 
-            Row {
-                width: parent.width
+            Flow {
+                Layout.fillWidth: true
                 spacing: frame.dp(8)
 
                 MeoButton {
-                    text: qsTr("Run network checks")
+                    text: qsTr("Network checks")
                     icon.name: "network_check"
                     type: "tonal"
-                    enabled: frame.controller && frame.controller.diagnosticConsoleRunning
-                    onClicked: frame.controller.runDiagnosticCommand(
+                    Accessible.description: qsTr("Shows network devices, routes, DNS and whether the package servers answer")
+                    onClicked: diagnosticPopup.runQuick(
                         "printf '=== NetworkManager ===\\n'; " +
                         "nmcli device status 2>&1; " +
                         "printf '\\n=== Routes ===\\n'; ip route 2>&1; " +
@@ -280,65 +344,113 @@ Item {
                         "https://packages.meoarch.org/meo/os/x86_64/meo.db 2>&1"
                     )
                 }
+                MeoButton {
+                    text: qsTr("List disks")
+                    icon.name: "hard_drive"
+                    type: "tonal"
+                    Accessible.description: qsTr("Shows disks, partitions, filesystems and mount points")
+                    onClicked: diagnosticPopup.runQuick("lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,MOUNTPOINTS,MODEL 2>&1")
+                }
+                MeoButton {
+                    text: qsTr("Stop command")
+                    icon.name: "stop"
+                    type: "text"
+                    enabled: diagnosticPopup.shellRunning
+                    Accessible.description: qsTr("Sends Ctrl+C to the running command")
+                    onClicked: {
+                        frame.controller.interruptDiagnosticConsole()
+                        commandField.forceActiveFocus()
+                    }
+                }
             }
 
             MeoMotionSurface {
-                width: parent.width
-                height: Math.max(frame.dp(300), diagnosticPopup.height - frame.dp(180))
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.minimumHeight: frame.dp(160)
                 radius: MeoTheme.shapeLarge
                 color: MeoTheme.surfaceContainerLowest
                 elevation: 0
 
-                TextArea {
-                    id: diagnosticOutput
+                ScrollView {
+                    id: outputScroll
                     anchors.fill: parent
                     anchors.margins: frame.dp(12)
-                    readOnly: true
-                    selectByMouse: true
-                    wrapMode: TextEdit.NoWrap
-                    text: frame.controller ? frame.controller.diagnosticConsoleOutput : ""
-                    color: MeoTheme.contentOnSurface
-                    selectionColor: MeoTheme.primaryContainer
-                    selectedTextColor: MeoTheme.contentOnPrimaryContainer
-                    font.family: "monospace"
-                    font.pixelSize: frame.dp(13)
-                    background: null
-                    focus: true
-                    Keys.onPressed: function(event) {
-                        if (!frame.controller)
-                            return
-                        if (event.key === Qt.Key_C && (event.modifiers & Qt.ControlModifier)) {
-                            frame.controller.interruptDiagnosticConsole()
-                            event.accepted = true
-                        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            frame.controller.writeDiagnosticInput("\n")
-                            event.accepted = true
-                        } else if (event.key === Qt.Key_Backspace) {
-                            frame.controller.writeDiagnosticInput("\u007f")
-                            event.accepted = true
-                        } else if (event.text.length && !(event.modifiers & Qt.ControlModifier)) {
-                            frame.controller.writeDiagnosticInput(event.text)
-                            event.accepted = true
-                        }
-                    }
-                    onTextChanged: {
-                        cursorPosition = length
-                        if (frame.controller && length > 0)
-                            cursorPosition = length
+                    clip: true
+
+                    TextArea {
+                        id: diagnosticOutput
+                        readOnly: true
+                        selectByMouse: true
+                        wrapMode: TextEdit.WrapAnywhere
+                        text: frame.controller ? frame.controller.diagnosticConsoleOutput : ""
+                        placeholderText: qsTr("Output appears here. Type a command below or use a quick check above.")
+                        placeholderTextColor: MeoTheme.contentOnSurfaceVariant
+                        color: MeoTheme.contentOnSurface
+                        selectionColor: MeoTheme.primaryContainer
+                        selectedTextColor: MeoTheme.contentOnPrimaryContainer
+                        font: consoleMetrics.font
+                        background: null
+                        onWidthChanged: diagnosticPopup.syncSize()
+                        onHeightChanged: diagnosticPopup.syncSize()
+                        onTextChanged: cursorPosition = length
+                        // Clicking the output keeps typing in the command line.
+                        TapHandler { onTapped: commandField.forceActiveFocus() }
                     }
                 }
             }
 
             RowLayout {
-                width: parent.width
+                Layout.fillWidth: true
+                spacing: frame.dp(8)
+
+                MeoTextField {
+                    id: commandField
+                    Layout.fillWidth: true
+                    type: "outlined"
+                    size: "m"
+                    leadingIcon: "chevron_right"
+                    placeholder: qsTr("Type a command and press Enter")
+                    font.family: "monospace"
+                    inputMethodHints: Qt.ImhNoAutoUppercase | Qt.ImhNoPredictiveText
+                    Accessible.name: qsTr("Command")
+                    Accessible.description: qsTr("Up and Down recall earlier commands. Ctrl+C stops the running command.")
+                    onAccepted: diagnosticPopup.submit()
+                    Keys.onUpPressed: diagnosticPopup.recall(-1)
+                    Keys.onDownPressed: diagnosticPopup.recall(1)
+                    Keys.onPressed: function(event) {
+                        if (event.key === Qt.Key_C && (event.modifiers & Qt.ControlModifier)
+                                && commandField.selectedText.length === 0 && frame.controller) {
+                            frame.controller.interruptDiagnosticConsole()
+                            event.accepted = true
+                        } else if (event.key === Qt.Key_L && (event.modifiers & Qt.ControlModifier) && frame.controller) {
+                            frame.controller.clearDiagnosticConsole()
+                            event.accepted = true
+                        }
+                    }
+                }
+                MeoButton {
+                    text: qsTr("Run")
+                    icon.name: "play_arrow"
+                    type: "filled"
+                    onClicked: {
+                        diagnosticPopup.submit()
+                        commandField.forceActiveFocus()
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
                 spacing: frame.dp(8)
                 MeoButton {
                     text: qsTr("Copy all")
-                    icon.name: "copy"
+                    icon.name: "content_copy"
                     type: "text"
                     onClicked: {
                         diagnosticOutput.selectAll()
                         diagnosticOutput.copy()
+                        diagnosticOutput.deselect()
                     }
                 }
                 MeoButton {

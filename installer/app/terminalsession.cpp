@@ -17,7 +17,9 @@
 #endif
 
 namespace {
-constexpr qsizetype MaximumOutputBytes = 2 * 1024 * 1024;
+// The whole buffer is bound to a QML TextArea; keep it small enough that
+// re-layout on every chunk stays fast.
+constexpr qsizetype MaximumOutputBytes = 256 * 1024;
 }
 
 TerminalSession::TerminalSession(QObject *parent)
@@ -56,12 +58,16 @@ bool TerminalSession::start()
                 "--clear-groups", "--no-new-privs", "--bounding-set=-all",
                 "--inh-caps=-all", "--ambient-caps=-all", "/usr/bin/env", "-i",
                 "HOME=/home/live", "USER=live", "LOGNAME=live",
-                "PATH=/usr/local/sbin:/usr/local/bin:/usr/bin", "TERM=xterm-256color",
-                "COLORTERM=truecolor", "HISTFILE=/dev/null", shell, "-i", nullptr);
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/bin", "TERM=dumb",
+                "NO_COLOR=1", "PAGER=cat", "SYSTEMD_PAGER=cat", "GIT_PAGER=cat",
+                "HISTFILE=/dev/null", shell, "-i", nullptr);
         _exit(127);
     }
     m_fd = fd;
     m_pid = child;
+    m_escape = EscapeState::None;
+    m_pendingCarriageReturn = false;
+    m_decoder.resetState();
     m_notifier = new QSocketNotifier(m_fd, QSocketNotifier::Read, this);
     connect(m_notifier, &QSocketNotifier::activated, this, [this] { readOutput(); });
     emit changed();
@@ -105,6 +111,7 @@ void TerminalSession::resize(int columns, int rows)
 void TerminalSession::clear()
 {
     m_output.clear();
+    m_pendingCarriageReturn = false;
     emit changed();
 }
 
@@ -123,10 +130,66 @@ void TerminalSession::readOutput()
 
 void TerminalSession::appendOutput(const QByteArray &bytes)
 {
-    m_output += QString::fromUtf8(bytes);
-    if (m_output.size() > MaximumOutputBytes)
-        m_output.remove(0, m_output.size() - MaximumOutputBytes);
+    appendDisplayText(m_decoder.decode(bytes));
+    if (m_output.size() > MaximumOutputBytes) {
+        qsizetype cut = m_output.size() - MaximumOutputBytes;
+        const qsizetype newline = m_output.indexOf(QLatin1Char('\n'), cut);
+        if (newline >= 0)
+            cut = newline + 1;
+        m_output.remove(0, cut);
+    }
     emit changed();
+}
+
+void TerminalSession::trimToLastLine()
+{
+    const qsizetype newline = m_output.lastIndexOf(QLatin1Char('\n'));
+    m_output.truncate(newline + 1);
+}
+
+void TerminalSession::appendDisplayText(const QString &text)
+{
+    for (const QChar ch : text) {
+        const char16_t code = ch.unicode();
+        switch (m_escape) {
+        case EscapeState::Escape:
+            m_escape = code == u'[' ? EscapeState::Csi : code == u']' ? EscapeState::Osc : EscapeState::None;
+            continue;
+        case EscapeState::Csi:
+            if (code >= 0x40 && code <= 0x7e)
+                m_escape = EscapeState::None;
+            continue;
+        case EscapeState::Osc:
+            if (code == 0x07)
+                m_escape = EscapeState::None;
+            else if (code == 0x1b)
+                m_escape = EscapeState::OscEscape;
+            continue;
+        case EscapeState::OscEscape:
+            m_escape = code == u'\\' ? EscapeState::None : EscapeState::Osc;
+            continue;
+        case EscapeState::None:
+            break;
+        }
+        if (m_pendingCarriageReturn) {
+            m_pendingCarriageReturn = false;
+            // A lone CR rewrites the current line (progress meters); CR LF is
+            // an ordinary line ending.
+            if (code != u'\n')
+                trimToLastLine();
+        }
+        if (code == 0x1b) {
+            m_escape = EscapeState::Escape;
+        } else if (code == u'\r') {
+            m_pendingCarriageReturn = true;
+        } else if (code == u'\b') {
+            if (!m_output.isEmpty() && !m_output.endsWith(QLatin1Char('\n')))
+                m_output.chop(1);
+        } else if (code == u'\n' || code == u'\t' || code >= 0x20) {
+            if (code != 0x7f)
+                m_output.append(ch);
+        }
+    }
 }
 
 void TerminalSession::stop()

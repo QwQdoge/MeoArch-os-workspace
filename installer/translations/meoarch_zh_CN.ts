@@ -390,6 +390,46 @@
             <numerusform>当前有 %n 个分区：%1</numerusform>
         </translation>
     </message>
+    <message>
+        <location filename="../qml/pages/DiskSelectionPage.qml" line="0"/>
+        <source>Scanning disks…</source>
+        <translation>正在扫描磁盘…</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/DiskSelectionPage.qml" line="0"/>
+        <source>Choose a disk to continue</source>
+        <translation>请选择磁盘以继续</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/DiskSelectionPage.qml" line="0"/>
+        <source>Choose a partition to continue</source>
+        <translation>请选择分区以继续</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/DiskSelectionPage.qml" line="0"/>
+        <source>Choose how to use the disk</source>
+        <translation>请选择磁盘的使用方式</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/DiskSelectionPage.qml" line="0"/>
+        <source>Continue to the account step. Nothing is erased until you confirm on the Summary page</source>
+        <translation>继续到账户步骤。在摘要页确认之前不会擦除任何数据</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/DiskSelectionPage.qml" line="0"/>
+        <source>Complete the disk choices on this page to continue</source>
+        <translation>完成本页的磁盘选择后即可继续</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/DiskSelectionPage.qml" line="0"/>
+        <source>Change</source>
+        <translation>更改</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/DiskSelectionPage.qml" line="0"/>
+        <source>Change filesystem and swap</source>
+        <translation>更改文件系统和交换空间</translation>
+    </message>
 </context>
 <context>
     <name>FinishPage</name>
@@ -2209,6 +2249,66 @@
     <message>
         <source>Run network checks</source>
         <translation>运行网络检查</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>Live session · unprivileged user. Commands here cannot change the disks.</source>
+        <translation>Live 会话 · 普通用户。这里的命令无法改动磁盘。</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>The shell has ended. Start a new one to run more commands.</source>
+        <translation>Shell 已结束。请启动新的 Shell 以继续运行命令。</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>Start new shell</source>
+        <translation>启动新 Shell</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>Network checks</source>
+        <translation>网络检查</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>Shows network devices, routes, DNS and whether the package servers answer</source>
+        <translation>显示网络设备、路由、DNS，以及软件包服务器是否有响应</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>List disks</source>
+        <translation>列出磁盘</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>Shows disks, partitions, filesystems and mount points</source>
+        <translation>显示磁盘、分区、文件系统和挂载点</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>Stop command</source>
+        <translation>停止命令</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>Sends Ctrl+C to the running command</source>
+        <translation>向正在运行的命令发送 Ctrl+C</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>Output appears here. Type a command below or use a quick check above.</source>
+        <translation>输出会显示在这里。在下方输入命令，或使用上方的快速检查。</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>Type a command and press Enter</source>
+        <translation>输入命令并按回车</translation>
+    </message>
+    <message>
+        <location filename="../qml/PageFrame.qml" line="0"/>
+        <source>Up and Down recall earlier commands. Ctrl+C stops the running command.</source>
+        <translation>上下方向键可调出之前的命令。Ctrl+C 停止正在运行的命令。</translation>
     </message>
 </context>
 <context>

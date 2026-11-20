@@ -153,8 +153,16 @@ QtObject {
     function retryNetwork() { networkState = "online" }
     function refreshDisks() {}
     function runDiagnosticCommand(command) {
-        diagnosticConsoleOutput += "\n$ " + command + "\n" + qsTr("Preview only — command not executed.")
+        diagnosticConsoleRunning = true
+        if (command.length)
+            diagnosticConsoleOutput += "\n$ " + command + "\n" + qsTr("Preview only — command not executed.")
     }
+    function writeDiagnosticInput(text) {
+        if (text.trim().length)
+            runDiagnosticCommand(text.trim())
+    }
+    function interruptDiagnosticConsole() { diagnosticConsoleOutput += "^C" }
+    function resizeDiagnosticConsole(columns, rows) {}
     function clearDiagnosticConsole() { diagnosticConsoleOutput = "" }
     function setSelection(section, key, value) {
         const next = Object.assign({}, values)
