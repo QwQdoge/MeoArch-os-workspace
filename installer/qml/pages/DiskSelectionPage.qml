@@ -16,7 +16,7 @@ PageFrame {
     readonly property string diskMode: controller ? controller.selection("disk", "mode", "erase") : "erase"
     readonly property var selectedRoot: controller ? controller.selection("disk", "targetPartition", {}) : ({})
     readonly property var selectedEfi: controller ? controller.selection("disk", "efiPartition", {}) : ({})
-    readonly property bool existingPartitionReady: diskMode === "partition" && selectedRoot.path && selectedEfi.path
+    readonly property bool existingPartitionReady: diskMode === "partition" && !!selectedRoot.path && !!selectedEfi.path
 
     // A disk that is shown as chosen. For erase-capable disks this is the
     // controller's selected disk; a disk that only offers the partition path
@@ -195,42 +195,93 @@ PageFrame {
         return false
     }
 
-    // Segments of the layout after installation, for the plan preview.
+    function fsLabel(part) {
+        const fs = String(part.fstype || "").toLowerCase()
+        let text = fs === "ntfs" ? qsTr("NTFS, often Windows")
+                 : fs === "vfat" || fs === "fat32" || fs === "fat" ? "FAT32"
+                 : fs === "swap" ? qsTr("Swap")
+                 : fs === "crypto_luks" ? qsTr("Encrypted")
+                 : fs.length ? fs.toUpperCase() : qsTr("No filesystem")
+        if (String(part.fslabel || "").length)
+            text = "“" + part.fslabel + "” · " + text
+        return text
+    }
+
+    // Current on-disk layout in order, including unallocated gaps, from the
+    // detected start/size sectors. Gaps under 16 MiB are alignment slack.
+    function currentSegments(disk) {
+        const parts = (disk.partitions || []).slice()
+        const total = Number(disk.sizeBytes || 0)
+        if (total <= 0)
+            return []
+        parts.sort((a, b) => Number(a.startSectors || 0) - Number(b.startSectors || 0))
+        const rows = []
+        const slack = 16 * 1048576
+        let cursor = 0
+        for (let index = 0; index < parts.length; ++index) {
+            const part = parts[index]
+            const sector = Number(part.logicalSectorSize || disk.logicalSectorSize || 512)
+            const start = Number(part.startSectors || 0) * sector
+            const bytes = Number(part.sizeBytes || 0)
+            if (start - cursor > slack)
+                rows.push({ label: qsTr("Free space"), bytes: start - cursor, role: "free", path: "" })
+            rows.push({ label: part.name, detail: part.isEfi ? qsTr("EFI") : page.fsLabel(part),
+                        bytes: bytes, role: part.isEfi ? "efi" : "other", path: part.path })
+            cursor = Math.max(cursor, start + bytes)
+        }
+        if (total - cursor > slack)
+            rows.push({ label: qsTr("Free space"), bytes: total - cursor, role: "free", path: "" })
+        return rows
+    }
+    readonly property var nowSegments: currentSegments(activeDisk)
+
     readonly property var planSegments: {
         const total = Math.max(1, Number(activeDisk.sizeBytes || diskSizeBytes))
         if (diskMode === "partition") {
-            const rows = []
-            for (let index = 0; index < activePartitions.length; ++index) {
-                const part = activePartitions[index]
-                const isRoot = part.path === page.selectedRoot.path
-                const isEfi = part.path === page.selectedEfi.path || (part.eligibleEfi && !page.selectedEfi.path)
-                rows.push({
-                    "label": isRoot ? qsTr("MeoArch (formatted)")
-                           : (isEfi ? qsTr("EFI (kept)") : qsTr("%1 (untouched)").arg(part.name)),
-                    "bytes": Number(part.sizeBytes || 0),
-                    "role": isRoot ? "root" : (isEfi ? "efi" : "other")
-                })
-            }
-            return rows
+            return nowSegments.map(row => {
+                if (row.path && row.path === page.selectedRoot.path)
+                    return { label: qsTr("MeoArch"), detail: qsTr("formatted"), bytes: row.bytes, role: "root" }
+                if (row.path && row.path === page.selectedEfi.path)
+                    return { label: qsTr("EFI"), detail: qsTr("kept, boot entry added"), bytes: row.bytes, role: "efi" }
+                if (row.role === "free")
+                    return { label: qsTr("Free space"), detail: qsTr("unused"), bytes: row.bytes, role: "free" }
+                return { label: row.label, detail: qsTr("%1, untouched").arg(row.detail), bytes: row.bytes, role: "other" }
+            })
         }
         const efi = 512 * 1048576
         if (diskMode === "guided")
             return [
-                { "label": qsTr("EFI"), "bytes": efi, "role": "efi" },
-                { "label": qsTr("System"), "bytes": rootSizeGiB * 1073741824, "role": "root" },
-                { "label": qsTr("Home"), "bytes": homeSizeBytes, "role": "home" }
+                { label: qsTr("EFI"), bytes: efi, role: "efi" },
+                { label: qsTr("System"), bytes: rootSizeGiB * 1073741824, role: "root" },
+                { label: qsTr("Home"), detail: qsTr("your files"), bytes: homeSizeBytes, role: "home" }
             ]
         return [
-            { "label": qsTr("EFI"), "bytes": efi, "role": "efi" },
-            { "label": qsTr("System and home"), "bytes": Math.max(0, total - efi), "role": "root" }
+            { label: qsTr("EFI"), bytes: efi, role: "efi" },
+            { label: qsTr("MeoArch"), detail: qsTr("system and your files"), bytes: Math.max(0, total - efi), role: "root" }
         ]
     }
+    // In erase modes everything that exists now is shown as going away.
+    readonly property var beforeSegments: diskMode === "partition"
+        ? nowSegments
+        : nowSegments.map(row => row.role === "free" ? row
+                                                     : Object.assign({}, row, { role: "erase", detail: qsTr("%1, erased").arg(row.detail) }))
 
-    function roleColor(role) {
-        if (role === "root") return MeoTheme.primary
-        if (role === "home") return MeoTheme.tertiary
-        if (role === "efi") return MeoTheme.secondary
-        return MeoTheme.surfaceContainerHighest
+    readonly property string consequenceTitle: existingPartitionReady
+        ? qsTr("Only %1 will be erased").arg(String(page.selectedRoot.path || ""))
+        : qsTr("Everything on %1 will be erased").arg(String(page.activeDisk.name || page.activeDisk.devicePath || ""))
+    readonly property string consequenceMessage: {
+        let text = existingPartitionReady
+            ? qsTr("%1 is formatted for MeoArch. The EFI partition %2 is kept and other partitions are not touched.")
+                  .arg(String(page.selectedRoot.path || "")).arg(String(page.selectedEfi.path || ""))
+            : qsTr("All partitions and files on %1 are deleted. Back up anything you want to keep first.")
+                  .arg(String(page.activeDisk.devicePath || ""))
+        if (!existingPartitionReady && diskSizeGiB < 16)
+            text += " " + qsTr("This disk is smaller than the recommended 16 GiB, so free space will be tight.")
+        if (existingPartitionReady && String(page.selectedRoot.fstype || "").toLowerCase() === "ntfs")
+            text += " " + qsTr("This is an NTFS partition and may hold Windows or its files; formatting it removes them.")
+        if (existingPartitionReady && String(page.selectedRoot.warning || "").length)
+            text += " " + String(page.selectedRoot.warning)
+        return text + " " + qsTr("Nothing happens until you confirm on the Summary page.")
     }
 
     Column {
@@ -247,7 +298,7 @@ PageFrame {
             visible: page.controller && !page.controller.diskDetecting && page.controller.disks.length === 0
             width: parent.width; tone: "error"
             title: qsTr("No disk detected")
-            message: qsTr("Disk detection must complete before installation. The installer does not invent preview disks in production.")
+            message: qsTr("Connect or enable the disk you want to install to, then rescan. Nothing can be selected until a disk is found.")
         }
         Item {
             visible: page.controller && page.controller.diskDetecting
@@ -264,10 +315,22 @@ PageFrame {
         }
 
         // ── 1. Disk ────────────────────────────────────────────────────
-        MeoText {
+        RowLayout {
             visible: page.controller && page.controller.disks.length > 0
-            text: qsTr("1. Disk"); typeRole: "title"; typeSize: "small"; emphasized: true
-            color: MeoTheme.contentOnSurface
+            width: parent.width
+            MeoText {
+                Layout.fillWidth: true
+                text: qsTr("1. Disk"); typeRole: "title"; typeSize: "small"; emphasized: true
+                color: MeoTheme.contentOnSurface
+            }
+            MeoButton {
+                visible: page.controller && !page.controller.diskDetecting
+                text: qsTr("Rescan")
+                type: "text"
+                icon.name: "refresh"
+                Accessible.description: qsTr("Scans again after you connect or make an installation disk available")
+                onClicked: page.controller.refreshDisks()
+            }
         }
         Repeater {
             model: page.controller ? page.controller.disks : []
@@ -284,6 +347,9 @@ PageFrame {
                     title: diskEntry.modelData.name + " · " + diskEntry.modelData.size
                     value: page.diskSelectable(diskEntry.modelData)
                            ? page.diskSummary(diskEntry.modelData)
+                             + " · " + (diskEntry.modelData.partitions.length === 0
+                                        ? qsTr("empty")
+                                        : qsTr("%n partition(s)", "", diskEntry.modelData.partitions.length))
                            : String(diskEntry.modelData.unavailableReason || diskEntry.modelData.partitionUnavailableReason || "")
                     selected: diskEntry.chosen
                     selectionIndicator: true
@@ -291,36 +357,6 @@ PageFrame {
                     trailingIcon: ""
                     Accessible.description: qsTr("Choose this disk. Nothing is erased until the final confirmation.")
                     onClicked: page.selectDisk(diskEntry.modelData)
-                }
-
-                // Actual lsblk topology of the chosen disk. It does not imply
-                // an erase plan.
-                Row {
-                    id: topology
-                    visible: diskEntry.chosen && diskEntry.modelData.partitions.length > 0
-                    width: parent.width; height: visible ? page.dp(12) : 0; spacing: page.dp(2)
-                    Repeater {
-                        model: diskEntry.modelData.partitions
-                        delegate: MeoShape {
-                            required property var modelData
-                            type: "rect"; strokeWidth: 0
-                            readonly property real ratio: Number(modelData.sizeBytes) / Math.max(1, Number(diskEntry.modelData.sizeBytes))
-                            width: Math.max(page.dp(6), Math.round(topology.width * ratio) - topology.spacing)
-                            height: topology.height; radius: page.dp(3)
-                            color: modelData.isEfi ? MeoTheme.secondary : MeoTheme.outlineVariant
-                            Accessible.name: modelData.name + ", " + modelData.size
-                        }
-                    }
-                }
-                MeoText {
-                    visible: diskEntry.chosen
-                    width: parent.width
-                    text: diskEntry.modelData.partitions.length === 0
-                          ? qsTr("No existing partitions detected")
-                          : qsTr("Currently %n partition(s): %1", "", diskEntry.modelData.partitions.length)
-                                .arg(diskEntry.modelData.partitions.map(p => p.name + " " + p.size
-                                                                         + (p.fstype ? " " + String(p.fstype).toUpperCase() : "")).join(", "))
-                    typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap
                 }
                 InfoBanner {
                     visible: diskEntry.chosen && String(diskEntry.modelData.warning || "").length > 0
@@ -332,24 +368,24 @@ PageFrame {
                 InfoBanner {
                     visible: diskEntry.chosen && String(diskEntry.modelData.unavailableReason || "").length > 0
                     width: parent.width
-                    tone: "error"
-                    title: qsTr("Storage unavailable")
+                    tone: "info"
+                    title: qsTr("Only an existing partition can be used")
                     message: qsTr("Erasing this disk is not possible: %1").arg(String(diskEntry.modelData.unavailableReason || ""))
                 }
             }
         }
         MeoButton {
-            visible: page.controller && !page.controller.diskDetecting
+            visible: page.controller && !page.controller.diskDetecting && page.controller.disks.length === 0
             text: qsTr("Rescan storage devices")
-            type: page.controller && page.controller.disks.length === 0 ? "tonal" : "text"
+            type: "tonal"
             icon.name: "refresh"
-            Accessible.description: qsTr("Scans again after you connect or make an installation disk available")
             onClicked: page.controller.refreshDisks()
         }
 
         // ── 2. Installation type ───────────────────────────────────────
         MeoText {
             visible: page.activeDiskId.length > 0
+            topPadding: page.dp(6)
             text: qsTr("2. How to use this disk"); typeRole: "title"; typeSize: "small"; emphasized: true
             color: MeoTheme.contentOnSurface
         }
@@ -359,7 +395,7 @@ PageFrame {
             rowSpacing: page.dp(8); columnSpacing: page.dp(8)
             SelectionCard {
                 Layout.fillWidth: true; iconText: "delete_sweep"
-                title: qsTr("Erase entire disk"); value: qsTr("Recommended. Deletes all data, then creates EFI and one system partition")
+                title: qsTr("Erase disk and install"); value: qsTr("Recommended. Removes everything on this disk and gives all of it to MeoArch")
                 wrapValue: true
                 selected: page.diskMode === "erase"; selectionIndicator: true; enabled: page.eraseAvailable
                 trailingIcon: ""
@@ -367,7 +403,10 @@ PageFrame {
             }
             SelectionCard {
                 Layout.fillWidth: true; iconText: "account_tree"
-                title: qsTr("Erase disk with separate home"); value: qsTr("Deletes all data. Your files live on their own partition, sized below")
+                title: qsTr("Erase disk, keep files on a separate home partition")
+                value: page.separateHomeAvailable
+                       ? qsTr("Removes everything. Your files get their own partition so a later reinstall can keep them")
+                       : qsTr("Needs a disk of at least 13 GiB")
                 wrapValue: true
                 selected: page.diskMode === "guided"; selectionIndicator: true; enabled: page.separateHomeAvailable
                 trailingIcon: ""
@@ -375,9 +414,9 @@ PageFrame {
             }
             SelectionCard {
                 Layout.fillWidth: true; iconText: "splitscreen"
-                title: qsTr("Use one existing partition"); value: page.partitionModeAvailable
-                       ? qsTr("Keeps other partitions, for example another system. Formats only the partition you pick")
-                       : qsTr("Needs an EFI System Partition and a root partition of at least 8 GiB on this disk")
+                title: qsTr("Install next to what is already there"); value: page.partitionModeAvailable
+                       ? qsTr("Formats one partition you pick and keeps the others, for example Windows or your data")
+                       : qsTr("Not available: this disk needs an EFI System Partition and a free-to-format partition of at least 8 GiB")
                 wrapValue: true
                 selected: page.diskMode === "partition"; selectionIndicator: true; enabled: page.partitionModeAvailable
                 trailingIcon: ""
@@ -410,40 +449,47 @@ PageFrame {
                 }
                 MeoText {
                     width: parent.width
-                    text: qsTr("The system partition holds MeoArch and installed apps; 32 GiB or more is comfortable. Home gets the rest and keeps at least 4 GiB.")
+                    text: qsTr("Drag to size the system partition; 32 GiB or more is comfortable for apps. Home gets the rest and keeps at least 4 GiB.")
                     typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap
                 }
             }
         }
 
-        // Existing partition: choose the root partition.
+        // Existing partition: pick exactly one partition to format.
         Column {
             visible: page.diskMode === "partition" && page.activePartitions.length > 0
             width: parent.width; spacing: page.dp(8)
-            InfoBanner {
-                width: parent.width; tone: "info"
-                title: qsTr("Use one existing partition")
-                message: qsTr("Select a supported root partition of at least 8 GiB below. 16 GiB is recommended, not required. Active filesystems, swap, and supported storage mappings are released only after final confirmation.")
+            MeoText {
+                width: parent.width
+                topPadding: page.dp(6)
+                text: qsTr("3. Pick the partition to format")
+                typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface
+            }
+            MeoText {
+                width: parent.width
+                text: qsTr("Only this partition is erased. Pick one with nothing you need on it; at least 8 GiB, 16 GiB or more recommended.")
+                typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant; wrapMode: Text.WordWrap
             }
             Repeater {
                 model: page.activePartitions
                 delegate: SelectionCard {
                     required property var modelData
                     width: parent.width; implicitHeight: page.dp(66)
-                    iconText: modelData.isEfi ? "memory" : "hard_drive"
-                    title: modelData.name + " · " + modelData.size
+                    iconText: modelData.isEfi ? "lock" : (modelData.eligibleRoot ? "hard_drive" : "block")
+                    title: modelData.name + " · " + modelData.size + " · " + page.fsLabel(modelData)
                     value: modelData.isEfi
-                           ? qsTr("EFI System Partition — preserved")
-                             + (String(modelData.warning || "").length ? " · " + String(modelData.warning) : "")
-                           : (modelData.fstype.length ? modelData.fstype.toUpperCase() + " · " : "")
-                             + (modelData.eligibleRoot
-                                ? qsTr("Use as MeoArch root — will be formatted")
-                                  + (String(modelData.warning || "").length ? " · " + String(modelData.warning) : "")
-                                : modelData.unavailableReason)
+                           ? qsTr("Boot partition, kept. MeoArch adds its boot entry here")
+                           : modelData.eligibleRoot
+                             ? (modelData.path === page.selectedRoot.path
+                                ? qsTr("Will be formatted for MeoArch")
+                                : qsTr("Select to format this partition for MeoArch"))
+                               + (String(modelData.warning || "").length ? " · " + String(modelData.warning) : "")
+                             : String(modelData.unavailableReason || "")
+                    wrapValue: true
                     selected: modelData.path === page.selectedRoot.path
-                    selectionIndicator: !modelData.isEfi
-                    enabled: modelData.eligibleRoot
-                    actionable: !modelData.isEfi
+                    selectionIndicator: modelData.eligibleRoot === true
+                    enabled: modelData.eligibleRoot === true
+                    actionable: modelData.eligibleRoot === true
                     trailingIcon: ""
                     Accessible.description: modelData.isEfi ? qsTr("Preserved boot partition") : qsTr("Formats only this selected partition")
                     onClicked: page.controller.selectExistingPartition(page.activeDiskId, modelData.path)
@@ -451,61 +497,36 @@ PageFrame {
             }
         }
         InfoBanner {
-            visible: page.activeDiskId.length > 0 && page.activePartitions.length > 0
+            visible: page.diskMode === "partition" && page.activePartitions.length > 0
                      && !page.hasUsableEfi(page.activePartitions)
             width: parent.width; tone: "warning"
             title: qsTr("No usable EFI System Partition")
-            message: qsTr("One-partition installation requires a FAT EFI System Partition of at least 512 MiB on this same disk. Meo preserves the EFI partition and modifies only the selected root partition.")
+            message: qsTr("Installing next to other systems needs a FAT EFI System Partition of at least 512 MiB on this same disk.")
         }
 
-        // ── 3. Result ──────────────────────────────────────────────────
+        // ── Result: before and after ───────────────────────────────────
         MeoCard {
-            visible: page.activeDiskId.length > 0
-                     && (page.existingPartitionReady || (page.diskMode !== "partition" && page.erasePlanReady))
+            visible: page.activeDiskId.length > 0 && page.planReady
             width: parent.width; implicitHeight: planColumn.implicitHeight + page.dp(28)
             type: "outlined"; padding: page.dp(14)
             Column {
                 id: planColumn
-                width: parent.width; spacing: page.dp(10)
+                width: parent.width; spacing: page.dp(14)
                 MeoText {
-                    text: qsTr("3. After installation"); typeRole: "title"; typeSize: "small"; emphasized: true
+                    text: page.diskMode === "partition" ? qsTr("4. Check the result") : qsTr("3. Check the result")
+                    typeRole: "title"; typeSize: "small"; emphasized: true
                     color: MeoTheme.contentOnSurface
                 }
-                Row {
-                    id: planBar
-                    width: parent.width; height: page.dp(28); spacing: page.dp(2)
-                    readonly property real totalBytes: page.planSegments.reduce((sum, item) => sum + Math.max(0, item.bytes), 0)
-                    Repeater {
-                        model: page.planSegments
-                        delegate: MeoShape {
-                            required property var modelData
-                            type: "rect"; strokeWidth: 0
-                            width: Math.max(page.dp(8), Math.round(planBar.width * modelData.bytes / Math.max(1, planBar.totalBytes)) - planBar.spacing)
-                            height: planBar.height; radius: page.dp(6)
-                            color: page.roleColor(modelData.role)
-                            Accessible.name: modelData.label + ", " + page.formatBytes(modelData.bytes)
-                        }
-                    }
+                DiskLayoutBar {
+                    visible: page.beforeSegments.length > 0
+                    width: parent.width
+                    caption: qsTr("Now")
+                    segments: page.beforeSegments
                 }
-                Flow {
-                    width: parent.width; spacing: page.dp(14)
-                    Repeater {
-                        model: page.planSegments
-                        delegate: Row {
-                            required property var modelData
-                            spacing: page.dp(6)
-                            MeoShape {
-                                type: "rect"; strokeWidth: 0
-                                anchors.verticalCenter: parent.verticalCenter
-                                width: page.dp(10); height: width; radius: width / 2
-                                color: page.roleColor(modelData.role)
-                            }
-                            MeoText {
-                                text: modelData.label + " · " + page.formatBytes(modelData.bytes)
-                                typeRole: "body"; typeSize: "small"; color: MeoTheme.contentOnSurfaceVariant
-                            }
-                        }
-                    }
+                DiskLayoutBar {
+                    width: parent.width
+                    caption: qsTr("After installation")
+                    segments: page.planSegments
                 }
                 RowLayout {
                     width: parent.width
@@ -529,20 +550,10 @@ PageFrame {
         }
 
         InfoBanner {
-            visible: page.existingPartitionReady
-            width: parent.width; tone: "error"; title: qsTr("Selected root partition will be erased")
-            message: qsTr("MeoArch will preserve %1 and erase only %2. Other partitions are not selected for modification.").arg(page.selectedEfi.path).arg(page.selectedRoot.path)
-        }
-        InfoBanner {
-            visible: !page.existingPartitionReady && page.diskMode !== "partition" && page.erasePlanReady
-            width: parent.width; tone: "error"; title: qsTr("Entire selected disk will be erased")
-            message: qsTr("All data on %1 (%2) will be deleted. Existing partitions are not preserved in this mode.")
-                     .arg(String(page.activeDisk.name || "")).arg(String(page.activeDisk.devicePath || ""))
-        }
-        InfoBanner {
-            visible: page.eraseAvailable && page.diskMode !== "partition" && page.diskSizeGiB < 16
-            width: parent.width; tone: "warning"; title: qsTr("Below recommended capacity")
-            message: qsTr("This disk is smaller than the recommended 16 GiB. You can continue, but installation may leave little free space.")
+            visible: page.activeDiskId.length > 0 && page.planReady
+            width: parent.width; tone: "error"
+            title: page.consequenceTitle
+            message: page.consequenceMessage
         }
     }
 

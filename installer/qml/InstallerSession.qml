@@ -20,8 +20,10 @@ QtObject {
                          .replace(/[\u0300-\u036f]/g, "")
                          .replace(/[^a-z0-9_-]/g, "")
                          .replace(/^[-_]+|[-_]+$/g, "")
+        // Names without Latin letters (for example Chinese) get a plain,
+        // valid default; the account page explains it and offers Edit.
         if (!result)
-            result = "user" + name.charCodeAt(0).toString(16)
+            result = "user"
         if (/^[0-9]/.test(result))
             result = "u" + result
         return result.slice(0, 32)
@@ -31,6 +33,6 @@ QtObject {
         if (customIdentity)
             return
         username = usernameFromFullName(fullName)
-        hostname = username.replace(/_/g, "-")
+        hostname = username.length && username !== "user" ? username.replace(/_/g, "-") : "meoarch"
     }
 }

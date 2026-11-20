@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import MeoUI 1.0
 import ".."
 import "../components"
@@ -9,7 +10,8 @@ PageFrame {
     id: page
     primaryLabel: controller && controller.preflightState === "ready" ? qsTr("Install now")
                   : controller && controller.preflightState === "checking" ? qsTr("Checking installation plan…")
-                  : qsTr("Prepare installation plan")
+                  : controller && controller.preflightState === "failed" ? qsTr("Check again")
+                  : qsTr("Check installation plan")
     primaryAdvances: false
     primaryEnabled: !(controller && controller.preflightState === "checking")
     primaryLoading: controller && controller.preflightState === "checking"
@@ -17,6 +19,16 @@ PageFrame {
                                   ? qsTr("Opens a final confirmation before installation can begin")
                                   : qsTr("Validates the installation plan without writing the selected disk")
     property bool riskAccepted: false
+    // Checking the plan never writes a disk, so start it as soon as the page
+    // opens instead of asking for an extra click. Do not re-prepare while a
+    // failed attempt can still be retried with the same confirmed plan.
+    Component.onCompleted: {
+        if (controller && typeof controller.prepareInstallation === "function"
+                && controller.preflightState !== "ready" && controller.preflightState !== "checking"
+                && controller.preflightState !== "failed"
+                && (controller.installationState === "idle" || controller.installationState === ""))
+            controller.prepareInstallation()
+    }
     // Meo AI may drop a proposal while the person reads this page.
     Timer {
         interval: 2500
@@ -102,7 +114,6 @@ PageFrame {
         { pageIndex: 2, title: qsTr("Keyboard"), value: controller ? controller.keyboardLayout : "" },
         { pageIndex: 3, title: qsTr("Network"), value: controller ? controller.networkDetail + (controller.networkHandoffEnabled ? qsTr(" · Will be remembered after installation") : qsTr(" · Will not be copied")) : "" },
         { pageIndex: 4, title: qsTr("Privacy & Security"), value: controller && controller.selection("privacy", "firewall", true) ? qsTr("Firewall enabled") : qsTr("Firewall not selected") },
-        { pageIndex: 5, title: qsTr("Disk"), value: page.diskPlanSummary },
         { pageIndex: 6, title: qsTr("User Account"), value: InstallerSession.username + " · " + InstallerSession.hostname },
         { pageIndex: 7, title: qsTr("Software"), value: controller ? page.profileLabel(controller.selection("software", "profile", "recommended")) : "" },
         { pageIndex: 8, title: qsTr("Meo channel"), value: controller ? page.channelLabel(controller.selection("software", "channel", "stable")) : "" },
@@ -128,7 +139,7 @@ PageFrame {
                 anchors.right: detailsButton.left
                 anchors.rightMargin: page.dp(8)
                 title: qsTr("Summary")
-                subtitle: qsTr("Prepare a validated Archinstall plan before any destructive action is enabled.")
+                subtitle: qsTr("Check your choices. Nothing is written to disk until you choose Install now and confirm.")
             }
             MeoButton {
                 id: detailsButton
@@ -182,15 +193,23 @@ PageFrame {
         InfoBanner {
             visible: page.controller
             width: parent.width
-            title: page.controller.preflightState === "ready" ? qsTr("Installation plan ready")
-                   : page.controller.preflightState === "failed" ? qsTr("Installation plan blocked")
-                   : qsTr("Installation plan not prepared")
+            title: page.controller.preflightState === "ready" ? qsTr("Ready to install")
+                   : page.controller.preflightState === "failed" ? qsTr("The plan could not be checked")
+                   : page.controller.preflightState === "checking" ? qsTr("Checking the installation plan…")
+                   : qsTr("Installation plan not checked yet")
             message: page.controller.preflightState === "ready"
-                     ? (page.existingPartitionInstall
-                        ? qsTr("Review the selected root and EFI partitions. Install now opens one final formatting confirmation.")
-                        : qsTr("Review the selected disk and settings. Install now opens one final erase confirmation."))
+                     ? (page.resolvedPackage.packages && page.resolvedPackage.packages.length
+                        ? qsTr("Software sources checked: %1 · %2 Meo packages · %3 system applications.")
+                              .arg(page.joined(page.resolvedRepository.repositories, " → ", "—"))
+                              .arg(page.resolvedPackage.packages.length)
+                              .arg(page.resolvedApplications.nativePackages ? page.resolvedApplications.nativePackages.length : 0)
+                          + " "
+                        : "")
+                       + qsTr("Install now asks for one final confirmation.")
+                     : page.controller.preflightState === "checking"
+                     ? qsTr("Making sure the disk, account and software sources work together. This can take a minute on a slow connection.")
                      : page.controller.preflightMessage.length ? page.controller.preflightMessage
-                                                               : qsTr("Select a valid disk and account, then prepare the plan.")
+                                                               : qsTr("Choose Check installation plan to continue.")
             tone: page.controller.preflightState === "ready" ? "success"
                   : page.controller.preflightState === "failed" ? "error" : "info"
         }
@@ -201,35 +220,48 @@ PageFrame {
             title: qsTr("Graphics compatibility mode")
             message: page.controller ? page.controller.hardwareWarning : ""
         }
+        // The disk choice is the one with consequences, so it gets its own
+        // card above the other settings.
         MeoCard {
-            visible: page.resolvedPackage.packages && page.resolvedPackage.packages.length > 0
             width: parent.width
             type: "outlined"
             padding: page.dp(16)
-            implicitHeight: resolvedPlanColumn.implicitHeight + page.dp(32)
-
-            Column {
-                id: resolvedPlanColumn
+            implicitHeight: diskRow.implicitHeight + page.dp(32)
+            RowLayout {
+                id: diskRow
                 width: parent.width
-                spacing: page.dp(8)
-                MeoText {
-                    width: parent.width
-                    text: qsTr("Software sources checked")
-                    typeRole: "title"
-                    typeSize: "small"
-                    emphasized: true
-                    color: MeoTheme.contentOnSurface
+                spacing: page.dp(14)
+                MeoIcon {
+                    Layout.alignment: Qt.AlignTop
+                    icon: page.existingPartitionInstall ? "splitscreen" : "delete_sweep"
+                    size: page.dp(28)
+                    color: MeoTheme.error
                 }
-                MeoText {
-                    width: parent.width
-                    text: qsTr("%1 · %2 Meo packages · %3 system applications")
-                          .arg(page.joined(page.resolvedRepository.repositories, " → ", qsTr("Not prepared")))
-                          .arg(page.resolvedPackage.packages ? page.resolvedPackage.packages.length : 0)
-                          .arg(page.resolvedApplications.nativePackages ? page.resolvedApplications.nativePackages.length : 0)
-                    typeRole: "body"
-                    typeSize: "medium"
-                    color: MeoTheme.contentOnSurfaceVariant
-                    wrapMode: Text.WordWrap
+                Column {
+                    Layout.fillWidth: true
+                    spacing: page.dp(4)
+                    MeoText {
+                        width: parent.width
+                        text: page.existingPartitionInstall ? qsTr("Disk: install next to what is already there")
+                                                            : page.diskMode === "guided" ? qsTr("Disk: erase, with a separate home partition")
+                                                                                         : qsTr("Disk: erase and install")
+                        typeRole: "title"; typeSize: "small"; emphasized: true; color: MeoTheme.contentOnSurface
+                        wrapMode: Text.WordWrap
+                    }
+                    MeoText {
+                        width: parent.width
+                        text: page.diskPlanSummary
+                        typeRole: "body"; typeSize: "medium"; color: MeoTheme.contentOnSurfaceVariant
+                        wrapMode: Text.WordWrap
+                    }
+                }
+                MeoButton {
+                    Layout.alignment: Qt.AlignTop
+                    text: qsTr("Change")
+                    type: "text"
+                    icon.name: "edit"
+                    Accessible.name: qsTr("Change disk choice")
+                    onClicked: page.navigateRequested(5)
                 }
             }
         }

@@ -1318,7 +1318,7 @@ void InstallerController::refreshDisks()
     process->start(QStringLiteral("/usr/bin/timeout"),
                    {QStringLiteral("--signal=TERM"), QStringLiteral("--kill-after=2s"), QStringLiteral("15s"),
                     QStringLiteral("lsblk"), QStringLiteral("-J"), QStringLiteral("-b"), QStringLiteral("-o"),
-                    QStringLiteral("NAME,PATH,MODEL,SERIAL,WWN,SIZE,TYPE,RO,ROTA,RM,HOTPLUG,TRAN,MOUNTPOINTS,FSTYPE,PARTTYPE,PKNAME,START,PARTN,LOG-SEC")});
+                    QStringLiteral("NAME,PATH,MODEL,SERIAL,WWN,SIZE,TYPE,RO,ROTA,RM,HOTPLUG,TRAN,MOUNTPOINTS,FSTYPE,PARTTYPE,PKNAME,START,PARTN,LOG-SEC,LABEL")});
 #else
     setError(tr("Disk detection is only available in the Linux installer environment."));
     emit disksChanged();
@@ -1438,7 +1438,8 @@ void InstallerController::parseDisks(const QByteArray &payload)
                 {"startSectors", child.value(QStringLiteral("start")).toVariant().toLongLong()},
                 {"sizeSectors", logicalSectorSize > 0 ? partitionSize / logicalSectorSize : 0},
                 {"logicalSectorSize", logicalSectorSize}, {"partn", child.value(QStringLiteral("partn")).toVariant().toInt()},
-                {"fstype", fstype}, {"parttype", parttype}, {"mounted", partitionMounted},
+                {"fstype", fstype}, {"fslabel", child.value(QStringLiteral("label")).toString().trimmed()},
+                {"parttype", parttype}, {"mounted", partitionMounted},
                 {"isEfi", isEfi}, {"eligibleRoot", eligibleRoot}, {"eligibleEfi", eligibleEfi},
                 {"unavailableReason", partitionReason}, {"warning", partitionWarnings.join(QLatin1Char(' '))},
             }));

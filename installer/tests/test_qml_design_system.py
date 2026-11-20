@@ -313,7 +313,7 @@ class InstallerDesignSystemTests(unittest.TestCase):
     def test_disk_page_keeps_partition_planning_inside_the_cage_client(self):
         disk = (QML_ROOT / "pages/DiskSelectionPage.qml").read_text(encoding="utf-8")
         preview = (QML_ROOT / "PreviewController.qml").read_text(encoding="utf-8")
-        self.assertIn("Use one existing partition", disk)
+        self.assertIn("Install next to what is already there", disk)
         self.assertIn("selectExistingPartition", disk)
         self.assertIn('"targetPartition"', disk)
         self.assertIn("EFI System Partition", disk)
@@ -332,8 +332,8 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("8 * 1073741824 + 515 * 1048576", disk)
         self.assertIn("guidedMinimumBytes", disk)
         self.assertIn("separateHomeAvailable", disk)
-        self.assertIn("Below recommended capacity", disk)
-        self.assertIn("Storage unavailable", disk)
+        self.assertIn("smaller than the recommended 16 GiB", disk)
+        self.assertIn("Erasing this disk is not possible", disk)
         self.assertIn("unavailableReason", disk)
         self.assertIn("hasActiveMappedDescendant", controller)
         self.assertIn("hasProtectedMountedDescendant", controller)
@@ -348,8 +348,8 @@ class InstallerDesignSystemTests(unittest.TestCase):
         self.assertIn("property bool selectionIndicator: false", card)
         self.assertIn("Accessible.RadioButton", card)
         self.assertIn("selectionIndicator: true", disk)
-        self.assertIn("Installation plan ready", summary)
-        self.assertIn("final erase confirmation", summary)
+        self.assertIn("Ready to install", summary)
+        self.assertIn("one final confirmation", summary)
 
     def test_summary_names_the_actual_target_for_full_disk_and_partition_confirmation(self):
         summary = (QML_ROOT / "pages/SummaryPage.qml").read_text(encoding="utf-8")
