@@ -174,6 +174,35 @@ bool hasVerifiedCompletionEvent(const QString &eventsPath, qint64 startOffset)
            && lastStage.value(QStringLiteral("progress")).toInt(-1) == 100;
 }
 
+// The backend appends one {"event":"failed",...} record when it exits early.
+// Only a record from this run that states diskTouched=false proves that no
+// disk-writing command started; anything else fails closed as "touched".
+bool failedBeforeDiskWork(const QString &eventsPath, qint64 startOffset)
+{
+    QFile events(eventsPath);
+    if (!events.open(QIODevice::ReadOnly | QIODevice::Text))
+        return false;
+    if (startOffset < 0 || startOffset > events.size())
+        startOffset = 0;
+    if (!events.seek(startOffset))
+        return false;
+    QJsonObject failure;
+    while (!events.atEnd()) {
+        const QByteArray line = events.readLine().trimmed();
+        if (line.isEmpty())
+            continue;
+        QJsonParseError parseError;
+        const QJsonDocument document = QJsonDocument::fromJson(line, &parseError);
+        if (parseError.error != QJsonParseError::NoError || !document.isObject())
+            continue;
+        const QJsonObject event = document.object();
+        if (event.value(QStringLiteral("event")).toString() == QStringLiteral("failed"))
+            failure = event;
+    }
+    const QJsonValue touched = failure.value(QStringLiteral("diskTouched"));
+    return touched.isBool() && !touched.toBool();
+}
+
 bool isSupportedNetworkHandoffProfile(const QString &path, const QString &type)
 {
     // Only copy profiles that have a complete, portable interpretation in the
@@ -1797,6 +1826,7 @@ void InstallerController::startInstallation()
     }
     m_installationProgress = 0;
     m_installationFailureDetails.clear();
+    m_installationRetryable = false;
     updateInstallation(QStringLiteral("running"), 0, QStringLiteral("preflight"), tr("Preparing installation."));
     if (!m_realInstallEnabled) {
         m_summaryConfirmed = false;
@@ -1888,21 +1918,49 @@ void InstallerController::startInstallation()
         if (status == QProcess::NormalExit && exitCode == 0 && hasVerifiedCompletionEvent(eventsPath, eventsStartOffset))
             updateInstallation(QStringLiteral("complete"), 100, QStringLiteral("complete"), tr("Installation complete."));
         else {
-            m_summaryConfirmed = false;
-            m_confirmedPlanRevision = 0;
-            updateInstallation(QStringLiteral("failed"), m_installationProgress, m_installationStage, tr("Installation stopped."));
             m_installationFailureDetails = conciseProcessFailure(QString::fromUtf8(process->readAllStandardOutput()));
             if (status == QProcess::NormalExit && exitCode == 0 && m_installationFailureDetails.isEmpty())
                 m_installationFailureDetails = tr("The installation backend exited without the verified completion event. The target is not marked complete.");
             if (m_installationFailureDetails.isEmpty())
                 m_installationFailureDetails = tr("The installer process ended without a diagnostic line. Open the saved log before retrying.");
+            // A failure before any disk-writing command (network, mirror or
+            // repository checks) keeps the confirmed plan so the user can fix
+            // the connection and retry in place. The backend re-verifies the
+            // plan, preflight digest and disk identity on every run.
+            m_installationRetryable = status == QProcess::NormalExit
+                                      && failedBeforeDiskWork(eventsPath, eventsStartOffset);
+            if (!m_installationRetryable) {
+                m_summaryConfirmed = false;
+                m_confirmedPlanRevision = 0;
+            }
+            updateInstallation(QStringLiteral("failed"), m_installationProgress, m_installationStage, tr("Installation stopped."));
             setError(m_installationFailureDetails);
-            setPreflight(QStringLiteral("failed"), tr("Installation did not complete. Generate and validate a new plan before trying again."));
+            if (!m_installationRetryable)
+                setPreflight(QStringLiteral("failed"), tr("Installation did not complete. Generate and validate a new plan before trying again."));
         }
         process->deleteLater();
         emit installationChanged();
     });
     process->start(script);
+}
+
+void InstallerController::retryInstallation()
+{
+    if (m_installationState != QStringLiteral("failed") || !m_installationRetryable || m_installationProcess) {
+        setError(tr("This installation attempt cannot be retried in place. Restart the Live session first."));
+        return;
+    }
+    // Re-record the confirmation for the same reviewed plan revision; the
+    // backend consumes the marker only once disk work begins.
+    const quint64 revision = m_confirmedPlanRevision;
+    confirmSummary();
+    if (!m_summaryConfirmed || revision != m_planRevision) {
+        m_installationRetryable = false;
+        emit installationChanged();
+        return;
+    }
+    setError({});
+    startInstallation();
 }
 
 void InstallerController::updateInstallation(const QString &state, int progress, const QString &stage, const QString &message)

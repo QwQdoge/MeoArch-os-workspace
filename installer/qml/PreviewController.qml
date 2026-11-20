@@ -39,7 +39,8 @@ QtObject {
     property string installationState: previewFailed ? "failed" : previewComplete ? "complete" : previewInstalling ? "running" : "idle"
     property int installationProgress: previewFailed ? 5 : previewComplete ? 100 : previewInstalling ? 35 : 0
     property string installationStage: previewFailed ? "preflighting_meo_repository" : previewComplete ? "complete" : previewInstalling ? "installing_base" : "idle"
-    property string installationFailureDetails: previewFailed ? qsTr("Selected packages could not be verified. Check the connection and repository, then restart before another attempt.") : ""
+    property string installationFailureDetails: previewFailed ? qsTr("Selected packages could not be verified. Check the connection and repository, then retry.") : ""
+    property bool installationRetryable: previewFailed
     property string installationMessage: previewFailed ? qsTr("Package verification failed before disk preparation.") : previewComplete ? qsTr("Installation complete.")
                                                        : previewInstalling ? qsTr("Installing the base system and packages") : ""
     property string preflightState: "ready"
@@ -177,6 +178,7 @@ QtObject {
     }
     function prepareInstallation() { preflightState = "ready"; preflightMessage = qsTr("Visual preview only — no installation backend is invoked.") }
     function confirmSummary() {}
+    function retryInstallation() { installationRetryable = false; startInstallation() }
     function startInstallation() { installationState = "complete"; installationProgress = 100; installationStage = "complete"; installationMessage = qsTr("Visual preview complete.") }
     function installationLogPath() { return "/tmp/meoarch-installer/logs/install.log" }
     function installationLogDetails() { return qsTr("Visual preview only — no installation log is written.") }

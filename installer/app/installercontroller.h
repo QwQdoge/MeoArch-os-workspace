@@ -50,6 +50,7 @@ class InstallerController final : public QObject
     Q_PROPERTY(QString installationStage READ installationStage NOTIFY installationChanged)
     Q_PROPERTY(QString installationMessage READ installationMessage NOTIFY installationChanged)
     Q_PROPERTY(QString installationFailureDetails READ installationFailureDetails NOTIFY installationChanged)
+    Q_PROPERTY(bool installationRetryable READ installationRetryable NOTIFY installationChanged)
     Q_PROPERTY(QString preflightState READ preflightState NOTIFY preflightChanged)
     Q_PROPERTY(QString preflightMessage READ preflightMessage NOTIFY preflightChanged)
     Q_PROPERTY(QVariantMap installPlan READ installPlan NOTIFY preflightChanged)
@@ -100,6 +101,7 @@ public:
     QString installationStage() const { return m_installationStage; }
     QString installationMessage() const { return m_installationMessage; }
     QString installationFailureDetails() const { return m_installationFailureDetails; }
+    bool installationRetryable() const { return m_installationRetryable; }
     QString preflightState() const { return m_preflightState; }
     QString preflightMessage() const { return m_preflightMessage; }
     QVariantMap installPlan() const { return m_installPlan; }
@@ -146,6 +148,7 @@ public:
     Q_INVOKABLE void prepareInstallation();
     Q_INVOKABLE void confirmSummary();
     Q_INVOKABLE void startInstallation();
+    Q_INVOKABLE void retryInstallation();
     Q_INVOKABLE QString installationLogPath() const;
     Q_INVOKABLE QString installationLogDetails() const;
     Q_INVOKABLE void openLiveRepair();
@@ -253,6 +256,7 @@ private:
     QString m_installationStage;
     QString m_installationMessage;
     QString m_installationFailureDetails;
+    bool m_installationRetryable = false;
     QString m_preflightState = QStringLiteral("idle");
     QString m_preflightMessage;
     QVariantMap m_installPlan;

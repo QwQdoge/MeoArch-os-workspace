@@ -14,28 +14,31 @@ PageFrame {
         const lines = text.split("\n")
         return lines.length ? lines[lines.length - 1] : ""
     }
-    readonly property bool failedBeforeDiskWork: controller && controller.installationState === "failed"
-        && (controller.installationStage === "preflight"
-            || controller.installationStage === "preflighting_arch_packages"
-            || controller.installationStage === "preflighting_meo_repository")
+    readonly property bool failed: controller && controller.installationState === "failed"
+    // Reported by the backend: true only when the attempt stopped before any
+    // disk-writing command, so the same confirmed plan can be retried.
+    readonly property bool failedBeforeDiskWork: page.failed && controller.installationRetryable === true
     showBackButton: false
-    showPrimaryButton: controller && (controller.installationState === "complete"
-                                      || controller.installationState === "failed")
-    primaryLabel: controller && controller.installationState === "failed"
-                  ? qsTr("Review Summary") : qsTr("Continue")
+    showPrimaryButton: controller && (controller.installationState === "complete" || page.failed)
+    primaryLabel: page.failedBeforeDiskWork ? qsTr("Retry installation")
+                  : page.failed ? qsTr("Review Summary") : qsTr("Continue")
     primaryAdvances: controller && controller.installationState === "complete"
-    primaryAccessibleDescription: controller && controller.installationState === "failed"
+    primaryAccessibleDescription: page.failedBeforeDiskWork
+                                  ? qsTr("Runs the same confirmed plan again. No disk changes were made by the failed attempt")
+                                  : page.failed
                                   ? qsTr("Returns to Summary for review only. Restart the Live session before another installation attempt")
                                   : qsTr("Continues to the completed installation screen")
     onPrimaryRequested: {
-        if (controller && controller.installationState === "failed")
+        if (page.failedBeforeDiskWork)
+            controller.retryInstallation()
+        else if (page.failed)
             navigateRequested(9)
     }
     function stageLabel(stage) {
         if (stage === "preflighting_arch_packages") return qsTr("Checking Arch packages")
         if (stage === "preflighting_meo_repository" || stage === "preflight") return qsTr("Checking selected packages")
         if (stage === "preparing_disk") return qsTr("Preparing selected disk")
-        if (stage === "installing_base") return qsTr("Installing base system")
+        if (stage === "installing_base") return qsTr("Partitioning and installing base system")
         if (stage === "configuring_meo_repository") return qsTr("Configuring MeoArch repository")
         if (stage === "installing_meo_packages") return qsTr("Installing MeoArch packages")
         if (stage === "applying_meo") return qsTr("Applying MeoArch settings")
@@ -59,7 +62,13 @@ PageFrame {
     Column {
         width: parent.width
         spacing: page.compactHeight ? page.dp(12) : page.dp(18)
-        PageHeading { width: parent.width; title: qsTr("Installing"); subtitle: qsTr("Keep this device powered on while MeoArch is installed.") }
+        PageHeading {
+            width: parent.width
+            title: page.failedBeforeDiskWork ? qsTr("Installation paused")
+                   : page.failed ? qsTr("Installation stopped") : qsTr("Installing")
+            subtitle: page.failedBeforeDiskWork ? qsTr("Nothing on the disk was changed. Fix the problem below, then retry.")
+                      : qsTr("Keep this device powered on while MeoArch is installed.")
+        }
         Row {
             id: progressHeader
             width: parent.width; spacing: page.dp(16)
@@ -148,6 +157,15 @@ PageFrame {
                 }
             }
             MeoButton {
+                visible: page.failedBeforeDiskWork
+                text: page.controller && page.controller.networkState === "online"
+                      ? qsTr("Network connected") : qsTr("Recheck network")
+                icon.name: page.controller && page.controller.networkState === "online" ? "wifi" : "wifi_off"
+                type: "tonal"
+                enabled: !page.controller || page.controller.networkState !== "checking"
+                onClicked: page.controller.retryNetwork()
+            }
+            MeoButton {
                 visible: page.controller && page.controller.installationState === "failed" && page.desktopLive
                 text: qsTr("Return to Live Desktop")
                 onClicked: page.exitRequested()
@@ -158,7 +176,7 @@ PageFrame {
                 onClicked: page.controller.openLiveRepair()
             }
             MeoButton {
-                visible: page.controller && page.controller.installationState === "failed"
+                visible: page.failed && !page.failedBeforeDiskWork
                 text: qsTr("Restart Live Environment")
                 icon.name: "restart_alt"
                 type: "tonal"
@@ -183,10 +201,11 @@ PageFrame {
         InfoBanner {
             visible: page.controller && page.controller.installationState === "failed"
             width: parent.width
-            tone: "warning"
-            title: qsTr("Restart before another installation")
+            tone: page.failedBeforeDiskWork ? "info" : "warning"
+            title: page.failedBeforeDiskWork ? qsTr("No disk changes were made")
+                                             : qsTr("Restart before another installation")
             message: page.failedBeforeDiskWork
-                     ? qsTr("Package checks stopped before disk preparation. No disk changes were made by this attempt. Read the Live diagnostic log, then restart before another installation attempt.")
+                     ? qsTr("The attempt stopped during the network and package checks, before the disk was touched. Check the connection, then choose Retry installation. Your choices are kept.")
                      : qsTr("Some disk changes may already have happened. Read the Live diagnostic log, then restart the Live session before another installation attempt. Summary is available for review only.")
         }
     }

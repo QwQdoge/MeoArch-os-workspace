@@ -1176,6 +1176,11 @@
     <message><source>On</source><translation>开</translation></message>
     <message><source>Off</source><translation>关</translation></message>
     <message><source>Target disk</source><translation>目标磁盘</translation></message>
+    <message>
+        <location filename="../app/installercontroller.cpp" line="0"/>
+        <source>This installation attempt cannot be retried in place. Restart the Live session first.</source>
+        <translation>此次安装尝试无法直接重试，请先重启 Live 环境。</translation>
+    </message>
 </context>
 <context>
     <name>InstallingPage</name>
@@ -1325,6 +1330,51 @@
     <message>
         <source>Checking Arch packages</source>
         <translation>正在检查 Arch 软件包</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="0"/>
+        <source>Retry installation</source>
+        <translation>重试安装</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="0"/>
+        <source>Runs the same confirmed plan again. No disk changes were made by the failed attempt</source>
+        <translation>使用同一份已确认的方案重新运行。失败的那次尝试没有改动磁盘</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="0"/>
+        <source>Partitioning and installing base system</source>
+        <translation>正在分区并安装基础系统</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="0"/>
+        <source>Network connected</source>
+        <translation>网络已连接</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="0"/>
+        <source>Recheck network</source>
+        <translation>重新检查网络</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="0"/>
+        <source>No disk changes were made</source>
+        <translation>磁盘未被改动</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="0"/>
+        <source>The attempt stopped during the network and package checks, before the disk was touched. Check the connection, then choose Retry installation. Your choices are kept.</source>
+        <translation>本次尝试在网络和软件包检查阶段停止，尚未改动磁盘。请检查网络连接，然后选择“重试安装”。你的所有选择都已保留。</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="0"/>
+        <source>Installation paused</source>
+        <translation>安装已暂停</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/InstallingPage.qml" line="0"/>
+        <source>Nothing on the disk was changed. Fix the problem below, then retry.</source>
+        <translation>磁盘没有任何改动。请先解决下方的问题，然后重试。</translation>
     </message>
 </context>
 <context>

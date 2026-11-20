@@ -13,6 +13,8 @@ lock_acquired=false
 destructive_started=false
 confirmation_consumed=false
 state_safe=false
+events_ready=false
+current_stage="preflight"
 
 require_private_directory() {
   python3 - "$1" <<'PY'
@@ -65,6 +67,13 @@ cleanup_secrets() {
 cleanup() {
   local status=$?
   trap - EXIT INT TERM
+  # Tell the GUI exactly how far a failed attempt got. diskTouched=false is
+  # emitted only while no disk-writing command has been started, so the GUI can
+  # offer an in-place retry without guessing from stage names.
+  if [ "${status}" -ne 0 ] && [ "${events_ready}" = true ] && [ ! -L "${events_file}" ]; then
+    printf '{"event":"failed","stage":"%s","exitCode":%s,"diskTouched":%s}\n' \
+      "${current_stage}" "${status}" "${destructive_started}" >>"${events_file}" 2>/dev/null || true
+  fi
   if [ "${state_safe}" = true ]; then
     cleanup_secrets
     cleanup_network_handoff
@@ -95,6 +104,7 @@ fi
 umask 077
 : >"${events_file}"
 : >"${log_file}"
+events_ready=true
 
 log() {
   printf '%s\n' "$1" | tee -a "${log_file}"
@@ -104,6 +114,7 @@ progress() {
   local id="$1"
   local percent="$2"
   local message="$3"
+  current_stage="${id}"
   printf '{"event":"stage","id":"%s","progress":%s,"message":"%s"}\n' \
     "${id}" "${percent}" "${message//\"/\\\"}" >>"${events_file}"
   printf '[%s%%] %s\n' "${percent}" "${message}" | tee -a "${log_file}"
@@ -497,8 +508,9 @@ if ! mv -f "${confirm_file}" "${consumed_confirm_file}"; then
   exit 3
 fi
 confirmation_consumed=true
-progress "preparing_disk" 10 "Preparing the selected disk"
-progress "installing_base" 35 "Installing the base system and packages"
+# Archinstall partitions and installs the base system in one long command, so
+# report it as one stage instead of two back-to-back events.
+progress "installing_base" 10 "Partitioning the selected disk and installing the base system"
 destructive_started=true
 archinstall --silent --config "${config_file}" --creds "${creds_file}" 2>&1 | tee -a "${log_file}"
 
@@ -530,7 +542,28 @@ PY
 )
 [ "${#meo_packages[@]}" -gt 0 ] || { echo "Resolved Meo package set is empty." | tee -a "${log_file}" >&2; exit 9; }
 progress "installing_meo_packages" 82 "Installing selected MeoArch packages"
-arch-chroot "${target_root}" pacman -Syu --needed --noconfirm "${meo_packages[@]}" 2>&1 | tee -a "${log_file}"
+# The disk already holds a base system here, so a transient mirror or network
+# failure must not end the whole installation. pacman transactions are atomic
+# and --needed makes a repeat safe; retry a bounded number of times.
+meo_install_ok=false
+for attempt in 1 2 3; do
+  set +e
+  arch-chroot "${target_root}" pacman -Syu --needed --noconfirm "${meo_packages[@]}" 2>&1 | tee -a "${log_file}"
+  meo_install_rc=${PIPESTATUS[0]}
+  set -e
+  if [ "${meo_install_rc}" -eq 0 ]; then
+    meo_install_ok=true
+    break
+  fi
+  if [ "${attempt}" -lt 3 ]; then
+    progress "installing_meo_packages" 82 "Package download failed; retrying (${attempt}/2)"
+    sleep $((attempt * 10))
+  fi
+done
+if [ "${meo_install_ok}" != true ]; then
+  echo "Installing the selected MeoArch packages failed after 3 attempts. Check the network connection." | tee -a "${log_file}" >&2
+  exit 10
+fi
 for package in "${meo_packages[@]}"; do
   arch-chroot "${target_root}" pacman -Q "${package}" >/dev/null || {
     echo "Selected Meo package was not installed: ${package}" | tee -a "${log_file}" >&2
